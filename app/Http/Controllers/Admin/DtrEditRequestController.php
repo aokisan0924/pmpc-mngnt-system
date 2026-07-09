@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\DtrEditRequest;
+use App\Models\EmployeeNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -53,7 +54,6 @@ class DtrEditRequestController extends Controller
             return back()->withErrors(['error' => 'This request has already been resolved.']);
         }
 
-        // Apply the corrected times to the DTR log
         $log = $editRequest->dtrLog;
         $log->am_time_in  = $editRequest->requested_am_time_in;
         $log->am_time_out = $editRequest->requested_am_time_out;
@@ -68,6 +68,16 @@ class DtrEditRequestController extends Controller
             'reviewed_by' => $request->user()->id,
             'reviewed_at' => now(),
         ]);
+
+        // Notify employee
+        EmployeeNotification::send(
+            employeeId: $editRequest->employee_id,
+            type:       'dtr_edit_approved',
+            title:      'DTR edit request approved',
+            message:    "Your DTR edit request for {$log->date->format('M d, Y')} has been approved."
+                . ($request->admin_note ? " Note: {$request->admin_note}" : ''),
+            link:       '/employee/dtr',
+        );
 
         return back()->with('success', 'Edit request approved.');
     }
@@ -87,6 +97,16 @@ class DtrEditRequestController extends Controller
             'reviewed_by' => $request->user()->id,
             'reviewed_at' => now(),
         ]);
+
+        // Notify employee
+        EmployeeNotification::send(
+            employeeId: $editRequest->employee_id,
+            type:       'dtr_edit_declined',
+            title:      'DTR edit request declined',
+            message:    "Your DTR edit request for {$editRequest->dtrLog->date->format('M d, Y')} was declined."
+                . ($request->admin_note ? " Reason: {$request->admin_note}" : ''),
+            link:       '/employee/dtr',
+        );
 
         return back()->with('success', 'Edit request declined.');
     }

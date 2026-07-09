@@ -49,11 +49,18 @@ class DtrLog extends Model
 
     // ── Hours + status computation ─────────────────────────
 
-    public function computeHoursAndStatus(
-        string $shiftStart = '08:00',
-        string $shiftEnd   = '17:00',
-        int    $requiredHours = 8
-    ): void {
+    public function computeHoursAndStatus(): void {
+        $shiftStart    = Setting::get('shift_start', '08:00');
+        $shiftEnd      = Setting::get('shift_end', '17:00');
+        $graceMinutes  = (int) Setting::get('late_grace_minutes', '0');
+
+        // Add grace period to shift start
+        [$h, $m]    = explode(':', $shiftStart);
+        $graceTime  = sprintf('%02d:%02d', ...array_values(
+            ['h' => floor(($h * 60 + $m + $graceMinutes) / 60),
+            'm' => ($h * 60 + $m + $graceMinutes) % 60]
+        ));
+
         $amMinutes = 0;
         $pmMinutes = 0;
 
@@ -67,21 +74,17 @@ class DtrLog extends Model
                 ->diffInMinutes(Carbon::parse($this->pm_time_in));
         }
 
-        $totalMinutes = $amMinutes + $pmMinutes;
-        $this->hours_rendered = round($totalMinutes / 60, 2);
+        $this->hours_rendered = round(($amMinutes + $pmMinutes) / 60, 2);
 
-        // Determine status
         $hasAm = $this->am_time_in && $this->am_time_out;
         $hasPm = $this->pm_time_in && $this->pm_time_out;
 
         if (! $hasAm && ! $hasPm) {
             $this->status = 'absent';
-        } elseif ($hasAm && ! $hasPm) {
-            $this->status = 'half_day';
-        } elseif ($hasPm && ! $hasAm) {
+        } elseif (! $hasAm || ! $hasPm) {
             $this->status = 'half_day';
         } else {
-            $isLate      = $this->am_time_in > $shiftStart;
+            $isLate      = $this->am_time_in > $graceTime;
             $isUndertime = $this->pm_time_out < $shiftEnd;
 
             if ($isLate) {

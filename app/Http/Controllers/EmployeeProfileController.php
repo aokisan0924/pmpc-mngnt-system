@@ -97,4 +97,11 @@ class EmployeeProfileController extends Controller
 
         return back()->with('success', 'Password changed successfully.');
     }
+
+    public function updateCompensation(Request $request): RedirectResponse {
+        $employee = $request->user();
+
+        // Employees cannot update their own compensation
+        abort(403);
+    }
 }

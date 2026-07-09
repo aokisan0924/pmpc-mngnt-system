@@ -8,6 +8,7 @@ const navItems = [
     { label: 'Process payroll', href: '/admin/payroll',        section: 'Payroll'    },
     { label: 'DTR archives',    href: '/admin/archives',       section: 'Payroll'    },
     { label: 'Settings',        href: '/admin/settings',       section: 'System'     },
+    { label: '13th month pay', href: '/admin/thirteenth-month', section: 'Payroll' },
 ]
 
 export default function AdminLayout({ children, pendingEditCount = 0 }) {

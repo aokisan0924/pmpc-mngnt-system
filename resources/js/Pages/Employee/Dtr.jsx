@@ -1,14 +1,29 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import DtrEditRequestModal from '@/Components/DtrEditRequestModal'
 
+/* ---------- design tokens ---------- */
+const C = {
+    bg:        '#06090D',
+    panel:     'rgba(14,20,27,0.72)',
+    border:    '#1F2C35',
+    text:      '#E7F1EE',
+    sub:       '#83979C',
+    dim:       '#4C5C61',
+    teal:      '#14F1B2',
+    blue:      '#5AA9FF',
+    amber:     '#FFC168',
+    purple:    '#C29CFF',
+    red:       '#FF6B81',
+}
+
 const STATUS_STYLES = {
-    on_time:  { bg: 'bg-emerald-50',  text: 'text-emerald-700',  label: 'On time'   },
-    late:     { bg: 'bg-amber-50',    text: 'text-amber-700',    label: 'Late'      },
-    undertime:{ bg: 'bg-blue-50',     text: 'text-blue-700',     label: 'Undertime' },
-    half_day: { bg: 'bg-purple-50',   text: 'text-purple-700',   label: 'Half day'  },
-    absent:   { bg: 'bg-red-50',      text: 'text-red-700',      label: 'Absent'    },
+    on_time:   { color: C.teal,   label: 'On time'   },
+    late:      { color: C.amber,  label: 'Late'      },
+    undertime: { color: C.blue,   label: 'Undertime' },
+    half_day:  { color: C.purple, label: 'Half day'  },
+    absent:    { color: C.red,    label: 'Absent'    },
 }
 
 const PUNCH_LABELS = {
@@ -17,11 +32,52 @@ const PUNCH_LABELS = {
     pm_time_in:  'PM In',
     pm_time_out: 'PM Out',
 }
+const SLOT_ORDER = ['am_time_in', 'am_time_out', 'pm_time_in', 'pm_time_out']
+
+const IconArrow = (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...p}>
+        <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+)
+const IconCheck = (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" {...p}>
+        <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+)
+const IconChevronLeft = (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...p}>
+        <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+)
+const IconChevronRight = (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...p}>
+        <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+)
+
+/* ---------- skeleton primitive ---------- */
+const Skeleton = ({ className = '', style = {} }) => (
+    <span className={`inline-block skeleton-shimmer rounded-md align-middle ${className}`} style={style} />
+)
 
 export default function Dtr({ logs, today, summary, month, next_punch }) {
     const { flash } = usePage().props
     const [editTarget, setEditTarget] = useState(null)
     const [punching, setPunching]     = useState(false)
+    const [now, setNow] = useState(new Date())
+    const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        const id = setInterval(() => setNow(new Date()), 1000)
+        return () => clearInterval(id)
+    }, [])
+
+    // Any in-flight Inertia visit (month change, punch, edit request) shows skeletons below
+    useEffect(() => {
+        const stop = router.on('start', () => setLoading(true))
+        const finish = router.on('finish', () => setLoading(false))
+        return () => { stop(); finish() }
+    }, [])
 
     function handlePunch() {
         setPunching(true)
@@ -31,6 +87,7 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
     }
 
     function handleMonthChange(dir) {
+        if (loading) return
         const d = new Date(month + '-01')
         d.setMonth(d.getMonth() + dir)
         const newMonth = d.toISOString().slice(0, 7)
@@ -38,154 +95,266 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
     }
 
     const nextLabel = next_punch ? PUNCH_LABELS[next_punch] : null
+    const nextIndex = next_punch ? SLOT_ORDER.indexOf(next_punch) : SLOT_ORDER.length
+    const timeStr = now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+
+    const stats = [
+        { label: 'Days present',  value: summary.days_present, accent: C.teal },
+        { label: 'Days late',     value: summary.days_late, accent: C.amber },
+        { label: 'Hours rendered',value: `${summary.hours_rendered}h`, accent: C.blue },
+        { label: 'Pending edits', value: summary.pending_edits, accent: C.purple },
+    ]
 
     return (
         <EmployeeLayout>
-            <div className="p-6 max-w-5xl mx-auto">
+            <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
+                <div className="pointer-events-none absolute -top-40 -left-32 w-[28rem] h-[28rem] rounded-full blur-[120px] opacity-20"
+                    style={{ background: C.teal }} />
 
-                {/* Flash */}
-                {flash?.success && (
-                    <div className="mb-4 px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
-                        {flash.success}
-                    </div>
-                )}
+                <div className="relative p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
 
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <h1 className="text-lg font-medium text-gray-900">Daily time record</h1>
-                        <p className="text-sm text-gray-500 mt-0.5">Track your daily attendance</p>
-                    </div>
-
-                    {/* Clock button */}
-                    {nextLabel && (
-                        <button
-                            onClick={handlePunch}
-                            disabled={punching}
-                            className="px-5 py-2.5 rounded-lg text-sm font-medium text-white disabled:opacity-60 transition-opacity"
-                            style={{ background: '#0F6E56' }}>
-                            {punching ? 'Recording…' : `Clock ${nextLabel}`}
-                        </button>
+                    {/* Flash */}
+                    {flash?.success && (
+                        <div className="mb-4 px-4 py-3 rounded-xl border text-sm animate-in"
+                            style={{ background: 'rgba(20,241,178,0.08)', borderColor: 'rgba(20,241,178,0.3)', color: C.teal }}>
+                            {flash.success}
+                        </div>
                     )}
-                    {!nextLabel && (
-                        <span className="px-4 py-2 rounded-lg text-sm bg-gray-100 text-gray-500">
-                            All punches complete
-                        </span>
-                    )}
-                </div>
 
-                {/* Today's punches */}
-                <div className="bg-white rounded-xl border border-gray-200 p-4 mb-5">
-                    <p className="text-sm font-medium text-gray-700 mb-3">
-                        Today — {new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' })}
-                    </p>
-                    <div className="grid grid-cols-4 gap-3">
-                        {['am_time_in', 'am_time_out', 'pm_time_in', 'pm_time_out'].map((slot) => (
-                            <div key={slot} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                                <p className="text-xs text-gray-400 mb-1">{PUNCH_LABELS[slot]}</p>
-                                <p className={`text-sm font-medium ${today[slot] ? 'text-gray-800' : 'text-gray-300'}`}>
-                                    {today[slot]
-                                        ? today[slot].slice(0, 5)
-                                        : '—'}
+                    {/* Header */}
+                    <div className="flex flex-col gap-1 mb-6 animate-in">
+                        <p className="text-[11px] uppercase tracking-[0.2em] font-mono" style={{ color: C.teal }}>
+                            Time &amp; Attendance
+                        </p>
+                        <h1 className="font-display text-xl sm:text-2xl font-semibold" style={{ color: C.text }}>
+                            Daily time record
+                        </h1>
+                        <p className="text-sm" style={{ color: C.sub }}>Track your daily attendance</p>
+                    </div>
+
+                    {/* Hero: live clock + punch stepper */}
+                    <div className="relative rounded-2xl border backdrop-blur-xl p-5 sm:p-6 mb-5 overflow-hidden animate-in"
+                        style={{ background: C.panel, borderColor: C.border, animationDelay: '80ms' }}>
+
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                            <div>
+                                <p className="text-xs mb-1" style={{ color: C.dim }}>
+                                    {now.toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' })}
                                 </p>
+                                <p className="font-mono text-4xl sm:text-5xl tabular-nums tracking-tight" style={{ color: C.text }}>
+                                    {timeStr}
+                                </p>
+                            </div>
+
+                            {nextLabel ? (
+                                <button
+                                    onClick={handlePunch}
+                                    disabled={punching || loading}
+                                    className="px-6 py-3.5 rounded-xl text-sm font-semibold text-black disabled:opacity-60 disabled:cursor-not-allowed transition-all hover:brightness-110 pulse-ring w-full lg:w-auto"
+                                    style={{ background: C.teal, boxShadow: `0 0 30px -6px ${C.teal}` }}>
+                                    {punching ? 'Recording…' : `Clock ${nextLabel}`}
+                                </button>
+                            ) : (
+                                <span className="px-5 py-3 rounded-xl text-sm border text-center"
+                                    style={{ borderColor: C.border, color: C.sub }}>
+                                    All punches complete for today
+                                </span>
+                            )}
+                        </div>
+
+                        {/* stepper */}
+                        <div className="mt-7 flex items-center">
+                            {SLOT_ORDER.map((slot, i) => {
+                                const done = Boolean(today[slot])
+                                const isNext = slot === next_punch
+                                const isLast = i === SLOT_ORDER.length - 1
+                                const nodeColor = done ? C.teal : isNext ? C.amber : C.dim
+                                return (
+                                    <div key={slot} className="flex items-center flex-1 last:flex-none">
+                                        <div className="flex flex-col items-center gap-2 min-w-[64px]">
+                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${isNext ? 'pulse-ring' : ''}`}
+                                                style={{
+                                                    borderColor: nodeColor,
+                                                    background: done ? 'rgba(20,241,178,0.12)' : 'transparent',
+                                                    color: nodeColor,
+                                                }}>
+                                                {done ? <IconCheck className="w-4 h-4" /> : <span className="text-[11px] font-mono">{i + 1}</span>}
+                                            </div>
+                                            <div className="text-center">
+                                                <p className="text-[11px] font-medium" style={{ color: done ? C.text : isNext ? C.amber : C.dim }}>
+                                                    {PUNCH_LABELS[slot]}
+                                                </p>
+                                                <p className="text-[10px] font-mono" style={{ color: C.dim }}>
+                                                    {done ? today[slot].slice(0, 5) : isNext ? 'up next' : '—'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {!isLast && (
+                                            <div className="flex-1 h-[2px] mx-1 sm:mx-2 rounded-full"
+                                                style={{ background: done ? C.teal : C.border, opacity: done ? 0.6 : 1 }} />
+                                        )}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Summary stats */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+                        {stats.map((s, i) => (
+                            <div key={s.label} className="relative rounded-2xl border backdrop-blur-xl p-3.5 overflow-hidden animate-in"
+                                 style={{ background: C.panel, borderColor: C.border, animationDelay: `${160 + i * 60}ms` }}>
+                                <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: s.accent, opacity: 0.6 }} />
+                                <p className="text-xs mb-1" style={{ color: C.sub }}>{s.label}</p>
+                                {loading ? (
+                                    <Skeleton className="h-6 w-12" />
+                                ) : (
+                                    <p className="font-mono text-xl font-medium" style={{ color: C.text }}>{s.value}</p>
+                                )}
                             </div>
                         ))}
                     </div>
-                </div>
 
-                {/* Summary stats */}
-                <div className="grid grid-cols-4 gap-3 mb-5">
-                    {[
-                        { label: 'Days present',   value: summary.days_present },
-                        { label: 'Days late',       value: summary.days_late },
-                        { label: 'Hours rendered',  value: `${summary.hours_rendered}h` },
-                        { label: 'Pending edits',   value: summary.pending_edits },
-                    ].map((s) => (
-                        <div key={s.label} className="bg-white rounded-xl border border-gray-200 p-3">
-                            <p className="text-xs text-gray-500 mb-1">{s.label}</p>
-                            <p className="text-xl font-medium text-gray-800">{s.value}</p>
+                    {/* Month navigator */}
+                    <div className="flex items-center justify-between mb-3 rounded-xl border px-2 py-1.5"
+                        style={{ borderColor: C.border, background: C.panel }}>
+                        <button onClick={() => handleMonthChange(-1)}
+                                disabled={loading}
+                                aria-label="Previous month"
+                                className="flex items-center gap-1 text-sm px-2 py-1.5 rounded-lg transition-colors hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed"
+                                style={{ color: C.sub }}>
+                            <IconChevronLeft className="w-4 h-4" /> Prev
+                        </button>
+                        <p className="text-sm font-medium font-display" style={{ color: C.text }}>
+                            {new Date(month + '-01').toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}
+                        </p>
+                        <button onClick={() => handleMonthChange(1)}
+                                disabled={loading}
+                                aria-label="Next month"
+                                className="flex items-center gap-1 text-sm px-2 py-1.5 rounded-lg transition-colors hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed"
+                                style={{ color: C.sub }}>
+                            Next <IconChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
+
+                    {/* Month navigator */}
+                    <div className="flex items-center justify-between mb-3">
+                        <button onClick={() => handleMonthChange(-1)}
+                            className="text-sm text-gray-500 hover:text-gray-800 px-2 py-1">
+                            ← Prev
+                        </button>
+                        <p className="text-sm font-medium text-gray-700">
+                            {new Date(month + '-02').toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}
+                        </p>
+                        <div className="flex items-center gap-2">
+                            <a href={`/employee/dtr/print?month=${month}`}
+                                target="_blank"
+                                className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                                Print DTR ↓
+                            </a>
+                            <button onClick={() => handleMonthChange(1)}
+                                className="text-sm text-gray-500 hover:text-gray-800 px-2 py-1">
+                                Next →
+                            </button>
                         </div>
-                    ))}
-                </div>
+                    </div>
 
-                {/* Month navigator */}
-                <div className="flex items-center justify-between mb-3">
-                    <button onClick={() => handleMonthChange(-1)}
-                        className="text-sm text-gray-500 hover:text-gray-800 px-2 py-1">
-                        ← Prev
-                    </button>
-                    <p className="text-sm font-medium text-gray-700">
-                        {new Date(month + '-01').toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}
-                    </p>
-                    <button onClick={() => handleMonthChange(1)}
-                        className="text-sm text-gray-500 hover:text-gray-800 px-2 py-1">
-                        Next →
-                    </button>
-                </div>
-
-                {/* DTR log table */}
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="border-b border-gray-100">
-                                <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">Date</th>
-                                <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium border-r border-gray-100">AM In</th>
-                                <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium border-r border-gray-100">AM Out</th>
-                                <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium border-r border-gray-100">PM In</th>
-                                <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium border-r border-gray-100">PM Out</th>
-                                <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium">Hours</th>
-                                <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium">Status</th>
-                                <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {logs.map((log) => {
-                                const style = STATUS_STYLES[log.status] ?? STATUS_STYLES.absent
-                                return (
-                                    <tr key={log.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-3 text-gray-600 text-xs">{log.date_label}</td>
-                                        {['am_time_in', 'am_time_out', 'pm_time_in', 'pm_time_out'].map((slot, i) => (
-                                            <td key={slot}
-                                                className={`px-3 py-3 text-center text-xs font-medium ${i === 1 ? 'border-r border-gray-100' : ''}`}>
-                                                {log[slot]
-                                                    ? <span className="text-gray-800">{log[slot].slice(0, 5)}</span>
-                                                    : <span className="text-gray-300">—</span>}
-                                            </td>
+                    {/* DTR log table */}
+                    <div className="rounded-2xl border backdrop-blur-xl overflow-hidden animate-in" style={{ background: C.panel, borderColor: C.border }}>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm min-w-[640px]">
+                                <thead>
+                                    <tr className="border-b" style={{ borderColor: C.border }}>
+                                        <th className="text-left px-4 py-3 text-[11px] font-medium uppercase tracking-wide" style={{ color: C.dim }}>Date</th>
+                                        {SLOT_ORDER.map(slot => (
+                                            <th key={slot} className="text-center px-3 py-3 text-[11px] font-medium uppercase tracking-wide" style={{ color: C.dim }}>
+                                                {PUNCH_LABELS[slot]}
+                                            </th>
                                         ))}
-                                        <td className="px-3 py-3 text-center text-xs text-gray-600">
-                                            {log.hours_rendered ? `${log.hours_rendered}h` : '—'}
-                                        </td>
-                                        <td className="px-3 py-3 text-center">
-                                            <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${style.bg} ${style.text}`}>
-                                                {log.has_pending_edit ? 'Pending edit' : style.label}
-                                            </span>
-                                        </td>
-                                        <td className="px-3 py-3 text-center">
-                                            {!log.has_pending_edit && (
-                                                <button
-                                                    onClick={() => setEditTarget(log)}
-                                                    className="text-xs hover:underline"
-                                                    style={{ color: '#0F6E56' }}>
-                                                    Request edit
-                                                </button>
-                                            )}
-                                        </td>
+                                        <th className="text-center px-3 py-3 text-[11px] font-medium uppercase tracking-wide" style={{ color: C.dim }}>Hours</th>
+                                        <th className="text-center px-3 py-3 text-[11px] font-medium uppercase tracking-wide" style={{ color: C.dim }}>Status</th>
+                                        <th className="text-center px-3 py-3 text-[11px] font-medium uppercase tracking-wide" style={{ color: C.dim }}></th>
                                     </tr>
-                                )
-                            })}
-                            {logs.length === 0 && (
-                                <tr>
-                                    <td colSpan={8} className="px-4 py-8 text-center text-sm text-gray-400">
-                                        No DTR records for this month.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody>
+                                    {loading && Array.from({ length: Math.max(logs.length, 5) }).map((_, i) => (
+                                        <tr key={`skeleton-${i}`} className="border-b" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                                            <td className="px-4 py-3"><Skeleton className="h-3.5 w-16" /></td>
+                                            {SLOT_ORDER.map(slot => (
+                                                <td key={slot} className="px-3 py-3 text-center"><Skeleton className="h-3.5 w-10" /></td>
+                                            ))}
+                                            <td className="px-3 py-3 text-center"><Skeleton className="h-3.5 w-8" /></td>
+                                            <td className="px-3 py-3 text-center"><Skeleton className="h-5 w-16 rounded-full" /></td>
+                                            <td className="px-3 py-3 text-center"><Skeleton className="h-3.5 w-14" /></td>
+                                        </tr>
+                                    ))}
+                                    {!loading && logs.map((log) => {
+                                        const style = STATUS_STYLES[log.status] ?? STATUS_STYLES.absent
+                                        return (
+                                            <tr key={log.id} className="border-b transition-colors hover:bg-white/[0.03]" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                                                <td className="px-4 py-3 text-xs" style={{ color: C.sub }}>{log.date_label}</td>
+                                                {SLOT_ORDER.map((slot) => (
+                                                    <td key={slot} className="px-3 py-3 text-center text-xs font-mono">
+                                                        {log[slot]
+                                                            ? <span style={{ color: C.text }}>{log[slot].slice(0, 5)}</span>
+                                                            : <span style={{ color: C.dim }}>—</span>}
+                                                    </td>
+                                                ))}
+                                                <td className="px-3 py-3 text-center text-xs font-mono" style={{ color: C.sub }}>
+                                                    {log.hours_rendered ? `${log.hours_rendered}h` : '—'}
+                                                </td>
+                                                <td className="px-3 py-3 text-center">
+                                                    <span className="inline-block text-xs px-2.5 py-0.5 rounded-full font-medium border"
+                                                        style={{
+                                                            color: log.has_pending_edit ? C.amber : style.color,
+                                                            borderColor: log.has_pending_edit ? 'rgba(255,193,104,0.35)' : `${style.color}55`,
+                                                            background: log.has_pending_edit ? 'rgba(255,193,104,0.08)' : `${style.color}14`,
+                                                        }}>
+                                                        {log.has_pending_edit ? 'Pending edit' : style.label}
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 py-3 text-center">
+                                                    {!log.has_pending_edit && (
+                                                        <button
+                                                            onClick={() => setEditTarget(log)}
+                                                            className="text-xs hover:underline"
+                                                            style={{ color: C.teal }}>
+                                                            Request edit
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        )
+                                    })}
+                                    {!loading && logs.length === 0 && (
+                                        <tr>
+                                            <td colSpan={8} className="px-4 py-10 text-center text-sm" style={{ color: C.dim }}>
+                                                No DTR records for this month.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
+
+                <style>{`
+                    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+                    .font-display { font-family: 'Space Grotesk', sans-serif; }
+                    .font-mono { font-family: 'JetBrains Mono', monospace; }
+                    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+                    .animate-in { animation: fadeSlideUp 0.5s ease-out both; }
+                    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(20,241,178,0.35);} 50% { box-shadow: 0 0 0 6px rgba(20,241,178,0);} }
+                    .pulse-ring { animation: pulseGlow 2.2s ease-out infinite; }
+                    @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
+                    .hud-grid { background-image: linear-gradient(rgba(20,241,178,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(20,241,178,0.05) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
+                    .skeleton-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.045) 25%, rgba(255,255,255,0.11) 37%, rgba(255,255,255,0.045) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.6s ease-in-out infinite; }
+                    @keyframes skeletonShimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+                    @media (prefers-reduced-motion: reduce) { .animate-in, .pulse-ring, .hud-grid, .skeleton-shimmer { animation: none; } .skeleton-shimmer { opacity: 0.6; } }
+                `}</style>
             </div>
 
-            {/* Edit request modal */}
             {editTarget && (
                 <DtrEditRequestModal
                     log={editTarget}

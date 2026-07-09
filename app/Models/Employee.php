@@ -23,6 +23,23 @@ class Employee extends Authenticatable
         'address',
         'date_hired',
         'status',
+        // Compensation
+        'daily_rate',
+        'transpo_allowance',
+        'rep_allowance',
+        'quarterly_allowance',
+        // Government deductions
+        'sss_deduction',
+        'philhealth_deduction',
+        'pagibig_deduction',
+        'tax_deduction',
+        // Other deductions
+        'loan_deduction',
+        'capital_contribution_deduction',
+        'cash_advance_deduction',
+        'rental_deduction',
+        'savings_deduction',
+        'other_deductions',
     ];
 
     protected $hidden = [
@@ -77,5 +94,28 @@ class Employee extends Authenticatable
         $number = (int) substr($latest, 4);
 
         return 'EMP-' . str_pad($number + 1, 4, '0', STR_PAD_LEFT);
+    }
+
+    public function getMonthlyBasicPayAttribute(): float {
+        return $this->daily_rate * 22;
+    }
+
+    public function getTotalAllowancesAttribute(): float {
+        return $this->transpo_allowance
+            + $this->rep_allowance
+            + $this->quarterly_allowance;
+    }
+
+    public function getTotalDeductionsAttribute(): float {
+        return $this->sss_deduction
+            + $this->philhealth_deduction
+            + $this->pagibig_deduction
+            + $this->tax_deduction
+            + $this->loan_deduction
+            + $this->capital_contribution_deduction
+            + $this->cash_advance_deduction
+            + $this->rental_deduction
+            + $this->savings_deduction
+            + $this->other_deductions;
     }
 }

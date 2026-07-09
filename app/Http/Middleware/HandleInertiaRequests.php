@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\EmployeeNotification;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -31,6 +32,9 @@ class HandleInertiaRequests extends Middleware
                 'success' => $request->session()->get('success'),
                 'error'   => $request->session()->get('error'),
             ],
+            'unread_notifications' => $request->user() && $request->user()->isEmployee()
+                ? EmployeeNotification::unreadCount($request->user()->id)
+                : 0,
         ]);
     }
 }
