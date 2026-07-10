@@ -20,12 +20,14 @@ class PayslipController extends Controller
     public function index(Request $request): \Inertia\Response {
         $employee = $request->user();
 
-        $payslips = PayrollItem::where('employee_id', $employee->id)
+        $items = PayrollItem::where('employee_id', $employee->id)
             ->with('payroll')
             ->orderByDesc('created_at')
-            ->get()
+            ->get();
+
+        $payslips = $items
             ->groupBy(fn($item) => Carbon::parse($item->payroll->period_from)->format('Y-m'))
-            ->map(function ($items, $month) use ($employee) {
+            ->map(function ($items, $month) {
                 $first  = $items->firstWhere('cutoff', 'first');
                 $second = $items->firstWhere('cutoff', 'second');
 
@@ -34,21 +36,65 @@ class PayslipController extends Controller
                 $totalNet   = $items->sum('net_pay');
 
                 return [
-                    'month'       => $month,
-                    'month_label' => Carbon::parse($month . '-01')->format('F Y'),
-                    'has_first'   => $first !== null,
-                    'has_second'  => $second !== null,
-                    'total_gross' => $totalGross,
-                    'total_ded'   => $totalDed,
-                    'total_net'   => $totalNet,
-                    'status'      => ($first?->payroll->status === 'finalized' && $second?->payroll->status === 'finalized')
-                        ? 'complete' : 'partial',
+                    'month'        => $month,
+                    'month_label'  => Carbon::parse($month . '-01')->format('F Y'),
+                    'year'         => Carbon::parse($month . '-01')->year,
+
+                    // 1st cutoff detail
+                    'has_first'         => $first !== null,
+                    'first_period'      => $first ? $first->payroll->period_from->format('M d') . ' – ' . $first->payroll->period_to->format('M d') : null,
+                    'first_gross'       => $first?->gross_pay         ?? 0,
+                    'first_deductions'  => $first?->total_deductions  ?? 0,
+                    'first_net'         => $first?->net_pay           ?? 0,
+                    'first_status'      => $first?->payroll->status   ?? null,
+                    'first_basic'       => $first?->cutoff_basic      ?? 0,
+                    'first_transpo'     => $first?->cutoff_transpo    ?? 0,
+                    'first_ot'          => $first?->total_ot_pay      ?? 0,
+                    'first_days'        => $first?->days_present      ?? 0,
+
+                    // 2nd cutoff detail
+                    'has_second'        => $second !== null,
+                    'second_period'     => $second ? $second->payroll->period_from->format('M d') . ' – ' . $second->payroll->period_to->format('M d') : null,
+                    'second_gross'      => $second?->gross_pay        ?? 0,
+                    'second_deductions' => $second?->total_deductions ?? 0,
+                    'second_net'        => $second?->net_pay          ?? 0,
+                    'second_status'     => $second?->payroll->status  ?? null,
+                    'second_basic'      => $second?->cutoff_basic     ?? 0,
+                    'second_transpo'    => $second?->cutoff_transpo   ?? 0,
+                    'second_ot'         => $second?->total_ot_pay     ?? 0,
+                    'second_days'       => $second?->days_present     ?? 0,
+
+                    // Monthly totals
+                    'total_gross'  => $totalGross,
+                    'total_ded'    => $totalDed,
+                    'total_net'    => $totalNet,
+                    'total_days'   => ($first?->days_present ?? 0) + ($second?->days_present ?? 0),
+
+                    // Status
+                    'status' => match(true) {
+                        $first !== null && $second !== null
+                            && $first->payroll->status === 'finalized'
+                            && $second->payroll->status === 'finalized' => 'complete',
+                        $first !== null || $second !== null => 'partial',
+                        default => 'none',
+                    },
                 ];
             })
+            ->sortByDesc('month')
             ->values();
+
+        // Career summary
+        $summary = [
+            'total_months'   => $payslips->count(),
+            'total_earned'   => $payslips->sum('total_net'),
+            'total_gross'    => $payslips->sum('total_gross'),
+            'total_days'     => $payslips->sum('total_days'),
+            'latest_net'     => $payslips->first()?->get('total_net') ?? 0,
+        ];
 
         return Inertia::render('Employee/Payslips', [
             'payslips' => $payslips,
+            'summary'  => $summary,
         ]);
     }
 

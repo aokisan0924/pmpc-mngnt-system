@@ -1,26 +1,35 @@
 import { Link, usePage, router } from '@inertiajs/react'
+import useNotifications from '@/hooks/useNotifications'
+import NotificationToast from '@/Components/NotificationToast'
 
-const navItems = [
-    { label: 'Dashboard',       href: '/employee/dashboard', section: 'Main'    },
-    { label: 'My DTR',          href: '/employee/dtr',       section: 'Main'    },
-    { label: 'Task planner',    href: '/employee/planner',   section: 'Main'    },
-    { label: 'Notifications',   href: '/employee/notifications', section: 'Main', badge: true },
-    { label: 'My profile',      href: '/employee/profile',   section: 'Account' },
-    { label: 'Government IDs',  href: '/employee/gov-ids',   section: 'Account' },
-    { label: 'Change password', href: '/employee/password',  section: 'Account' },
-    { label: 'My payslips', href: '/employee/payslips' },
+const navMain = [
+    { label: 'Dashboard',    href: '/employee/dashboard'  },
+    { label: 'My DTR',       href: '/employee/dtr'        },
+    { label: 'Task planner', href: '/employee/planner'    },
+    { label: 'My payslips',  href: '/employee/payslips'   },
+]
+
+const navAccount = [
+    { label: 'My profile',      href: '/employee/profile'  },
+    { label: 'Government IDs',  href: '/employee/profile'  },
+    { label: 'Change password', href: '/employee/profile'  },
 ]
 
 export default function EmployeeLayout({ children }) {
     const { auth, unread_notifications } = usePage().props
-    const employee  = auth?.employee
+    const employee   = auth?.employee
     const currentUrl = window.location.pathname
+
+    // Real-time notifications hook
+    const {
+        unreadCount,
+        liveNotifications,
+        dismissToast,
+    } = useNotifications(employee?.id, unread_notifications ?? 0)
 
     function logout() {
         router.post('/logout')
     }
-
-    const sections = [...new Set(navItems.map(i => i.section))]
 
     return (
         <div className="flex min-h-screen bg-gray-50">
@@ -32,8 +41,7 @@ export default function EmployeeLayout({ children }) {
                     style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                     <div className="w-7 h-7 rounded-md flex items-center justify-center"
                         style={{ background: 'rgba(255,255,255,0.15)' }}>
-                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor" strokeWidth={2}>
+                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round"
                                 d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-4a4 4 0 10-8 0 4 4 0 008 0z"/>
                         </svg>
@@ -46,28 +54,37 @@ export default function EmployeeLayout({ children }) {
 
                 {/* Nav */}
                 <nav className="flex-1 mt-2">
-                    {sections.map(section => (
-                        <div key={section}>
-                            <p style={{
-                                fontSize: 10,
-                                color: 'rgba(255,255,255,0.3)',
-                                padding: '8px 16px 2px',
-                                letterSpacing: '.5px',
-                                textTransform: 'uppercase',
-                            }}>
-                                {section}
-                            </p>
-                            {navItems.filter(i => i.section === section).map(item => (
-                                <NavLink
-                                    key={item.href}
-                                    item={item}
-                                    currentUrl={currentUrl}
-                                    badge={item.badge && unread_notifications > 0
-                                        ? unread_notifications
-                                        : null}
-                                />
-                            ))}
-                        </div>
+                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', padding: '4px 16px 2px', letterSpacing: '.5px', textTransform: 'uppercase' }}>
+                        Main
+                    </p>
+
+                    {navMain.map(item => (
+                        <NavLink key={item.href + item.label} item={item} currentUrl={currentUrl} />
+                    ))}
+
+                    {/* Notifications with live badge */}
+                    <Link href="/employee/notifications"
+                        className="flex items-center justify-between px-4 py-2 text-xs transition-colors"
+                        style={{
+                            color: currentUrl.startsWith('/employee/notifications') ? '#fff' : 'rgba(255,255,255,0.55)',
+                            background: currentUrl.startsWith('/employee/notifications') ? 'rgba(255,255,255,0.1)' : 'transparent',
+                            borderLeft: currentUrl.startsWith('/employee/notifications') ? '2px solid #9FE1CB' : '2px solid transparent',
+                        }}>
+                        <span>Notifications</span>
+                        {unreadCount > 0 && (
+                            <span className="text-xs px-1.5 py-0.5 rounded-full font-medium"
+                                style={{ background: '#FF4444', color: '#fff', fontSize: 10, minWidth: 18, textAlign: 'center' }}>
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                            </span>
+                        )}
+                    </Link>
+
+                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', padding: '10px 16px 2px', letterSpacing: '.5px', textTransform: 'uppercase' }}>
+                        Account
+                    </p>
+
+                    {navAccount.map(item => (
+                        <NavLink key={item.href + item.label} item={item} currentUrl={currentUrl} />
                     ))}
                 </nav>
 
@@ -75,18 +92,13 @@ export default function EmployeeLayout({ children }) {
                 <div className="px-4 pt-3"
                     style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                     <div className="flex items-center gap-2 mb-2">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center
-                            text-white font-medium"
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white font-medium"
                             style={{ background: 'rgba(255,255,255,0.2)', fontSize: 11 }}>
                             {employee?.initials}
                         </div>
                         <div>
-                            <p className="text-white font-medium" style={{ fontSize: 11 }}>
-                                {employee?.full_name}
-                            </p>
-                            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)' }}>
-                                {employee?.employee_id}
-                            </p>
+                            <p className="text-white font-medium" style={{ fontSize: 11 }}>{employee?.full_name}</p>
+                            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)' }}>{employee?.employee_id}</p>
                         </div>
                     </div>
                     <button onClick={logout}
@@ -100,34 +112,27 @@ export default function EmployeeLayout({ children }) {
             <main className="flex-1 flex flex-col min-w-0">
                 {children}
             </main>
+
+            {/* Live toast notifications */}
+            <NotificationToast
+                notifications={liveNotifications}
+                onDismiss={dismissToast}
+            />
         </div>
     )
 }
 
-function NavLink({ item, currentUrl, badge }) {
+function NavLink({ item, currentUrl }) {
     const active = currentUrl.startsWith(item.href)
-
     return (
         <Link href={item.href}
-            className="flex items-center justify-between px-4 py-2 text-xs transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-xs transition-colors"
             style={{
-                color:      active ? '#fff' : 'rgba(255,255,255,0.55)',
+                color: active ? '#fff' : 'rgba(255,255,255,0.55)',
                 background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
                 borderLeft: active ? '2px solid #9FE1CB' : '2px solid transparent',
             }}>
-            <span>{item.label}</span>
-            {badge && (
-                <span className="text-xs px-1.5 py-0.5 rounded-full font-medium"
-                    style={{
-                        background: '#ef4444',
-                        color: '#fff',
-                        fontSize: 9,
-                        minWidth: 16,
-                        textAlign: 'center',
-                    }}>
-                    {badge > 99 ? '99+' : badge}
-                </span>
-            )}
+            {item.label}
         </Link>
     )
 }

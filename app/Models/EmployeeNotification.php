@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\NotificationSent;
 use Illuminate\Database\Eloquent\Model;
 
 class EmployeeNotification extends Model
@@ -41,14 +42,17 @@ class EmployeeNotification extends Model
         string $title,
         string $message,
         string $link = null
-    ): self {
-        return static::create([
+    ): void {
+        $notification = static::create([
             'employee_id' => $employeeId,
             'type'        => $type,
             'title'       => $title,
             'message'     => $message,
             'link'        => $link,
         ]);
+
+        // Broadcast in real-time via Pusher
+        broadcast(new NotificationSent($notification))->toOthers();
     }
 
     public static function unreadCount(int $employeeId): int {
