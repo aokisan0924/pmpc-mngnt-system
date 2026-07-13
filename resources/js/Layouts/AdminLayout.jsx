@@ -6,14 +6,23 @@ const navItems = [
     { label: 'DTR records',     href: '/admin/dtr',            section: 'Workforce'  },
     { label: 'Edit requests',   href: '/admin/edit-requests',  section: 'Workforce', badge: true },
     { label: 'Process payroll', href: '/admin/payroll',        section: 'Payroll'    },
+    { label: 'Payroll analytics', href: '/admin/payroll/analytics', section: 'Payroll' },
     { label: 'DTR archives',    href: '/admin/archives',       section: 'Payroll'    },
     { label: 'Settings',        href: '/admin/settings',       section: 'System'     },
     { label: '13th month pay', href: '/admin/thirteenth-month', section: 'Payroll' },
+    
 ]
 
 export default function AdminLayout({ children, pendingEditCount = 0 }) {
     const currentUrl = window.location.pathname
     const sections = [...new Set(navItems.map(i => i.section))]
+
+    // Pick the single most specific nav item whose href matches the current
+    // URL, so overlapping prefixes (e.g. /admin/payroll vs
+    // /admin/payroll/analytics) don't both light up at once.
+    const activeHref = navItems
+        .filter(i => currentUrl === i.href || currentUrl.startsWith(i.href + '/'))
+        .reduce((best, i) => (!best || i.href.length > best.length ? i.href : best), null)
 
     function logout() {
         router.post('/logout')
@@ -48,7 +57,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
                                 {section}
                             </p>
                             {navItems.filter(i => i.section === section).map(item => (
-                                <AdminNavLink key={item.href} item={item} currentUrl={currentUrl}
+                                <AdminNavLink key={item.href} item={item} activeHref={activeHref}
                                     badge={item.badge && pendingEditCount > 0 ? pendingEditCount : null} />
                             ))}
                         </div>
@@ -83,8 +92,8 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
     )
 }
 
-function AdminNavLink({ item, currentUrl, badge }) {
-    const active = currentUrl.startsWith(item.href)
+function AdminNavLink({ item, activeHref, badge }) {
+    const active = item.href === activeHref
     return (
         <Link href={item.href}
             className="flex items-center justify-between px-4 py-2 text-xs transition-colors"

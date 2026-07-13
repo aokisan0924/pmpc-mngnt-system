@@ -106,7 +106,7 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
     ]
 
     return (
-        <EmployeeLayout>
+        <EmployeeLayout title="Daily time record">
             <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
                 <div className="pointer-events-none absolute -top-40 -left-32 w-[28rem] h-[28rem] rounded-full blur-[120px] opacity-20"
                     style={{ background: C.teal }} />
@@ -149,15 +149,14 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                             {nextLabel ? (
                                 <button
                                     onClick={handlePunch}
-                                    disabled={punching || loading}
-                                    className="px-6 py-3.5 rounded-xl text-sm font-semibold text-black disabled:opacity-60 disabled:cursor-not-allowed transition-all hover:brightness-110 pulse-ring w-full lg:w-auto"
-                                    style={{ background: C.teal, boxShadow: `0 0 30px -6px ${C.teal}` }}>
+                                    disabled={punching}
+                                    className="w-full md:w-auto px-5 py-3 md:py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-60 transition-opacity"
+                                    style={{ background: '#0F6E56' }}>
                                     {punching ? 'Recording…' : `Clock ${nextLabel}`}
                                 </button>
                             ) : (
-                                <span className="px-5 py-3 rounded-xl text-sm border text-center"
-                                    style={{ borderColor: C.border, color: C.sub }}>
-                                    All punches complete for today
+                                <span className="w-full md:w-auto text-center px-4 py-3 md:py-2 rounded-xl text-sm bg-gray-100 text-gray-500">
+                                    All punches complete ✓
                                 </span>
                             )}
                         </div>
@@ -259,83 +258,114 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                         </div>
                     </div>
 
-                    {/* DTR log table */}
-                    <div className="rounded-2xl border backdrop-blur-xl overflow-hidden animate-in" style={{ background: C.panel, borderColor: C.border }}>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm min-w-[640px]">
-                                <thead>
-                                    <tr className="border-b" style={{ borderColor: C.border }}>
-                                        <th className="text-left px-4 py-3 text-[11px] font-medium uppercase tracking-wide" style={{ color: C.dim }}>Date</th>
-                                        {SLOT_ORDER.map(slot => (
-                                            <th key={slot} className="text-center px-3 py-3 text-[11px] font-medium uppercase tracking-wide" style={{ color: C.dim }}>
-                                                {PUNCH_LABELS[slot]}
-                                            </th>
-                                        ))}
-                                        <th className="text-center px-3 py-3 text-[11px] font-medium uppercase tracking-wide" style={{ color: C.dim }}>Hours</th>
-                                        <th className="text-center px-3 py-3 text-[11px] font-medium uppercase tracking-wide" style={{ color: C.dim }}>Status</th>
-                                        <th className="text-center px-3 py-3 text-[11px] font-medium uppercase tracking-wide" style={{ color: C.dim }}></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {loading && Array.from({ length: Math.max(logs.length, 5) }).map((_, i) => (
-                                        <tr key={`skeleton-${i}`} className="border-b" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
-                                            <td className="px-4 py-3"><Skeleton className="h-3.5 w-16" /></td>
-                                            {SLOT_ORDER.map(slot => (
-                                                <td key={slot} className="px-3 py-3 text-center"><Skeleton className="h-3.5 w-10" /></td>
-                                            ))}
-                                            <td className="px-3 py-3 text-center"><Skeleton className="h-3.5 w-8" /></td>
-                                            <td className="px-3 py-3 text-center"><Skeleton className="h-5 w-16 rounded-full" /></td>
-                                            <td className="px-3 py-3 text-center"><Skeleton className="h-3.5 w-14" /></td>
-                                        </tr>
-                                    ))}
-                                    {!loading && logs.map((log) => {
-                                        const style = STATUS_STYLES[log.status] ?? STATUS_STYLES.absent
-                                        return (
-                                            <tr key={log.id} className="border-b transition-colors hover:bg-white/[0.03]" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
-                                                <td className="px-4 py-3 text-xs" style={{ color: C.sub }}>{log.date_label}</td>
-                                                {SLOT_ORDER.map((slot) => (
-                                                    <td key={slot} className="px-3 py-3 text-center text-xs font-mono">
-                                                        {log[slot]
-                                                            ? <span style={{ color: C.text }}>{log[slot].slice(0, 5)}</span>
-                                                            : <span style={{ color: C.dim }}>—</span>}
-                                                    </td>
-                                                ))}
-                                                <td className="px-3 py-3 text-center text-xs font-mono" style={{ color: C.sub }}>
-                                                    {log.hours_rendered ? `${log.hours_rendered}h` : '—'}
-                                                </td>
-                                                <td className="px-3 py-3 text-center">
-                                                    <span className="inline-block text-xs px-2.5 py-0.5 rounded-full font-medium border"
-                                                        style={{
-                                                            color: log.has_pending_edit ? C.amber : style.color,
-                                                            borderColor: log.has_pending_edit ? 'rgba(255,193,104,0.35)' : `${style.color}55`,
-                                                            background: log.has_pending_edit ? 'rgba(255,193,104,0.08)' : `${style.color}14`,
-                                                        }}>
-                                                        {log.has_pending_edit ? 'Pending edit' : style.label}
-                                                    </span>
-                                                </td>
-                                                <td className="px-3 py-3 text-center">
-                                                    {!log.has_pending_edit && (
-                                                        <button
-                                                            onClick={() => setEditTarget(log)}
-                                                            className="text-xs hover:underline"
-                                                            style={{ color: C.teal }}>
-                                                            Request edit
-                                                        </button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        )
-                                    })}
-                                    {!loading && logs.length === 0 && (
-                                        <tr>
-                                            <td colSpan={8} className="px-4 py-10 text-center text-sm" style={{ color: C.dim }}>
-                                                No DTR records for this month.
+                    {/* DTR log — table on desktop, cards on mobile */}
+
+                    {/* Desktop table */}
+                    <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="bg-gray-50 border-b border-gray-100">
+                                    <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">Date</th>
+                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium">AM In</th>
+                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium border-r border-gray-100">AM Out</th>
+                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium">PM In</th>
+                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium border-r border-gray-100">PM Out</th>
+                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium">Hours</th>
+                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium">Status</th>
+                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {logs?.map((log) => {
+                                    const style = STATUS_STYLES[log.status] ?? STATUS_STYLES.absent
+                                    return (
+                                        <tr key={log.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                                            <td className="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">{log.date_label}</td>
+                                            <td className="px-3 py-3 text-center text-xs font-medium">
+                                                {log.am_time_in ? <span className="text-gray-800">{log.am_time_in.slice(0,5)}</span> : <span className="text-gray-300">—</span>}
+                                            </td>
+                                            <td className="px-3 py-3 text-center text-xs font-medium border-r border-gray-100">
+                                                {log.am_time_out ? <span className="text-gray-800">{log.am_time_out.slice(0,5)}</span> : <span className="text-gray-300">—</span>}
+                                            </td>
+                                            <td className="px-3 py-3 text-center text-xs font-medium">
+                                                {log.pm_time_in ? <span className="text-gray-800">{log.pm_time_in.slice(0,5)}</span> : <span className="text-gray-300">—</span>}
+                                            </td>
+                                            <td className="px-3 py-3 text-center text-xs font-medium border-r border-gray-100">
+                                                {log.pm_time_out ? <span className="text-gray-800">{log.pm_time_out.slice(0,5)}</span> : <span className="text-gray-300">—</span>}
+                                            </td>
+                                            <td className="px-3 py-3 text-center text-xs text-gray-600">
+                                                {log.hours_rendered ? `${log.hours_rendered}h` : '—'}
+                                            </td>
+                                            <td className="px-3 py-3 text-center">
+                                                <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${style.bg} ${style.text}`}>
+                                                    {log.has_pending_edit ? 'Pending edit' : style.label}
+                                                </span>
+                                            </td>
+                                            <td className="px-3 py-3 text-center">
+                                                {!log.has_pending_edit && (
+                                                    <button onClick={() => setEditTarget(log)}
+                                                        className="text-xs hover:underline"
+                                                        style={{ color: '#0F6E56' }}>
+                                                        Request edit
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                    )
+                                })}
+                                {(!logs || logs.length === 0) && (
+                                    <tr>
+                                        <td colSpan={8} className="px-4 py-8 text-center text-sm text-gray-400">
+                                            No DTR records for this month.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Mobile cards */}
+                    <div className="md:hidden space-y-2">
+                        {logs?.map((log) => {
+                            const style = STATUS_STYLES[log.status] ?? STATUS_STYLES.absent
+                            return (
+                                <div key={log.id} className="bg-white rounded-xl border border-gray-200 p-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <p className="text-sm font-medium text-gray-800">{log.date_label}</p>
+                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${style.bg} ${style.text}`}>
+                                            {log.has_pending_edit ? 'Pending edit' : style.label}
+                                        </span>
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-2 mb-3">
+                                        {['am_time_in','am_time_out','pm_time_in','pm_time_out'].map(slot => (
+                                            <div key={slot} className="text-center">
+                                                <p className="text-xs text-gray-400 mb-0.5">{PUNCH_LABELS[slot]}</p>
+                                                <p className={`text-xs font-medium font-mono ${log[slot] ? 'text-gray-800' : 'text-gray-300'}`}>
+                                                    {log[slot] ? log[slot].slice(0,5) : '—'}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-xs text-gray-400">
+                                            {log.hours_rendered ? `${log.hours_rendered}h rendered` : 'No hours recorded'}
+                                        </p>
+                                        {!log.has_pending_edit && (
+                                            <button onClick={() => setEditTarget(log)}
+                                                className="text-xs font-medium"
+                                                style={{ color: '#0F6E56' }}>
+                                                Request edit
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                        {(!logs || logs.length === 0) && (
+                            <div className="bg-white rounded-xl border border-gray-200 px-4 py-8 text-center">
+                                <p className="text-sm text-gray-400">No DTR records for this month.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 

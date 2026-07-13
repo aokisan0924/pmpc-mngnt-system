@@ -1,169 +1,514 @@
+import { useState } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
-import { useEffect, useState } from 'react'
+import {
+    LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+    Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
+    ComposedChart, Area,
+} from 'recharts'
 
-/* ---------- design tokens ---------- */
-const C = {
-    bg:        '#06090D',
-    panel:     'rgba(14,20,27,0.72)',
-    border:    '#1F2C35',
-    text:      '#E7F1EE',
-    sub:       '#83979C',
-    dim:       '#4C5C61',
-    teal:      '#14F1B2',
-    violet:    '#8B7CF6',
-    amber:     '#FFC168',
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function fmt(num) {
+    return Number(num || 0).toLocaleString('en-PH', {
+        minimumFractionDigits: 2, maximumFractionDigits: 2,
+    })
 }
 
-/* ---------- tiny icon set ---------- */
-const IconUsers = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-        <circle cx="9" cy="8" r="3.2" /><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" strokeLinecap="round" />
-        <path d="M16 4.3a3.2 3.2 0 0 1 0 6.2M21 20c0-2.8-2-5.1-4.6-5.8" strokeLinecap="round" />
-    </svg>
-)
-const IconCheckCircle = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-        <circle cx="12" cy="12" r="8.5" /><path d="M8.5 12.3l2.3 2.3 4.7-5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-)
-const IconAlarm = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-        <circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.5 2.2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M5 3L3 5M19 3l2 2" strokeLinecap="round" />
-    </svg>
-)
-const IconPencil = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-        <path d="M4 20l1-4.2L15.6 5.2a1.6 1.6 0 0 1 2.3 0l1 1a1.6 1.6 0 0 1 0 2.3L8.2 19 4 20Z" strokeLinejoin="round" />
-    </svg>
-)
-const IconInbox = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-        <path d="M3 12.5V18a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5.5" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M3 12.5h5.2l1.3 2.5h4.9l1.3-2.5H21L17.8 5.4A2 2 0 0 0 16 4.3H8a2 2 0 0 0-1.8 1.1L3 12.5Z" strokeLinejoin="round" />
-    </svg>
-)
-const IconPulse = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-        <path d="M3 12h4l2-6 4 12 2-8 2 4h4" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-)
-const IconArrow = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...p}>
-        <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-)
+function fmtShort(num) {
+    if (num >= 1_000_000) return '₱' + (num / 1_000_000).toFixed(1) + 'M'
+    if (num >= 1_000)     return '₱' + (num / 1_000).toFixed(1) + 'K'
+    return '₱' + Math.round(num)
+}
 
-export default function Dashboard({ stats }) {
-    const [now, setNow] = useState(new Date())
-    useEffect(() => {
-        const id = setInterval(() => setNow(new Date()), 1000)
-        return () => clearInterval(id)
-    }, [])
+const STATUS_STYLES = {
+    on_time:   { bg: 'bg-emerald-50', text: 'text-emerald-700', dot: '#10B981', label: 'On time'   },
+    late:      { bg: 'bg-amber-50',   text: 'text-amber-700',   dot: '#F59E0B', label: 'Late'      },
+    undertime: { bg: 'bg-blue-50',    text: 'text-blue-700',    dot: '#3B82F6', label: 'Undertime' },
+    half_day:  { bg: 'bg-purple-50',  text: 'text-purple-700',  dot: '#8B5CF6', label: 'Half day'  },
+    absent:    { bg: 'bg-red-50',     text: 'text-red-700',     dot: '#EF4444', label: 'Absent'    },
+}
 
-    const hour = now.getHours()
-    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
-    const timeStr = now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    const dateStr = now.toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' })
+const ACTIVITY_COLORS = {
+    emerald: { bg: 'bg-emerald-100', text: 'text-emerald-700', icon: '✓' },
+    red:     { bg: 'bg-red-100',     text: 'text-red-700',     icon: '✕' },
+    blue:    { bg: 'bg-blue-100',    text: 'text-blue-700',    icon: '+' },
+    amber:   { bg: 'bg-amber-100',   text: 'text-amber-700',   icon: '!' },
+}
 
-    const cards = [
-        { label: 'Total employees', value: stats?.total_employees ?? '—', sub: `${stats?.active_employees ?? '—'} active`, Icon: IconUsers,       accent: C.teal },
-        { label: 'Present today',   value: '—',                           sub: 'loading…',                                  Icon: IconCheckCircle, accent: C.teal },
-        { label: 'Late today',      value: '—',                           sub: 'loading…',                                  Icon: IconAlarm,       accent: C.amber },
-        { label: 'Pending edits',   value: '—',                           sub: 'needs review',                              Icon: IconPencil,      accent: C.violet },
-    ]
+function ChartTooltip({ active, payload, label }) {
+    if (! active || ! payload?.length) return null
+    return (
+        <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-3 min-w-40">
+            <p className="text-xs font-medium text-gray-700 mb-2">{label}</p>
+            {payload.map(p => (
+                <div key={p.name} className="flex items-center justify-between gap-4 text-xs mb-1">
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
+                        <span className="text-gray-500">{p.name}</span>
+                    </div>
+                    <span className="font-medium text-gray-800">
+                        {typeof p.value === 'number' && p.value > 999
+                            ? '₱ ' + fmt(p.value)
+                            : p.value + (p.name === 'Rate' ? '%' : '')}
+                    </span>
+                </div>
+            ))}
+        </div>
+    )
+}
+
+function Section({ title, sub, children, action }) {
+    return (
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center justify-between mb-4">
+                <div>
+                    <p className="text-sm font-medium text-gray-900">{title}</p>
+                    {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+                </div>
+                {action}
+            </div>
+            {children}
+        </div>
+    )
+}
+
+function KpiCard({ label, value, sub, accent, icon, alert }) {
+    return (
+        <div className="bg-white rounded-xl border border-gray-200 p-4 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: accent }} />
+            <div className="flex items-start justify-between mb-2">
+                <p className="text-xs text-gray-500 leading-tight">{label}</p>
+                <span className="text-lg leading-none">{icon}</span>
+            </div>
+            <p className="text-2xl font-medium text-gray-900 mb-0.5">{value}</p>
+            {sub && <p className="text-xs text-gray-400">{sub}</p>}
+            {alert && (
+                <span className="inline-block mt-1 text-xs px-1.5 py-0.5 rounded-full bg-red-50 text-red-600 font-medium">
+                    {alert}
+                </span>
+            )}
+        </div>
+    )
+}
+
+// ── Main ───────────────────────────────────────────────────────────────────
+
+export default function Dashboard({
+    stats,
+    today_snapshot,
+    monthly_attendance,
+    department_attendance,
+    payroll_trend,
+    headcount_breakdown,
+    recent_activity,
+}) {
+    const [snapshotFilter, setSnapshotFilter] = useState('all')
+    const now = new Date()
+    const dateStr = now.toLocaleDateString('en-PH', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    })
+
+    const filteredSnapshot = snapshotFilter === 'all'
+        ? today_snapshot
+        : today_snapshot.filter(e => e.status === snapshotFilter)
+
+    const statusCounts = today_snapshot.reduce((acc, e) => {
+        acc[e.status] = (acc[e.status] || 0) + 1
+        return acc
+    }, {})
+
+    // Donut chart data for headcount
+    const donutData = [
+        { name: 'Present',  value: stats.present_today,               color: '#10B981' },
+        { name: 'Late',     value: stats.late_today,                   color: '#F59E0B' },
+        { name: 'Absent',   value: Math.max(0, stats.absent_today),    color: '#EF4444' },
+    ].filter(d => d.value > 0)
 
     return (
-        <AdminLayout>
-            <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
-                <div className="pointer-events-none absolute -top-40 -left-32 w-[28rem] h-[28rem] rounded-full blur-[120px] opacity-15"
-                    style={{ background: C.violet }} />
-                <div className="pointer-events-none absolute top-1/3 -right-40 w-[24rem] h-[24rem] rounded-full blur-[130px] opacity-10"
-                    style={{ background: C.teal }} />
+        <AdminLayout pendingEditCount={stats.pending_edits}>
+            <div className="p-6 max-w-7xl mx-auto">
 
-                <div className="relative p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
-
-                    {/* Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6 animate-in">
-                        <div>
-                            <p className="text-[11px] uppercase tracking-[0.2em] font-mono mb-1" style={{ color: C.violet }}>
-                                Admin Console
-                            </p>
-                            <h1 className="font-display text-xl sm:text-2xl font-semibold" style={{ color: C.text }}>
-                                {greeting}, Admin
-                            </h1>
-                            <p className="text-sm mt-0.5" style={{ color: C.sub }}>Here's today's workforce overview.</p>
-                        </div>
-
-                        <div className="flex items-center gap-3 rounded-xl px-4 py-2.5 border backdrop-blur-xl w-fit"
-                            style={{ background: C.panel, borderColor: C.border }}>
-                            <span className="w-2 h-2 rounded-full pulse-ring" style={{ background: C.violet }} />
-                            <div className="leading-tight">
-                                <p className="font-mono text-base sm:text-lg tabular-nums" style={{ color: C.text }}>{timeStr}</p>
-                                <p className="text-[11px]" style={{ color: C.dim }}>{dateStr}</p>
-                            </div>
-                        </div>
+                {/* Header */}
+                <div className="flex items-end justify-between mb-6">
+                    <div>
+                        <h1 className="text-lg font-medium text-gray-900">Dashboard</h1>
+                        <p className="text-sm text-gray-400 mt-0.5">{dateStr}</p>
                     </div>
+                    {stats.latest_payroll && (
+                        <div className="text-right">
+                            <p className="text-xs text-gray-400">Latest payroll</p>
+                            <p className="text-sm font-medium text-gray-700">{stats.latest_payroll.period_label}</p>
+                            <p className="text-xs text-emerald-600 font-medium">₱ {fmt(stats.latest_payroll.total_net)} net</p>
+                        </div>
+                    )}
+                </div>
 
-                    {/* Stats */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-                        {cards.map((stat, i) => (
-                            <div key={stat.label}
-                                className="relative rounded-2xl border backdrop-blur-xl p-4 overflow-hidden animate-in transition-transform hover:-translate-y-0.5"
-                                 style={{ background: C.panel, borderColor: C.border, animationDelay: `${i * 70}ms` }}>
-                                <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: stat.accent, opacity: 0.6 }} />
-                                <div className="flex items-center justify-between mb-3">
-                                    <p className="text-xs" style={{ color: C.sub }}>{stat.label}</p>
-                                    <stat.Icon className="w-4 h-4" style={{ color: stat.accent }} />
+                {/* ── KPI cards ─────────────────────────────────────── */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                    <KpiCard
+                        label="Total employees"
+                        value={stats.total_employees}
+                        sub={`${stats.active_employees} active`}
+                        accent="#26215C"
+                        icon="👥"
+                    />
+                    <KpiCard
+                        label="Present today"
+                        value={stats.present_today}
+                        sub={`of ${stats.active_employees} active`}
+                        accent="#10B981"
+                        icon="✅"
+                    />
+                    <KpiCard
+                        label="Late today"
+                        value={stats.late_today}
+                        sub="as of now"
+                        accent="#F59E0B"
+                        icon="⏰"
+                        alert={stats.late_today > 0 ? `${stats.late_today} need attention` : null}
+                    />
+                    <KpiCard
+                        label="Pending DTR edits"
+                        value={stats.pending_edits}
+                        sub="awaiting review"
+                        accent="#EF4444"
+                        icon="📝"
+                        alert={stats.pending_edits > 0 ? 'Action needed' : null}
+                    />
+                </div>
+
+                {/* ── Row 1: Today snapshot + Donut ─────────────────── */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
+
+                    {/* Today snapshot — 2/3 width */}
+                    <div className="lg:col-span-2">
+                        <Section
+                            title="Today's attendance"
+                            sub={`${stats.present_today} present · ${stats.late_today} late · ${Math.max(0, stats.absent_today)} absent`}
+                            action={
+                                <div className="flex gap-1 p-1 bg-gray-100 rounded-lg">
+                                    {['all', 'on_time', 'late', 'absent'].map(f => (
+                                        <button key={f} onClick={() => setSnapshotFilter(f)}
+                                            className={`px-2 py-1 text-xs rounded-md capitalize transition-all ${
+                                                snapshotFilter === f
+                                                    ? 'bg-white text-gray-800 font-medium shadow-sm border border-gray-200'
+                                                    : 'text-gray-500'
+                                            }`}>
+                                            {f === 'all' ? `All (${today_snapshot.length})` : (
+                                                STATUS_STYLES[f]?.label + (statusCounts[f] ? ` (${statusCounts[f]})` : '')
+                                            )}
+                                        </button>
+                                    ))}
                                 </div>
-                                <p className="font-mono text-2xl font-medium" style={{ color: C.text }}>{stat.value}</p>
-                                <p className="text-[11px] mt-1" style={{ color: C.dim }}>{stat.sub}</p>
+                            }>
+                            <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                                {filteredSnapshot.map(emp => {
+                                    const style = STATUS_STYLES[emp.status] ?? STATUS_STYLES.absent
+                                    return (
+                                        <div key={emp.id}
+                                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors">
+                                            <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0"
+                                                style={{ background: '#26215C' }}>
+                                                {emp.initials}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-medium text-gray-800 truncate">{emp.full_name}</p>
+                                                <p className="text-xs text-gray-400">{emp.department}</p>
+                                            </div>
+                                            <div className="flex items-center gap-3 flex-shrink-0">
+                                                {/* Punch times */}
+                                                <div className="hidden sm:flex gap-2 text-xs font-mono text-gray-500">
+                                                    <span>{emp.am_time_in?.slice(0,5) ?? '—'}</span>
+                                                    <span className="text-gray-300">|</span>
+                                                    <span>{emp.pm_time_out?.slice(0,5) ?? '—'}</span>
+                                                </div>
+                                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${style.bg} ${style.text}`}>
+                                                    {style.label}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                                {filteredSnapshot.length === 0 && (
+                                    <p className="text-xs text-gray-400 text-center py-6">No employees found.</p>
+                                )}
                             </div>
-                        ))}
+                        </Section>
                     </div>
 
-                    {/* Panels */}
-                    <div className="grid lg:grid-cols-2 gap-4">
-                        <div className="rounded-2xl border backdrop-blur-xl p-4 sm:p-5 animate-in"
-                            style={{ background: C.panel, borderColor: C.border, animationDelay: '280ms' }}>
-                            <div className="flex items-center justify-between mb-4">
-                                <p className="text-sm font-medium font-display" style={{ color: C.text }}>DTR edit requests</p>
-                                <a href="/admin/edit-requests" className="group inline-flex items-center gap-1 text-xs font-medium" style={{ color: C.violet }}>
-                                    View all
-                                    <IconArrow className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
-                                </a>
-                            </div>
-                            <div className="flex flex-col items-center justify-center text-center py-8 rounded-xl border border-dashed"
-                                style={{ borderColor: C.border }}>
-                                <IconInbox className="w-6 h-6 mb-2" style={{ color: C.dim }} />
-                                <p className="text-sm" style={{ color: C.sub }}>No pending requests.</p>
-                            </div>
-                        </div>
-
-                        <div className="rounded-2xl border backdrop-blur-xl p-4 sm:p-5 animate-in"
-                            style={{ background: C.panel, borderColor: C.border, animationDelay: '350ms' }}>
-                            <p className="text-sm font-medium font-display mb-4" style={{ color: C.text }}>Today's attendance snapshot</p>
-                            <div className="flex flex-col items-center justify-center text-center py-8 rounded-xl border border-dashed"
-                                style={{ borderColor: C.border }}>
-                                <IconPulse className="w-6 h-6 mb-2" style={{ color: C.dim }} />
-                                <p className="text-sm" style={{ color: C.sub }}>DTR data loads after first punch.</p>
-                            </div>
-                        </div>
+                    {/* Donut chart — 1/3 width */}
+                    <div>
+                        <Section title="Today at a glance" sub="Present · Late · Absent">
+                            {donutData.length > 0 ? (
+                                <>
+                                    <ResponsiveContainer width="100%" height={160}>
+                                        <PieChart>
+                                            <Pie data={donutData} cx="50%" cy="50%"
+                                                innerRadius={45} outerRadius={72}
+                                                paddingAngle={3} dataKey="value"
+                                                startAngle={90} endAngle={-270}>
+                                                {donutData.map(entry => (
+                                                    <Cell key={entry.name} fill={entry.color} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip formatter={(value, name) => [value + ' employees', name]} />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                    <div className="space-y-2 mt-2">
+                                        {donutData.map(d => (
+                                            <div key={d.name} className="flex items-center justify-between text-xs">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2.5 h-2.5 rounded-full" style={{ background: d.color }} />
+                                                    <span className="text-gray-600">{d.name}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium text-gray-800">{d.value}</span>
+                                                    <span className="text-gray-400">
+                                                        ({stats.active_employees > 0
+                                                            ? Math.round(d.value / stats.active_employees * 100)
+                                                            : 0}%)
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="py-10 text-center">
+                                    <p className="text-xs text-gray-400">No attendance recorded yet today.</p>
+                                </div>
+                            )}
+                        </Section>
                     </div>
                 </div>
 
-                <style>{`
-                    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
-                    .font-display { font-family: 'Space Grotesk', sans-serif; }
-                    .font-mono { font-family: 'JetBrains Mono', monospace; }
-                    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-                    .animate-in { animation: fadeSlideUp 0.5s ease-out both; }
-                    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(139,124,246,0.35);} 50% { box-shadow: 0 0 0 6px rgba(139,124,246,0);} }
-                    .pulse-ring { animation: pulseGlow 2.2s ease-out infinite; }
-                    @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
-                    .hud-grid { background-image: linear-gradient(rgba(139,124,246,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(139,124,246,0.05) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
-                    @media (prefers-reduced-motion: reduce) { .animate-in, .pulse-ring, .hud-grid { animation: none; } }
-                `}</style>
+                {/* ── Row 2: Monthly attendance trend ───────────────── */}
+                <div className="mb-5">
+                    <Section
+                        title="Monthly attendance trend"
+                        sub="Attendance rate % over the last 6 months">
+                        {monthly_attendance.length > 0 ? (
+                            <ResponsiveContainer width="100%" height={240}>
+                                <ComposedChart data={monthly_attendance}
+                                    margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
+                                    <XAxis dataKey="month_short"
+                                        tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                                        tickLine={false} axisLine={false} />
+                                    <YAxis yAxisId="rate" domain={[0, 100]}
+                                        tickFormatter={v => v + '%'}
+                                        tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                        tickLine={false} axisLine={false} width={40} />
+                                    <YAxis yAxisId="count" orientation="right"
+                                        tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                        tickLine={false} axisLine={false} width={32} />
+                                    <Tooltip content={<ChartTooltip />} />
+                                    <Legend
+                                        wrapperStyle={{ fontSize: 11, paddingTop: 12 }}
+                                        iconType="circle" iconSize={8} />
+                                    <Bar yAxisId="count" dataKey="present"
+                                        name="Present" fill="#0F6E56"
+                                        radius={[3, 3, 0, 0]} fillOpacity={0.15}
+                                        stackId="a" />
+                                    <Bar yAxisId="count" dataKey="late"
+                                        name="Late" fill="#F59E0B"
+                                        radius={[0, 0, 0, 0]} fillOpacity={0.3}
+                                        stackId="a" />
+                                    <Line yAxisId="rate" type="monotone" dataKey="rate"
+                                        name="Rate" stroke="#0F6E56"
+                                        strokeWidth={2.5}
+                                        dot={{ r: 4, fill: '#0F6E56', stroke: '#fff', strokeWidth: 2 }}
+                                        activeDot={{ r: 6 }} />
+                                </ComposedChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="py-10 text-center">
+                                <p className="text-xs text-gray-400">No attendance data yet.</p>
+                            </div>
+                        )}
+                    </Section>
+                </div>
+
+                {/* ── Row 3: Department attendance + Payroll trend ──── */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+
+                    {/* Department attendance */}
+                    <Section
+                        title="Department attendance"
+                        sub={`This month — ${new Date().toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}`}>
+                        {department_attendance.length > 0 ? (
+                            <>
+                                <ResponsiveContainer width="100%" height={200}>
+                                    <BarChart data={department_attendance}
+                                        margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                                        <XAxis dataKey="department"
+                                            tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                            tickLine={false} axisLine={false} />
+                                        <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                            tickLine={false} axisLine={false} width={28} />
+                                        <Tooltip content={<ChartTooltip />} />
+                                        <Legend
+                                            wrapperStyle={{ fontSize: 10, paddingTop: 8 }}
+                                            iconType="circle" iconSize={7} />
+                                        <Bar dataKey="present" name="Present"
+                                            stackId="a" fill="#0F6E56"
+                                            radius={[0, 0, 0, 0]} />
+                                        <Bar dataKey="late" name="Late"
+                                            stackId="a" fill="#F59E0B"
+                                            radius={[0, 0, 0, 0]} />
+                                        <Bar dataKey="absent" name="Absent"
+                                            stackId="a" fill="#FEE2E2"
+                                            radius={[3, 3, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+
+                                {/* Department mini table */}
+                                <div className="mt-3 border border-gray-100 rounded-lg overflow-hidden">
+                                    <table className="w-full text-xs">
+                                        <thead>
+                                            <tr className="bg-gray-50 border-b border-gray-100">
+                                                <th className="text-left px-3 py-2 text-gray-400 font-medium">Dept</th>
+                                                <th className="text-center px-2 py-2 text-gray-400 font-medium">Staff</th>
+                                                <th className="text-center px-2 py-2 text-gray-400 font-medium text-emerald-600">Present</th>
+                                                <th className="text-center px-2 py-2 text-gray-400 font-medium text-amber-600">Late</th>
+                                                <th className="text-center px-2 py-2 text-gray-400 font-medium text-red-500">Absent</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {department_attendance.map(d => (
+                                                <tr key={d.department} className="border-b border-gray-50">
+                                                    <td className="px-3 py-2 font-medium text-gray-700 truncate max-w-24">{d.department}</td>
+                                                    <td className="px-2 py-2 text-center text-gray-500">{d.headcount}</td>
+                                                    <td className="px-2 py-2 text-center text-emerald-600 font-medium">{d.present}</td>
+                                                    <td className="px-2 py-2 text-center text-amber-600">{d.late}</td>
+                                                    <td className="px-2 py-2 text-center text-red-500">{d.absent}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="py-10 text-center">
+                                <p className="text-xs text-gray-400">No department data yet.</p>
+                            </div>
+                        )}
+                    </Section>
+
+                    {/* Payroll trend */}
+                    <Section
+                        title="Payroll cost trend"
+                        sub="Last 6 months — finalized payrolls only">
+                        {payroll_trend.length > 0 ? (
+                            <>
+                                <ResponsiveContainer width="100%" height={200}>
+                                    <ComposedChart data={payroll_trend}
+                                        margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
+                                        <XAxis dataKey="month"
+                                            tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                            tickLine={false} axisLine={false} />
+                                        <YAxis tickFormatter={fmtShort}
+                                            tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                            tickLine={false} axisLine={false} width={48} />
+                                        <Tooltip content={<ChartTooltip />} />
+                                        <Legend
+                                            wrapperStyle={{ fontSize: 10, paddingTop: 8 }}
+                                            iconType="circle" iconSize={7} />
+                                        <Area type="monotone" dataKey="total_gross"
+                                            name="Gross" fill="#E6F7F1"
+                                            stroke="#0F6E56" strokeWidth={1.5}
+                                            fillOpacity={0.4} />
+                                        <Line type="monotone" dataKey="total_net"
+                                            name="Net pay" stroke="#10B981"
+                                            strokeWidth={2.5}
+                                            dot={{ r: 3, fill: '#10B981', stroke: '#fff', strokeWidth: 2 }} />
+                                        <Line type="monotone" dataKey="total_deductions"
+                                            name="Deductions" stroke="#EF4444"
+                                            strokeWidth={1.5} strokeDasharray="4 3"
+                                            dot={{ r: 2, fill: '#EF4444' }} />
+                                    </ComposedChart>
+                                </ResponsiveContainer>
+
+                                {/* Payroll mini summary */}
+                                <div className="mt-3 grid grid-cols-3 gap-2">
+                                    {[
+                                        { label: 'Avg gross',  value: fmtShort(payroll_trend.reduce((s,r) => s + r.total_gross, 0) / payroll_trend.length), color: 'text-gray-800' },
+                                        { label: 'Avg deductions', value: fmtShort(payroll_trend.reduce((s,r) => s + r.total_deductions, 0) / payroll_trend.length), color: 'text-red-600' },
+                                        { label: 'Avg net pay', value: fmtShort(payroll_trend.reduce((s,r) => s + r.total_net, 0) / payroll_trend.length), color: 'text-emerald-600' },
+                                    ].map(s => (
+                                        <div key={s.label} className="bg-gray-50 rounded-lg px-3 py-2 text-center">
+                                            <p className="text-xs text-gray-400 mb-0.5">{s.label}</p>
+                                            <p className={`text-sm font-medium ${s.color}`}>{s.value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            <div className="py-10 text-center">
+                                <p className="text-xs text-gray-400">No finalized payrolls yet.</p>
+                            </div>
+                        )}
+                    </Section>
+                </div>
+
+                {/* ── Row 4: Recent activity ─────────────────────────── */}
+                <div className="mb-5">
+                    <Section
+                        title="Recent activity"
+                        sub="Latest actions across the system"
+                        action={
+                            <a href="/admin/edit-requests"
+                                className="text-xs font-medium"
+                                style={{ color: '#26215C' }}>
+                                View all →
+                            </a>
+                        }>
+                        {recent_activity.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {recent_activity.map((act, i) => {
+                                    const style = ACTIVITY_COLORS[act.color] ?? ACTIVITY_COLORS.blue
+                                    return (
+                                        <div key={i} className="flex items-start gap-3 px-3 py-2.5 rounded-lg border border-gray-50 hover:bg-gray-50 transition-colors">
+                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${style.bg} ${style.text}`}>
+                                                {style.icon}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs text-gray-700 leading-snug">{act.message}</p>
+                                                <p className="text-xs text-gray-400 mt-0.5">{act.time}</p>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        ) : (
+                            <p className="text-xs text-gray-400 text-center py-6">No recent activity.</p>
+                        )}
+                    </Section>
+                </div>
+
+                {/* ── Quick links ────────────────────────────────────── */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {[
+                        { label: 'Process payroll',    href: '/admin/payroll',         icon: '💰', color: '#0F6E56' },
+                        { label: 'DTR edit requests',  href: '/admin/edit-requests',   icon: '📝', color: '#26215C', badge: stats.pending_edits },
+                        { label: 'Add employee',       href: '/admin/employees',        icon: '👤', color: '#378ADD' },
+                        { label: 'Payroll analytics',  href: '/admin/payroll/analytics',icon: '📊', color: '#8B5CF6' },
+                    ].map(link => (
+                        <a key={link.href} href={link.href}
+                            className="relative flex items-center gap-2.5 bg-white rounded-xl border border-gray-200 px-4 py-3 hover:border-gray-300 transition-colors">
+                            <span className="text-xl">{link.icon}</span>
+                            <span className="text-xs font-medium text-gray-700">{link.label}</span>
+                            {link.badge > 0 && (
+                                <span className="absolute top-2 right-2 text-xs px-1.5 py-0.5 rounded-full bg-red-500 text-white font-medium"
+                                    style={{ fontSize: 9 }}>
+                                    {link.badge}
+                                </span>
+                            )}
+                        </a>
+                    ))}
+                </div>
             </div>
         </AdminLayout>
     )

@@ -101,8 +101,8 @@ export default function Payslips({ payslips, summary }) {
     const active = payslips.find(p => p.month === selected)
 
     return (
-        <EmployeeLayout>
-            <div className="p-6 max-w-6xl mx-auto">
+        <EmployeeLayout title="My payslips">
+            <div className="p-4 sm:p-6 max-w-6xl mx-auto">
 
                 {flash?.success && (
                     <div className="mb-4 px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
@@ -120,7 +120,7 @@ export default function Payslips({ payslips, summary }) {
 
                 {/* Career summary */}
                 {payslips.length > 0 && (
-                    <div className="grid grid-cols-4 gap-3 mb-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
                         {[
                             { label: 'Months on payroll', value: summary.total_months,                    sub: 'total records'       },
                             { label: 'Total days present', value: summary.total_days + ' days',            sub: 'across all periods'  },
@@ -145,10 +145,10 @@ export default function Payslips({ payslips, summary }) {
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-5 gap-5">
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
                         {/* Left — list */}
-                        <div className="col-span-2">
+                        <div className="lg:col-span-2">
                             {/* Year filter */}
                             <div className="flex gap-1 p-1 bg-gray-100 rounded-lg mb-3">
                                 <button
@@ -206,11 +206,11 @@ export default function Payslips({ payslips, summary }) {
                         </div>
 
                         {/* Right — detail */}
-                        <div className="col-span-3">
+                        <div className="lg:col-span-3">
                             {active ? (
                                 <div>
                                     {/* Detail header */}
-                                    <div className="flex items-center justify-between mb-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                                         <div>
                                             <h2 className="text-base font-medium text-gray-900">{active.month_label}</h2>
                                             <p className="text-xs text-gray-400 mt-0.5">
@@ -219,7 +219,7 @@ export default function Payslips({ payslips, summary }) {
                                         </div>
                                         <a href={`/employee/payslips/${active.month}`}
                                             target="_blank"
-                                            className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90"
+                                            className="flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90 w-full sm:w-auto"
                                             style={{ background: '#0F6E56' }}>
                                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -236,7 +236,7 @@ export default function Payslips({ payslips, summary }) {
                                                 <p className="text-xs font-medium text-emerald-200 mb-0.5 uppercase tracking-wide">
                                                     Monthly net pay
                                                 </p>
-                                                <p className="text-2xl font-medium text-white">
+                                                <p className="text-xl sm:text-2xl font-medium text-white">
                                                     ₱ {fmt(active.total_net)}
                                                 </p>
                                                 <p className="text-xs text-emerald-300 mt-1">
@@ -250,7 +250,7 @@ export default function Payslips({ payslips, summary }) {
                                     </div>
 
                                     {/* Cutoff cards */}
-                                    <div className="grid grid-cols-2 gap-3 mb-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                                         <CutoffCard
                                             label="1st cutoff"
                                             period={active.first_period}

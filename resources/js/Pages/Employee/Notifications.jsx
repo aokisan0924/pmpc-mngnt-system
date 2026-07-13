@@ -115,7 +115,7 @@ export default function Notifications({ notifications }) {
     ]
 
     return (
-        <EmployeeLayout>
+        <EmployeeLayout title="Notifications">
             <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
                 {/* top nav progress indicator */}
                 {loading && (
@@ -130,7 +130,7 @@ export default function Notifications({ notifications }) {
                 <div className="pointer-events-none absolute top-1/3 -right-40 w-[24rem] h-96 rounded-full blur-[130px] opacity-10"
                     style={{ background: C.blue }} />
 
-                <div className="relative p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
+                <div className="p-4 md:p-6 max-w-2xl mx-auto">
 
                     {flash?.success && (
                         <div className="mb-5 flex items-start gap-2.5 px-4 py-3 rounded-xl border animate-in"

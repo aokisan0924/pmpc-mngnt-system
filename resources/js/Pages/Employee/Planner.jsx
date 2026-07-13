@@ -220,7 +220,7 @@ export default function Planner({ tasks }) {
     })
 
     return (
-        <EmployeeLayout>
+        <EmployeeLayout title="Task planner">
             <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
                 {loading && (
                     <div className="fixed top-0 left-0 right-0 h-[2px] z-50 overflow-hidden" style={{ background: 'rgba(20,241,178,0.12)' }}>

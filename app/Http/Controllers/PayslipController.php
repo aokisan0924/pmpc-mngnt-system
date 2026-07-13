@@ -89,7 +89,7 @@ class PayslipController extends Controller
             'total_earned'   => $payslips->sum('total_net'),
             'total_gross'    => $payslips->sum('total_gross'),
             'total_days'     => $payslips->sum('total_days'),
-            'latest_net'     => $payslips->first()?->get('total_net') ?? 0,
+            'latest_net'     => $payslips->isNotEmpty() ? $payslips->first()['total_net'] : 0,
         ];
 
         return Inertia::render('Employee/Payslips', [

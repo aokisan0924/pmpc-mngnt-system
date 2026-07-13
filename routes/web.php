@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDtrController;
 use App\Http\Controllers\Admin\DtrEditRequestController;
 use App\Http\Controllers\Admin\EmployeeController;
+use App\Http\Controllers\Admin\PayrollAnalyticsController;
 use App\Http\Controllers\Admin\PayrollController;
 use App\Http\Controllers\DtrPrintController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -95,15 +96,16 @@ Route::middleware(['auth', 'role:super_admin'])
         // Payroll
         Route::get('/payroll',                    [PayrollController::class, 'index'])->name('payroll');
         Route::get('/payroll/create',             [PayrollController::class, 'create'])->name('payroll.create');
+        Route::get('/payroll/analytics', [PayrollAnalyticsController::class, 'index'])->name('payroll.analytics');
         Route::post('/payroll',                   [PayrollController::class, 'store'])->name('payroll.store');
         Route::get('/payroll/{payroll}',          [PayrollController::class, 'show'])->name('payroll.show');
         Route::post('/payroll/{payroll}/finalize',[PayrollController::class, 'finalize'])->name('payroll.finalize');
+        
 
         // DTR management
         Route::get('/dtr/{employee}/print', [DtrPrintController::class, 'adminPrint'])->name('dtr.admin-print');
         Route::get('/dtr',                    [AdminDtrController::class, 'index'])->name('dtr');
         Route::get('/dtr/{employee}',         [AdminDtrController::class, 'show'])->name('dtr.show');
-        Route::get('/dtr/{employee}/print',   [DtrPrintController::class, 'adminPrint'])->name('dtr.print');
 
         // Settings
         Route::get('/settings',  [SettingsController::class, 'index'])->name('settings');

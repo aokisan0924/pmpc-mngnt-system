@@ -86,7 +86,7 @@ export default function Profile({ employee, govIds }) {
     ]
 
     return (
-        <EmployeeLayout>
+        <EmployeeLayout title="My profile">
             <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
                 {/* top nav progress indicator — matches Dashboard / Notifications */}
                 {loading && (
@@ -129,18 +129,20 @@ export default function Profile({ employee, govIds }) {
                     </div>
 
                     {/* Tabs */}
-                    <div className="flex gap-1 p-1 rounded-xl mb-6 border overflow-x-auto" style={{ background: C.panel, borderColor: C.border }}>
-                        {tabs.map(tab => (
-                            <button key={tab.key}
+                    <div className="overflow-x-auto mb-6">
+                        <div className="flex gap-1 p-1 bg-gray-100 rounded-lg min-w-max md:min-w-0">
+                            {tabs.map(tab => (
+                                <button key={tab.key}
                                     onClick={() => setActiveTab(tab.key)}
-                                    disabled={loading}
-                                    className="flex-1 text-xs py-2.5 px-2 rounded-lg transition-all font-medium whitespace-nowrap disabled:cursor-not-allowed"
-                                    style={activeTab === tab.key
-                                        ? { background: 'rgba(20,241,178,0.12)', color: C.teal, boxShadow: 'inset 0 0 0 1px rgba(20,241,178,0.3)' }
-                                        : { color: C.dim, opacity: loading ? 0.5 : 1 }}>
-                                {tab.label}
-                            </button>
-                        ))}
+                                    className={`flex-1 text-xs py-2 px-3 rounded-md transition-all whitespace-nowrap ${
+                                        activeTab === tab.key
+                                            ? 'bg-white text-gray-800 font-medium shadow-sm border border-gray-200'
+                                            : 'text-gray-500'
+                                    }`}>
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Personal info */}

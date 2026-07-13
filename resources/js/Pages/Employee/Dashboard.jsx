@@ -101,7 +101,7 @@ export default function Dashboard({ employee, summary, today, notifications  }) 
     ]
 
     return (
-        <EmployeeLayout>
+        <EmployeeLayout title="Dashboard">
             <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
                 {/* top nav progress indicator */}
                 {navLoading && (
@@ -139,7 +139,7 @@ export default function Dashboard({ employee, summary, today, notifications  }) 
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
                         {stats.map((stat, i) => (
                             <div key={stat.label} className="relative rounded-2xl border backdrop-blur-xl p-4 overflow-hidden animate-in transition-transform hover:-translate-y-0.5"
                                  style={{ background: C.panel, borderColor: C.border, animationDelay: `${i * 70}ms` }}>
@@ -159,7 +159,7 @@ export default function Dashboard({ employee, summary, today, notifications  }) 
                     </div>
 
                     {/* Panels */}
-                    <div className="grid lg:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="rounded-2xl border backdrop-blur-xl p-4 sm:p-5 animate-in" style={{ background: C.panel, borderColor: C.border, animationDelay: '280ms' }}>
                             <div className="flex items-center justify-between mb-4">
                                 <p className="text-sm font-medium font-display" style={{ color: C.text }}>Today's attendance</p>
@@ -168,7 +168,7 @@ export default function Dashboard({ employee, summary, today, notifications  }) 
                                     <IconArrow className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
                                 </a>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 mb-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
                                 {PUNCH_SLOTS.map(({ key, label }) => {
                                     const value = today?.[key]
                                     const done = Boolean(value)
