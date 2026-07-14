@@ -84,8 +84,8 @@ class DtrLog extends Model
         } elseif (! $hasAm || ! $hasPm) {
             $this->status = 'half_day';
         } else {
-            $isLate      = $this->am_time_in > $graceTime;
-            $isUndertime = $this->pm_time_out < $shiftEnd;
+            $isLate      = Carbon::parse($this->am_time_in)->gt(Carbon::parse($graceTime));
+            $isUndertime = Carbon::parse($this->pm_time_out)->lt(Carbon::parse($shiftEnd));
 
             if ($isLate) {
                 $this->status = 'late';
