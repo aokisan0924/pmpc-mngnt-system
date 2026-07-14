@@ -15,6 +15,8 @@ use App\Http\Controllers\Admin\PayrollController;
 use App\Http\Controllers\DtrPrintController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ThirteenthMonthController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PayslipController;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +27,11 @@ Route::middleware('guest')->group(function () {
     Route::get('/',      [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::get('/login', [AuthenticatedSessionController::class, 'create']);
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.store');
+
+    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 });
 
 Route::middleware('auth')->group(function () {
