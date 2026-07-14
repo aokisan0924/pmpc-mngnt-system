@@ -4,6 +4,23 @@ import NotificationToast from '@/Components/NotificationToast'
 import BottomNav from '@/Components/BottomNav'
 import MobileHeader from '@/Components/MobileHeader'
 
+/* ---------- design tokens (shared Dark HUD system) ---------- */
+export const C = {
+    bg:      '#06090D',
+    panel:   'rgba(14,20,27,0.72)',
+    field:   'rgba(255,255,255,0.03)',
+    border:  '#1F2C35',
+    text:    '#E7F1EE',
+    sub:     '#83979C',
+    dim:     '#4C5C61',
+    teal:    '#14F1B2',
+    blue:    '#5AA9FF',
+    amber:   '#FFC168',
+    purple:  '#C29CFF',
+    violet:  '#8B7CF6',
+    red:     '#FF6B81',
+}
+
 const navMain = [
     { label: 'Dashboard',    href: '/employee/dashboard' },
     { label: 'My DTR',       href: '/employee/dtr'       },
@@ -28,31 +45,31 @@ export default function EmployeeLayout({ children, title }) {
     }
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="flex min-h-screen" style={{ background: C.bg }}>
 
             {/* ── Desktop sidebar (hidden on mobile) ─────────── */}
-            <aside className="hidden md:flex w-48 flex-shrink-0 flex-col py-5"
-                style={{ background: '#0F6E56' }}>
+            <aside className="hidden md:flex w-52 flex-shrink-0 flex-col py-5"
+                style={{ background: 'linear-gradient(180deg, #08120F 0%, #06090D 100%)', borderRight: `1px solid ${C.border}` }}>
 
                 {/* Brand */}
                 <div className="flex items-center gap-2 px-4 pb-4 mb-2"
-                    style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                    <div className="w-7 h-7 rounded-md flex items-center justify-center"
-                        style={{ background: 'rgba(255,255,255,0.15)' }}>
-                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    style={{ borderBottom: `1px solid ${C.border}` }}>
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center border"
+                        style={{ background: 'rgba(20,241,178,0.12)', borderColor: 'rgba(20,241,178,0.3)' }}>
+                        <svg className="w-4 h-4" style={{ color: C.teal }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round"
                                 d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-4a4 4 0 10-8 0 4 4 0 008 0z"/>
                         </svg>
                     </div>
                     <div>
-                        <p className="text-white font-medium" style={{ fontSize: 12 }}>PMPC WorkForce</p>
-                        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)' }}>Employee portal</p>
+                        <p className="font-display font-semibold" style={{ fontSize: 12, color: C.text }}>PMPC WorkForce</p>
+                        <p className="font-mono" style={{ fontSize: 9, color: C.dim, letterSpacing: '.05em' }}>EMPLOYEE PORTAL</p>
                     </div>
                 </div>
 
                 {/* Nav */}
                 <nav className="flex-1 mt-2">
-                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', padding: '4px 16px 2px', letterSpacing: '.5px', textTransform: 'uppercase' }}>
+                    <p className="font-mono" style={{ fontSize: 9, color: C.dim, padding: '6px 16px 4px', letterSpacing: '.12em', textTransform: 'uppercase' }}>
                         Main
                     </p>
                     {navMain.map(item => (
@@ -62,20 +79,20 @@ export default function EmployeeLayout({ children, title }) {
                     <Link href="/employee/notifications"
                         className="flex items-center justify-between px-4 py-2 text-xs transition-colors"
                         style={{
-                            color: currentUrl.startsWith('/employee/notifications') ? '#fff' : 'rgba(255,255,255,0.55)',
-                            background: currentUrl.startsWith('/employee/notifications') ? 'rgba(255,255,255,0.1)' : 'transparent',
-                            borderLeft: currentUrl.startsWith('/employee/notifications') ? '2px solid #9FE1CB' : '2px solid transparent',
+                            color: currentUrl.startsWith('/employee/notifications') ? C.text : C.sub,
+                            background: currentUrl.startsWith('/employee/notifications') ? 'rgba(20,241,178,0.10)' : 'transparent',
+                            borderLeft: currentUrl.startsWith('/employee/notifications') ? `2px solid ${C.teal}` : '2px solid transparent',
                         }}>
                         <span>Notifications</span>
                         {unreadCount > 0 && (
                             <span className="text-xs px-1.5 py-0.5 rounded-full font-medium"
-                                style={{ background: '#FF4444', color: '#fff', fontSize: 10, minWidth: 18, textAlign: 'center' }}>
+                                style={{ background: 'rgba(255,107,129,0.15)', color: C.red, fontSize: 10, minWidth: 18, textAlign: 'center' }}>
                                 {unreadCount > 99 ? '99+' : unreadCount}
                             </span>
                         )}
                     </Link>
 
-                    <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', padding: '10px 16px 2px', letterSpacing: '.5px', textTransform: 'uppercase' }}>
+                    <p className="font-mono" style={{ fontSize: 9, color: C.dim, padding: '10px 16px 4px', letterSpacing: '.12em', textTransform: 'uppercase' }}>
                         Account
                     </p>
                     {navAccount.map(item => (
@@ -84,21 +101,22 @@ export default function EmployeeLayout({ children, title }) {
                 </nav>
 
                 {/* User footer */}
-                <div className="px-4 pt-3"
-                    style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="px-4 pt-3" style={{ borderTop: `1px solid ${C.border}` }}>
                     <div className="flex items-center gap-2 mb-2">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white font-medium"
-                            style={{ background: 'rgba(255,255,255,0.2)', fontSize: 11 }}>
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center font-mono font-medium border"
+                            style={{ background: 'rgba(20,241,178,0.12)', color: C.teal, borderColor: 'rgba(20,241,178,0.3)', fontSize: 11 }}>
                             {employee?.initials}
                         </div>
                         <div>
-                            <p className="text-white font-medium" style={{ fontSize: 11 }}>{employee?.full_name}</p>
-                            <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.45)' }}>{employee?.employee_id}</p>
+                            <p className="font-medium" style={{ fontSize: 11, color: C.text }}>{employee?.full_name}</p>
+                            <p style={{ fontSize: 10, color: C.dim }}>{employee?.employee_id}</p>
                         </div>
                     </div>
                     <button onClick={logout}
-                        className="w-full text-left px-2 py-1 rounded text-xs"
-                        style={{ color: 'rgba(255,255,255,0.5)' }}>
+                        className="w-full text-left px-2 py-1.5 rounded-lg text-xs transition-colors"
+                        style={{ color: C.dim }}
+                        onMouseEnter={e => { e.currentTarget.style.color = C.red; e.currentTarget.style.background = 'rgba(255,107,129,0.08)' }}
+                        onMouseLeave={e => { e.currentTarget.style.color = C.dim; e.currentTarget.style.background = 'transparent' }}>
                         Sign out
                     </button>
                 </div>
@@ -134,9 +152,9 @@ function NavLink({ item, currentUrl }) {
         <Link href={item.href}
             className="flex items-center gap-2 px-4 py-2 text-xs transition-colors"
             style={{
-                color: active ? '#fff' : 'rgba(255,255,255,0.55)',
-                background: active ? 'rgba(255,255,255,0.1)' : 'transparent',
-                borderLeft: active ? '2px solid #9FE1CB' : '2px solid transparent',
+                color: active ? C.text : C.sub,
+                background: active ? 'rgba(20,241,178,0.10)' : 'transparent',
+                borderLeft: active ? `2px solid ${C.teal}` : '2px solid transparent',
             }}>
             {item.label}
         </Link>

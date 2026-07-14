@@ -8,6 +8,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDtrController;
 use App\Http\Controllers\Admin\DtrEditRequestController;
+use App\Http\Controllers\Admin\DtrArchiveController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\PayrollAnalyticsController;
 use App\Http\Controllers\Admin\PayrollController;
@@ -117,8 +118,14 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::post('/thirteenth-month',        [ThirteenthMonthController::class, 'store'])->name('thirteenth-month.store');
         Route::get('/thirteenth-month/show',    [ThirteenthMonthController::class, 'show'])->name('thirteenth-month.show');
         Route::post('/thirteenth-month/finalize',[ThirteenthMonthController::class, 'finalize'])->name('thirteenth-month.finalize');
+
+        // DTR archives
+        Route::get('/archives',                 [DtrArchiveController::class, 'index'])->name('archives');
+        Route::post('/archives/generate',        [DtrArchiveController::class, 'generate'])->name('archives.generate');
+        Route::get('/archives/{month}/download', [DtrArchiveController::class, 'download'])->name('archives.download')
+            ->where('month', '\d{4}-\d{2}');
     
         // Payslips
         Route::get('/payslips/download-all',        [PayslipController::class, 'downloadAll'])->name('payslips.download-all');
-    Route::get('/payslips/{employee}/download', [PayslipController::class, 'adminDownload'])->name('payslips.admin-download');
+        Route::get('/payslips/{employee}/download', [PayslipController::class, 'adminDownload'])->name('payslips.admin-download');
     });

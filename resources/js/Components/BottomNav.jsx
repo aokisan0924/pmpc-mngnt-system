@@ -1,5 +1,9 @@
 import { Link } from '@inertiajs/react'
 
+const C = {
+    panel: 'rgba(14,20,27,0.92)', border: '#1F2C35', teal: '#14F1B2', dim: '#4C5C61', red: '#FF6B81',
+}
+
 const tabs = [
     {
         href:  '/employee/dashboard',
@@ -63,34 +67,34 @@ export default function BottomNav({ unreadCount = 0 }) {
     const currentUrl = window.location.pathname
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 md:hidden"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden backdrop-blur-xl border-t"
+            style={{ background: C.panel, borderColor: C.border, paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <div className="flex">
                 {tabs.map(tab => {
                     const active = currentUrl.startsWith(tab.href)
                     return (
                         <Link key={tab.href} href={tab.href}
                             className="flex-1 flex flex-col items-center justify-center py-2 relative"
-                            style={{ color: active ? '#0F6E56' : '#9CA3AF' }}>
+                            style={{ color: active ? C.teal : C.dim }}>
 
                             <div className="relative">
                                 {tab.icon(active)}
                                 {tab.badge && unreadCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white flex items-center justify-center font-medium"
-                                        style={{ background: '#FF4444', fontSize: 9 }}>
+                                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center font-medium"
+                                        style={{ background: C.red, color: '#06090D', fontSize: 9 }}>
                                         {unreadCount > 9 ? '9+' : unreadCount}
                                     </span>
                                 )}
                             </div>
 
                             <span className="mt-0.5 font-medium"
-                                style={{ fontSize: 10, color: active ? '#0F6E56' : '#9CA3AF' }}>
+                                style={{ fontSize: 10, color: active ? C.teal : C.dim }}>
                                 {tab.label}
                             </span>
 
                             {active && (
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
-                                    style={{ background: '#0F6E56' }} />
+                                    style={{ background: C.teal }} />
                             )}
                         </Link>
                     )
