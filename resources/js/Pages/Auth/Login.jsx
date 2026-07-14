@@ -73,8 +73,8 @@ export default function Login() {
                             <CoopMark className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <p className="text-white text-sm md:text-xs font-semibold leading-tight">PMPC WorkForce</p>
-                            <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.55)' }}>People&apos;s Cooperative</p>
+                            <p className="text-white text-sm md:text-xs font-semibold leading-tight">PMPC EMS</p>
+                            <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.55)' }}>People&apos;s Multi-Purpose Cooperative</p>
                         </div>
                     </div>
 
@@ -91,7 +91,7 @@ export default function Login() {
                     </div>
 
                     <p className="hidden md:block relative" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, lineHeight: 1.5 }}>
-                        PMPC WorkForce v1.0<br />
+                        Employee Management System v2.0<br />
                         People&apos;s Multi-Purpose Cooperative
                     </p>
                 </div>
@@ -127,7 +127,7 @@ export default function Login() {
                             <input id="login" type="text"
                                 value={data.login}
                                 onChange={e => setData('login', e.target.value)}
-                                placeholder={activeTab === 'employee' ? 'e.g. EMP-0042' : 'Admin username'}
+                                placeholder={activeTab === 'employee' ? 'e.g. 2029-00078' : 'Admin username'}
                                 className="w-full px-3 py-2.5 sm:py-2 text-sm rounded-lg border border-gray-300 bg-white transition-shadow focus:outline-none focus:ring-2 focus:ring-[#0F6E56]/40 focus:border-[#0F6E56]"
                                 autoComplete="username"
                                 aria-invalid={Boolean(errors.login)}
