@@ -27,6 +27,8 @@ const navItems = [
     { label: 'DTR archives',    href: '/admin/archives',       section: 'Payroll'    },
     { label: 'Settings',        href: '/admin/settings',       section: 'System'     },
     { label: '13th month pay', href: '/admin/thirteenth-month', section: 'Payroll' },
+    { label: 'My DTR',          href: '/employee/dtr',         section: 'Personal' },
+    { label: 'My tasks',        href: '/employee/planner',     section: 'Personal' },
 ]
 
 export default function AdminLayout({ children, pendingEditCount = 0 }) {

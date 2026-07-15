@@ -18,7 +18,12 @@ const allNav = [
 export default function MobileHeader({ title, unreadCount = 0 }) {
     const { auth } = usePage().props
     const employee  = auth?.employee
+    const isSuperAdmin = employee?.role === 'super_admin'
     const [menuOpen, setMenuOpen] = useState(false)
+
+    const visibleNav = isSuperAdmin
+        ? allNav.filter(i => i.href === '/employee/dtr' || i.href === '/employee/planner')
+        : allNav
 
     function logout() {
         router.post('/logout')
@@ -48,6 +53,7 @@ export default function MobileHeader({ title, unreadCount = 0 }) {
                     {/* Right actions */}
                     <div className="flex items-center gap-2">
                         {/* Notification bell */}
+                        {!isSuperAdmin && (
                         <Link href="/employee/notifications" className="relative p-1.5">
                             <svg className="w-5 h-5" style={{ color: C.sub }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                                 <path strokeLinecap="round" strokeLinejoin="round"
@@ -60,6 +66,7 @@ export default function MobileHeader({ title, unreadCount = 0 }) {
                                 </span>
                             )}
                         </Link>
+                        )}
 
                         {/* Avatar / menu toggle */}
                         <button onClick={() => setMenuOpen(!menuOpen)}
@@ -86,7 +93,7 @@ export default function MobileHeader({ title, unreadCount = 0 }) {
                         </div>
 
                         {/* Nav links */}
-                        {allNav.map(item => (
+                        {visibleNav.map(item => (
                             <Link key={item.href} href={item.href}
                                 onClick={() => setMenuOpen(false)}
                                 className="flex items-center px-4 py-3 text-sm border-b last:border-0 transition-colors"
@@ -96,6 +103,15 @@ export default function MobileHeader({ title, unreadCount = 0 }) {
                                 {item.label}
                             </Link>
                         ))}
+
+                        {isSuperAdmin && (
+                            <Link href="/admin/dashboard"
+                                onClick={() => setMenuOpen(false)}
+                                className="flex items-center px-4 py-3 text-sm border-b transition-colors"
+                                style={{ color: C.teal, borderColor: 'rgba(255,255,255,0.04)' }}>
+                                ← Back to admin
+                            </Link>
+                        )}
 
                         {/* Sign out */}
                         <button onClick={logout}

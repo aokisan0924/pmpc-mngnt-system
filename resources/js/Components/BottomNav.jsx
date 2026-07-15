@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react'
+import { Link, usePage } from '@inertiajs/react'
 
 const C = {
     panel: 'rgba(14,20,27,0.92)', border: '#1F2C35', teal: '#14F1B2', dim: '#4C5C61', red: '#FF6B81',
@@ -63,14 +63,33 @@ const tabs = [
     },
 ]
 
+const adminBackTab = {
+    href:  '/admin/dashboard',
+    label: 'Admin',
+    icon: () => (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11 17l-5-5m0 0l5-5m-5 5h12"/>
+        </svg>
+    ),
+}
+
 export default function BottomNav({ unreadCount = 0 }) {
-    const currentUrl = window.location.pathname
+    const currentUrl   = window.location.pathname
+    const { auth }     = usePage().props
+    const isSuperAdmin = auth?.employee?.role === 'super_admin'
+
+    // A super admin only has access to DTR + Planner among employee
+    // routes, so show just those plus a way back to the admin portal
+    // instead of the full 5-tab employee bar.
+    const visibleTabs = isSuperAdmin
+        ? [...tabs.filter(t => t.href === '/employee/dtr' || t.href === '/employee/planner'), adminBackTab]
+        : tabs
 
     return (
         <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden backdrop-blur-xl border-t"
             style={{ background: C.panel, borderColor: C.border, paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <div className="flex">
-                {tabs.map(tab => {
+                {visibleTabs.map(tab => {
                     const active = currentUrl.startsWith(tab.href)
                     return (
                         <Link key={tab.href} href={tab.href}

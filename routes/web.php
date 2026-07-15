@@ -47,26 +47,11 @@ Route::middleware(['auth', 'role:employee'])
         // Dashboard
         Route::get('/dashboard', [EmployeeDashboardController::class, 'index'])->name('dashboard');
 
-        // DTR
-        Route::get('/dtr',   [DtrController::class, 'index'])->name('dtr');
-        Route::post('/dtr/punch', [DtrController::class, 'punch'])->name('dtr.punch');
-        Route::post('/dtr/{dtrLog}/edit-request', [DtrController::class, 'requestEdit'])->name('dtr.edit-request');
-
         // Profile
         Route::get('/profile',          [EmployeeProfileController::class, 'index'])->name('profile');
         Route::patch('/profile/info',   [EmployeeProfileController::class, 'updateInfo'])->name('profile.info');
         Route::patch('/profile/gov-ids',[EmployeeProfileController::class, 'updateGovIds'])->name('profile.gov-ids');
         Route::patch('/profile/password',[EmployeeProfileController::class, 'updatePassword'])->name('profile.password');
-
-        // Task planner
-        Route::get('/planner',                [TaskController::class, 'index'])->name('planner');
-        Route::post('/planner',               [TaskController::class, 'store'])->name('planner.store');
-        Route::patch('/planner/{task}',       [TaskController::class, 'update'])->name('planner.update');
-        Route::patch('/planner/{task}/toggle',[TaskController::class, 'toggleDone'])->name('planner.toggle');
-        Route::delete('/planner/{task}',      [TaskController::class, 'destroy'])->name('planner.destroy');
-
-        // DTR print
-        Route::get('/dtr/print', [DtrPrintController::class, 'employeePrint'])->name('dtr.print');
 
         // Notifications
         Route::get('/notifications',                          [NotificationController::class, 'index'])->name('notifications');
@@ -79,6 +64,27 @@ Route::middleware(['auth', 'role:employee'])
         Route::get('/payslips/history',      [PayslipController::class, 'index'])->name('payslips.history');
         Route::get('/payslips/{month}',      [PayslipController::class, 'download'])->name('payslips.download')
             ->where('month', '\d{4}-\d{2}'); // only match YYYY-MM format
+    });
+
+// Shared employee-facing routes — accessible to both regular employees AND
+// the super admin, since the super admin is also an employee who needs to
+// clock in/out and manage their own tasks.
+Route::middleware(['auth', 'role:employee,super_admin'])
+    ->prefix('employee')
+    ->name('employee.')
+    ->group(function () {
+        // DTR
+        Route::get('/dtr',   [DtrController::class, 'index'])->name('dtr');
+        Route::post('/dtr/punch', [DtrController::class, 'punch'])->name('dtr.punch');
+        Route::post('/dtr/{dtrLog}/edit-request', [DtrController::class, 'requestEdit'])->name('dtr.edit-request');
+        Route::get('/dtr/print', [DtrPrintController::class, 'employeePrint'])->name('dtr.print');
+
+        // Task planner
+        Route::get('/planner',                [TaskController::class, 'index'])->name('planner');
+        Route::post('/planner',               [TaskController::class, 'store'])->name('planner.store');
+        Route::patch('/planner/{task}',       [TaskController::class, 'update'])->name('planner.update');
+        Route::patch('/planner/{task}/toggle',[TaskController::class, 'toggleDone'])->name('planner.toggle');
+        Route::delete('/planner/{task}',      [TaskController::class, 'destroy'])->name('planner.destroy');
     });
 
 // ── Admin portal ──────────────────────────────────────────

@@ -34,8 +34,18 @@ const navAccount = [
 
 export default function EmployeeLayout({ children, title }) {
     const { auth, unread_notifications } = usePage().props
-    const employee   = auth?.employee
-    const currentUrl = window.location.pathname
+    const employee    = auth?.employee
+    const isSuperAdmin = employee?.role === 'super_admin'
+    const currentUrl  = window.location.pathname
+
+    // A super admin is also an employee, but only DTR + Planner are
+    // shared routes for them — Dashboard/Payslips/Notifications/Profile
+    // stay employee-only, so don't show nav links that would just bounce
+    // them back to the admin portal.
+    const visibleNavMain = isSuperAdmin
+        ? navMain.filter(i => i.href === '/employee/dtr' || i.href === '/employee/planner')
+        : navMain
+    const visibleNavAccount = isSuperAdmin ? [] : navAccount
 
     const { unreadCount, liveNotifications, dismissToast } =
         useNotifications(employee?.id, unread_notifications ?? 0)
@@ -70,34 +80,46 @@ export default function EmployeeLayout({ children, title }) {
                 {/* Nav */}
                 <nav className="flex-1 mt-2">
                     <p className="font-mono" style={{ fontSize: 9, color: C.dim, padding: '6px 16px 4px', letterSpacing: '.12em', textTransform: 'uppercase' }}>
-                        Main
+                        {isSuperAdmin ? 'Personal' : 'Main'}
                     </p>
-                    {navMain.map(item => (
+                    {visibleNavMain.map(item => (
                         <NavLink key={item.href + item.label} item={item} currentUrl={currentUrl} />
                     ))}
 
-                    <Link href="/employee/notifications"
-                        className="flex items-center justify-between px-4 py-2 text-xs transition-colors"
-                        style={{
-                            color: currentUrl.startsWith('/employee/notifications') ? C.text : C.sub,
-                            background: currentUrl.startsWith('/employee/notifications') ? 'rgba(20,241,178,0.10)' : 'transparent',
-                            borderLeft: currentUrl.startsWith('/employee/notifications') ? `2px solid ${C.teal}` : '2px solid transparent',
-                        }}>
-                        <span>Notifications</span>
-                        {unreadCount > 0 && (
-                            <span className="text-xs px-1.5 py-0.5 rounded-full font-medium"
-                                style={{ background: 'rgba(255,107,129,0.15)', color: C.red, fontSize: 10, minWidth: 18, textAlign: 'center' }}>
-                                {unreadCount > 99 ? '99+' : unreadCount}
-                            </span>
-                        )}
-                    </Link>
+                    {!isSuperAdmin && (
+                        <Link href="/employee/notifications"
+                            className="flex items-center justify-between px-4 py-2 text-xs transition-colors"
+                            style={{
+                                color: currentUrl.startsWith('/employee/notifications') ? C.text : C.sub,
+                                background: currentUrl.startsWith('/employee/notifications') ? 'rgba(20,241,178,0.10)' : 'transparent',
+                                borderLeft: currentUrl.startsWith('/employee/notifications') ? `2px solid ${C.teal}` : '2px solid transparent',
+                            }}>
+                            <span>Notifications</span>
+                            {unreadCount > 0 && (
+                                <span className="text-xs px-1.5 py-0.5 rounded-full font-medium"
+                                    style={{ background: 'rgba(255,107,129,0.15)', color: C.red, fontSize: 10, minWidth: 18, textAlign: 'center' }}>
+                                    {unreadCount > 99 ? '99+' : unreadCount}
+                                </span>
+                            )}
+                        </Link>
+                    )}
 
-                    <p className="font-mono" style={{ fontSize: 9, color: C.dim, padding: '10px 16px 4px', letterSpacing: '.12em', textTransform: 'uppercase' }}>
-                        Account
-                    </p>
-                    {navAccount.map(item => (
-                        <NavLink key={item.href + item.label} item={item} currentUrl={currentUrl} />
-                    ))}
+                    {isSuperAdmin ? (
+                        <Link href="/admin/dashboard"
+                            className="flex items-center gap-2 px-4 py-2 text-xs mt-2 transition-colors"
+                            style={{ color: C.violet, borderLeft: '2px solid transparent' }}>
+                            ← Back to admin
+                        </Link>
+                    ) : (
+                        <>
+                            <p className="font-mono" style={{ fontSize: 9, color: C.dim, padding: '10px 16px 4px', letterSpacing: '.12em', textTransform: 'uppercase' }}>
+                                Account
+                            </p>
+                            {visibleNavAccount.map(item => (
+                                <NavLink key={item.href + item.label} item={item} currentUrl={currentUrl} />
+                            ))}
+                        </>
+                    )}
                 </nav>
 
                 {/* User footer */}
