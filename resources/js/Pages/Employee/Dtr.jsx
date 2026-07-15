@@ -303,11 +303,18 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                                             </td>
                                             <td className="px-3 py-3 text-center">
                                                 {!log.has_pending_edit && (
-                                                    <button onClick={() => setEditTarget(log)}
-                                                        className="text-xs hover:underline"
-                                                        style={{ color: '#0F6E56' }}>
-                                                        Request edit
-                                                    </button>
+                                                    log.edit_window_open ? (
+                                                        <button onClick={() => setEditTarget(log)}
+                                                            className="text-xs hover:underline"
+                                                            style={{ color: '#0F6E56' }}>
+                                                            Request edit
+                                                        </button>
+                                                    ) : (
+                                                        <span className="text-xs text-gray-300 cursor-not-allowed"
+                                                            title="Edit requests are only allowed within 7 days of the entry.">
+                                                            Edit window closed
+                                                        </span>
+                                                    )
                                                 )}
                                             </td>
                                         </tr>
@@ -351,11 +358,18 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                                             {log.hours_rendered ? `${log.hours_rendered}h rendered` : 'No hours recorded'}
                                         </p>
                                         {!log.has_pending_edit && (
-                                            <button onClick={() => setEditTarget(log)}
-                                                className="text-xs font-medium"
-                                                style={{ color: '#0F6E56' }}>
-                                                Request edit
-                                            </button>
+                                            log.edit_window_open ? (
+                                                <button onClick={() => setEditTarget(log)}
+                                                    className="text-xs font-medium"
+                                                    style={{ color: '#0F6E56' }}>
+                                                    Request edit
+                                                </button>
+                                            ) : (
+                                                <span className="text-xs text-gray-300"
+                                                    title="Edit requests are only allowed within 7 days of the entry.">
+                                                    Edit window closed
+                                                </span>
+                                            )
                                         )}
                                     </div>
                                 </div>

@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureRole
@@ -12,6 +13,13 @@ class EnsureRole
     public function handle(Request $request, Closure $next, string $roles): Response {
         $employee     = $request->user();
         $allowedRoles = explode(',', $roles);
+
+        Log::info('EnsureRole check', [
+            'url'      => $request->fullUrl(),
+            'employee_id' => $employee?->id,
+            'role_seen'   => $employee?->role,
+            'allowed'     => $allowedRoles,
+        ]);
 
         if (! $employee || ! in_array($employee->role, $allowedRoles, true)) {
             if ($request->expectsJson()) {

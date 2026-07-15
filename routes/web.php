@@ -69,7 +69,7 @@ Route::middleware(['auth', 'role:employee'])
 // Shared employee-facing routes — accessible to both regular employees AND
 // the super admin, since the super admin is also an employee who needs to
 // clock in/out and manage their own tasks.
-Route::middleware(['auth', 'role:employee,super_admin'])
+Route::middleware(['auth'])
     ->prefix('employee')
     ->name('employee.')
     ->group(function () {

@@ -48,6 +48,15 @@ export default function DtrEditRequestModal({ log, onClose }) {
                     </button>
                 </div>
 
+                {/* Server-side rejection note (e.g. outside the 7-day edit window,
+                    or a pending request already exists for this entry) */}
+                {errors.edit && (
+                    <div className="rounded-lg p-3 mb-4 border text-xs"
+                        style={{ background: 'rgba(255,107,129,0.08)', borderColor: 'rgba(255,107,129,0.3)', color: C.red }}>
+                        {errors.edit}
+                    </div>
+                )}
+
                 {/* Current times */}
                 <div className="rounded-lg p-3 mb-4 border" style={{ background: C.field, borderColor: C.border }}>
                     <p className="text-xs mb-2" style={{ color: C.dim }}>Current recorded times</p>
