@@ -23,18 +23,20 @@ function StatusBadge({ status }) {
     )
 }
 
-function CutoffCard({ label, period, days, basic, transpo, ot, gross, deductions, net, status, month, cutoff }) {
+function CutoffCard({ label, period, days, basic, transpo, ot, gross, deductions, net, status }) {
     const finalized = status === 'finalized'
     return (
-        <div className={`rounded-xl border p-4 ${finalized ? 'border-border bg-panel' : 'border-dashed border-border bg-field'}`}>
+        <div className={`rounded-xl border p-4 ${finalized ? 'border-gray-200 bg-white' : 'border-dashed border-gray-200 bg-gray-50/60'}`}>
             <div className="flex items-center justify-between mb-3">
                 <div>
-                    <p className="text-xs font-medium text-sub">{label}</p>
-                    {period && <p className="text-xs text-dim mt-0.5">{period}</p>}
+                    <p className="text-xs font-semibold text-gray-800">{label}</p>
+                    {period && <p className="text-xs text-gray-500 mt-0.5">{period}</p>}
                 </div>
                 {status && (
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        finalized ? 'bg-teal/10 text-teal' : 'bg-amber/10 text-amber'
+                        finalized
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
                     }`}>
                         {finalized ? 'Finalized' : 'Draft'}
                     </span>
@@ -44,45 +46,36 @@ function CutoffCard({ label, period, days, basic, transpo, ot, gross, deductions
             {days > 0 ? (
                 <>
                     <div className="space-y-1.5 mb-3">
-                        <div className="flex justify-between text-xs">
-                            <span className="text-sub">Days present</span>
-                            <span className="font-medium text-sub">{days} days</span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                            <span className="text-sub">Basic pay</span>
-                            <span className="text-sub">₱ {fmt(basic)}</span>
-                        </div>
-                        {transpo > 0 && (
-                            <div className="flex justify-between text-xs">
-                                <span className="text-sub">Allowances</span>
-                                <span className="text-sub">₱ {fmt(transpo)}</span>
-                            </div>
-                        )}
-                        {ot > 0 && (
-                            <div className="flex justify-between text-xs">
-                                <span className="text-sub">Overtime</span>
-                                <span className="text-amber">+ ₱ {fmt(ot)}</span>
-                            </div>
-                        )}
-                        <div className="flex justify-between text-xs border-t border-border pt-1.5 mt-1.5">
-                            <span className="text-sub">Gross pay</span>
-                            <span className="font-medium text-text">₱ {fmt(gross)}</span>
-                        </div>
-                        <div className="flex justify-between text-xs">
-                            <span className="text-sub">Deductions</span>
-                            <span className="text-red">− ₱ {fmt(deductions)}</span>
+                        <Row label="Days present" value={`${days} days`} bold />
+                        <Row label="Basic pay"    value={`₱ ${fmt(basic)}`} />
+                        {transpo > 0 && <Row label="Allowances" value={`₱ ${fmt(transpo)}`} />}
+                        {ot > 0      && <Row label="Overtime"   value={`+ ₱ ${fmt(ot)}`} accent="text-amber-600" />}
+                        <div className="border-t border-gray-100 pt-1.5 mt-1">
+                            <Row label="Gross pay"   value={`₱ ${fmt(gross)}`}      bold />
+                            <Row label="Deductions"  value={`− ₱ ${fmt(deductions)}`} accent="text-red-500" />
                         </div>
                     </div>
-                    <div className="flex justify-between items-center bg-field rounded-lg px-3 py-2 border border-border">
-                        <span className="text-xs font-medium text-sub">Net pay</span>
-                        <span className="text-sm font-medium text-teal">₱ {fmt(net)}</span>
+                    <div className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
+                        <span className="text-xs font-semibold text-gray-700">Net pay</span>
+                        <span className="text-sm font-semibold text-emerald-700">₱ {fmt(net)}</span>
                     </div>
                 </>
             ) : (
                 <div className="py-4 text-center">
-                    <p className="text-xs text-dim">No payroll data yet</p>
+                    <p className="text-xs text-gray-400">No payroll data yet</p>
                 </div>
             )}
+        </div>
+    )
+}
+
+function Row({ label, value, bold, accent }) {
+    return (
+        <div className="flex justify-between text-xs">
+            <span className="text-gray-500">{label}</span>
+            <span className={`${bold ? 'font-semibold text-gray-800' : ''} ${accent ?? 'text-gray-700'}`}>
+                {value}
+            </span>
         </div>
     )
 }
@@ -229,56 +222,62 @@ export default function Payslips({ payslips, summary }) {
                                     </div>
 
                                     {/* Monthly net pay highlight */}
-                                    <div className="rounded-xl p-4 mb-4 border border-teal/20"
-                                        style={{ background: 'linear-gradient(135deg, var(--color-teal) 0%, color-mix(in srgb, var(--color-teal) 70%, black) 100%)' }}>
-                                        <div className="flex items-center justify-between">
+                                    <div className="rounded-xl p-4 mb-4"
+                                        style={{ background: 'linear-gradient(135deg, #0F6E56 0%, #085041 100%)' }}>
+                                        <div className="flex items-start justify-between">
                                             <div>
-                                                <p className="text-xs font-medium text-teal mb-0.5 uppercase tracking-wide">
+                                                <p className="text-xs font-medium mb-1 uppercase tracking-wide"
+                                                    style={{ color: 'rgba(255,255,255,0.65)' }}>
                                                     Monthly net pay
                                                 </p>
-                                                <p className="text-xl sm:text-2xl font-medium" style={{ color: 'var(--color-bg)' }}>
+                                                <p className="text-2xl font-medium text-white">
                                                     ₱ {fmt(active.total_net)}
                                                 </p>
-                                                <p className="text-xs text-teal mt-1">
-                                                    ₱ {fmt(active.total_gross)} gross − ₱ {fmt(active.total_ded)} deductions
+                                                <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                                                    ₱ {fmt(active.total_gross)} gross
+                                                    &nbsp;−&nbsp;
+                                                    ₱ {fmt(active.total_ded)} deductions
                                                 </p>
                                             </div>
-                                            <div className="text-right">
-                                                <StatusBadge status={active.status} />
-                                            </div>
+                                            <StatusBadge status={active.status} />
                                         </div>
                                     </div>
 
-                                    {/* Cutoff cards */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-                                        <CutoffCard
-                                            label="1st cutoff"
-                                            period={active.first_period}
-                                            days={active.first_days}
-                                            basic={active.first_basic}
-                                            transpo={active.first_transpo}
-                                            ot={active.first_ot}
-                                            gross={active.first_gross}
-                                            deductions={active.first_deductions}
-                                            net={active.first_net}
-                                            status={active.first_status}
-                                            month={active.month}
-                                            cutoff="first"
-                                        />
-                                        <CutoffCard
-                                            label="2nd cutoff"
-                                            period={active.second_period}
-                                            days={active.second_days}
-                                            basic={active.second_basic}
-                                            transpo={active.second_transpo}
-                                            ot={active.second_ot}
-                                            gross={active.second_gross}
-                                            deductions={active.second_deductions}
-                                            net={active.second_net}
-                                            status={active.second_status}
-                                            month={active.month}
-                                            cutoff="second"
-                                        />
+                                    {/* Cutoff cards — only show cards that have data */}
+                                    <div className={`grid gap-3 mb-4 ${active.has_first && active.has_second ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                                        {active.has_first && (
+                                            <CutoffCard
+                                                label="1st cutoff"
+                                                period={active.first_period}
+                                                days={active.first_days}
+                                                basic={active.first_basic}
+                                                transpo={active.first_transpo}
+                                                ot={active.first_ot}
+                                                gross={active.first_gross}
+                                                deductions={active.first_deductions}
+                                                net={active.first_net}
+                                                status={active.first_status}
+                                            />
+                                        )}
+                                        {active.has_second && (
+                                            <CutoffCard
+                                                label="2nd cutoff"
+                                                period={active.second_period}
+                                                days={active.second_days}
+                                                basic={active.second_basic}
+                                                transpo={active.second_transpo}
+                                                ot={active.second_ot}
+                                                gross={active.second_gross}
+                                                deductions={active.second_deductions}
+                                                net={active.second_net}
+                                                status={active.second_status}
+                                            />
+                                        )}
+                                        {!active.has_first && !active.has_second && (
+                                            <div className="bg-gray-50 rounded-xl border border-dashed border-gray-200 py-8 text-center">
+                                                <p className="text-sm text-gray-400">No payroll data yet for this month.</p>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Breakdown bar */}
