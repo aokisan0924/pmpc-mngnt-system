@@ -14,7 +14,8 @@ use Inertia\Response;
 
 class ThirteenthMonthController extends Controller
 {
-    public function index(): Response {
+    public function index(): Response
+    {
         $records = ThirteenthMonthPay::with(['employee', 'processor'])
             ->orderBy('year', 'desc')
             ->orderByRaw("FIELD(tranche, 'year_end', 'mid_year')")
@@ -40,7 +41,8 @@ class ThirteenthMonthController extends Controller
         ]);
     }
 
-    public function compute(Request $request): Response {
+    public function compute(Request $request): Response
+    {
         $request->validate([
             'year'   => ['required', 'integer', 'min:2020', 'max:' . (now()->year + 1)],
             'tranche'=> ['required', 'in:mid_year,year_end'],
@@ -53,13 +55,16 @@ class ThirteenthMonthController extends Controller
             ? [Carbon::create($year, 1, 1)->startOfDay(), Carbon::create($year, 6, 30)->endOfDay()]
             : [Carbon::create($year, 7, 1)->startOfDay(), Carbon::create($year, 12, 31)->endOfDay()];
 
-        $employees = Employee::where('role', 'employee')
+        $employees = Employee::where('is_staff', true)
             ->where('status', 'active')
             ->get()
             ->map(function ($emp) use ($from, $to, $year, $tranche) {
 
                 // Total days present in the period from DTR
-                $daysPresent = DtrLog::daysPresentBetween($emp->id, $from, $to);
+                $daysPresent = DtrLog::where('employee_id', $emp->id)
+                    ->whereBetween('date', [$from, $to])
+                    ->whereNotIn('status', ['absent'])
+                    ->count();
 
                 // Total basic pay = daily_rate × days_present
                 $totalBasicPay      = $emp->daily_rate * $daysPresent;
@@ -99,7 +104,8 @@ class ThirteenthMonthController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse {
+    public function store(Request $request): RedirectResponse
+    {
         $request->validate([
             'year'          => ['required', 'integer'],
             'tranche'       => ['required', 'in:mid_year,year_end'],
@@ -139,7 +145,8 @@ class ThirteenthMonthController extends Controller
         ])->with('success', '13th month pay computed and saved successfully.');
     }
 
-    public function show(Request $request): Response {
+    public function show(Request $request): Response
+    {
         $year    = $request->query('year', now()->year);
         $tranche = $request->query('tranche', 'year_end');
 

@@ -2,19 +2,19 @@ import { useEffect, useState } from 'react'
 import { router, useForm, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 
-/* ---------- design tokens (matches Dashboard / Dtr / Planner / Notifications) ---------- */
+/* ---------- design tokens — resolve to CSS variables from app.css ---------- */
 const C = {
-    bg:        '#06090D',
-    panel:     'rgba(14,20,27,0.72)',
-    field:     'rgba(255,255,255,0.03)',
-    fieldOff:  'rgba(255,255,255,0.015)',
-    border:    '#1F2C35',
-    text:      '#E7F1EE',
-    sub:       '#83979C',
-    dim:       '#4C5C61',
-    teal:      '#14F1B2',
-    blue:      '#5AA9FF',
-    red:       '#FF6B81',
+    bg:       'var(--color-bg)',
+    panel:    'var(--color-panel)',
+    field:    'var(--color-field)',
+    fieldOff: 'var(--color-field)',
+    border:   'var(--color-border)',
+    text:     'var(--color-text)',
+    sub:      'var(--color-sub)',
+    dim:      'var(--color-dim)',
+    teal:     'var(--color-teal)',
+    blue:     'var(--color-blue)',
+    red:      'var(--color-red)',
 }
 
 const inputClass = "w-full px-3 py-2.5 text-sm rounded-lg border bg-transparent outline-none transition-colors"
@@ -90,7 +90,7 @@ export default function Profile({ employee, govIds }) {
             <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
                 {/* top nav progress indicator — matches Dashboard / Notifications */}
                 {loading && (
-                    <div className="fixed top-0 left-0 right-0 h-0.5 z-50 overflow-hidden" style={{ background: 'rgba(20,241,178,0.12)' }}>
+                    <div className="fixed top-0 left-0 right-0 h-0.5 z-50 overflow-hidden" style={{ background: 'color-mix(in srgb, var(--color-teal) 12%, transparent)' }}>
                         <div className="h-full w-1/3 progress-sweep" style={{ background: C.teal }} />
                     </div>
                 )}
@@ -106,7 +106,7 @@ export default function Profile({ employee, govIds }) {
                     {/* Flash */}
                     {flash?.success && (
                         <div className="mb-4 px-4 py-3 rounded-xl border text-sm animate-in"
-                            style={{ background: 'rgba(20,241,178,0.08)', borderColor: 'rgba(20,241,178,0.3)', color: C.teal }}>
+                            style={{ background: 'color-mix(in srgb, var(--color-teal) 8%, transparent)', borderColor: 'color-mix(in srgb, var(--color-teal) 30%, transparent)', color: C.teal }}>
                             {flash.success}
                         </div>
                     )}
@@ -114,7 +114,7 @@ export default function Profile({ employee, govIds }) {
                     {/* Header */}
                     <div className="flex items-center gap-4 mb-6 animate-in">
                         <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-display text-lg font-semibold shrink-0 border"
-                            style={{ background: 'rgba(20,241,178,0.1)', color: C.teal, borderColor: 'rgba(20,241,178,0.3)', boxShadow: `0 0 24px -8px ${C.teal}` }}>
+                            style={{ background: 'color-mix(in srgb, var(--color-teal) 10%, transparent)', color: C.teal, borderColor: 'color-mix(in srgb, var(--color-teal) 30%, transparent)', boxShadow: `0 0 24px -8px ${C.teal}` }}>
                             {initials(employee.first_name, employee.last_name)}
                         </div>
                         <div className="min-w-0">
@@ -130,15 +130,16 @@ export default function Profile({ employee, govIds }) {
 
                     {/* Tabs */}
                     <div className="overflow-x-auto mb-6">
-                        <div className="flex gap-1 p-1 bg-gray-100 rounded-lg min-w-max md:min-w-0">
+                        <div className="flex gap-1 p-1 rounded-lg min-w-max md:min-w-0" style={{ background: 'var(--color-field)' }}>
                             {tabs.map(tab => (
                                 <button key={tab.key}
                                     onClick={() => setActiveTab(tab.key)}
-                                    className={`flex-1 text-xs py-2 px-3 rounded-md transition-all whitespace-nowrap ${
-                                        activeTab === tab.key
-                                            ? 'bg-white text-gray-800 font-medium shadow-sm border border-gray-200'
-                                            : 'text-gray-500'
-                                    }`}>
+                                    className={`flex-1 text-xs py-2 px-3 rounded-md transition-all whitespace-nowrap font-medium ${
+                                        activeTab === tab.key ? 'shadow-sm' : ''
+                                    }`}
+                                    style={activeTab === tab.key
+                                        ? { background: 'var(--color-panel)', color: 'var(--color-text)', boxShadow: 'inset 0 0 0 1px var(--color-border)' }
+                                        : { color: 'var(--color-sub)' }}>
                                     {tab.label}
                                 </button>
                             ))}
@@ -151,7 +152,7 @@ export default function Profile({ employee, govIds }) {
                             style={{ background: C.panel, borderColor: C.border, opacity: loading ? 0.5 : 1, pointerEvents: loading ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
                             {loading && (
                                 <div className="absolute top-3 right-3 flex items-center gap-1.5 text-[11px]" style={{ color: C.teal }}>
-                                    <span className="w-3 h-3 rounded-full animate-spin" style={{ border: `2px solid ${C.teal}55`, borderTopColor: C.teal }} />
+                                    <span className="w-3 h-3 rounded-full animate-spin" style={{ border: `2px solid color-mix(in srgb, ${C.teal} 33%, transparent)`, borderTopColor: C.teal }} />
                                     Saving…
                                 </div>
                             )}
@@ -215,8 +216,8 @@ export default function Profile({ employee, govIds }) {
                             <div className="pt-2">
                                 <button type="submit"
                                         disabled={infoForm.processing}
-                                        className="px-5 py-2.5 text-sm font-semibold text-black rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
-                                        style={{ background: C.teal, boxShadow: `0 0 24px -8px ${C.teal}` }}>
+                                        className="px-5 py-2.5 text-sm font-semibold rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
+                                        style={{ background: C.teal, color: 'var(--color-bg)', boxShadow: `0 0 24px -8px ${C.teal}` }}>
                                     {infoForm.processing ? 'Saving…' : 'Save changes'}
                                 </button>
                             </div>
@@ -229,7 +230,7 @@ export default function Profile({ employee, govIds }) {
                             style={{ background: C.panel, borderColor: C.border, opacity: loading ? 0.5 : 1, pointerEvents: loading ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
                             {loading && (
                                 <div className="absolute top-3 right-3 flex items-center gap-1.5 text-[11px]" style={{ color: C.teal }}>
-                                    <span className="w-3 h-3 rounded-full animate-spin" style={{ border: `2px solid ${C.teal}55`, borderTopColor: C.teal }} />
+                                    <span className="w-3 h-3 rounded-full animate-spin" style={{ border: `2px solid color-mix(in srgb, ${C.teal} 33%, transparent)`, borderTopColor: C.teal }} />
                                     Saving…
                                 </div>
                             )}
@@ -261,8 +262,8 @@ export default function Profile({ employee, govIds }) {
                             <div className="pt-2">
                                 <button type="submit"
                                         disabled={govForm.processing}
-                                        className="px-5 py-2.5 text-sm font-semibold text-black rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
-                                        style={{ background: C.teal, boxShadow: `0 0 24px -8px ${C.teal}` }}>
+                                        className="px-5 py-2.5 text-sm font-semibold rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
+                                        style={{ background: C.teal, color: 'var(--color-bg)', boxShadow: `0 0 24px -8px ${C.teal}` }}>
                                     {govForm.processing ? 'Saving…' : 'Save IDs'}
                                 </button>
                             </div>
@@ -275,7 +276,7 @@ export default function Profile({ employee, govIds }) {
                             style={{ background: C.panel, borderColor: C.border, opacity: loading ? 0.5 : 1, pointerEvents: loading ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
                             {loading && (
                                 <div className="absolute top-3 right-3 flex items-center gap-1.5 text-[11px]" style={{ color: C.teal }}>
-                                    <span className="w-3 h-3 rounded-full animate-spin" style={{ border: `2px solid ${C.teal}55`, borderTopColor: C.teal }} />
+                                    <span className="w-3 h-3 rounded-full animate-spin" style={{ border: `2px solid color-mix(in srgb, ${C.teal} 33%, transparent)`, borderTopColor: C.teal }} />
                                     Updating…
                                 </div>
                             )}
@@ -314,8 +315,8 @@ export default function Profile({ employee, govIds }) {
                             <div className="pt-2">
                                 <button type="submit"
                                         disabled={passForm.processing}
-                                        className="px-5 py-2.5 text-sm font-semibold text-black rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
-                                        style={{ background: C.teal, boxShadow: `0 0 24px -8px ${C.teal}` }}>
+                                        className="px-5 py-2.5 text-sm font-semibold rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
+                                        style={{ background: C.teal, color: 'var(--color-bg)', boxShadow: `0 0 24px -8px ${C.teal}` }}>
                                     {passForm.processing ? 'Updating…' : 'Update password'}
                                 </button>
                             </div>
@@ -328,11 +329,11 @@ export default function Profile({ employee, govIds }) {
                     .font-display { font-family: 'Space Grotesk', sans-serif; }
                     .font-mono { font-family: 'JetBrains Mono', monospace; }
                     input, textarea, select { font-family: 'Inter', sans-serif; }
-                    input:focus, textarea:focus { border-color: rgba(20,241,178,0.5) !important; box-shadow: 0 0 0 3px rgba(20,241,178,0.12); }
+                    input:focus, textarea:focus { border-color: color-mix(in srgb, var(--color-teal) 50%, transparent) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-teal) 12%, transparent); }
                     @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
                     .animate-in { animation: fadeSlideUp 0.5s ease-out both; }
                     @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
-                    .hud-grid { background-image: linear-gradient(rgba(20,241,178,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(20,241,178,0.05) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
+                    .hud-grid { background-image: linear-gradient(color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
                     @keyframes progressSweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
                     .progress-sweep { animation: progressSweep 1.1s ease-in-out infinite; }
                     @media (prefers-reduced-motion: reduce) { .animate-in, .hud-grid, .progress-sweep { animation: none; } }

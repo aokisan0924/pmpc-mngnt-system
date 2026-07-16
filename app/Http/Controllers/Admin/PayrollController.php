@@ -11,6 +11,7 @@ use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -50,16 +51,19 @@ class PayrollController extends Controller
         $to     = Carbon::parse($request->period_to);
         $isFirst = $request->cutoff === 'first';
 
-        $employees = Employee::where('role', 'employee')
+        $employees = Employee::where('is_staff', true)
             ->where('status', 'active')
             ->get()
             ->map(function ($emp) use ($from, $to, $isFirst) {
 
-                $daysPresent = DtrLog::daysPresentBetween($emp->id, $from, $to);
+                $daysPresent = DtrLog::where('employee_id', $emp->id)
+                    ->whereBetween('date', [$from, $to])
+                    ->whereNotIn('status', ['absent'])
+                    ->sum(DB::raw("CASE WHEN status = 'half_day' THEN 0.5 ELSE 1 END"));
 
                 $workingDays = (int) Setting::get('working_days_month', 22);
-                $monthlyBasic = $emp->daily_rate * $workingDays;
-                $cutoffBasic    = round($monthlyBasic / 2, 2);
+                $monthlyBasic = $emp->daily_rate * $workingDays; // reference figure only (full-attendance monthly basic)
+                $cutoffBasic    = round($emp->daily_rate * $daysPresent, 2); // prorated by actual attendance (half_day = 0.5 day)
                 $cutoffTranspo  = round($emp->transpo_allowance / 2, 2);
                 $cutoffRep      = round($emp->rep_allowance / 2, 2);
                 $cutoffQuart    = round($emp->quarterly_allowance / 2, 2);

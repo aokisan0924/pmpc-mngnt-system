@@ -2,20 +2,20 @@ import { useEffect, useMemo, useState } from 'react'
 import { router, useForm, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 
-/* ---------- design tokens ---------- */
+/* ---------- design tokens — resolve to CSS variables from app.css ---------- */
 const C = {
-    bg:        '#06090D',
-    panel:     'rgba(14,20,27,0.72)',
-    field:     'rgba(255,255,255,0.03)',
-    border:    '#1F2C35',
-    borderHi:  'rgba(20,241,178,0.35)',
-    text:      '#E7F1EE',
-    sub:       '#83979C',
-    dim:       '#4C5C61',
-    teal:      '#14F1B2',
-    blue:      '#5AA9FF',
-    amber:     '#FFC168',
-    red:       '#FF6B81',
+    bg:       'var(--color-bg)',
+    panel:    'var(--color-panel)',
+    field:    'var(--color-field)',
+    border:   'var(--color-border)',
+    borderHi: 'color-mix(in srgb, var(--color-teal) 35%, transparent)',
+    text:     'var(--color-text)',
+    sub:      'var(--color-sub)',
+    dim:      'var(--color-dim)',
+    teal:     'var(--color-teal)',
+    blue:     'var(--color-blue)',
+    amber:    'var(--color-amber)',
+    red:      'var(--color-red)',
 }
 
 const PRIORITY_STYLES = {
@@ -223,7 +223,7 @@ export default function Planner({ tasks }) {
         <EmployeeLayout title="Task planner">
             <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
                 {loading && (
-                    <div className="fixed top-0 left-0 right-0 h-[2px] z-50 overflow-hidden" style={{ background: 'rgba(20,241,178,0.12)' }}>
+                    <div className="fixed top-0 left-0 right-0 h-[2px] z-50 overflow-hidden" style={{ background: 'color-mix(in srgb, var(--color-teal) 12%, transparent)' }}>
                         <div className="h-full w-1/3 progress-sweep" style={{ background: C.teal }} />
                     </div>
                 )}
@@ -235,7 +235,7 @@ export default function Planner({ tasks }) {
                     {/* Flash */}
                     {flash?.success && (
                         <div className="mb-4 px-4 py-3 rounded-xl border text-sm animate-in"
-                            style={{ background: 'rgba(20,241,178,0.08)', borderColor: 'rgba(20,241,178,0.3)', color: C.teal }}>
+                            style={{ background: 'color-mix(in srgb, var(--color-teal) 8%, transparent)', borderColor: 'color-mix(in srgb, var(--color-teal) 30%, transparent)', color: C.teal }}>
                             {flash.success}
                         </div>
                     )}
@@ -252,8 +252,8 @@ export default function Planner({ tasks }) {
                         </div>
                         <button onClick={() => openNewTaskForm()}
                                 disabled={loading}
-                                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-black rounded-xl transition-all hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed w-fit"
-                                style={{ background: C.teal, boxShadow: `0 0 24px -6px ${C.teal}` }}>
+                                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed w-fit"
+                                style={{ background: C.teal, color: 'var(--color-bg)', boxShadow: `0 0 24px -6px ${C.teal}` }}>
                             <IconPlus className="w-4 h-4" /> New task
                         </button>
                     </div>
@@ -282,7 +282,7 @@ export default function Planner({ tasks }) {
                                 <button key={f} onClick={() => setFilter(f)}
                                         className="text-xs px-3 py-1.5 rounded-lg capitalize transition-all font-medium"
                                         style={filter === f
-                                            ? { background: 'rgba(20,241,178,0.12)', color: C.teal, boxShadow: 'inset 0 0 0 1px rgba(20,241,178,0.3)' }
+                                            ? { background: 'color-mix(in srgb, var(--color-teal) 12%, transparent)', color: C.teal, boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--color-teal) 30%, transparent)' }
                                             : { color: C.dim }}>
                                     {f}
                                 </button>
@@ -318,12 +318,12 @@ export default function Planner({ tasks }) {
                                                 className="relative text-left rounded-xl border p-1.5 sm:p-2 min-h-[64px] sm:min-h-[92px] flex flex-col gap-1 transition-colors"
                                                 style={{
                                                     borderColor: isSelected ? C.borderHi : 'transparent',
-                                                    background: isSelected ? 'rgba(20,241,178,0.07)' : inMonth ? 'rgba(255,255,255,0.015)' : 'transparent',
+                                                    background: isSelected ? 'color-mix(in srgb, var(--color-teal) 7%, transparent)' : inMonth ? 'var(--color-hover)' : 'transparent',
                                                     opacity: inMonth ? 1 : 0.35,
                                                 }}>
                                             <span className="inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full text-[11px] font-mono flex-shrink-0"
                                                 style={isToday
-                                                    ? { background: C.teal, color: '#06090D', fontWeight: 600 }
+                                                    ? { background: C.teal, color: 'var(--color-bg)', fontWeight: 600 }
                                                     : { color: inMonth ? C.sub : C.dim }}>
                                                 {date.getDate()}
                                             </span>
@@ -336,7 +336,7 @@ export default function Planner({ tasks }) {
                                                             className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-md truncate font-medium"
                                                             style={{
                                                                 color: pr.color,
-                                                                background: `${pr.color}18`,
+                                                                background: `color-mix(in srgb, ${pr.color} 10%, transparent)`,
                                                                 textDecoration: done ? 'line-through' : 'none',
                                                                 opacity: done ? 0.6 : 1,
                                                             }}>
@@ -376,7 +376,7 @@ export default function Planner({ tasks }) {
                             <div className="space-y-2 max-h-[440px] overflow-y-auto pr-0.5">
                                 {loading && selectedTasks.length > 0 && Array.from({ length: selectedTasks.length }).map((_, i) => (
                                     <div key={`skeleton-${i}`} className="relative rounded-xl border p-3 overflow-hidden"
-                                        style={{ background: 'rgba(255,255,255,0.02)', borderColor: C.border }}>
+                                        style={{ background: 'var(--color-field)', borderColor: C.border }}>
                                         <div className="flex items-start gap-2 pl-1.5">
                                             <Skeleton className="mt-0.5 w-4 h-4 rounded-md flex-shrink-0" />
                                             <div className="flex-1 min-w-0 space-y-2">
@@ -392,13 +392,13 @@ export default function Planner({ tasks }) {
                                     return (
                                         <div key={task.id}
                                             className="relative rounded-xl border p-3 overflow-hidden"
-                                            style={{ background: 'rgba(255,255,255,0.02)', borderColor: C.border, opacity: done ? 0.55 : 1 }}>
+                                            style={{ background: 'var(--color-field)', borderColor: C.border, opacity: done ? 0.55 : 1 }}>
                                             <div className="absolute top-0 left-0 bottom-0 w-[3px]" style={{ background: pr.color, opacity: 0.7 }} />
                                             <div className="flex items-start gap-2 pl-1.5">
                                                 <button onClick={() => toggleDone(task)}
                                                         className="mt-0.5 w-4 h-4 rounded-md border flex-shrink-0 flex items-center justify-center transition-all"
                                                         style={done
-                                                            ? { borderColor: C.teal, background: C.teal, color: '#06090D' }
+                                                            ? { borderColor: C.teal, background: C.teal, color: 'var(--color-bg)' }
                                                             : { borderColor: C.border, color: 'transparent' }}>
                                                     {done && <IconCheck className="w-2.5 h-2.5" />}
                                                 </button>
@@ -412,7 +412,7 @@ export default function Planner({ tasks }) {
                                                     )}
                                                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                                         <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium border"
-                                                            style={{ color: pr.color, borderColor: `${pr.color}55`, background: `${pr.color}14` }}>
+                                                            style={{ color: pr.color, borderColor: `color-mix(in srgb, ${pr.color} 33%, transparent)`, background: `color-mix(in srgb, ${pr.color} 8%, transparent)` }}>
                                                             {pr.label}
                                                         </span>
                                                         {task.category && (
@@ -422,7 +422,7 @@ export default function Planner({ tasks }) {
                                                         )}
                                                         {task.is_overdue && (
                                                             <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium border"
-                                                                style={{ color: C.red, borderColor: 'rgba(255,107,129,0.4)', background: 'rgba(255,107,129,0.1)' }}>
+                                                                style={{ color: C.red, borderColor: 'color-mix(in srgb, var(--color-red) 40%, transparent)', background: 'color-mix(in srgb, var(--color-red) 10%, transparent)' }}>
                                                                 Overdue
                                                             </span>
                                                         )}
@@ -455,11 +455,11 @@ export default function Planner({ tasks }) {
                 {/* Task form modal */}
                 {showForm && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                        style={{ background: 'rgba(6,9,13,0.75)', backdropFilter: 'blur(4px)' }}
+                        style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
                         onClick={cancelForm}>
                         <form onSubmit={submitTask} onClick={e => e.stopPropagation()}
                             className="w-full max-w-md rounded-2xl border p-5 space-y-4 animate-in"
-                            style={{ background: '#0D1420', borderColor: C.border }}>
+                            style={{ background: C.panel, borderColor: C.border }}>
                             <div className="flex items-center justify-between">
                                 <h2 className="text-sm font-medium font-display" style={{ color: C.text }}>
                                     {editTarget ? 'Edit task' : 'New task'}
@@ -504,7 +504,7 @@ export default function Planner({ tasks }) {
                                         value={data.due_date}
                                         onChange={e => setData('due_date', e.target.value)}
                                         className={inputClass}
-                                        style={{ borderColor: C.border, color: C.text, colorScheme: 'dark' }}
+                                        style={{ borderColor: C.border, color: C.text }}
                                         required
                                     />
                                 </div>
@@ -515,9 +515,9 @@ export default function Planner({ tasks }) {
                                         onChange={e => setData('priority', e.target.value)}
                                         className={inputClass}
                                         style={{ borderColor: C.border, color: C.text, background: C.field }}>
-                                        <option value="low" style={{ color: '#000' }}>Low</option>
-                                        <option value="medium" style={{ color: '#000' }}>Medium</option>
-                                        <option value="high" style={{ color: '#000' }}>High</option>
+                                        <option value="low">Low</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="high">High</option>
                                     </select>
                                 </div>
                             </div>
@@ -540,14 +540,14 @@ export default function Planner({ tasks }) {
                                     Cancel
                                 </button>
                                 <button type="submit" disabled={processing}
-                                        className="flex-1 px-5 py-2.5 text-sm font-semibold text-black rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
-                                        style={{ background: C.teal }}>
+                                        className="flex-1 px-5 py-2.5 text-sm font-semibold rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
+                                        style={{ background: C.teal, color: 'var(--color-bg)' }}>
                                     {processing ? 'Saving…' : editTarget ? 'Update task' : 'Add task'}
                                 </button>
                                 {editTarget && (
                                     <button type="button" onClick={() => { deleteTask(editTarget); cancelForm() }}
                                             className="px-3 py-2.5 text-sm rounded-lg border transition-colors"
-                                            style={{ borderColor: 'rgba(255,107,129,0.35)', color: C.red }}>
+                                            style={{ borderColor: 'color-mix(in srgb, var(--color-red) 35%, transparent)', color: C.red }}>
                                         <IconTrash className="w-4 h-4" />
                                     </button>
                                 )}
@@ -561,15 +561,15 @@ export default function Planner({ tasks }) {
                     .font-display { font-family: 'Space Grotesk', sans-serif; }
                     .font-mono { font-family: 'JetBrains Mono', monospace; }
                     input, textarea, select { font-family: 'Inter', sans-serif; }
-                    input:focus, textarea:focus, select:focus { border-color: rgba(20,241,178,0.5) !important; box-shadow: 0 0 0 3px rgba(20,241,178,0.12); }
+                    input:focus, textarea:focus, select:focus { border-color: color-mix(in srgb, var(--color-teal) 50%, transparent) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-teal) 12%, transparent); }
                     ::-webkit-scrollbar { width: 6px; height: 6px; }
-                    ::-webkit-scrollbar-thumb { background: rgba(20,241,178,0.25); border-radius: 8px; }
+                    ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-teal) 25%, transparent); border-radius: 8px; }
                     .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
                     @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
                     .animate-in { animation: fadeSlideUp 0.4s ease-out both; }
                     @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
-                    .hud-grid { background-image: linear-gradient(rgba(20,241,178,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(20,241,178,0.05) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
-                    .skeleton-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.045) 25%, rgba(255,255,255,0.11) 37%, rgba(255,255,255,0.045) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.6s ease-in-out infinite; }
+                    .hud-grid { background-image: linear-gradient(color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
+                    .skeleton-shimmer { background: linear-gradient(90deg, color-mix(in srgb, var(--color-text) 8%, transparent) 25%, color-mix(in srgb, var(--color-text) 16%, transparent) 37%, color-mix(in srgb, var(--color-text) 8%, transparent) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.6s ease-in-out infinite; }
                     @keyframes skeletonShimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
                     @keyframes progressSweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
                     .progress-sweep { animation: progressSweep 1.1s ease-in-out infinite; }

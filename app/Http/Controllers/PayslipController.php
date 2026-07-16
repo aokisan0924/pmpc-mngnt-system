@@ -117,7 +117,7 @@ class PayslipController extends Controller
     public function downloadAll(Request $request): Response|RedirectResponse {
         $month = $request->get('month', now()->format('Y-m'));
 
-        $employees = Employee::where('role', 'employee')
+        $employees = Employee::where('is_staff', true)
             ->where('status', 'active')
             ->get();
 

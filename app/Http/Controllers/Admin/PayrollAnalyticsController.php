@@ -113,7 +113,7 @@ class PayrollAnalyticsController extends Controller
                 ->where('payrolls.status', 'finalized')
                 ->sum('payroll_items.total_deductions'),
             'total_payrolls'       => Payroll::where('status', 'finalized')->count(),
-            'active_employees'     => Employee::where('role', 'employee')->where('status', 'active')->count(),
+            'active_employees'     => Employee::where('is_staff', true)->where('status', 'active')->count(),
             'avg_net_per_employee' => 0,
             'latest_period'        => $latestPayroll?->period_label ?? '—',
             'latest_net'           => $latestPayroll

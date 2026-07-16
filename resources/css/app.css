@@ -9,8 +9,8 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 
     /* ── Semantic tokens — same names in light and dark, values swap
-       via the .dark class on <html>. Use these instead of hardcoding
-       hex anywhere in a page: bg-bg, text-text, border-border, etc. ── */
+        via the .dark class on <html>. Use these instead of hardcoding
+        hex anywhere in a page: bg-bg, text-text, border-border, etc. ── */
     --color-bg:      #F6F4EF;
     --color-panel:   #FFFFFF;
     --color-field:   #F2F1EC;
@@ -20,9 +20,9 @@
     --color-dim:     #9AA39D;
 
     /* Brand accents — teal is the cooperative's primary brand color,
-       used across both portals. Violet is reserved as the admin
-       portal's wayfinding accent (so "which portal am I in" is
-       visually obvious), teal alone is the employee portal's accent. */
+        used across both portals. Violet is reserved as the admin
+        portal's wayfinding accent (so "which portal am I in" is
+        visually obvious), teal alone is the employee portal's accent. */
     --color-brand:   #0F6E56;
     --color-teal:    #0F6E56;
     --color-blue:    #2563EB;
@@ -34,12 +34,14 @@
     --color-pink:    #DB2777;
 
     /* Overlay helpers — used for hover states, chart gridlines, and thin
-       row dividers that need to sit on top of *any* surface color, so
-       they can't be a flat --color-border value. */
+        row dividers that need to sit on top of *any* surface color, so
+        they can't be a flat --color-border value. */
     --color-hover:      rgba(0,0,0,0.035);
     --color-grid:       rgba(0,0,0,0.08);
     --color-row-border: rgba(0,0,0,0.06);
+}
 
+:root {
     color-scheme: light;
 }
 

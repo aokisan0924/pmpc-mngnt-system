@@ -8,7 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-class PmpcMigratedEmployeesSeeder extends Seeder
+class PmpcEmployeeDataSeeder extends Seeder
 {
     /**
      * Migrated from the legacy `users_tbl` table (users_tbl.sql).
@@ -124,27 +124,13 @@ class PmpcMigratedEmployeesSeeder extends Seeder
     private function seedDtrRecords(array $employees): void
     {
         $start = Carbon::parse('2026-07-01');
-        $end   = Carbon::parse('2026-07-14');
+        $end   = Carbon::parse('2026-07-15');
 
-        // date => [employee_id => scenario]
-        $exceptions = [
-            '2026-07-06' => [
-                '2026-00027' => 'half_pm_absent', // absent in the afternoon
-                '2026-00028' => 'half_pm_absent', // absent in the afternoon
-            ],
-            '2026-07-07' => [
-                '2026-00025' => 'absent',
-            ],
-            '2026-07-10' => [
-                '2022-00003' => 'half_am_absent', // absent in the morning
-            ],
-        ];
+        // No exceptions — every employee gets full, on-time attendance
+        // for the whole period (payroll testing).
+        $exceptions = [];
 
         foreach ($employees as $employeeCode => $employee) {
-            if ($employeeCode === '2003-00001') {
-                continue; // President — no DTR records, per instructions
-            }
-
             for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
                 if ($date->isWeekend()) {
                     continue;

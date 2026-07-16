@@ -15,7 +15,7 @@ use Inertia\Response;
 class EmployeeController extends Controller
 {
     public function index(): Response {
-        $employees = Employee::where('role', 'employee')
+        $employees = Employee::where('is_staff', true)
             ->orderBy('first_name')
             ->get()
             ->map(fn($e) => [
@@ -57,7 +57,7 @@ class EmployeeController extends Controller
                 'rep_allowance'           => $employee->rep_allowance,
                 'quarterly_allowance'     => $employee->quarterly_allowance,
                 'loan_deduction'          => $employee->loan_deduction,
-                'cc_deduction'            => $employee->cc_deduction,
+                'capital_contribution_deduction' => $employee->capital_contribution_deduction,
                 'cash_advance_deduction'  => $employee->cash_advance_deduction,
                 'rental_deduction'        => $employee->rental_deduction,
                 'sss_deduction'           => $employee->sss_deduction,
@@ -65,7 +65,6 @@ class EmployeeController extends Controller
                 'pagibig_deduction'       => $employee->pagibig_deduction,
                 'tax_deduction'           => $employee->tax_deduction,
                 'savings_deduction'       => $employee->savings_deduction,
-                'share_capital_deduction' => $employee->share_capital_deduction,
                 'other_deductions'        => $employee->other_deductions,
             ],
             'govIds' => $employee->governmentIds ? [
@@ -147,11 +146,10 @@ class EmployeeController extends Controller
             'pagibig_deduction'       => ['nullable', 'numeric', 'min:0'],
             'tax_deduction'           => ['nullable', 'numeric', 'min:0'],
             'loan_deduction'          => ['nullable', 'numeric', 'min:0'],
-            'cc_deduction'            => ['nullable', 'numeric', 'min:0'],
+            'capital_contribution_deduction' => ['nullable', 'numeric', 'min:0'],
             'cash_advance_deduction'  => ['nullable', 'numeric', 'min:0'],
             'rental_deduction'        => ['nullable', 'numeric', 'min:0'],
             'savings_deduction'       => ['nullable', 'numeric', 'min:0'],
-            'share_capital_deduction' => ['nullable', 'numeric', 'min:0'],
             'other_deductions'        => ['nullable', 'numeric', 'min:0'],
         ]);
 

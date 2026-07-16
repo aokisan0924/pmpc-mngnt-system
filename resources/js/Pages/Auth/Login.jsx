@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
+import ThemeToggle from '@/Components/ThemeToggle'
+import useTheme from '@/hooks/useTheme'
 
 const NAV_ITEMS = [
     { icon: '⏱', label: 'Daily time record' },
@@ -36,6 +38,7 @@ export default function Login() {
     const { errors } = usePage().props
     const [activeTab, setActiveTab] = useState('employee')
     const [showPassword, setShowPassword] = useState(false)
+    const { isDark, toggleTheme } = useTheme()
 
     const { data, setData, post, processing } = useForm({
         login: '',
@@ -49,13 +52,13 @@ export default function Login() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#F6F4EF] px-4 py-8 sm:py-12">
-            <div className="w-full max-w-4xl rounded-2xl sm:rounded-[28px] overflow-hidden shadow-xl border border-black/5 bg-white flex flex-col md:flex-row">
+        <div className="min-h-screen flex items-center justify-center bg-bg px-4 py-8 sm:py-12">
+            <div className="w-full max-w-4xl rounded-2xl sm:rounded-[28px] overflow-hidden shadow-xl border border-border bg-panel flex flex-col md:flex-row">
 
                 {/* Brand panel — full-width strip on mobile, side rail on desktop */}
                 <div
                     className="relative md:w-64 flex-shrink-0 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-between gap-4 md:gap-0 px-5 py-4 md:p-7 overflow-hidden"
-                    style={{ background: 'linear-gradient(160deg, #0F6E56 0%, #0B5344 100%)' }}
+                    style={{ background: 'linear-gradient(160deg, var(--color-teal) 0%, color-mix(in srgb, var(--color-teal) 65%, black) 100%)' }}
                 >
                     {/* Signature texture: faint interlocking-ring pattern */}
                     <svg
@@ -97,12 +100,16 @@ export default function Login() {
                 </div>
 
                 {/* Form panel */}
-                <div className="flex-1 flex flex-col justify-center px-5 py-7 sm:px-8 sm:py-8 md:px-10 md:py-10 bg-gray-50">
-                    <h1 className="text-xl sm:text-lg font-semibold text-gray-900 mb-1">Welcome back</h1>
-                    <p className="text-sm text-gray-500 mb-6">Sign in to your account to continue</p>
+                <div className="relative flex-1 flex flex-col justify-center px-5 py-7 sm:px-8 sm:py-8 md:px-10 md:py-10 bg-field">
+                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5">
+                        <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+                    </div>
+
+                    <h1 className="text-xl sm:text-lg font-semibold text-text mb-1">Welcome back</h1>
+                    <p className="text-sm text-sub mb-6">Sign in to your account to continue</p>
 
                     {/* Role tabs */}
-                    <div className="flex gap-1 p-1 bg-gray-100 rounded-lg mb-6" role="tablist">
+                    <div className="flex gap-1 p-1 bg-panel rounded-lg mb-6 ring-1 ring-border" role="tablist">
                         {['employee', 'super_admin'].map((tab) => (
                             <button key={tab} type="button"
                                 role="tab"
@@ -110,10 +117,9 @@ export default function Login() {
                                 onClick={() => setActiveTab(tab)}
                                 className={`flex-1 text-xs sm:text-xs py-2.5 sm:py-1.5 rounded-md font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ${
                                     activeTab === tab
-                                        ? 'bg-white text-gray-800 shadow-sm border border-gray-200'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                }`}
-                                style={activeTab === tab ? { boxShadow: '0 1px 2px rgba(0,0,0,0.06)' } : undefined}>
+                                        ? 'bg-field text-text shadow-sm ring-1 ring-border'
+                                        : 'text-sub hover:text-text'
+                                }`}>
                                 {tab === 'employee' ? 'Employee' : 'Super admin'}
                             </button>
                         ))}
@@ -121,29 +127,29 @@ export default function Login() {
 
                     <form onSubmit={submit} className="space-y-4" noValidate>
                         <div>
-                            <label htmlFor="login" className="block text-xs font-medium text-gray-600 mb-1">
+                            <label htmlFor="login" className="block text-xs font-medium text-sub mb-1">
                                 {activeTab === 'employee' ? 'Employee ID or email' : 'Admin username'}
                             </label>
                             <input id="login" type="text"
                                 value={data.login}
                                 onChange={e => setData('login', e.target.value)}
                                 placeholder={activeTab === 'employee' ? 'e.g. 2029-00078' : 'Admin username'}
-                                className="w-full px-3 py-2.5 sm:py-2 text-sm rounded-lg border border-gray-300 bg-white transition-shadow focus:outline-none focus:ring-2 focus:ring-[#0F6E56]/40 focus:border-[#0F6E56]"
+                                className="w-full px-3 py-2.5 sm:py-2 text-sm rounded-lg border border-border bg-panel text-text transition-shadow focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal"
                                 autoComplete="username"
                                 aria-invalid={Boolean(errors.login)}
                                 aria-describedby={errors.login ? 'login-error' : undefined}
                                 required />
-                            {errors.login && <p id="login-error" className="mt-1 text-xs text-red-600">{errors.login}</p>}
+                            {errors.login && <p id="login-error" className="mt-1 text-xs text-red">{errors.login}</p>}
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-xs font-medium text-gray-600 mb-1">Password</label>
+                            <label htmlFor="password" className="block text-xs font-medium text-sub mb-1">Password</label>
                             <div className="relative">
                                 <input id="password" type={showPassword ? 'text' : 'password'}
                                     value={data.password}
                                     onChange={e => setData('password', e.target.value)}
                                     placeholder="Enter your password"
-                                    className="w-full px-3 py-2.5 sm:py-2 pr-10 text-sm rounded-lg border border-gray-300 bg-white transition-shadow focus:outline-none focus:ring-2 focus:ring-[#0F6E56]/40 focus:border-[#0F6E56]"
+                                    className="w-full px-3 py-2.5 sm:py-2 pr-10 text-sm rounded-lg border border-border bg-panel text-text transition-shadow focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal"
                                     autoComplete="current-password"
                                     aria-invalid={Boolean(errors.password)}
                                     aria-describedby={errors.password ? 'password-error' : undefined}
@@ -152,32 +158,32 @@ export default function Login() {
                                     onClick={() => setShowPassword(s => !s)}
                                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                                     aria-pressed={showPassword}
-                                    className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:text-[#0F6E56]">
+                                    className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-dim hover:text-sub focus:outline-none focus-visible:text-teal">
                                     <EyeIcon off={showPassword} />
                                 </button>
                             </div>
-                            {errors.password && <p id="password-error" className="mt-1 text-xs text-red-600">{errors.password}</p>}
+                            {errors.password && <p id="password-error" className="mt-1 text-xs text-red">{errors.password}</p>}
                         </div>
 
                         <div className="flex items-center justify-between flex-wrap gap-2">
-                            <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
+                            <label className="flex items-center gap-2 text-xs text-sub cursor-pointer select-none">
                                 <input type="checkbox"
                                     checked={data.remember}
                                     onChange={e => setData('remember', e.target.checked)}
-                                    className="rounded border-gray-300 text-[#0F6E56] focus:ring-[#0F6E56]/40 w-4 h-4" />
+                                    className="rounded border-border text-teal focus:ring-teal/40 w-4 h-4" />
                                 Remember me
                             </label>
-                            <a href="/forgot-password" className="text-xs font-medium hover:underline" style={{ color: '#0F6E56' }}>Forgot password?</a>
+                            <a href="/forgot-password" className="text-xs font-medium hover:underline text-teal">Forgot password?</a>
                         </div>
 
                         <button type="submit" disabled={processing}
-                            className="w-full py-3 sm:py-2.5 text-sm font-medium text-white rounded-lg transition-opacity disabled:opacity-60 hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0F6E56]"
-                            style={{ background: '#0F6E56' }}>
+                            className="w-full py-3 sm:py-2.5 text-sm font-medium rounded-lg transition-opacity disabled:opacity-60 hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-teal bg-teal"
+                            style={{ color: 'var(--color-bg)' }}>
                             {processing ? 'Signing in…' : 'Sign in'}
                         </button>
                     </form>
 
-                    <p className="mt-6 pt-4 border-t border-gray-200 text-xs text-gray-400 text-center">
+                    <p className="mt-6 pt-4 border-t border-border text-xs text-dim text-center">
                         Having trouble signing in? Contact your HR administrator.
                     </p>
                 </div>

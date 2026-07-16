@@ -1,8 +1,9 @@
 import { useForm } from '@inertiajs/react'
 
 const C = {
-    panel: 'rgba(14,20,27,0.96)', field: 'rgba(255,255,255,0.03)', border: '#1F2C35',
-    text: '#E7F1EE', sub: '#83979C', dim: '#4C5C61', teal: '#14F1B2', red: '#FF6B81',
+    panel: 'var(--color-panel)', field: 'var(--color-field)', border: 'var(--color-border)',
+    text: 'var(--color-text)', sub: 'var(--color-sub)', dim: 'var(--color-dim)',
+    teal: 'var(--color-teal)', red: 'var(--color-red)',
 }
 
 const PUNCH_LABELS = {
@@ -52,7 +53,7 @@ export default function DtrEditRequestModal({ log, onClose }) {
                     or a pending request already exists for this entry) */}
                 {errors.edit && (
                     <div className="rounded-lg p-3 mb-4 border text-xs"
-                        style={{ background: 'rgba(255,107,129,0.08)', borderColor: 'rgba(255,107,129,0.3)', color: C.red }}>
+                        style={{ background: 'color-mix(in srgb, var(--color-red) 8%, transparent)', borderColor: 'color-mix(in srgb, var(--color-red) 30%, transparent)', color: C.red }}>
                         {errors.edit}
                     </div>
                 )}
@@ -125,14 +126,14 @@ export default function DtrEditRequestModal({ log, onClose }) {
                         </button>
                         <button type="submit" disabled={processing}
                             className="flex-1 py-2 text-sm font-semibold rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
-                            style={{ background: C.teal, color: '#06090D', boxShadow: `0 0 20px -8px ${C.teal}` }}>
+                            style={{ background: C.teal, color: 'var(--color-bg)', boxShadow: `0 0 20px -8px ${C.teal}` }}>
                             {processing ? 'Submitting…' : 'Submit request'}
                         </button>
                     </div>
                 </form>
 
                 <style>{`
-                    .modal-input:focus { border-color: rgba(20,241,178,0.5) !important; box-shadow: 0 0 0 3px rgba(20,241,178,0.12); }
+                    .modal-input:focus { border-color: color-mix(in srgb, var(--color-teal) 50%, transparent) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-teal) 12%, transparent); }
                     .modal-input::-webkit-calendar-picker-indicator { filter: invert(0.7); }
                 `}</style>
             </div>

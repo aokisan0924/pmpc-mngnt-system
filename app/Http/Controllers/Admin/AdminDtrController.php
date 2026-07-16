@@ -19,7 +19,7 @@ class AdminDtrController extends Controller
         $from = Carbon::parse($month)->startOfMonth();
         $to   = Carbon::parse($month)->endOfMonth();
 
-        $employees = Employee::where('role', 'employee')
+        $employees = Employee::where('is_staff', true)
             ->where('status', 'active')
             ->orderBy('first_name')
             ->get()
@@ -32,7 +32,7 @@ class AdminDtrController extends Controller
             ]);
 
         // Build DTR summary for all employees this month
-        $dtrSummary = Employee::where('role', 'employee')
+        $dtrSummary = Employee::where('is_staff', true)
             ->where('status', 'active')
             ->when($employeeId, fn($q) => $q->where('id', $employeeId))
             ->get()
@@ -40,13 +40,15 @@ class AdminDtrController extends Controller
                 $logs = DtrLog::where('employee_id', $emp->id)
                     ->whereBetween('date', [$from, $to])
                     ->get();
+
                 return [
                     'id'             => $emp->id,
                     'employee_id'    => $emp->employee_id,
                     'full_name'      => $emp->full_name,
                     'department'     => $emp->department,
                     'initials'       => $emp->initials,
-                    'days_present'   => $logs->whereNotIn('status', ['absent'])->count(),
+                    'days_present'   => $logs->whereIn('status', ['on_time', 'late', 'undertime', 'half_day'])
+                                              ->sum(fn($log) => $log->status === 'half_day' ? 0.5 : 1),
                     'days_late'      => $logs->where('status', 'late')->count(),
                     'days_absent'    => $logs->where('status', 'absent')->count(),
                     'half_days'      => $logs->where('status', 'half_day')->count(),
@@ -87,7 +89,8 @@ class AdminDtrController extends Controller
             ]);
 
         $summary = [
-            'days_present'   => collect($logs)->whereNotIn('status', ['absent'])->count(),
+            'days_present'   => collect($logs)->whereIn('status', ['on_time', 'late', 'undertime', 'half_day'])
+                                                ->sum(fn($log) => $log['status'] === 'half_day' ? 0.5 : 1),
             'days_late'      => collect($logs)->where('status', 'late')->count(),
             'days_absent'    => collect($logs)->where('status', 'absent')->count(),
             'half_days'      => collect($logs)->where('status', 'half_day')->count(),

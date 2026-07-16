@@ -355,13 +355,12 @@ export default function EmployeeShow({ employee, govIds }) {
                             <p className="text-xs font-semibold text-sub mb-3 uppercase tracking-wide">Other deductions</p>
                             <div className="grid sm:grid-cols-2 gap-3">
                                 {[
-                                    { key: 'loan_deduction',          label: 'Loan (₱)'          },
-                                    { key: 'cc_deduction',             label: 'CC / Credit (₱)'   },
-                                    { key: 'cash_advance_deduction',   label: 'Cash advance (₱)'  },
-                                    { key: 'rental_deduction',         label: 'Rental (₱)'        },
-                                    { key: 'savings_deduction',        label: 'Savings (₱)'       },
-                                    { key: 'share_capital_deduction',  label: 'Share capital (₱)' },
-                                    { key: 'other_deductions',         label: 'Other (₱)'         },
+                                    { key: 'loan_deduction',                  label: 'Loan (₱)'                 },
+                                    { key: 'capital_contribution_deduction',  label: 'Capital contribution (₱)' },
+                                    { key: 'cash_advance_deduction',          label: 'Cash advance (₱)'         },
+                                    { key: 'rental_deduction',                label: 'Rental (₱)'               },
+                                    { key: 'savings_deduction',               label: 'Savings (₱)'              },
+                                    { key: 'other_deductions',                label: 'Other (₱)'                },
                                 ].map(({ key, label }) => (
                                     <Field key={key} label={label}>
                                         <input type="number" value={compForm.data[key]}

@@ -17,6 +17,7 @@ class Employee extends Authenticatable
         'email',
         'password',
         'role',
+        'is_staff',
         'department',
         'position',
         'phone',
@@ -50,6 +51,7 @@ class Employee extends Authenticatable
     protected $casts = [
         'date_hired' => 'date',
         'password'   => 'hashed',
+        'is_staff'   => 'boolean',
     ];
 
     public function getFullNameAttribute(): string {

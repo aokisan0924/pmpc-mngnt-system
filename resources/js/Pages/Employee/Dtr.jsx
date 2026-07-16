@@ -3,27 +3,27 @@ import { router, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import DtrEditRequestModal from '@/Components/DtrEditRequestModal'
 
-/* ---------- design tokens ---------- */
+/* ---------- design tokens — resolve to CSS variables from app.css ---------- */
 const C = {
-    bg:        '#06090D',
-    panel:     'rgba(14,20,27,0.72)',
-    border:    '#1F2C35',
-    text:      '#E7F1EE',
-    sub:       '#83979C',
-    dim:       '#4C5C61',
-    teal:      '#14F1B2',
-    blue:      '#5AA9FF',
-    amber:     '#FFC168',
-    purple:    '#C29CFF',
-    red:       '#FF6B81',
+    bg:     'var(--color-bg)',
+    panel:  'var(--color-panel)',
+    border: 'var(--color-border)',
+    text:   'var(--color-text)',
+    sub:    'var(--color-sub)',
+    dim:    'var(--color-dim)',
+    teal:   'var(--color-teal)',
+    blue:   'var(--color-blue)',
+    amber:  'var(--color-amber)',
+    purple: 'var(--color-purple)',
+    red:    'var(--color-red)',
 }
 
 const STATUS_STYLES = {
-    on_time:   { color: C.teal,   label: 'On time'   },
-    late:      { color: C.amber,  label: 'Late'      },
-    undertime: { color: C.blue,   label: 'Undertime' },
-    half_day:  { color: C.purple, label: 'Half day'  },
-    absent:    { color: C.red,    label: 'Absent'    },
+    on_time:   { color: C.teal,   bg: 'bg-teal/10',   text: 'text-teal',   label: 'On time'   },
+    late:      { color: C.amber,  bg: 'bg-amber/10',  text: 'text-amber',  label: 'Late'      },
+    undertime: { color: C.blue,   bg: 'bg-blue/10',   text: 'text-blue',   label: 'Undertime' },
+    half_day:  { color: C.purple, bg: 'bg-purple/10', text: 'text-purple', label: 'Half day'  },
+    absent:    { color: C.red,    bg: 'bg-red/10',    text: 'text-red',    label: 'Absent'    },
 }
 
 const PUNCH_LABELS = {
@@ -116,7 +116,7 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                     {/* Flash */}
                     {flash?.success && (
                         <div className="mb-4 px-4 py-3 rounded-xl border text-sm animate-in"
-                            style={{ background: 'rgba(20,241,178,0.08)', borderColor: 'rgba(20,241,178,0.3)', color: C.teal }}>
+                            style={{ background: 'color-mix(in srgb, var(--color-teal) 8%, transparent)', borderColor: 'color-mix(in srgb, var(--color-teal) 30%, transparent)', color: C.teal }}>
                             {flash.success}
                         </div>
                     )}
@@ -150,12 +150,12 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                                 <button
                                     onClick={handlePunch}
                                     disabled={punching}
-                                    className="w-full md:w-auto px-5 py-3 md:py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-60 transition-opacity"
-                                    style={{ background: '#0F6E56' }}>
+                                    className="w-full md:w-auto px-5 py-3 md:py-2.5 rounded-xl text-sm font-medium disabled:opacity-60 transition-opacity bg-teal"
+                                    style={{ color: 'var(--color-bg)' }}>
                                     {punching ? 'Recording…' : `Clock ${nextLabel}`}
                                 </button>
                             ) : (
-                                <span className="w-full md:w-auto text-center px-4 py-3 md:py-2 rounded-xl text-sm bg-gray-100 text-gray-500">
+                                <span className="w-full md:w-auto text-center px-4 py-3 md:py-2 rounded-xl text-sm bg-field text-sub">
                                     All punches complete ✓
                                 </span>
                             )}
@@ -174,7 +174,7 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${isNext ? 'pulse-ring' : ''}`}
                                                 style={{
                                                     borderColor: nodeColor,
-                                                    background: done ? 'rgba(20,241,178,0.12)' : 'transparent',
+                                                    background: done ? 'color-mix(in srgb, var(--color-teal) 12%, transparent)' : 'transparent',
                                                     color: nodeColor,
                                                 }}>
                                                 {done ? <IconCheck className="w-4 h-4" /> : <span className="text-[11px] font-mono">{i + 1}</span>}
@@ -215,45 +215,31 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                     </div>
 
                     {/* Month navigator */}
-                    <div className="flex items-center justify-between mb-3 rounded-xl border px-2 py-1.5"
+                    <div className="flex items-center justify-between mb-3 rounded-xl border px-2 py-1.5 flex-wrap gap-2"
                         style={{ borderColor: C.border, background: C.panel }}>
                         <button onClick={() => handleMonthChange(-1)}
                                 disabled={loading}
                                 aria-label="Previous month"
-                                className="flex items-center gap-1 text-sm px-2 py-1.5 rounded-lg transition-colors hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed"
+                                className="flex items-center gap-1 text-sm px-2 py-1.5 rounded-lg transition-colors hover:bg-hover disabled:opacity-40 disabled:cursor-not-allowed"
                                 style={{ color: C.sub }}>
                             <IconChevronLeft className="w-4 h-4" /> Prev
                         </button>
                         <p className="text-sm font-medium font-display" style={{ color: C.text }}>
                             {new Date(month + '-01').toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}
                         </p>
-                        <button onClick={() => handleMonthChange(1)}
-                                disabled={loading}
-                                aria-label="Next month"
-                                className="flex items-center gap-1 text-sm px-2 py-1.5 rounded-lg transition-colors hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed"
-                                style={{ color: C.sub }}>
-                            Next <IconChevronRight className="w-4 h-4" />
-                        </button>
-                    </div>
-
-                    {/* Month navigator */}
-                    <div className="flex items-center justify-between mb-3">
-                        <button onClick={() => handleMonthChange(-1)}
-                            className="text-sm text-gray-500 hover:text-gray-800 px-2 py-1">
-                            ← Prev
-                        </button>
-                        <p className="text-sm font-medium text-gray-700">
-                            {new Date(month + '-02').toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}
-                        </p>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                             <a href={`/employee/dtr/print?month=${month}`}
                                 target="_blank"
-                                className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
-                                Print DTR ↓
+                                className="text-xs px-2.5 py-1.5 rounded-lg border transition-colors hover:bg-hover"
+                                style={{ borderColor: C.border, color: C.sub }}>
+                                Print ↓
                             </a>
                             <button onClick={() => handleMonthChange(1)}
-                                className="text-sm text-gray-500 hover:text-gray-800 px-2 py-1">
-                                Next →
+                                    disabled={loading}
+                                    aria-label="Next month"
+                                    className="flex items-center gap-1 text-sm px-2 py-1.5 rounded-lg transition-colors hover:bg-hover disabled:opacity-40 disabled:cursor-not-allowed"
+                                    style={{ color: C.sub }}>
+                                Next <IconChevronRight className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
@@ -261,39 +247,40 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                     {/* DTR log — table on desktop, cards on mobile */}
 
                     {/* Desktop table */}
-                    <div className="hidden md:block bg-white rounded-xl border border-gray-200 overflow-hidden">
-                        <table className="w-full text-sm">
+                    <div className="hidden md:block rounded-xl border overflow-hidden overflow-x-auto"
+                        style={{ background: C.panel, borderColor: C.border }}>
+                        <table className="w-full text-sm min-w-[760px]">
                             <thead>
-                                <tr className="bg-gray-50 border-b border-gray-100">
-                                    <th className="text-left px-4 py-3 text-xs text-gray-400 font-medium">Date</th>
-                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium">AM In</th>
-                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium border-r border-gray-100">AM Out</th>
-                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium">PM In</th>
-                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium border-r border-gray-100">PM Out</th>
-                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium">Hours</th>
-                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium">Status</th>
-                                    <th className="text-center px-3 py-3 text-xs text-gray-400 font-medium"></th>
+                                <tr className="border-b" style={{ background: 'var(--color-field)', borderColor: C.border }}>
+                                    <th className="text-left px-4 py-3 text-xs font-medium" style={{ color: C.dim }}>Date</th>
+                                    <th className="text-center px-3 py-3 text-xs font-medium" style={{ color: C.dim }}>AM In</th>
+                                    <th className="text-center px-3 py-3 text-xs font-medium border-r" style={{ color: C.dim, borderColor: C.border }}>AM Out</th>
+                                    <th className="text-center px-3 py-3 text-xs font-medium" style={{ color: C.dim }}>PM In</th>
+                                    <th className="text-center px-3 py-3 text-xs font-medium border-r" style={{ color: C.dim, borderColor: C.border }}>PM Out</th>
+                                    <th className="text-center px-3 py-3 text-xs font-medium" style={{ color: C.dim }}>Hours</th>
+                                    <th className="text-center px-3 py-3 text-xs font-medium" style={{ color: C.dim }}>Status</th>
+                                    <th className="text-center px-3 py-3 text-xs font-medium" style={{ color: C.dim }}></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {logs?.map((log) => {
                                     const style = STATUS_STYLES[log.status] ?? STATUS_STYLES.absent
                                     return (
-                                        <tr key={log.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                                            <td className="px-4 py-3 text-gray-600 text-xs whitespace-nowrap">{log.date_label}</td>
+                                        <tr key={log.id} className="border-b last:border-0 transition-colors hover:bg-hover" style={{ borderColor: C.border }}>
+                                            <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: C.sub }}>{log.date_label}</td>
                                             <td className="px-3 py-3 text-center text-xs font-medium">
-                                                {log.am_time_in ? <span className="text-gray-800">{log.am_time_in.slice(0,5)}</span> : <span className="text-gray-300">—</span>}
+                                                {log.am_time_in ? <span style={{ color: C.text }}>{log.am_time_in.slice(0,5)}</span> : <span style={{ color: C.dim }}>—</span>}
                                             </td>
-                                            <td className="px-3 py-3 text-center text-xs font-medium border-r border-gray-100">
-                                                {log.am_time_out ? <span className="text-gray-800">{log.am_time_out.slice(0,5)}</span> : <span className="text-gray-300">—</span>}
+                                            <td className="px-3 py-3 text-center text-xs font-medium border-r" style={{ borderColor: C.border }}>
+                                                {log.am_time_out ? <span style={{ color: C.text }}>{log.am_time_out.slice(0,5)}</span> : <span style={{ color: C.dim }}>—</span>}
                                             </td>
                                             <td className="px-3 py-3 text-center text-xs font-medium">
-                                                {log.pm_time_in ? <span className="text-gray-800">{log.pm_time_in.slice(0,5)}</span> : <span className="text-gray-300">—</span>}
+                                                {log.pm_time_in ? <span style={{ color: C.text }}>{log.pm_time_in.slice(0,5)}</span> : <span style={{ color: C.dim }}>—</span>}
                                             </td>
-                                            <td className="px-3 py-3 text-center text-xs font-medium border-r border-gray-100">
-                                                {log.pm_time_out ? <span className="text-gray-800">{log.pm_time_out.slice(0,5)}</span> : <span className="text-gray-300">—</span>}
+                                            <td className="px-3 py-3 text-center text-xs font-medium border-r" style={{ borderColor: C.border }}>
+                                                {log.pm_time_out ? <span style={{ color: C.text }}>{log.pm_time_out.slice(0,5)}</span> : <span style={{ color: C.dim }}>—</span>}
                                             </td>
-                                            <td className="px-3 py-3 text-center text-xs text-gray-600">
+                                            <td className="px-3 py-3 text-center text-xs" style={{ color: C.sub }}>
                                                 {log.hours_rendered ? `${log.hours_rendered}h` : '—'}
                                             </td>
                                             <td className="px-3 py-3 text-center">
@@ -305,14 +292,14 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                                                 {!log.has_pending_edit && (
                                                     log.edit_window_open ? (
                                                         <button onClick={() => setEditTarget(log)}
-                                                            className="text-xs hover:underline"
-                                                            style={{ color: '#0F6E56' }}>
+                                                            className="text-xs hover:underline text-teal">
                                                             Request edit
                                                         </button>
                                                     ) : (
-                                                        <span className="text-xs text-gray-300 cursor-not-allowed"
+                                                        <span className="text-xs cursor-not-allowed"
+                                                            style={{ color: C.dim }}
                                                             title="Edit requests are only allowed within 7 days of the entry.">
-                                                            Edit window closed
+                                                            Window closed
                                                         </span>
                                                     )
                                                 )}
@@ -322,7 +309,7 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                                 })}
                                 {(!logs || logs.length === 0) && (
                                     <tr>
-                                        <td colSpan={8} className="px-4 py-8 text-center text-sm text-gray-400">
+                                        <td colSpan={8} className="px-4 py-8 text-center text-sm" style={{ color: C.dim }}>
                                             No DTR records for this month.
                                         </td>
                                     </tr>
@@ -336,9 +323,9 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                         {logs?.map((log) => {
                             const style = STATUS_STYLES[log.status] ?? STATUS_STYLES.absent
                             return (
-                                <div key={log.id} className="bg-white rounded-xl border border-gray-200 p-4">
+                                <div key={log.id} className="rounded-xl border p-4" style={{ background: C.panel, borderColor: C.border }}>
                                     <div className="flex items-center justify-between mb-3">
-                                        <p className="text-sm font-medium text-gray-800">{log.date_label}</p>
+                                        <p className="text-sm font-medium" style={{ color: C.text }}>{log.date_label}</p>
                                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${style.bg} ${style.text}`}>
                                             {log.has_pending_edit ? 'Pending edit' : style.label}
                                         </span>
@@ -346,28 +333,27 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                                     <div className="grid grid-cols-4 gap-2 mb-3">
                                         {['am_time_in','am_time_out','pm_time_in','pm_time_out'].map(slot => (
                                             <div key={slot} className="text-center">
-                                                <p className="text-xs text-gray-400 mb-0.5">{PUNCH_LABELS[slot]}</p>
-                                                <p className={`text-xs font-medium font-mono ${log[slot] ? 'text-gray-800' : 'text-gray-300'}`}>
+                                                <p className="text-xs mb-0.5" style={{ color: C.dim }}>{PUNCH_LABELS[slot]}</p>
+                                                <p className="text-xs font-medium font-mono" style={{ color: log[slot] ? C.text : C.dim }}>
                                                     {log[slot] ? log[slot].slice(0,5) : '—'}
                                                 </p>
                                             </div>
                                         ))}
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <p className="text-xs text-gray-400">
+                                        <p className="text-xs" style={{ color: C.dim }}>
                                             {log.hours_rendered ? `${log.hours_rendered}h rendered` : 'No hours recorded'}
                                         </p>
                                         {!log.has_pending_edit && (
                                             log.edit_window_open ? (
                                                 <button onClick={() => setEditTarget(log)}
-                                                    className="text-xs font-medium"
-                                                    style={{ color: '#0F6E56' }}>
+                                                    className="text-xs font-medium text-teal">
                                                     Request edit
                                                 </button>
                                             ) : (
-                                                <span className="text-xs text-gray-300"
+                                                <span className="text-xs" style={{ color: C.dim }}
                                                     title="Edit requests are only allowed within 7 days of the entry.">
-                                                    Edit window closed
+                                                    Window closed
                                                 </span>
                                             )
                                         )}
@@ -376,8 +362,8 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                             )
                         })}
                         {(!logs || logs.length === 0) && (
-                            <div className="bg-white rounded-xl border border-gray-200 px-4 py-8 text-center">
-                                <p className="text-sm text-gray-400">No DTR records for this month.</p>
+                            <div className="rounded-xl border px-4 py-8 text-center" style={{ background: C.panel, borderColor: C.border }}>
+                                <p className="text-sm" style={{ color: C.dim }}>No DTR records for this month.</p>
                             </div>
                         )}
                     </div>
@@ -389,11 +375,11 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                     .font-mono { font-family: 'JetBrains Mono', monospace; }
                     @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
                     .animate-in { animation: fadeSlideUp 0.5s ease-out both; }
-                    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(20,241,178,0.35);} 50% { box-shadow: 0 0 0 6px rgba(20,241,178,0);} }
+                    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-teal) 35%, transparent);} 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-teal) 0%, transparent);} }
                     .pulse-ring { animation: pulseGlow 2.2s ease-out infinite; }
                     @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
-                    .hud-grid { background-image: linear-gradient(rgba(20,241,178,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(20,241,178,0.05) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
-                    .skeleton-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.045) 25%, rgba(255,255,255,0.11) 37%, rgba(255,255,255,0.045) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.6s ease-in-out infinite; }
+                    .hud-grid { background-image: linear-gradient(color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
+                    .skeleton-shimmer { background: linear-gradient(90deg, color-mix(in srgb, var(--color-text) 8%, transparent) 25%, color-mix(in srgb, var(--color-text) 16%, transparent) 37%, color-mix(in srgb, var(--color-text) 8%, transparent) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.6s ease-in-out infinite; }
                     @keyframes skeletonShimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
                     @media (prefers-reduced-motion: reduce) { .animate-in, .pulse-ring, .hud-grid, .skeleton-shimmer { animation: none; } .skeleton-shimmer { opacity: 0.6; } }
                 `}</style>

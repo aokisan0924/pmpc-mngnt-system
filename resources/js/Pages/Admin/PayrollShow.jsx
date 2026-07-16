@@ -112,10 +112,10 @@ export default function PayrollShow({ payroll, items }) {
                         <tbody>
                             {items.map(item => {
                                 const splitDed = item.loan_deduction
-                                    + item.cc_deduction
+                                    + item.capital_contribution_deduction
                                     + item.cash_advance_deduction
+                                    + item.rental_deduction
                                     + item.savings_deduction
-                                    + item.share_capital_deduction
                                     + item.other_deductions
 
                                 return (
@@ -153,7 +153,7 @@ export default function PayrollShow({ payroll, items }) {
                                             <td className="px-3 py-3 text-right text-red">₱ {fmt(item.tax_deduction)}</td>
                                         </>}
                                         <td className="px-3 py-3 text-right text-red border-l border-border"
-                                            title="Loan + CC + Cash advance + Savings + Share capital + Other">
+                                            title="Loan + Capital contribution + Cash advance + Rental + Savings + Other">
                                             ₱ {fmt(splitDed)}
                                         </td>
                                         <td className={`px-4 py-3 text-right font-medium border-l border-border ${item.net_pay < 0 ? 'text-red' : 'text-teal'}`}>

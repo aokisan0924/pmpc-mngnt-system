@@ -2,28 +2,26 @@ import { useEffect, useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 
-/* ---------- design tokens (matches Dashboard / Dtr / Planner / Profile) ---------- */
+/* ---------- design tokens — resolve to CSS variables from app.css ---------- */
 const C = {
-    bg:        '#06090D',
-    panel:     'rgba(14,20,27,0.72)',
-    panelSolid:'#111922',
-    border:    '#1F2C35',
-    borderHi:  'rgba(20,241,178,0.28)',
-    text:      '#E7F1EE',
-    sub:       '#83979C',
-    dim:       '#4C5C61',
-    teal:      '#14F1B2',
-    tealSolid: '#0F6E56',
-    blue:      '#5AA9FF',
-    amber:     '#FFC168',
-    purple:    '#C29CFF',
-    red:       '#FF7A7A',
+    bg:       'var(--color-bg)',
+    panel:    'var(--color-panel)',
+    border:   'var(--color-border)',
+    borderHi: 'color-mix(in srgb, var(--color-teal) 28%, transparent)',
+    text:     'var(--color-text)',
+    sub:      'var(--color-sub)',
+    dim:      'var(--color-dim)',
+    teal:     'var(--color-teal)',
+    blue:     'var(--color-blue)',
+    amber:    'var(--color-amber)',
+    purple:   'var(--color-purple)',
+    red:      'var(--color-red)',
 }
 
 const TYPE_STYLES = {
-    dtr_edit_approved: { color: C.teal, bg: 'rgba(20,241,178,0.1)',   border: 'rgba(20,241,178,0.22)' },
-    dtr_edit_declined: { color: C.red,  bg: 'rgba(255,122,122,0.08)', border: 'rgba(255,122,122,0.2)'  },
-    default:           { color: C.blue, bg: 'rgba(90,169,255,0.08)',  border: 'rgba(90,169,255,0.2)'   },
+    dtr_edit_approved: { color: C.teal, bg: 'color-mix(in srgb, var(--color-teal) 10%, transparent)', border: 'color-mix(in srgb, var(--color-teal) 22%, transparent)' },
+    dtr_edit_declined: { color: C.red,  bg: 'color-mix(in srgb, var(--color-red) 8%, transparent)',   border: 'color-mix(in srgb, var(--color-red) 20%, transparent)'  },
+    default:           { color: C.blue, bg: 'color-mix(in srgb, var(--color-blue) 8%, transparent)',  border: 'color-mix(in srgb, var(--color-blue) 20%, transparent)' },
 }
 
 /* ---------- icons ---------- */
@@ -119,7 +117,7 @@ export default function Notifications({ notifications }) {
             <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
                 {/* top nav progress indicator */}
                 {loading && (
-                    <div className="fixed top-0 left-0 right-0 h-0.5 z-50 overflow-hidden" style={{ background: 'rgba(20,241,178,0.12)' }}>
+                    <div className="fixed top-0 left-0 right-0 h-0.5 z-50 overflow-hidden" style={{ background: 'color-mix(in srgb, var(--color-teal) 12%, transparent)' }}>
                         <div className="h-full w-1/3 progress-sweep" style={{ background: C.teal }} />
                     </div>
                 )}
@@ -134,7 +132,7 @@ export default function Notifications({ notifications }) {
 
                     {flash?.success && (
                         <div className="mb-5 flex items-start gap-2.5 px-4 py-3 rounded-xl border animate-in"
-                            style={{ background: 'rgba(20,241,178,0.08)', borderColor: C.borderHi, color: C.teal }}>
+                            style={{ background: 'color-mix(in srgb, var(--color-teal) 8%, transparent)', borderColor: C.borderHi, color: C.teal }}>
                             <span className="mt-1 w-1.5 h-1.5 rounded-full shrink-0" style={{ background: C.teal }} />
                             <span className="text-sm">{flash.success}</span>
                         </div>
@@ -155,7 +153,7 @@ export default function Notifications({ notifications }) {
                         {unread.length > 0 && (
                             <button onClick={markAllRead}
                                 disabled={loading}
-                                className="inline-flex items-center justify-center gap-1.5 text-xs px-3.5 py-2.5 rounded-xl border backdrop-blur-xl transition-colors hover:bg-white/[0.04] disabled:opacity-40 disabled:cursor-not-allowed w-full sm:w-auto"
+                                className="inline-flex items-center justify-center gap-1.5 text-xs px-3.5 py-2.5 rounded-xl border backdrop-blur-xl transition-colors hover:bg-hover disabled:opacity-40 disabled:cursor-not-allowed w-full sm:w-auto"
                                 style={{ borderColor: C.border, color: C.sub, background: C.panel }}>
                                 <IconCheckDouble className="w-3.5 h-3.5" />
                                 Mark all read
@@ -205,7 +203,7 @@ export default function Notifications({ notifications }) {
                                         {/* Icon */}
                                         <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 border"
                                             style={{
-                                                background: notif.is_read ? 'rgba(255,255,255,0.03)' : style.bg,
+                                                background: notif.is_read ? 'var(--color-field)' : style.bg,
                                                 borderColor: notif.is_read ? C.border : style.border,
                                                 color: notif.is_read ? C.dim : style.color,
                                             }}>
@@ -232,7 +230,7 @@ export default function Notifications({ notifications }) {
                                                     onClick={() => deleteNotification(notif.id)}
                                                     disabled={loading}
                                                     aria-label="Delete notification"
-                                                    className="ml-auto p-1 rounded-md transition-colors hover:bg-white/[0.06] disabled:opacity-40 disabled:cursor-not-allowed"
+                                                    className="ml-auto p-1 rounded-md transition-colors hover:bg-hover disabled:opacity-40 disabled:cursor-not-allowed"
                                                     style={{ color: C.dim }}>
                                                     <IconTrash className="w-3.5 h-3.5" />
                                                 </button>
@@ -247,7 +245,7 @@ export default function Notifications({ notifications }) {
                             <div className="rounded-2xl border backdrop-blur-xl px-5 py-16 text-center animate-in"
                                 style={{ background: C.panel, borderColor: C.border }}>
                                 <div className="w-11 h-11 rounded-full flex items-center justify-center mx-auto mb-3 border"
-                                    style={{ background: 'rgba(255,255,255,0.03)', borderColor: C.border, color: C.dim }}>
+                                    style={{ background: 'var(--color-field)', borderColor: C.border, color: C.dim }}>
                                     <IconBell className="w-5 h-5" />
                                 </div>
                                 <p className="text-sm font-medium" style={{ color: C.text }}>No notifications yet</p>
@@ -265,11 +263,11 @@ export default function Notifications({ notifications }) {
                     .font-mono { font-family: 'JetBrains Mono', monospace; }
                     @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
                     .animate-in { animation: fadeSlideUp 0.5s ease-out both; }
-                    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(20,241,178,0.35);} 50% { box-shadow: 0 0 0 6px rgba(20,241,178,0);} }
+                    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-teal) 35%, transparent);} 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-teal) 0%, transparent);} }
                     .pulse-ring { animation: pulseGlow 2.2s ease-out infinite; }
                     @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
-                    .hud-grid { background-image: linear-gradient(rgba(20,241,178,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(20,241,178,0.05) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
-                    .skeleton-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.045) 25%, rgba(255,255,255,0.11) 37%, rgba(255,255,255,0.045) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.6s ease-in-out infinite; }
+                    .hud-grid { background-image: linear-gradient(color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
+                    .skeleton-shimmer { background: linear-gradient(90deg, color-mix(in srgb, var(--color-text) 8%, transparent) 25%, color-mix(in srgb, var(--color-text) 16%, transparent) 37%, color-mix(in srgb, var(--color-text) 8%, transparent) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.6s ease-in-out infinite; }
                     @keyframes skeletonShimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
                     @keyframes progressSweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
                     .progress-sweep { animation: progressSweep 1.1s ease-in-out infinite; }

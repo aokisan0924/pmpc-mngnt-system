@@ -1,8 +1,9 @@
 import { useEffect } from 'react'
 
 const C = {
-    panel: 'rgba(14,20,27,0.92)', border: '#1F2C35', text: '#E7F1EE', sub: '#83979C', dim: '#4C5C61',
-    teal: '#14F1B2', red: '#FF6B81', violet: '#8B7CF6',
+    panel: 'var(--color-panel)', border: 'var(--color-border)', text: 'var(--color-text)',
+    sub: 'var(--color-sub)', dim: 'var(--color-dim)',
+    teal: 'var(--color-teal)', red: 'var(--color-red)', violet: 'var(--color-violet)',
 }
 
 const TYPE_STYLES = {
@@ -15,7 +16,7 @@ export default function NotificationToast({ notifications, onDismiss }) {
     if (! notifications || notifications.length === 0) return null
 
     return (
-        <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full">
+        <div className="fixed bottom-20 md:bottom-5 right-3 md:right-5 left-3 md:left-auto z-50 flex flex-col gap-2 max-w-sm w-auto md:w-full">
             {notifications.map(n => {
                 const style = TYPE_STYLES[n.type] ?? TYPE_STYLES.default
 
@@ -45,7 +46,7 @@ function Toast({ notification: n, style, onDismiss }) {
 
             {/* Icon */}
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-                style={{ background: `${style.color}26`, color: style.color }}>
+                style={{ background: `color-mix(in srgb, ${style.color} 15%, transparent)`, color: style.color }}>
                 {style.icon}
             </div>
 

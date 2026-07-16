@@ -22,19 +22,19 @@ class AdminDashboardController extends Controller
         $endOfMonth    = now()->endOfMonth();
 
         // ── KPI cards ──────────────────────────────────────
-        $totalEmployees  = Employee::where('role', 'employee')->count();
-        $activeEmployees = Employee::where('role', 'employee')->where('status', 'active')->count();
+        $totalEmployees  = Employee::where('is_staff', true)->count();
+        $activeEmployees = Employee::where('is_staff', true)->where('status', 'active')->count();
         $pendingEdits    = DtrEditRequest::where('status', 'pending')->count();
 
         // Today's attendance
         $presentToday = DtrLog::where('date', $today)
             ->whereNotIn('status', ['absent'])
-            ->whereHas('employee', fn($q) => $q->where('role', 'employee')->where('status', 'active'))
+            ->whereHas('employee', fn($q) => $q->where('is_staff', true)->where('status', 'active'))
             ->count();
 
         $lateToday = DtrLog::where('date', $today)
             ->where('status', 'late')
-            ->whereHas('employee', fn($q) => $q->where('role', 'employee')->where('status', 'active'))
+            ->whereHas('employee', fn($q) => $q->where('is_staff', true)->where('status', 'active'))
             ->count();
 
         $absentToday = $activeEmployees - $presentToday;
@@ -45,7 +45,7 @@ class AdminDashboardController extends Controller
             ->first();
 
         // ── Chart 1: Today's attendance snapshot ───────────
-        $todaySnapshot = Employee::where('role', 'employee')
+        $todaySnapshot = Employee::where('is_staff', true)
             ->where('status', 'active')
             ->get()
             ->map(function ($emp) use ($today) {
@@ -86,12 +86,12 @@ class AdminDashboardController extends Controller
 
             $daysPresent = DtrLog::whereBetween('date', [$from, $to])
                 ->whereNotIn('status', ['absent'])
-                ->whereHas('employee', fn($q) => $q->where('role', 'employee'))
+                ->whereHas('employee', fn($q) => $q->where('is_staff', true))
                 ->count();
 
             $daysLate = DtrLog::whereBetween('date', [$from, $to])
                 ->where('status', 'late')
-                ->whereHas('employee', fn($q) => $q->where('role', 'employee'))
+                ->whereHas('employee', fn($q) => $q->where('is_staff', true))
                 ->count();
 
             $rate = $totalPossible > 0
@@ -110,13 +110,13 @@ class AdminDashboardController extends Controller
         })->values();
 
         // ── Chart 3: Department attendance comparison (this month) ──
-        $departmentAttendance = Employee::where('role', 'employee')
+        $departmentAttendance = Employee::where('is_staff', true)
             ->where('status', 'active')
             ->select(DB::raw("COALESCE(department, 'Unassigned') as department"), DB::raw('COUNT(*) as headcount'))
             ->groupBy('department')
             ->get()
             ->map(function ($dept) use ($startOfMonth, $endOfMonth) {
-                $empIds = Employee::where('role', 'employee')
+                $empIds = Employee::where('is_staff', true)
                     ->where('status', 'active')
                     ->where(DB::raw("COALESCE(department, 'Unassigned')"), $dept->department)
                     ->pluck('id');
@@ -197,7 +197,7 @@ class AdminDashboardController extends Controller
                 ]);
             });
 
-        Employee::where('role', 'employee')
+        Employee::where('is_staff', true)
             ->orderByDesc('created_at')
             ->limit(3)
             ->get()

@@ -36,7 +36,6 @@ class PayrollItem extends Model
     ];
 
     protected $casts = [
-        'days_present'           => 'float',
         'cutoff_basic'           => 'float',
         'cutoff_transpo'         => 'float',
         'cutoff_rep'             => 'float',
@@ -84,10 +83,11 @@ class PayrollItem extends Model
         $this->weekend_ot_pay = round($hourlyRate * 1.30 * $this->weekend_ot_hours, 4);
         $this->total_ot_pay   = $this->weekday_ot_pay + $this->weekend_ot_pay;
 
-        // Cutoff gross = monthly_gross / 2
-        $workingDays        = (int) Setting::get('working_days_month', 22);
-        $monthlyBasic       = $emp->daily_rate * $workingDays;
-        $this->cutoff_basic     = round($monthlyBasic / 2, 4);
+        // Cutoff gross = basic pay prorated by actual attendance for this
+        // cutoff (days_present is set upstream in PayrollController before
+        // computeTotals() runs; half_day already counts as 0.5 there)
+        // + fixed allowances split evenly across the two cutoffs.
+        $this->cutoff_basic     = round($emp->daily_rate * $this->days_present, 4);
         $this->cutoff_transpo   = round($emp->transpo_allowance / 2, 4);
         $this->cutoff_rep       = round($emp->rep_allowance / 2, 4);
         $this->cutoff_quarterly = round($emp->quarterly_allowance / 2, 4);

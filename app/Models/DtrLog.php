@@ -72,13 +72,13 @@ class DtrLog extends Model
         if ($this->am_time_in && $this->am_time_out) {
             $amIn  = $normalizeTime($this->am_time_in);
             $amOut = $normalizeTime($this->am_time_out);
-            $amMinutes = Carbon::parse($amOut)->diffInMinutes(Carbon::parse($amIn));
+            $amMinutes = abs(Carbon::parse($amIn)->diffInMinutes(Carbon::parse($amOut)));
         }
 
         if ($this->pm_time_in && $this->pm_time_out) {
             $pmIn  = $normalizeTime($this->pm_time_in);
             $pmOut = $normalizeTime($this->pm_time_out);
-            $pmMinutes = Carbon::parse($pmOut)->diffInMinutes(Carbon::parse($pmIn));
+            $pmMinutes = abs(Carbon::parse($pmIn)->diffInMinutes(Carbon::parse($pmOut)));
         }
 
         $this->hours_rendered = round(($amMinutes + $pmMinutes) / 60, 2);

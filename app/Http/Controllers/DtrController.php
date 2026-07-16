@@ -36,10 +36,7 @@ class DtrController extends Controller
 
         // Monthly summary
         $summary = [
-            'days_present'  => DtrLog::where('employee_id', $employee->id)
-                ->whereBetween('date', [$startOfMonth, $endOfMonth])
-                ->whereNotIn('status', ['absent'])
-                ->count(),
+            'days_present'  => DtrLog::daysPresentBetween($employee->id, $startOfMonth, $endOfMonth),
             'days_late'     => DtrLog::where('employee_id', $employee->id)
                 ->whereBetween('date', [$startOfMonth, $endOfMonth])
                 ->where('status', 'late')

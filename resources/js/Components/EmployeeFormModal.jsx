@@ -1,8 +1,9 @@
 import { useForm } from '@inertiajs/react'
 
 const C = {
-    panel: 'rgba(14,20,27,0.96)', field: 'rgba(255,255,255,0.03)', border: '#1F2C35',
-    text: '#E7F1EE', sub: '#83979C', dim: '#4C5C61', violet: '#8B7CF6', red: '#FF6B81',
+    panel: 'var(--color-panel)', field: 'var(--color-field)', border: 'var(--color-border)',
+    text: 'var(--color-text)', sub: 'var(--color-sub)', dim: 'var(--color-dim)',
+    violet: 'var(--color-violet)', red: 'var(--color-red)',
 }
 
 function Field({ label, required, error, children }) {
@@ -67,7 +68,7 @@ export default function EmployeeFormModal({ employee, onClose }) {
                 </div>
 
                 <form onSubmit={submit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <Field label="First name" required error={errors.first_name}>
                             <input type="text" value={data.first_name}
                                 onChange={e => setData('first_name', e.target.value)}
@@ -87,7 +88,7 @@ export default function EmployeeFormModal({ employee, onClose }) {
                     </Field>
 
                     {!isEdit && (
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <Field label="Password" required error={errors.password}>
                                 <input type="password" value={data.password}
                                     onChange={e => setData('password', e.target.value)}
@@ -101,7 +102,7 @@ export default function EmployeeFormModal({ employee, onClose }) {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <Field label="Department">
                             <input type="text" value={data.department}
                                 onChange={e => setData('department', e.target.value)}
@@ -116,7 +117,7 @@ export default function EmployeeFormModal({ employee, onClose }) {
                         </Field>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <Field label="Phone">
                             <input type="text" value={data.phone}
                                 onChange={e => setData('phone', e.target.value)}
@@ -154,16 +155,14 @@ export default function EmployeeFormModal({ employee, onClose }) {
                         </button>
                         <button type="submit" disabled={processing}
                             className="flex-1 py-2 text-sm font-semibold rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
-                            style={{ background: C.violet, color: '#0A0714', boxShadow: `0 0 20px -8px ${C.violet}` }}>
+                            style={{ background: C.violet, color: 'var(--color-bg)', boxShadow: `0 0 20px -8px ${C.violet}` }}>
                             {processing ? 'Saving…' : isEdit ? 'Save changes' : 'Create employee'}
                         </button>
                     </div>
                 </form>
 
                 <style>{`
-                    .modal-input:focus { border-color: rgba(139,124,246,0.5) !important; box-shadow: 0 0 0 3px rgba(139,124,246,0.12); }
-                    .modal-date::-webkit-calendar-picker-indicator { filter: invert(0.7); }
-                    .modal-select option { background: #0C1218; color: #E7F1EE; }
+                    .modal-input:focus { border-color: color-mix(in srgb, var(--color-violet) 50%, transparent) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-violet) 12%, transparent); }
                 `}</style>
             </div>
         </div>

@@ -2,21 +2,18 @@ import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import { router, usePage } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 
-/* ---------- design tokens ---------- */
+/* ---------- design tokens — resolve to CSS variables from app.css ---------- */
 const C = {
-    bg:        '#06090D',
-    panel:     'rgba(14,20,27,0.72)',
-    panelSolid:'#111922',
-    border:    '#1F2C35',
-    borderHi:  'rgba(20,241,178,0.28)',
-    text:      '#E7F1EE',
-    sub:       '#83979C',
-    dim:       '#4C5C61',
-    teal:      '#14F1B2',
-    tealSolid: '#0F6E56',
-    blue:      '#5AA9FF',
-    amber:     '#FFC168',
-    purple:    '#C29CFF',
+    bg:     'var(--color-bg)',
+    panel:  'var(--color-panel)',
+    border: 'var(--color-border)',
+    text:   'var(--color-text)',
+    sub:    'var(--color-sub)',
+    dim:    'var(--color-dim)',
+    teal:   'var(--color-teal)',
+    blue:   'var(--color-blue)',
+    amber:  'var(--color-amber)',
+    purple: 'var(--color-purple)',
 }
 
 /* ---------- tiny icon set ---------- */
@@ -105,7 +102,7 @@ export default function Dashboard({ employee, summary, today, notifications  }) 
             <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
                 {/* top nav progress indicator */}
                 {navLoading && (
-                    <div className="fixed top-0 left-0 right-0 h-0.5 z-50 overflow-hidden" style={{ background: 'rgba(20,241,178,0.12)' }}>
+                    <div className="fixed top-0 left-0 right-0 h-0.5 z-50 overflow-hidden" style={{ background: 'color-mix(in srgb, var(--color-teal) 12%, transparent)' }}>
                         <div className="h-full w-1/3 progress-sweep" style={{ background: C.teal }} />
                     </div>
                 )}
@@ -173,7 +170,7 @@ export default function Dashboard({ employee, summary, today, notifications  }) 
                                     const value = today?.[key]
                                     const done = Boolean(value)
                                     return (
-                                        <div key={key} className="rounded-xl p-3 border flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.02)', borderColor: C.border }}>
+                                        <div key={key} className="rounded-xl p-3 border flex items-center justify-between" style={{ background: 'var(--color-field)', borderColor: C.border }}>
                                             <div className="min-w-0">
                                                 <p className="text-[11px] mb-0.5" style={{ color: C.dim }}>{label}</p>
                                                 {attendanceLoading ? (
@@ -189,7 +186,7 @@ export default function Dashboard({ employee, summary, today, notifications  }) 
                                     )
                                 })}
                             </div>
-                            <a href="/employee/dtr" className="flex items-center justify-center gap-1.5 w-full py-2.5 text-sm font-medium rounded-xl text-black transition-all hover:brightness-110" style={{ background: C.teal, boxShadow: `0 0 24px -6px ${C.teal}` }}>
+                            <a href="/employee/dtr" className="flex items-center justify-center gap-1.5 w-full py-2.5 text-sm font-medium rounded-xl transition-all hover:brightness-110" style={{ background: C.teal, color: 'var(--color-bg)', boxShadow: `0 0 24px -6px ${C.teal}` }}>
                                 Go to DTR
                                 <IconArrow className="w-3.5 h-3.5" />
                             </a>
@@ -215,7 +212,7 @@ export default function Dashboard({ employee, summary, today, notifications  }) 
                                     {notifications.map(n => (
                                         <div key={n.id}
                                             className="rounded-xl p-3 border"
-                                            style={{ background: 'rgba(255,255,255,0.03)', borderColor: C.border }}>
+                                            style={{ background: 'var(--color-field)', borderColor: C.border }}>
                                             <p className="text-xs font-medium mb-0.5" style={{ color: C.text }}>
                                                 {n.title}
                                             </p>
@@ -253,11 +250,11 @@ export default function Dashboard({ employee, summary, today, notifications  }) 
                     .font-mono { font-family: 'JetBrains Mono', monospace; }
                     @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
                     .animate-in { animation: fadeSlideUp 0.5s ease-out both; }
-                    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(20,241,178,0.35);} 50% { box-shadow: 0 0 0 6px rgba(20,241,178,0);} }
+                    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-teal) 35%, transparent);} 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-teal) 0%, transparent);} }
                     .pulse-ring { animation: pulseGlow 2.2s ease-out infinite; }
                     @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
-                    .hud-grid { background-image: linear-gradient(rgba(20,241,178,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(20,241,178,0.05) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
-                    .skeleton-shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.045) 25%, rgba(255,255,255,0.11) 37%, rgba(255,255,255,0.045) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.6s ease-in-out infinite; }
+                    .hud-grid { background-image: linear-gradient(color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
+                    .skeleton-shimmer { background: linear-gradient(90deg, color-mix(in srgb, var(--color-text) 8%, transparent) 25%, color-mix(in srgb, var(--color-text) 16%, transparent) 37%, color-mix(in srgb, var(--color-text) 8%, transparent) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.6s ease-in-out infinite; }
                     @keyframes skeletonShimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
                     @keyframes progressSweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
                     .progress-sweep { animation: progressSweep 1.1s ease-in-out infinite; }

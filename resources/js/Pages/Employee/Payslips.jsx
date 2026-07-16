@@ -11,9 +11,9 @@ function fmt(num) {
 
 function StatusBadge({ status }) {
     const styles = {
-        complete: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-        partial:  'bg-amber-50  text-amber-700  border-amber-200',
-        none:     'bg-gray-100  text-gray-400   border-gray-200',
+        complete: 'bg-teal/10 text-teal border-teal/25',
+        partial:  'bg-amber/10 text-amber border-amber/25',
+        none:     'bg-field text-dim border-border',
     }
     const labels = { complete: 'Complete', partial: 'Partial', none: 'No data' }
     return (
@@ -26,15 +26,15 @@ function StatusBadge({ status }) {
 function CutoffCard({ label, period, days, basic, transpo, ot, gross, deductions, net, status, month, cutoff }) {
     const finalized = status === 'finalized'
     return (
-        <div className={`rounded-xl border p-4 ${finalized ? 'border-gray-200 bg-white' : 'border-dashed border-gray-200 bg-gray-50'}`}>
+        <div className={`rounded-xl border p-4 ${finalized ? 'border-border bg-panel' : 'border-dashed border-border bg-field'}`}>
             <div className="flex items-center justify-between mb-3">
                 <div>
-                    <p className="text-xs font-medium text-gray-700">{label}</p>
-                    {period && <p className="text-xs text-gray-400 mt-0.5">{period}</p>}
+                    <p className="text-xs font-medium text-sub">{label}</p>
+                    {period && <p className="text-xs text-dim mt-0.5">{period}</p>}
                 </div>
                 {status && (
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        finalized ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                        finalized ? 'bg-teal/10 text-teal' : 'bg-amber/10 text-amber'
                     }`}>
                         {finalized ? 'Finalized' : 'Draft'}
                     </span>
@@ -45,42 +45,42 @@ function CutoffCard({ label, period, days, basic, transpo, ot, gross, deductions
                 <>
                     <div className="space-y-1.5 mb-3">
                         <div className="flex justify-between text-xs">
-                            <span className="text-gray-500">Days present</span>
-                            <span className="font-medium text-gray-700">{days} days</span>
+                            <span className="text-sub">Days present</span>
+                            <span className="font-medium text-sub">{days} days</span>
                         </div>
                         <div className="flex justify-between text-xs">
-                            <span className="text-gray-500">Basic pay</span>
-                            <span className="text-gray-700">₱ {fmt(basic)}</span>
+                            <span className="text-sub">Basic pay</span>
+                            <span className="text-sub">₱ {fmt(basic)}</span>
                         </div>
                         {transpo > 0 && (
                             <div className="flex justify-between text-xs">
-                                <span className="text-gray-500">Allowances</span>
-                                <span className="text-gray-700">₱ {fmt(transpo)}</span>
+                                <span className="text-sub">Allowances</span>
+                                <span className="text-sub">₱ {fmt(transpo)}</span>
                             </div>
                         )}
                         {ot > 0 && (
                             <div className="flex justify-between text-xs">
-                                <span className="text-gray-500">Overtime</span>
-                                <span className="text-amber-600">+ ₱ {fmt(ot)}</span>
+                                <span className="text-sub">Overtime</span>
+                                <span className="text-amber">+ ₱ {fmt(ot)}</span>
                             </div>
                         )}
-                        <div className="flex justify-between text-xs border-t border-gray-100 pt-1.5 mt-1.5">
-                            <span className="text-gray-500">Gross pay</span>
-                            <span className="font-medium text-gray-800">₱ {fmt(gross)}</span>
+                        <div className="flex justify-between text-xs border-t border-border pt-1.5 mt-1.5">
+                            <span className="text-sub">Gross pay</span>
+                            <span className="font-medium text-text">₱ {fmt(gross)}</span>
                         </div>
                         <div className="flex justify-between text-xs">
-                            <span className="text-gray-500">Deductions</span>
-                            <span className="text-red-500">− ₱ {fmt(deductions)}</span>
+                            <span className="text-sub">Deductions</span>
+                            <span className="text-red">− ₱ {fmt(deductions)}</span>
                         </div>
                     </div>
-                    <div className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">
-                        <span className="text-xs font-medium text-gray-600">Net pay</span>
-                        <span className="text-sm font-medium text-emerald-700">₱ {fmt(net)}</span>
+                    <div className="flex justify-between items-center bg-field rounded-lg px-3 py-2 border border-border">
+                        <span className="text-xs font-medium text-sub">Net pay</span>
+                        <span className="text-sm font-medium text-teal">₱ {fmt(net)}</span>
                     </div>
                 </>
             ) : (
                 <div className="py-4 text-center">
-                    <p className="text-xs text-gray-400">No payroll data yet</p>
+                    <p className="text-xs text-dim">No payroll data yet</p>
                 </div>
             )}
         </div>
@@ -102,18 +102,19 @@ export default function Payslips({ payslips, summary }) {
 
     return (
         <EmployeeLayout title="My payslips">
+            <div className="min-h-screen bg-bg">
             <div className="p-4 sm:p-6 max-w-6xl mx-auto">
 
                 {flash?.success && (
-                    <div className="mb-4 px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
+                    <div className="mb-4 px-4 py-3 rounded-lg bg-teal/10 border border-teal/25 text-teal text-sm">
                         {flash.success}
                     </div>
                 )}
 
                 {/* Header */}
                 <div className="mb-6">
-                    <h1 className="text-lg font-medium text-gray-900">My payslips</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">
+                    <h1 className="text-lg font-medium text-text">My payslips</h1>
+                    <p className="text-sm text-sub mt-0.5">
                         View and download your payslip history
                     </p>
                 </div>
@@ -125,22 +126,22 @@ export default function Payslips({ payslips, summary }) {
                             { label: 'Months on payroll', value: summary.total_months,                    sub: 'total records'       },
                             { label: 'Total days present', value: summary.total_days + ' days',            sub: 'across all periods'  },
                             { label: 'Total gross earned', value: '₱ ' + fmt(summary.total_gross),         sub: 'before deductions'   },
-                            { label: 'Total net received', value: '₱ ' + fmt(summary.total_earned),        sub: 'after deductions',   color: 'text-emerald-700' },
+                            { label: 'Total net received', value: '₱ ' + fmt(summary.total_earned),        sub: 'after deductions',   color: 'text-teal' },
                         ].map(s => (
-                            <div key={s.label} className="bg-white rounded-xl border border-gray-200 p-3">
-                                <p className="text-xs text-gray-400 mb-1">{s.label}</p>
-                                <p className={`text-base font-medium ${s.color ?? 'text-gray-900'}`}>{s.value}</p>
-                                <p className="text-xs text-gray-400 mt-0.5">{s.sub}</p>
+                            <div key={s.label} className="bg-panel rounded-xl border border-border p-3">
+                                <p className="text-xs text-dim mb-1">{s.label}</p>
+                                <p className={`text-base font-medium ${s.color ?? 'text-text'}`}>{s.value}</p>
+                                <p className="text-xs text-dim mt-0.5">{s.sub}</p>
                             </div>
                         ))}
                     </div>
                 )}
 
                 {payslips.length === 0 ? (
-                    <div className="bg-white rounded-xl border border-gray-200 px-5 py-16 text-center">
+                    <div className="bg-panel rounded-xl border border-border px-5 py-16 text-center">
                         <div className="text-3xl mb-3">📄</div>
-                        <p className="text-sm font-medium text-gray-600">No payslips yet</p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-sm font-medium text-sub">No payslips yet</p>
+                        <p className="text-xs text-dim mt-1">
                             Your payslips will appear here once HR processes your payroll.
                         </p>
                     </div>
@@ -150,13 +151,13 @@ export default function Payslips({ payslips, summary }) {
                         {/* Left — list */}
                         <div className="lg:col-span-2">
                             {/* Year filter */}
-                            <div className="flex gap-1 p-1 bg-gray-100 rounded-lg mb-3">
+                            <div className="flex gap-1 p-1 bg-field rounded-lg mb-3">
                                 <button
                                     onClick={() => setYearFilter('all')}
                                     className={`flex-1 text-xs py-1.5 rounded-md transition-all ${
                                         yearFilter === 'all'
-                                            ? 'bg-white text-gray-800 font-medium shadow-sm border border-gray-200'
-                                            : 'text-gray-500'
+                                            ? 'bg-panel text-text font-medium shadow-sm border border-border'
+                                            : 'text-sub'
                                     }`}>
                                     All
                                 </button>
@@ -165,8 +166,8 @@ export default function Payslips({ payslips, summary }) {
                                         onClick={() => setYearFilter(y)}
                                         className={`flex-1 text-xs py-1.5 rounded-md transition-all ${
                                             yearFilter === y
-                                                ? 'bg-white text-gray-800 font-medium shadow-sm border border-gray-200'
-                                                : 'text-gray-500'
+                                                ? 'bg-panel text-text font-medium shadow-sm border border-border'
+                                                : 'text-sub'
                                         }`}>
                                         {y}
                                     </button>
@@ -180,23 +181,23 @@ export default function Payslips({ payslips, summary }) {
                                         onClick={() => setSelected(p.month)}
                                         className={`w-full text-left rounded-xl border px-4 py-3 transition-all ${
                                             selected === p.month
-                                                ? 'border-gray-300 bg-white shadow-sm'
-                                                : 'border-gray-100 bg-white hover:border-gray-200'
+                                                ? 'border-border bg-panel shadow-sm'
+                                                : 'border-border bg-panel hover:border-border'
                                         }`}>
                                         <div className="flex items-center justify-between mb-1">
-                                            <p className="text-sm font-medium text-gray-800">{p.month_label}</p>
+                                            <p className="text-sm font-medium text-text">{p.month_label}</p>
                                             <StatusBadge status={p.status} />
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <div className="flex gap-1">
                                                 <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                                                    p.has_first ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-400'
+                                                    p.has_first ? 'bg-blue/10 text-blue' : 'bg-field text-dim'
                                                 }`}>1st</span>
                                                 <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
-                                                    p.has_second ? 'bg-purple-50 text-purple-600' : 'bg-gray-100 text-gray-400'
+                                                    p.has_second ? 'bg-purple/10 text-purple' : 'bg-field text-dim'
                                                 }`}>2nd</span>
                                             </div>
-                                            <span className="text-xs font-medium text-emerald-700">
+                                            <span className="text-xs font-medium text-teal">
                                                 ₱ {fmt(p.total_net)}
                                             </span>
                                         </div>
@@ -212,15 +213,14 @@ export default function Payslips({ payslips, summary }) {
                                     {/* Detail header */}
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                                         <div>
-                                            <h2 className="text-base font-medium text-gray-900">{active.month_label}</h2>
-                                            <p className="text-xs text-gray-400 mt-0.5">
+                                            <h2 className="text-base font-medium text-text">{active.month_label}</h2>
+                                            <p className="text-xs text-dim mt-0.5">
                                                 {active.total_days} days present · ₱ {fmt(active.total_gross)} gross
                                             </p>
                                         </div>
                                         <a href={`/employee/payslips/${active.month}`}
                                             target="_blank"
-                                            className="flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium text-white rounded-lg transition-opacity hover:opacity-90 w-full sm:w-auto"
-                                            style={{ background: '#0F6E56' }}>
+                                            className="flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-opacity hover:opacity-90 w-full sm:w-auto bg-teal text-bg">
                                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                                             </svg>
@@ -229,17 +229,17 @@ export default function Payslips({ payslips, summary }) {
                                     </div>
 
                                     {/* Monthly net pay highlight */}
-                                    <div className="rounded-xl p-4 mb-4 border border-emerald-100"
-                                        style={{ background: 'linear-gradient(135deg, #0F6E56 0%, #085041 100%)' }}>
+                                    <div className="rounded-xl p-4 mb-4 border border-teal/20"
+                                        style={{ background: 'linear-gradient(135deg, var(--color-teal) 0%, color-mix(in srgb, var(--color-teal) 70%, black) 100%)' }}>
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className="text-xs font-medium text-emerald-200 mb-0.5 uppercase tracking-wide">
+                                                <p className="text-xs font-medium text-teal mb-0.5 uppercase tracking-wide">
                                                     Monthly net pay
                                                 </p>
-                                                <p className="text-xl sm:text-2xl font-medium text-white">
+                                                <p className="text-xl sm:text-2xl font-medium" style={{ color: 'var(--color-bg)' }}>
                                                     ₱ {fmt(active.total_net)}
                                                 </p>
-                                                <p className="text-xs text-emerald-300 mt-1">
+                                                <p className="text-xs text-teal mt-1">
                                                     ₱ {fmt(active.total_gross)} gross − ₱ {fmt(active.total_ded)} deductions
                                                 </p>
                                             </div>
@@ -283,20 +283,20 @@ export default function Payslips({ payslips, summary }) {
 
                                     {/* Breakdown bar */}
                                     {active.total_gross > 0 && (
-                                        <div className="bg-white rounded-xl border border-gray-200 p-4">
-                                            <p className="text-xs font-medium text-gray-600 mb-3">Monthly breakdown</p>
+                                        <div className="bg-panel rounded-xl border border-border p-4">
+                                            <p className="text-xs font-medium text-sub mb-3">Monthly breakdown</p>
                                             <div className="space-y-2">
                                                 {[
-                                                    { label: 'Gross pay',       value: active.total_gross, color: '#0F6E56', pct: 100 },
-                                                    { label: 'Deductions',      value: active.total_ded,   color: '#EF4444', pct: active.total_gross > 0 ? (active.total_ded / active.total_gross * 100) : 0 },
-                                                    { label: 'Net pay',         value: active.total_net,   color: '#10B981', pct: active.total_gross > 0 ? (active.total_net / active.total_gross * 100) : 0 },
+                                                    { label: 'Gross pay',       value: active.total_gross, color: 'var(--color-teal)', pct: 100 },
+                                                    { label: 'Deductions',      value: active.total_ded,   color: 'var(--color-red)', pct: active.total_gross > 0 ? (active.total_ded / active.total_gross * 100) : 0 },
+                                                    { label: 'Net pay',         value: active.total_net,   color: 'var(--color-emerald)', pct: active.total_gross > 0 ? (active.total_net / active.total_gross * 100) : 0 },
                                                 ].map(row => (
                                                     <div key={row.label}>
                                                         <div className="flex justify-between text-xs mb-1">
-                                                            <span className="text-gray-500">{row.label}</span>
-                                                            <span className="font-medium text-gray-700">₱ {fmt(row.value)}</span>
+                                                            <span className="text-sub">{row.label}</span>
+                                                            <span className="font-medium text-sub">₱ {fmt(row.value)}</span>
                                                         </div>
-                                                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                                        <div className="h-1.5 bg-field rounded-full overflow-hidden">
                                                             <div className="h-full rounded-full transition-all"
                                                                 style={{ width: `${Math.min(row.pct, 100)}%`, background: row.color }} />
                                                         </div>
@@ -307,18 +307,19 @@ export default function Payslips({ payslips, summary }) {
                                     )}
                                 </div>
                             ) : (
-                                <div className="bg-white rounded-xl border border-gray-200 px-5 py-16 text-center">
-                                    <p className="text-sm text-gray-400">Select a month to view details</p>
+                                <div className="bg-panel rounded-xl border border-border px-5 py-16 text-center">
+                                    <p className="text-sm text-dim">Select a month to view details</p>
                                 </div>
                             )}
                         </div>
                     </div>
                 )}
 
-                <p className="mt-5 text-xs text-gray-400 text-center">
+                <p className="mt-5 text-xs text-dim text-center">
                     Payslips are available once both cutoffs for the month are finalized by HR.
                     For questions, contact your HR administrator.
                 </p>
+            </div>
             </div>
         </EmployeeLayout>
     )
