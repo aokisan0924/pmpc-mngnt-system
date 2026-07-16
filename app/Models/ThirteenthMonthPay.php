@@ -24,6 +24,7 @@ class ThirteenthMonthPay extends Model
     protected $casts = [
         'period_from'          => 'date',
         'period_to'            => 'date',
+        'days_present'         => 'float',
         'total_basic_pay'      => 'float',
         'thirteenth_month_pay' => 'float',
         'daily_rate'           => 'float',

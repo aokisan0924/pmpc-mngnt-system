@@ -36,6 +36,7 @@ class PayrollItem extends Model
     ];
 
     protected $casts = [
+        'days_present'           => 'float',
         'cutoff_basic'           => 'float',
         'cutoff_transpo'         => 'float',
         'cutoff_rep'             => 'float',

@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -6,4 +7,62 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* ── Semantic tokens — same names in light and dark, values swap
+       via the .dark class on <html>. Use these instead of hardcoding
+       hex anywhere in a page: bg-bg, text-text, border-border, etc. ── */
+    --color-bg:      #F6F4EF;
+    --color-panel:   #FFFFFF;
+    --color-field:   #F2F1EC;
+    --color-border:  #E5E2D9;
+    --color-text:    #1C2320;
+    --color-sub:     #5B655F;
+    --color-dim:     #9AA39D;
+
+    /* Brand accents — teal is the cooperative's primary brand color,
+       used across both portals. Violet is reserved as the admin
+       portal's wayfinding accent (so "which portal am I in" is
+       visually obvious), teal alone is the employee portal's accent. */
+    --color-brand:   #0F6E56;
+    --color-teal:    #0F6E56;
+    --color-blue:    #2563EB;
+    --color-amber:   #B45309;
+    --color-purple:  #7C3AED;
+    --color-violet:  #6D28D9;
+    --color-red:     #DC2626;
+    --color-emerald: #059669;
+    --color-pink:    #DB2777;
+
+    /* Overlay helpers — used for hover states, chart gridlines, and thin
+       row dividers that need to sit on top of *any* surface color, so
+       they can't be a flat --color-border value. */
+    --color-hover:      rgba(0,0,0,0.035);
+    --color-grid:       rgba(0,0,0,0.08);
+    --color-row-border: rgba(0,0,0,0.06);
+
+    color-scheme: light;
+}
+
+.dark {
+    color-scheme: dark;
+    --color-hover:      rgba(255,255,255,0.03);
+    --color-grid:       rgba(255,255,255,0.06);
+    --color-row-border: rgba(255,255,255,0.04);
+    --color-bg:      #06090D;
+    --color-panel:   #0E141B;
+    --color-field:   rgba(255,255,255,0.03);
+    --color-border:  #1F2C35;
+    --color-text:    #E7F1EE;
+    --color-sub:     #83979C;
+    --color-dim:     #4C5C61;
+
+    --color-brand:   #14F1B2;
+    --color-teal:    #14F1B2;
+    --color-blue:    #5AA9FF;
+    --color-amber:   #FFC168;
+    --color-purple:  #C29CFF;
+    --color-violet:  #8B7CF6;
+    --color-red:     #FF6B81;
+    --color-emerald: #34D399;
+    --color-pink:    #F472B6;
 }

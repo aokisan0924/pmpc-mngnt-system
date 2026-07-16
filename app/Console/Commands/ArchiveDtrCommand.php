@@ -60,7 +60,8 @@ class ArchiveDtrCommand extends Command
             }
 
             $summary = [
-                'days_present'   => $logs->whereNotIn('status', ['absent'])->count(),
+                'days_present'   => $logs->whereIn('status', ['on_time', 'late', 'undertime', 'half_day'])
+                                            ->sum(fn($log) => $log->status === 'half_day' ? 0.5 : 1),
                 'days_late'      => $logs->where('status', 'late')->count(),
                 'days_absent'    => $logs->where('status', 'absent')->count(),
                 'half_days'      => $logs->where('status', 'half_day')->count(),

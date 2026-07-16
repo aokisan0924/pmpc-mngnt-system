@@ -55,10 +55,7 @@ class PayrollController extends Controller
             ->get()
             ->map(function ($emp) use ($from, $to, $isFirst) {
 
-                $daysPresent = DtrLog::where('employee_id', $emp->id)
-                    ->whereBetween('date', [$from, $to])
-                    ->whereNotIn('status', ['absent'])
-                    ->count();
+                $daysPresent = DtrLog::daysPresentBetween($emp->id, $from, $to);
 
                 $workingDays = (int) Setting::get('working_days_month', 22);
                 $monthlyBasic = $emp->daily_rate * $workingDays;

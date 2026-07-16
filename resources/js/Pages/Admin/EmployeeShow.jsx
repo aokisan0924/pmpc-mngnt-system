@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 
-const BRAND = '#26215C'
-const inputClass = "w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#26215C]/15 focus:border-[#26215C] transition-colors placeholder:text-slate-400"
+const inputClass = "w-full px-3 py-2.5 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet transition-colors placeholder:text-dim"
 
 /* ---------- icons ---------- */
 const IconArrowLeft = (p) => (
@@ -43,11 +42,11 @@ function fmt(num) {
 function Field({ label, error, required, children }) {
     return (
         <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1.5">
-                {label} {required && <span className="text-red-500">*</span>}
+            <label className="block text-xs font-medium text-sub mb-1.5">
+                {label} {required && <span className="text-red">*</span>}
             </label>
             {children}
-            {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+            {error && <p className="mt-1 text-xs text-red">{error}</p>}
         </div>
     )
 }
@@ -129,70 +128,72 @@ export default function EmployeeShow({ employee, govIds }) {
 
     return (
         <AdminLayout>
+            <div className="min-h-screen bg-bg">
             <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
 
                 {flash?.success && (
-                    <div className="mb-5 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm">
-                        <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
+                    <div className="mb-5 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-teal/10 border border-teal/25 text-teal text-sm">
+                        <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-teal flex-shrink-0" />
                         {flash.success}
                     </div>
                 )}
 
                 {/* Breadcrumb */}
-                <a href="/admin/employees" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-600 transition-colors mb-4">
+                <a href="/admin/employees" className="inline-flex items-center gap-1.5 text-sm text-dim hover:text-text transition-colors mb-4">
                     <IconArrowLeft className="w-4 h-4" /> Employees
                 </a>
 
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-semibold text-white flex-shrink-0"
-                            style={{ background: BRAND }}>
+                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-semibold flex-shrink-0 bg-violet/15 text-violet">
                             {employee.initials ?? initials(employee.first_name, employee.last_name)}
                         </div>
                         <div className="min-w-0">
-                            <p className="text-lg font-semibold text-slate-900 truncate">{employee.full_name}</p>
-                            <p className="text-xs text-slate-400 font-mono truncate">
+                            <p className="text-lg font-semibold text-text truncate">{employee.full_name}</p>
+                            <p className="text-xs text-dim font-mono truncate">
                                 {employee.employee_id} {employee.department && `· ${employee.department}`}
                             </p>
                         </div>
                     </div>
                     <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-full font-medium w-fit ${
                         employee.status === 'active'
-                            ? 'bg-emerald-50 text-emerald-700'
-                            : 'bg-red-50 text-red-600'
+                            ? 'bg-teal/10 text-teal'
+                            : 'bg-red/10 text-red'
                     }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${employee.status === 'active' ? 'bg-emerald-500' : 'bg-red-400'}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full ${employee.status === 'active' ? 'bg-teal' : 'bg-red'}`} />
                         {employee.status}
                     </span>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-1 p-1 bg-slate-100 rounded-xl mb-6 overflow-x-auto">
+                <div className="flex gap-1 p-1 bg-field rounded-xl mb-6 overflow-x-auto">
                     {tabs.map(tab => (
                         <button key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
                             className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm py-2.5 px-3 rounded-lg transition-all font-medium whitespace-nowrap ${
                                 activeTab === tab.key
-                                    ? 'bg-white text-slate-800 shadow-sm ring-1 ring-slate-200'
-                                    : 'text-slate-500 hover:text-slate-700'
+                                    ? 'bg-panel text-text shadow-sm ring-1 ring-border'
+                                    : 'text-sub hover:text-text'
                             }`}>
-                            <tab.Icon className="w-4 h-4" style={{ color: activeTab === tab.key ? BRAND : undefined }} />
+                            <tab.Icon className={`w-4 h-4 ${activeTab === tab.key ? 'text-violet' : ''}`} />
                             {tab.label}
                         </button>
                     ))}
                 </div>
 
-                <a href={`/admin/employees/${employee.id}/dtr/print`}
-                    target="_blank"
-                    className="ml-auto text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
-                    Print DTR ↓
-                </a>
+                <div className="flex justify-end mb-4">
+                    <a href={`/admin/employees/${employee.id}/dtr/print`}
+                        target="_blank"
+                        className="text-xs px-3 py-1.5 rounded-lg border border-border text-sub hover:bg-hover transition-colors">
+                        Print DTR ↓
+                    </a>
+                </div>
 
                 {/* Profile tab */}
                 {activeTab === 'info' && (
                     <form onSubmit={submitInfo}
-                        className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
+                        className="bg-panel rounded-2xl border border-border shadow-sm p-5 sm:p-6 space-y-5">
                         <div className="grid sm:grid-cols-2 gap-4">
                             <Field label="First name" required error={infoForm.errors.first_name}>
                                 <input type="text" value={infoForm.data.first_name}
@@ -237,7 +238,7 @@ export default function EmployeeShow({ employee, govIds }) {
                             <Field label="Date hired">
                                 <input type="date" value={infoForm.data.date_hired}
                                     onChange={e => infoForm.setData('date_hired', e.target.value)}
-                                    className={`${inputClass}`} style={{ colorScheme: 'light' }} />
+                                    className={inputClass} />
                             </Field>
                         </div>
 
@@ -252,7 +253,7 @@ export default function EmployeeShow({ employee, govIds }) {
                         <Field label="Employment status">
                             <select value={infoForm.data.status}
                                 onChange={e => infoForm.setData('status', e.target.value)}
-                                className={`${inputClass} bg-white`}>
+                                className={`${inputClass} bg-panel`}>
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>
@@ -260,12 +261,11 @@ export default function EmployeeShow({ employee, govIds }) {
 
                         <div className="pt-2 flex items-center gap-3">
                             <button type="submit" disabled={infoForm.processing}
-                                className="px-5 py-2.5 text-sm font-medium text-white rounded-lg shadow-sm hover:shadow-md hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
-                                style={{ background: BRAND }}>
+                                className="px-5 py-2.5 text-sm font-medium rounded-lg shadow-sm hover:shadow-md hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition-all bg-violet text-bg">
                                 {infoForm.processing ? 'Saving…' : 'Save changes'}
                             </button>
                             {infoForm.recentlySuccessful && (
-                                <span className="text-xs text-emerald-600 font-medium">Saved</span>
+                                <span className="text-xs text-teal font-medium">Saved</span>
                             )}
                         </div>
                     </form>
@@ -274,46 +274,46 @@ export default function EmployeeShow({ employee, govIds }) {
                 {/* Compensation tab */}
                 {activeTab === 'compensation' && (
                     <form onSubmit={submitComp}
-                        className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-6">
+                        className="bg-panel rounded-2xl border border-border shadow-sm p-5 sm:p-6 space-y-6">
 
                         {/* Live preview */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl border" style={{ background: '#F8F9FD', borderColor: '#E5E4F5' }}>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl border" style={{ background: 'color-mix(in srgb, var(--color-violet) 6%, transparent)', borderColor: 'color-mix(in srgb, var(--color-violet) 15%, transparent)' }}>
                             <div>
-                                <p className="text-[11px] text-slate-400 mb-0.5">Monthly basic</p>
-                                <p className="text-sm font-semibold text-slate-800">₱ {fmt(monthlyBasic)}</p>
-                                <p className="text-[10px] text-slate-400">rate × 22 days</p>
+                                <p className="text-[11px] text-dim mb-0.5">Monthly basic</p>
+                                <p className="text-sm font-semibold text-text">₱ {fmt(monthlyBasic)}</p>
+                                <p className="text-[10px] text-dim">rate × 22 days</p>
                             </div>
                             <div>
-                                <p className="text-[11px] text-slate-400 mb-0.5">Allowances</p>
-                                <p className="text-sm font-semibold text-slate-800">₱ {fmt(allowanceTotal)}</p>
+                                <p className="text-[11px] text-dim mb-0.5">Allowances</p>
+                                <p className="text-sm font-semibold text-text">₱ {fmt(allowanceTotal)}</p>
                             </div>
                             <div>
-                                <p className="text-[11px] text-slate-400 mb-0.5">Total deductions</p>
-                                <p className="text-sm font-semibold text-red-600">₱ {fmt(totalDed)}</p>
+                                <p className="text-[11px] text-dim mb-0.5">Total deductions</p>
+                                <p className="text-sm font-semibold text-red">₱ {fmt(totalDed)}</p>
                             </div>
                             <div>
-                                <p className="text-[11px] text-slate-400 mb-0.5">Est. net / month</p>
-                                <p className="text-sm font-semibold text-emerald-700">₱ {fmt(netMonthly)}</p>
+                                <p className="text-[11px] text-dim mb-0.5">Est. net / month</p>
+                                <p className="text-sm font-semibold text-teal">₱ {fmt(netMonthly)}</p>
                             </div>
                         </div>
 
                         {/* Basic pay */}
                         <section>
-                            <p className="text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wide">Basic pay</p>
+                            <p className="text-xs font-semibold text-sub mb-3 uppercase tracking-wide">Basic pay</p>
                             <Field label="Daily rate (₱)" required>
                                 <input type="number" value={compForm.data.daily_rate}
                                     onChange={e => compForm.setData('daily_rate', e.target.value)}
                                     min="0" step="0.01" placeholder="0.00"
                                     className={inputClass} required />
                             </Field>
-                            <p className="mt-1.5 text-xs text-slate-400">
+                            <p className="mt-1.5 text-xs text-dim">
                                 Basic pay per payroll = daily rate × actual days present
                             </p>
                         </section>
 
                         {/* Allowances */}
                         <section>
-                            <p className="text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wide">Allowances (per payroll period)</p>
+                            <p className="text-xs font-semibold text-sub mb-3 uppercase tracking-wide">Allowances (per payroll period)</p>
                             <div className="grid sm:grid-cols-3 gap-3">
                                 {[
                                     { key: 'transpo_allowance',   label: 'Transportation (₱)' },
@@ -332,7 +332,7 @@ export default function EmployeeShow({ employee, govIds }) {
 
                         {/* Government deductions */}
                         <section>
-                            <p className="text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wide">Government deductions</p>
+                            <p className="text-xs font-semibold text-sub mb-3 uppercase tracking-wide">Government deductions</p>
                             <div className="grid sm:grid-cols-2 gap-3">
                                 {[
                                     { key: 'sss_deduction',        label: 'SSS (₱)'        },
@@ -352,7 +352,7 @@ export default function EmployeeShow({ employee, govIds }) {
 
                         {/* Other deductions */}
                         <section>
-                            <p className="text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wide">Other deductions</p>
+                            <p className="text-xs font-semibold text-sub mb-3 uppercase tracking-wide">Other deductions</p>
                             <div className="grid sm:grid-cols-2 gap-3">
                                 {[
                                     { key: 'loan_deduction',          label: 'Loan (₱)'          },
@@ -375,12 +375,11 @@ export default function EmployeeShow({ employee, govIds }) {
 
                         <div className="pt-2 flex items-center gap-3">
                             <button type="submit" disabled={compForm.processing}
-                                className="px-5 py-2.5 text-sm font-medium text-white rounded-lg shadow-sm hover:shadow-md hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
-                                style={{ background: BRAND }}>
+                                className="px-5 py-2.5 text-sm font-medium rounded-lg shadow-sm hover:shadow-md hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition-all bg-violet text-bg">
                                 {compForm.processing ? 'Saving…' : 'Save compensation'}
                             </button>
                             {compForm.recentlySuccessful && (
-                                <span className="text-xs text-emerald-600 font-medium">Saved</span>
+                                <span className="text-xs text-teal font-medium">Saved</span>
                             )}
                         </div>
                     </form>
@@ -389,11 +388,11 @@ export default function EmployeeShow({ employee, govIds }) {
                 {/* Reset password tab */}
                 {activeTab === 'password' && (
                     <form onSubmit={submitPass}
-                        className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-4">
-                        <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-100">
-                            <IconLock className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-slate-400" />
-                            <p className="text-xs text-slate-500">
-                                Set a new password for <span className="font-medium text-slate-700">{employee.full_name}</span>. They'll need to use it on their next sign-in.
+                        className="bg-panel rounded-2xl border border-border shadow-sm p-5 sm:p-6 space-y-4">
+                        <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg bg-field border border-border">
+                            <IconLock className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-dim" />
+                            <p className="text-xs text-sub">
+                                Set a new password for <span className="font-medium text-sub">{employee.full_name}</span>. They'll need to use it on their next sign-in.
                             </p>
                         </div>
                         <Field label="New password" required error={passForm.errors.password}>
@@ -408,13 +407,13 @@ export default function EmployeeShow({ employee, govIds }) {
                         </Field>
                         <div className="pt-2">
                             <button type="submit" disabled={passForm.processing}
-                                className="px-5 py-2.5 text-sm font-medium text-white rounded-lg shadow-sm hover:shadow-md hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
-                                style={{ background: BRAND }}>
+                                className="px-5 py-2.5 text-sm font-medium rounded-lg shadow-sm hover:shadow-md hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition-all bg-violet text-bg">
                                 {passForm.processing ? 'Updating…' : 'Reset password'}
                             </button>
                         </div>
                     </form>
                 )}
+            </div>
             </div>
         </AdminLayout>
     )

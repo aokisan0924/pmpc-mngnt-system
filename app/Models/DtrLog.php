@@ -50,28 +50,35 @@ class DtrLog extends Model
     // ── Hours + status computation ─────────────────────────
 
     public function computeHoursAndStatus(): void {
-        $shiftStart    = Setting::get('shift_start', '08:00');
-        $shiftEnd      = Setting::get('shift_end', '17:00');
-        $graceMinutes  = (int) Setting::get('late_grace_minutes', '0');
+        $shiftStart   = Setting::get('shift_start', '08:00');
+        $shiftEnd     = Setting::get('shift_end', '17:00');
+        $graceMinutes = (int) Setting::get('late_grace_minutes', '0');
 
-        // Add grace period to shift start
-        [$h, $m]    = explode(':', $shiftStart);
-        $graceTime  = sprintf('%02d:%02d', ...array_values(
-            ['h' => floor(($h * 60 + $m + $graceMinutes) / 60),
-            'm' => ($h * 60 + $m + $graceMinutes) % 60]
-        ));
+        // Normalize all times to H:i (strip seconds if present)
+        $normalizeTime = fn(string $t): string => substr($t, 0, 5);
 
+        $shiftStart = $normalizeTime($shiftStart);
+        $shiftEnd   = $normalizeTime($shiftEnd);
+
+        // Compute grace cutoff time in H:i
+        [$h, $m] = explode(':', $shiftStart);
+        $totalMinutes = (int)$h * 60 + (int)$m + $graceMinutes;
+        $graceTime = sprintf('%02d:%02d', intdiv($totalMinutes, 60), $totalMinutes % 60);
+
+        // Compute hours
         $amMinutes = 0;
         $pmMinutes = 0;
 
         if ($this->am_time_in && $this->am_time_out) {
-            $amMinutes = Carbon::parse($this->am_time_out)
-                ->diffInMinutes(Carbon::parse($this->am_time_in));
+            $amIn  = $normalizeTime($this->am_time_in);
+            $amOut = $normalizeTime($this->am_time_out);
+            $amMinutes = Carbon::parse($amOut)->diffInMinutes(Carbon::parse($amIn));
         }
 
         if ($this->pm_time_in && $this->pm_time_out) {
-            $pmMinutes = Carbon::parse($this->pm_time_out)
-                ->diffInMinutes(Carbon::parse($this->pm_time_in));
+            $pmIn  = $normalizeTime($this->pm_time_in);
+            $pmOut = $normalizeTime($this->pm_time_out);
+            $pmMinutes = Carbon::parse($pmOut)->diffInMinutes(Carbon::parse($pmIn));
         }
 
         $this->hours_rendered = round(($amMinutes + $pmMinutes) / 60, 2);
@@ -84,8 +91,12 @@ class DtrLog extends Model
         } elseif (! $hasAm || ! $hasPm) {
             $this->status = 'half_day';
         } else {
-            $isLate      = Carbon::parse($this->am_time_in)->gt(Carbon::parse($graceTime));
-            $isUndertime = Carbon::parse($this->pm_time_out)->lt(Carbon::parse($shiftEnd));
+            $amTimeIn = $normalizeTime($this->am_time_in);
+            $pmTimeOut = $normalizeTime($this->pm_time_out);
+
+            // gte: clocking in AT shift start (or grace cutoff) is on time
+            $isLate      = $amTimeIn > $graceTime;
+            $isUndertime = $pmTimeOut < $shiftEnd;
 
             if ($isLate) {
                 $this->status = 'late';
@@ -95,5 +106,19 @@ class DtrLog extends Model
                 $this->status = 'on_time';
             }
         }
+    }
+
+    // ── Attendance day-weighting ────────────────────────────
+
+    /**
+     * Total "days present" for an employee between two dates, with
+     * half_day statuses counted as 0.5 instead of a full day.
+     */
+    public static function daysPresentBetween(int $employeeId, $from, $to): float {
+        return static::where('employee_id', $employeeId)
+            ->whereBetween('date', [$from, $to])
+            ->whereIn('status', ['on_time', 'late', 'undertime', 'half_day'])
+            ->get()
+            ->sum(fn($log) => $log->status === 'half_day' ? 0.5 : 1);
     }
 }

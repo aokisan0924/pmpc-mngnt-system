@@ -40,7 +40,6 @@ class AdminDtrController extends Controller
                 $logs = DtrLog::where('employee_id', $emp->id)
                     ->whereBetween('date', [$from, $to])
                     ->get();
-
                 return [
                     'id'             => $emp->id,
                     'employee_id'    => $emp->employee_id,

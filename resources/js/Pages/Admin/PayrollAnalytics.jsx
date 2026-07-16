@@ -19,16 +19,18 @@ function fmtShort(num) {
     return '₱' + Math.round(num)
 }
 
+/* CSS variables, not hex — recharts stroke/fill props accept var()
+   directly, so these follow the light/dark toggle automatically. */
 const COLORS = {
-    teal:   '#0F6E56',
-    purple: '#26215C',
-    blue:   '#378ADD',
-    amber:  '#F59E0B',
-    red:    '#EF4444',
-    emerald:'#10B981',
-    violet: '#8B5CF6',
-    pink:   '#EC4899',
-    gray:   '#6B7280',
+    teal:    'var(--color-teal)',
+    purple:  'var(--color-purple)',
+    blue:    'var(--color-blue)',
+    amber:   'var(--color-amber)',
+    red:     'var(--color-red)',
+    emerald: 'var(--color-emerald)',
+    violet:  'var(--color-violet)',
+    pink:    'var(--color-pink)',
+    gray:    'var(--color-dim)',
 }
 
 const DED_COLORS = {
@@ -60,15 +62,15 @@ const DED_LABELS = {
 function PayrollTooltip({ active, payload, label }) {
     if (! active || ! payload?.length) return null
     return (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-lg p-3 min-w-44">
-            <p className="text-xs font-medium text-gray-700 mb-2">{label}</p>
+        <div className="bg-panel border border-border rounded-xl shadow-lg p-3 min-w-44">
+            <p className="text-xs font-medium text-sub mb-2">{label}</p>
             {payload.map(p => (
                 <div key={p.name} className="flex items-center justify-between gap-4 text-xs mb-1">
                     <div className="flex items-center gap-1.5">
                         <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-                        <span className="text-gray-500">{p.name}</span>
+                        <span className="text-sub">{p.name}</span>
                     </div>
-                    <span className="font-medium text-gray-800">
+                    <span className="font-medium text-text">
                         {typeof p.value === 'number' && p.value > 100
                             ? '₱ ' + fmt(p.value)
                             : p.value}
@@ -83,14 +85,14 @@ function PayrollTooltip({ active, payload, label }) {
 
 function KpiCard({ label, value, sub, accent, icon }) {
     return (
-        <div className="bg-white rounded-xl border border-gray-200 p-4 relative overflow-hidden">
+        <div className="bg-panel rounded-xl border border-border p-4 relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: accent }} />
             <div className="flex items-start justify-between mb-2">
-                <p className="text-xs text-gray-500">{label}</p>
+                <p className="text-xs text-sub">{label}</p>
                 <span className="text-lg">{icon}</span>
             </div>
-            <p className="text-xl font-medium text-gray-900 mb-0.5">{value}</p>
-            {sub && <p className="text-xs text-gray-400">{sub}</p>}
+            <p className="text-xl font-medium text-text mb-0.5">{value}</p>
+            {sub && <p className="text-xs text-dim">{sub}</p>}
         </div>
     )
 }
@@ -99,10 +101,10 @@ function KpiCard({ label, value, sub, accent, icon }) {
 
 function Section({ title, sub, children }) {
     return (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-panel rounded-xl border border-border p-5">
             <div className="mb-4">
-                <p className="text-sm font-medium text-gray-900">{title}</p>
-                {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+                <p className="text-sm font-medium text-text">{title}</p>
+                {sub && <p className="text-xs text-dim mt-0.5">{sub}</p>}
             </div>
             {children}
         </div>
@@ -126,12 +128,13 @@ export default function PayrollAnalytics({
 
     return (
         <AdminLayout>
-            <div className="p-6 max-w-7xl mx-auto">
+            <div className="min-h-screen bg-bg">
+            <div className="p-4 sm:p-6 max-w-7xl mx-auto">
 
                 {/* Header */}
                 <div className="mb-6">
-                    <h1 className="text-lg font-medium text-gray-900">Payroll analytics</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">
+                    <h1 className="text-lg font-medium text-text">Payroll analytics</h1>
+                    <p className="text-sm text-sub mt-0.5">
                         All-time payroll insights across all finalized payroll records
                     </p>
                 </div>
@@ -170,19 +173,19 @@ export default function PayrollAnalytics({
 
                 {/* Latest payroll snapshot */}
                 {latestPayroll && (
-                    <div className="mb-6 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 flex items-center justify-between">
+                    <div className="mb-6 px-4 py-3 rounded-xl border border-border bg-field flex flex-wrap items-center justify-between gap-3">
                         <div>
-                            <p className="text-xs text-gray-500">Latest finalized payroll</p>
-                            <p className="text-sm font-medium text-gray-800 mt-0.5">
+                            <p className="text-xs text-sub">Latest finalized payroll</p>
+                            <p className="text-sm font-medium text-text mt-0.5">
                                 {latestPayroll.period_label}
-                                <span className="ml-2 text-xs font-normal text-gray-400">
+                                <span className="ml-2 text-xs font-normal text-dim">
                                     {latestPayroll.cutoff_label}
                                 </span>
                             </p>
                         </div>
                         <div className="text-right">
-                            <p className="text-xs text-gray-500">Net payout</p>
-                            <p className="text-base font-medium text-emerald-700">
+                            <p className="text-xs text-sub">Net payout</p>
+                            <p className="text-base font-medium text-teal">
                                 ₱ {fmt(kpis.latest_net)}
                             </p>
                         </div>
@@ -198,18 +201,18 @@ export default function PayrollAnalytics({
                             <ResponsiveContainer width="100%" height={280}>
                                 <ComposedChart data={monthlyTrend}
                                     margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" />
+                                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
                                         tickLine={false} axisLine={false} />
                                     <YAxis tickFormatter={fmtShort}
-                                        tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                        tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
                                         tickLine={false} axisLine={false} width={56} />
                                     <Tooltip content={<PayrollTooltip />} />
                                     <Legend
                                         wrapperStyle={{ fontSize: 11, paddingTop: 12 }}
                                         iconType="circle" iconSize={8} />
                                     <Area type="monotone" dataKey="total_gross"
-                                        name="Gross pay" fill="#E6F7F1" stroke={COLORS.teal}
+                                        name="Gross pay" fill="color-mix(in srgb, var(--color-teal) 15%, transparent)" stroke={COLORS.teal}
                                         strokeWidth={2} fillOpacity={0.4} />
                                     <Line type="monotone" dataKey="total_net"
                                         name="Net pay" stroke={COLORS.emerald}
@@ -236,16 +239,16 @@ export default function PayrollAnalytics({
                             <ResponsiveContainer width="100%" height={240}>
                                 <ComposedChart data={monthlyTrend}
                                     margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
-                                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" />
+                                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
                                         tickLine={false} axisLine={false} />
                                     <YAxis yAxisId="cost" tickFormatter={fmtShort}
-                                        tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                        tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
                                         tickLine={false} axisLine={false} width={56} />
                                     <YAxis yAxisId="count" orientation="right"
-                                        tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                        tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
                                         tickLine={false} axisLine={false} width={32}
-                                        label={{ value: 'Employees', angle: 90, position: 'insideRight', fontSize: 9, fill: '#9CA3AF' }} />
+                                        label={{ value: 'Employees', angle: 90, position: 'insideRight', fontSize: 9, fill: 'var(--color-dim)' }} />
                                     <Tooltip content={<PayrollTooltip />} />
                                     <Legend
                                         wrapperStyle={{ fontSize: 11, paddingTop: 12 }}
@@ -275,12 +278,12 @@ export default function PayrollAnalytics({
                                 <ResponsiveContainer width="100%" height={240}>
                                     <BarChart data={departmentBreakdown}
                                         margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" vertical={false} />
                                         <XAxis dataKey="department"
-                                            tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                            tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
                                             tickLine={false} axisLine={false} />
                                         <YAxis tickFormatter={fmtShort}
-                                            tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                            tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
                                             tickLine={false} axisLine={false} width={56} />
                                         <Tooltip content={<PayrollTooltip />} />
                                         <Legend
@@ -294,15 +297,15 @@ export default function PayrollAnalytics({
                                 </ResponsiveContainer>
 
                                 {/* Department table */}
-                                <div className="mt-4 border border-gray-100 rounded-lg overflow-hidden">
+                                <div className="mt-4 border border-border rounded-lg overflow-hidden">
                                     <table className="w-full text-xs">
                                         <thead>
-                                            <tr className="bg-gray-50 border-b border-gray-100">
-                                                <th className="text-left px-3 py-2 text-gray-400 font-medium">Department</th>
-                                                <th className="text-center px-3 py-2 text-gray-400 font-medium">Employees</th>
-                                                <th className="text-right px-3 py-2 text-gray-400 font-medium">Gross pay</th>
-                                                <th className="text-right px-3 py-2 text-gray-400 font-medium">Net pay</th>
-                                                <th className="text-right px-3 py-2 text-gray-400 font-medium">Ded. %</th>
+                                            <tr className="bg-field border-b border-border">
+                                                <th className="text-left px-3 py-2 text-dim font-medium">Department</th>
+                                                <th className="text-center px-3 py-2 text-dim font-medium">Employees</th>
+                                                <th className="text-right px-3 py-2 text-dim font-medium">Gross pay</th>
+                                                <th className="text-right px-3 py-2 text-dim font-medium">Net pay</th>
+                                                <th className="text-right px-3 py-2 text-dim font-medium">Ded. %</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -311,12 +314,12 @@ export default function PayrollAnalytics({
                                                     ? ((d.total_gross - d.total_net) / d.total_gross * 100).toFixed(1)
                                                     : '0.0'
                                                 return (
-                                                    <tr key={d.department} className="border-b border-gray-50 hover:bg-gray-50">
-                                                        <td className="px-3 py-2 font-medium text-gray-700">{d.department}</td>
-                                                        <td className="px-3 py-2 text-center text-gray-500">{d.headcount}</td>
-                                                        <td className="px-3 py-2 text-right text-gray-700">₱ {fmt(d.total_gross)}</td>
-                                                        <td className="px-3 py-2 text-right text-emerald-700">₱ {fmt(d.total_net)}</td>
-                                                        <td className="px-3 py-2 text-right text-red-500">{dedPct}%</td>
+                                                    <tr key={d.department} className="border-b border-border hover:bg-hover">
+                                                        <td className="px-3 py-2 font-medium text-sub">{d.department}</td>
+                                                        <td className="px-3 py-2 text-center text-sub">{d.headcount}</td>
+                                                        <td className="px-3 py-2 text-right text-sub">₱ {fmt(d.total_gross)}</td>
+                                                        <td className="px-3 py-2 text-right text-teal">₱ {fmt(d.total_net)}</td>
+                                                        <td className="px-3 py-2 text-right text-red">{dedPct}%</td>
                                                     </tr>
                                                 )
                                             })}
@@ -338,13 +341,13 @@ export default function PayrollAnalytics({
                         {hasDed ? (
                             <>
                                 {/* Toggle */}
-                                <div className="flex gap-1 p-1 bg-gray-100 rounded-lg mb-4 w-fit">
+                                <div className="flex gap-1 p-1 bg-field rounded-lg mb-4 w-fit">
                                     {['chart', 'table'].map(v => (
                                         <button key={v} onClick={() => setDedView(v)}
                                             className={`px-3 py-1.5 text-xs rounded-md capitalize transition-all ${
                                                 dedView === v
-                                                    ? 'bg-white text-gray-800 font-medium shadow-sm border border-gray-200'
-                                                    : 'text-gray-500'
+                                                    ? 'bg-panel text-text font-medium shadow-sm border border-border'
+                                                    : 'text-sub'
                                             }`}>
                                             {v === 'chart' ? '📊 Chart' : '📋 Table'}
                                         </button>
@@ -357,12 +360,12 @@ export default function PayrollAnalytics({
                                             layout="vertical"
                                             data={deductionsBreakdown}
                                             margin={{ top: 4, right: 80, left: 8, bottom: 4 }}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" horizontal={false} />
+                                            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" horizontal={false} />
                                             <XAxis type="number" tickFormatter={fmtShort}
-                                                tick={{ fontSize: 10, fill: '#9CA3AF' }}
+                                                tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
                                                 tickLine={false} axisLine={false} />
                                             <YAxis type="category" dataKey="name" width={110}
-                                                tick={{ fontSize: 10, fill: '#6B7280' }}
+                                                tick={{ fontSize: 10, fill: 'var(--color-sub)' }}
                                                 tickLine={false} axisLine={false} />
                                             <Tooltip content={<PayrollTooltip />} />
                                             <Legend
@@ -381,43 +384,43 @@ export default function PayrollAnalytics({
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-xs" style={{ minWidth: 700 }}>
                                             <thead>
-                                                <tr className="bg-gray-50 border-b border-gray-100">
-                                                    <th className="text-left px-3 py-2 text-gray-400 font-medium">Employee</th>
+                                                <tr className="bg-field border-b border-border">
+                                                    <th className="text-left px-3 py-2 text-dim font-medium">Employee</th>
                                                     {dedKeys.map(k => (
-                                                        <th key={k} className="text-right px-3 py-2 text-gray-400 font-medium">
+                                                        <th key={k} className="text-right px-3 py-2 text-dim font-medium">
                                                             {DED_LABELS[k]}
                                                         </th>
                                                     ))}
-                                                    <th className="text-right px-3 py-2 text-gray-400 font-medium">Net pay</th>
+                                                    <th className="text-right px-3 py-2 text-dim font-medium">Net pay</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {deductionsBreakdown.map(r => (
-                                                    <tr key={r.name} className="border-b border-gray-50 hover:bg-gray-50">
+                                                    <tr key={r.name} className="border-b border-border hover:bg-hover">
                                                         <td className="px-3 py-2">
-                                                            <p className="font-medium text-gray-800">{r.name}</p>
-                                                            <p className="text-gray-400">{r.department}</p>
+                                                            <p className="font-medium text-text">{r.name}</p>
+                                                            <p className="text-dim">{r.department}</p>
                                                         </td>
                                                         {dedKeys.map(k => (
-                                                            <td key={k} className="px-3 py-2 text-right text-red-500">
+                                                            <td key={k} className="px-3 py-2 text-right text-red">
                                                                 {r[k] > 0 ? `₱ ${fmt(r[k])}` : '—'}
                                                             </td>
                                                         ))}
-                                                        <td className="px-3 py-2 text-right font-medium text-emerald-700">
+                                                        <td className="px-3 py-2 text-right font-medium text-teal">
                                                             ₱ {fmt(r.net_pay)}
                                                         </td>
                                                     </tr>
                                                 ))}
                                             </tbody>
                                             <tfoot>
-                                                <tr className="border-t-2 border-gray-200 bg-gray-50 font-medium">
-                                                    <td className="px-3 py-2 text-gray-600">Totals</td>
+                                                <tr className="border-t-2 border-border bg-field font-medium">
+                                                    <td className="px-3 py-2 text-sub">Totals</td>
                                                     {dedKeys.map(k => (
-                                                        <td key={k} className="px-3 py-2 text-right text-red-600">
+                                                        <td key={k} className="px-3 py-2 text-right text-red">
                                                             ₱ {fmt(deductionsBreakdown.reduce((s, r) => s + (r[k] ?? 0), 0))}
                                                         </td>
                                                     ))}
-                                                    <td className="px-3 py-2 text-right text-emerald-700">
+                                                    <td className="px-3 py-2 text-right text-teal">
                                                         ₱ {fmt(deductionsBreakdown.reduce((s, r) => s + r.net_pay, 0))}
                                                     </td>
                                                 </tr>
@@ -433,9 +436,10 @@ export default function PayrollAnalytics({
                 </div>
 
                 {/* Footer note */}
-                <p className="text-xs text-gray-400 text-center mt-2">
+                <p className="text-xs text-dim text-center mt-2">
                     Analytics based on finalized payroll records only · Draft payrolls are excluded
                 </p>
+            </div>
             </div>
         </AdminLayout>
     )
@@ -445,7 +449,7 @@ function EmptyState({ message }) {
     return (
         <div className="py-12 text-center">
             <div className="text-3xl mb-2">📊</div>
-            <p className="text-sm text-gray-400">{message}</p>
+            <p className="text-sm text-dim">{message}</p>
         </div>
     )
 }

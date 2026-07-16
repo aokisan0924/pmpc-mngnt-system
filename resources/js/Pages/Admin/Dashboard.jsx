@@ -6,21 +6,23 @@ import {
     ComposedChart, Area,
 } from 'recharts'
 
-/* ---------- design tokens (matches DtrEditRequests background) ---------- */
+/* ---------- design tokens — resolve to CSS variables from app.css, so
+   this whole file automatically follows the light/dark theme toggle
+   without touching every style prop below. ---------- */
 const C = {
-    bg:      '#06090D',
-    panel:   'rgba(14,20,27,0.72)',
-    field:   'rgba(255,255,255,0.03)',
-    border:  '#1F2C35',
-    text:    '#E7F1EE',
-    sub:     '#83979C',
-    dim:     '#4C5C61',
-    teal:    '#14F1B2',
-    blue:    '#5AA9FF',
-    amber:   '#FFC168',
-    purple:  '#C29CFF',
-    violet:  '#8B7CF6',
-    red:     '#FF6B81',
+    bg:      'var(--color-bg)',
+    panel:   'var(--color-panel)',
+    field:   'var(--color-field)',
+    border:  'var(--color-border)',
+    text:    'var(--color-text)',
+    sub:     'var(--color-sub)',
+    dim:     'var(--color-dim)',
+    teal:    'var(--color-teal)',
+    blue:    'var(--color-blue)',
+    amber:   'var(--color-amber)',
+    purple:  'var(--color-purple)',
+    violet:  'var(--color-violet)',
+    red:     'var(--color-red)',
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -54,9 +56,9 @@ const ACTIVITY_STYLES = {
 
 function badgeStyle(color) {
     return {
-        background: `${color}1F`,
+        background: `color-mix(in srgb, ${color} 12%, transparent)`,
         color,
-        border: `1px solid ${color}4D`,
+        border: `1px solid color-mix(in srgb, ${color} 30%, transparent)`,
     }
 }
 
@@ -106,7 +108,7 @@ function ChartTooltip({ active, payload, label }) {
     if (! active || ! payload?.length) return null
     return (
         <div className="rounded-xl p-3 min-w-40 border backdrop-blur-xl"
-            style={{ background: '#0C1218', borderColor: C.border }}>
+            style={{ background: C.panel, borderColor: C.border }}>
             <p className="text-xs font-medium mb-2" style={{ color: C.text }}>{label}</p>
             {payload.map(p => (
                 <div key={p.name} className="flex items-center justify-between gap-4 text-xs mb-1">
@@ -149,7 +151,7 @@ function KpiCard({ label, value, sub, accent, icon: Icon, alert, delay = 0 }) {
             <div className="flex items-start justify-between mb-2">
                 <p className="text-xs leading-tight" style={{ color: C.sub }}>{label}</p>
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: `${accent}1A` }}>
+                    style={{ background: `color-mix(in srgb, ${accent} 10%, transparent)` }}>
                     <Icon className="w-3.5 h-3.5" style={{ color: accent }} />
                 </div>
             </div>
@@ -199,7 +201,7 @@ export default function Dashboard({
     ].filter(d => d.value > 0)
 
     const axisTick  = { fontSize: 10, fill: C.dim }
-    const gridColor = 'rgba(255,255,255,0.06)'
+    const gridColor = 'var(--color-grid)'
 
     return (
         <AdminLayout pendingEditCount={stats.pending_edits}>
@@ -284,7 +286,7 @@ export default function Dashboard({
                                             <button key={f} onClick={() => setSnapshotFilter(f)}
                                                 className="px-2 py-1 text-xs rounded-lg capitalize transition-all font-medium whitespace-nowrap"
                                                 style={snapshotFilter === f
-                                                    ? { background: 'rgba(139,124,246,0.14)', color: C.violet, boxShadow: 'inset 0 0 0 1px rgba(139,124,246,0.35)' }
+                                                    ? { background: 'color-mix(in srgb, var(--color-violet) 14%, transparent)', color: C.violet, boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--color-violet) 35%, transparent)' }
                                                     : { color: C.dim }}>
                                                 {f === 'all' ? `All (${today_snapshot.length})` : (
                                                     STATUS_STYLES[f]?.label + (statusCounts[f] ? ` (${statusCounts[f]})` : '')
@@ -300,10 +302,10 @@ export default function Dashboard({
                                             <div key={emp.id}
                                                 className="flex items-center gap-3 px-2.5 py-2.5 rounded-xl transition-colors"
                                                 style={{ background: 'transparent' }}
-                                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                                                onMouseEnter={e => e.currentTarget.style.background = 'var(--color-hover)'}
                                                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                                                 <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 border font-mono"
-                                                    style={{ background: 'rgba(139,124,246,0.12)', color: C.violet, borderColor: 'rgba(139,124,246,0.3)' }}>
+                                                    style={{ background: 'color-mix(in srgb, var(--color-violet) 12%, transparent)', color: C.violet, borderColor: 'color-mix(in srgb, var(--color-violet) 30%, transparent)' }}>
                                                     {emp.initials}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
@@ -348,7 +350,7 @@ export default function Dashboard({
                                                 </Pie>
                                                 <Tooltip
                                                     formatter={(value, name) => [value + ' employees', name]}
-                                                    contentStyle={{ background: '#0C1218', border: `1px solid ${C.border}`, borderRadius: 12, fontSize: 12 }}
+                                                    contentStyle={{ background: 'var(--color-panel)', border: `1px solid ${C.border}`, borderRadius: 12, fontSize: 12 }}
                                                     itemStyle={{ color: C.text }}
                                                     labelStyle={{ color: C.sub }}
                                                 />
@@ -418,7 +420,7 @@ export default function Dashboard({
                                         <Line yAxisId="rate" type="monotone" dataKey="rate"
                                             name="Rate" stroke={C.teal}
                                             strokeWidth={2.5}
-                                            dot={{ r: 4, fill: C.teal, stroke: '#0C1218', strokeWidth: 2 }}
+                                            dot={{ r: 4, fill: C.teal, stroke: 'var(--color-panel)', strokeWidth: 2 }}
                                             activeDot={{ r: 6 }} />
                                     </ComposedChart>
                                 </ResponsiveContainer>
@@ -460,7 +462,7 @@ export default function Dashboard({
                                                 stackId="a" fill={C.amber}
                                                 radius={[0, 0, 0, 0]} />
                                             <Bar dataKey="absent" name="Absent"
-                                                stackId="a" fill="rgba(255,107,129,0.35)"
+                                                stackId="a" fill="color-mix(in srgb, var(--color-red) 35%, transparent)"
                                                 radius={[3, 3, 0, 0]} />
                                         </BarChart>
                                     </ResponsiveContainer>
@@ -479,7 +481,7 @@ export default function Dashboard({
                                             </thead>
                                             <tbody>
                                                 {department_attendance.map(d => (
-                                                    <tr key={d.department} className="border-b" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
+                                                    <tr key={d.department} className="border-b" style={{ borderColor: 'var(--color-row-border)' }}>
                                                         <td className="px-3 py-2 font-medium truncate max-w-24" style={{ color: C.text }}>{d.department}</td>
                                                         <td className="px-2 py-2 text-center" style={{ color: C.sub }}>{d.headcount}</td>
                                                         <td className="px-2 py-2 text-center font-medium" style={{ color: C.teal }}>{d.present}</td>
@@ -526,7 +528,7 @@ export default function Dashboard({
                                             <Line type="monotone" dataKey="total_net"
                                                 name="Net pay" stroke={C.teal}
                                                 strokeWidth={2.5}
-                                                dot={{ r: 3, fill: C.teal, stroke: '#0C1218', strokeWidth: 2 }} />
+                                                dot={{ r: 3, fill: C.teal, stroke: 'var(--color-panel)', strokeWidth: 2 }} />
                                             <Line type="monotone" dataKey="total_deductions"
                                                 name="Deductions" stroke={C.red}
                                                 strokeWidth={1.5} strokeDasharray="4 3"
@@ -577,7 +579,7 @@ export default function Dashboard({
                                         return (
                                             <div key={i} className="flex items-start gap-3 px-3 py-2.5 rounded-xl border transition-colors"
                                                 style={{ borderColor: 'transparent' }}
-                                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                                                onMouseEnter={e => e.currentTarget.style.background = 'var(--color-hover)'}
                                                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                                                 <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
                                                     style={badgeStyle(style.color)}>
@@ -608,16 +610,16 @@ export default function Dashboard({
                             <a key={link.href} href={link.href}
                                 className="relative flex items-center gap-2.5 rounded-2xl border backdrop-blur-xl px-4 py-3 transition-colors"
                                 style={{ background: C.panel, borderColor: C.border }}
-                                onMouseEnter={e => e.currentTarget.style.borderColor = `${link.color}66`}
+                                onMouseEnter={e => e.currentTarget.style.borderColor = `color-mix(in srgb, ${link.color} 40%, transparent)`}
                                 onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
                                 <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                                    style={{ background: `${link.color}1A` }}>
+                                    style={{ background: `color-mix(in srgb, ${link.color} 10%, transparent)` }}>
                                     <link.icon className="w-4 h-4" style={{ color: link.color }} />
                                 </div>
                                 <span className="text-xs font-medium" style={{ color: C.text }}>{link.label}</span>
                                 {link.badge > 0 && (
                                     <span className="absolute top-2 right-2 text-xs px-1.5 py-0.5 rounded-full font-medium"
-                                        style={{ background: C.red, color: '#06090D', fontSize: 9 }}>
+                                        style={{ background: C.red, color: '#FFFFFF', fontSize: 9 }}>
                                         {link.badge}
                                     </span>
                                 )}
@@ -633,7 +635,7 @@ export default function Dashboard({
                     @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
                     .animate-in { animation: fadeSlideUp 0.5s ease-out both; }
                     @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
-                    .hud-grid { background-image: linear-gradient(rgba(139,124,246,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(139,124,246,0.05) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
+                    .hud-grid { background-image: linear-gradient(color-mix(in srgb, var(--color-violet) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-violet) 5%, transparent) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
                     @media (prefers-reduced-motion: reduce) { .animate-in, .hud-grid { animation: none; } }
                 `}</style>
             </div>

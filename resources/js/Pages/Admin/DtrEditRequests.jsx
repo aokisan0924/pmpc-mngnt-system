@@ -2,18 +2,18 @@ import { useState } from 'react'
 import { router, useForm, usePage } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 
-/* ---------- design tokens ---------- */
+/* ---------- design tokens — resolve to CSS variables from app.css ---------- */
 const C = {
-    bg:        '#06090D',
-    panel:     'rgba(14,20,27,0.72)',
-    field:     'rgba(255,255,255,0.03)',
-    border:    '#1F2C35',
-    text:      '#E7F1EE',
-    sub:       '#83979C',
-    dim:       '#4C5C61',
-    teal:      '#14F1B2',
-    violet:    '#8B7CF6',
-    red:       '#FF6B81',
+    bg:        'var(--color-bg)',
+    panel:     'var(--color-panel)',
+    field:     'var(--color-field)',
+    border:    'var(--color-border)',
+    text:      'var(--color-text)',
+    sub:       'var(--color-sub)',
+    dim:       'var(--color-dim)',
+    teal:      'var(--color-teal)',
+    violet:    'var(--color-violet)',
+    red:       'var(--color-red)',
 }
 
 const STATUS_STYLES = {
@@ -70,7 +70,7 @@ export default function DtrEditRequests({ requests, pendingCount }) {
                     {/* Flash */}
                     {flash?.success && (
                         <div className="mb-4 px-4 py-3 rounded-xl border text-sm animate-in"
-                            style={{ background: 'rgba(20,241,178,0.08)', borderColor: 'rgba(20,241,178,0.3)', color: C.teal }}>
+                            style={{ background: 'color-mix(in srgb, var(--color-teal) 8%, transparent)', borderColor: 'color-mix(in srgb, var(--color-teal) 30%, transparent)', color: C.teal }}>
                             {flash.success}
                         </div>
                     )}
@@ -96,7 +96,7 @@ export default function DtrEditRequests({ requests, pendingCount }) {
                                         onClick={() => setFilter(f)}
                                         className="px-3 py-1.5 text-xs rounded-lg capitalize transition-all font-medium whitespace-nowrap"
                                         style={filter === f
-                                            ? { background: 'rgba(139,124,246,0.14)', color: C.violet, boxShadow: 'inset 0 0 0 1px rgba(139,124,246,0.35)' }
+                                            ? { background: 'color-mix(in srgb, var(--color-violet) 14%, transparent)', color: C.violet, boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--color-violet) 35%, transparent)' }
                                             : { color: C.dim }}>
                                     {f}
                                 </button>
@@ -120,7 +120,7 @@ export default function DtrEditRequests({ requests, pendingCount }) {
                                     <div className="flex items-center justify-between px-4 sm:px-5 py-4 gap-3">
                                         <div className="flex items-center gap-3 min-w-0">
                                             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold flex-shrink-0 border font-mono"
-                                                style={{ background: 'rgba(139,124,246,0.12)', color: C.violet, borderColor: 'rgba(139,124,246,0.3)' }}>
+                                                style={{ background: 'color-mix(in srgb, var(--color-violet) 12%, transparent)', color: C.violet, borderColor: 'color-mix(in srgb, var(--color-violet) 30%, transparent)' }}>
                                                 {req.employee_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                                             </div>
                                             <div className="min-w-0">
@@ -131,7 +131,7 @@ export default function DtrEditRequests({ requests, pendingCount }) {
 
                                         <div className="flex items-center gap-3 flex-shrink-0">
                                             <span className="text-xs px-2.5 py-0.5 rounded-full font-medium border"
-                                                style={{ color: style.color, borderColor: `${style.color}55`, background: `${style.color}14` }}>
+                                                style={{ color: style.color, borderColor: `color-mix(in srgb, ${style.color} 33%, transparent)`, background: `color-mix(in srgb, ${style.color} 8%, transparent)` }}>
                                                 {style.label}
                                             </span>
                                             <button
@@ -151,7 +151,7 @@ export default function DtrEditRequests({ requests, pendingCount }) {
 
                                             {/* Times comparison */}
                                             <div className="grid sm:grid-cols-2 gap-3 mb-4">
-                                                <div className="rounded-xl p-3 border" style={{ background: 'rgba(255,255,255,0.02)', borderColor: C.border }}>
+                                                <div className="rounded-xl p-3 border" style={{ background: C.field, borderColor: C.border }}>
                                                     <p className="text-xs mb-2" style={{ color: C.dim }}>Original times</p>
                                                     <div className="grid grid-cols-2 gap-y-2">
                                                         {PUNCH_ROWS.map(([label, key]) => (
@@ -165,12 +165,12 @@ export default function DtrEditRequests({ requests, pendingCount }) {
                                                     </div>
                                                 </div>
 
-                                                <div className="rounded-xl p-3 border" style={{ background: 'rgba(20,241,178,0.06)', borderColor: 'rgba(20,241,178,0.25)' }}>
+                                                <div className="rounded-xl p-3 border" style={{ background: 'color-mix(in srgb, var(--color-teal) 6%, transparent)', borderColor: 'color-mix(in srgb, var(--color-teal) 25%, transparent)' }}>
                                                     <p className="text-xs mb-2" style={{ color: C.teal }}>Requested times</p>
                                                     <div className="grid grid-cols-2 gap-y-2">
                                                         {PUNCH_ROWS.map(([label, key]) => (
                                                             <div key={label}>
-                                                                <p className="text-[11px]" style={{ color: 'rgba(20,241,178,0.7)' }}>{label}</p>
+                                                                <p className="text-[11px]" style={{ color: 'color-mix(in srgb, var(--color-teal) 70%, transparent)' }}>{label}</p>
                                                                 <p className="text-xs font-mono font-medium" style={{ color: C.teal }}>
                                                                     {req[`requested_${key}`] ? req[`requested_${key}`].slice(0, 5) : '—'}
                                                                 </p>
@@ -181,7 +181,7 @@ export default function DtrEditRequests({ requests, pendingCount }) {
                                             </div>
 
                                             {/* Reason */}
-                                            <div className="rounded-xl p-3 border mb-4" style={{ background: 'rgba(255,255,255,0.02)', borderColor: C.border }}>
+                                            <div className="rounded-xl p-3 border mb-4" style={{ background: C.field, borderColor: C.border }}>
                                                 <p className="text-xs mb-1" style={{ color: C.dim }}>Reason</p>
                                                 <p className="text-sm italic" style={{ color: C.sub }}>"{req.reason}"</p>
                                             </div>
@@ -207,15 +207,15 @@ export default function DtrEditRequests({ requests, pendingCount }) {
                                                         <button
                                                             onClick={() => resolve(req.id, 'approve')}
                                                             disabled={processing}
-                                                            className="flex-1 py-2.5 text-sm font-semibold text-black rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
-                                                            style={{ background: C.teal, boxShadow: `0 0 20px -8px ${C.teal}` }}>
+                                                            className="flex-1 py-2.5 text-sm font-semibold rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
+                                                            style={{ background: C.teal, color: 'var(--color-bg)', boxShadow: `0 0 20px -8px ${C.teal}` }}>
                                                             Approve
                                                         </button>
                                                         <button
                                                             onClick={() => resolve(req.id, 'decline')}
                                                             disabled={processing}
                                                             className="flex-1 py-2.5 text-sm font-medium rounded-lg border disabled:opacity-60 transition-colors"
-                                                            style={{ color: C.red, borderColor: 'rgba(255,107,129,0.35)', background: 'rgba(255,107,129,0.08)' }}>
+                                                            style={{ color: C.red, borderColor: 'color-mix(in srgb, var(--color-red) 35%, transparent)', background: 'color-mix(in srgb, var(--color-red) 8%, transparent)' }}>
                                                             Decline
                                                         </button>
                                                     </div>
@@ -224,7 +224,7 @@ export default function DtrEditRequests({ requests, pendingCount }) {
 
                                             {/* Resolved state */}
                                             {!isPending && req.admin_note && (
-                                                <div className="rounded-xl p-3 border" style={{ background: 'rgba(255,255,255,0.02)', borderColor: C.border }}>
+                                                <div className="rounded-xl p-3 border" style={{ background: C.field, borderColor: C.border }}>
                                                     <p className="text-xs mb-1" style={{ color: C.dim }}>Admin note</p>
                                                     <p className="text-sm" style={{ color: C.sub }}>{req.admin_note}</p>
                                                 </div>
@@ -252,11 +252,11 @@ export default function DtrEditRequests({ requests, pendingCount }) {
                     .font-display { font-family: 'Space Grotesk', sans-serif; }
                     .font-mono { font-family: 'JetBrains Mono', monospace; }
                     input { font-family: 'Inter', sans-serif; }
-                    input:focus { border-color: rgba(139,124,246,0.5) !important; box-shadow: 0 0 0 3px rgba(139,124,246,0.12); }
+                    input:focus { border-color: color-mix(in srgb, var(--color-violet) 50%, transparent) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-violet) 12%, transparent); }
                     @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
                     .animate-in { animation: fadeSlideUp 0.5s ease-out both; }
                     @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
-                    .hud-grid { background-image: linear-gradient(rgba(139,124,246,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(139,124,246,0.05) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
+                    .hud-grid { background-image: linear-gradient(color-mix(in srgb, var(--color-violet) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-violet) 5%, transparent) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
                     @media (prefers-reduced-motion: reduce) { .animate-in, .hud-grid { animation: none; } }
                 `}</style>
             </div>
