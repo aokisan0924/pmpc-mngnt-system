@@ -29,6 +29,7 @@ class PayrollItem extends Model
         'loan_deduction',
         'capital_contribution_deduction',
         'cash_advance_deduction',
+        'rental_deduction',
         'savings_deduction',
         'other_deductions',
         'total_deductions',

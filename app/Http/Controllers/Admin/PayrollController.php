@@ -80,11 +80,12 @@ class PayrollController extends Controller
                 $loan         = round($emp->loan_deduction          / 2, 2);
                 $cc           = round($emp->capital_contribution_deduction / 2, 2);
                 $cashAdv      = round($emp->cash_advance_deduction  / 2, 2);
+                $rental       = round($emp->rental_deduction        / 2, 2);
                 $savings      = round($emp->savings_deduction       / 2, 2);
                 $other        = round($emp->other_deductions        / 2, 2);
 
                 $totalDeductions = $sss + $philhealth + $pagibig + $tax
-                                + $loan + $cc + $cashAdv + $savings + $other;
+                                + $loan + $cc + $cashAdv + $rental + $savings + $other;
 
                 return [
                     'id'                      => $emp->id,
@@ -114,6 +115,7 @@ class PayrollController extends Controller
                     'loan_deduction'          => $loan,
                     'capital_contribution_deduction' => $cc,
                     'cash_advance_deduction'  => $cashAdv,
+                    'rental_deduction'        => $rental,
                     'savings_deduction'       => $savings,
                     'other_deductions'        => $other,
                     'total_deductions'        => $totalDeductions,
@@ -209,6 +211,7 @@ class PayrollController extends Controller
                 'tax_deduction'          => $item->tax_deduction,
                 'loan_deduction'         => $item->loan_deduction,
                 'cash_advance_deduction' => $item->cash_advance_deduction,
+                'rental_deduction'       => $item->rental_deduction,
                 'savings_deduction'      => $item->savings_deduction,
                 'capital_contribution_deduction'=> $item->capital_contribution_deduction,
                 'other_deductions'       => $item->other_deductions,
