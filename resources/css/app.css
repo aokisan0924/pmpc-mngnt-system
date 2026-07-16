@@ -32,6 +32,7 @@
     --color-red:     #DC2626;
     --color-emerald: #059669;
     --color-pink:    #DB2777;
+    --color-cyan:    #0891B2;
 
     /* Overlay helpers — used for hover states, chart gridlines, and thin
         row dividers that need to sit on top of *any* surface color, so
@@ -67,4 +68,5 @@
     --color-red:     #FF6B81;
     --color-emerald: #34D399;
     --color-pink:    #F472B6;
+    --color-cyan:    #22D3EE;
 }

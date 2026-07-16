@@ -68,21 +68,20 @@ export default function EmployeeShow({ employee, govIds }) {
     })
 
     const compForm = useForm({
-        daily_rate:               employee.daily_rate               ?? '0',
-        transpo_allowance:        employee.transpo_allowance        ?? '0',
-        rep_allowance:            employee.rep_allowance            ?? '0',
-        quarterly_allowance:      employee.quarterly_allowance      ?? '0',
-        sss_deduction:            employee.sss_deduction            ?? '0',
-        philhealth_deduction:     employee.philhealth_deduction     ?? '0',
-        pagibig_deduction:        employee.pagibig_deduction        ?? '0',
-        tax_deduction:            employee.tax_deduction            ?? '0',
-        loan_deduction:           employee.loan_deduction           ?? '0',
-        cc_deduction:             employee.cc_deduction             ?? '0',
-        cash_advance_deduction:   employee.cash_advance_deduction   ?? '0',
-        rental_deduction:         employee.rental_deduction         ?? '0',
-        savings_deduction:        employee.savings_deduction        ?? '0',
-        share_capital_deduction:  employee.share_capital_deduction  ?? '0',
-        other_deductions:         employee.other_deductions         ?? '0',
+        daily_rate:                       employee.daily_rate                       ?? '0',
+        transpo_allowance:                employee.transpo_allowance                ?? '0',
+        rep_allowance:                    employee.rep_allowance                    ?? '0',
+        quarterly_allowance:              employee.quarterly_allowance              ?? '0',
+        sss_deduction:                    employee.sss_deduction                    ?? '0',
+        philhealth_deduction:             employee.philhealth_deduction             ?? '0',
+        pagibig_deduction:                employee.pagibig_deduction                ?? '0',
+        tax_deduction:                    employee.tax_deduction                    ?? '0',
+        loan_deduction:                   employee.loan_deduction                   ?? '0',
+        capital_contribution_deduction:   employee.capital_contribution_deduction   ?? '0',
+        cash_advance_deduction:           employee.cash_advance_deduction           ?? '0',
+        rental_deduction:                 employee.rental_deduction                 ?? '0',
+        savings_deduction:                employee.savings_deduction                ?? '0',
+        other_deductions:                 employee.other_deductions                 ?? '0',
     })
 
     const passForm = useForm({
@@ -115,8 +114,8 @@ export default function EmployeeShow({ employee, govIds }) {
         + (parseFloat(compForm.data.quarterly_allowance) || 0)
     const grossMonthly  = monthlyBasic + allowanceTotal
     const totalDed      = ['sss_deduction','philhealth_deduction','pagibig_deduction','tax_deduction',
-                            'loan_deduction','cc_deduction','cash_advance_deduction','rental_deduction',
-                            'savings_deduction','share_capital_deduction','other_deductions']
+                            'loan_deduction','capital_contribution_deduction','cash_advance_deduction','rental_deduction',
+                            'savings_deduction','other_deductions']
                             .reduce((sum, k) => sum + (parseFloat(compForm.data[k]) || 0), 0)
     const netMonthly    = grossMonthly - totalDed
 

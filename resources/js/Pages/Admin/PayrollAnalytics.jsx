@@ -30,6 +30,7 @@ const COLORS = {
     emerald: 'var(--color-emerald)',
     violet:  'var(--color-violet)',
     pink:    'var(--color-pink)',
+    cyan:    'var(--color-cyan)',
     gray:    'var(--color-dim)',
 }
 
@@ -41,6 +42,7 @@ const DED_COLORS = {
     loan:                 COLORS.violet,
     capital_contribution: COLORS.pink,
     cash_advance:         COLORS.purple,
+    rental:               COLORS.cyan,
     savings:              COLORS.teal,
     other:                COLORS.gray,
 }
@@ -53,6 +55,7 @@ const DED_LABELS = {
     loan:                 'Loan',
     capital_contribution: 'Capital contribution',
     cash_advance:         'Cash advance',
+    rental:               'Rental',
     savings:              'Savings',
     other:                'Other',
 }
@@ -143,28 +146,28 @@ export default function PayrollAnalytics({
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                     <KpiCard
                         label="Total gross cost"
-                        value={'₱ ' + fmtShort(kpis.total_payroll_cost)}
+                        value={fmtShort(kpis.total_payroll_cost)}
                         sub={`across ${kpis.total_payrolls} payrolls`}
                         accent={COLORS.teal}
                         icon="💰"
                     />
                     <KpiCard
                         label="Total net paid out"
-                        value={'₱ ' + fmtShort(kpis.total_net_paid)}
+                        value={fmtShort(kpis.total_net_paid)}
                         sub="after all deductions"
                         accent={COLORS.emerald}
                         icon="✅"
                     />
                     <KpiCard
                         label="Total deductions"
-                        value={'₱ ' + fmtShort(kpis.total_deductions)}
+                        value={fmtShort(kpis.total_deductions)}
                         sub="govt + other combined"
                         accent={COLORS.red}
                         icon="📉"
                     />
                     <KpiCard
                         label="Avg net per employee"
-                        value={'₱ ' + fmtShort(kpis.avg_net_per_employee)}
+                        value={fmtShort(kpis.avg_net_per_employee)}
                         sub={`${kpis.active_employees} active employees`}
                         accent={COLORS.purple}
                         icon="👥"
