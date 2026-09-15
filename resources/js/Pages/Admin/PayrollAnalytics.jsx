@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
+import Card from '@/Components/UI/Card'
+import StatCard from '@/Components/UI/StatCard'
+import Badge from '@/Components/UI/Badge'
+import Button from '@/Components/UI/Button'
 import {
     LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
     Tooltip, Legend, ResponsiveContainer, ComposedChart, Area,
@@ -19,32 +23,30 @@ function fmtShort(num) {
     return '₱' + Math.round(num)
 }
 
-/* CSS variables, not hex — recharts stroke/fill props accept var()
-   directly, so these follow the light/dark toggle automatically. */
 const COLORS = {
-    teal:    'var(--color-teal)',
-    purple:  'var(--color-purple)',
-    blue:    'var(--color-blue)',
-    amber:   'var(--color-amber)',
-    red:     'var(--color-red)',
-    emerald: 'var(--color-emerald)',
-    violet:  'var(--color-violet)',
-    pink:    'var(--color-pink)',
-    cyan:    'var(--color-cyan)',
-    gray:    'var(--color-dim)',
+    indigo:  '#4F46E5',
+    emerald: '#10B981',
+    rose:    '#F43F5E',
+    amber:   '#F59E0B',
+    sky:     '#0284C7',
+    purple:  '#8B5CF6',
+    pink:    '#EC4899',
+    cyan:    '#06B6D4',
+    teal:    '#0D9488',
+    slate:   '#64748B',
 }
 
 const DED_COLORS = {
-    sss:                  COLORS.blue,
+    sss:                  COLORS.sky,
     philhealth:           COLORS.emerald,
     pagibig:              COLORS.amber,
-    tax:                  COLORS.red,
-    loan:                 COLORS.violet,
+    tax:                  COLORS.rose,
+    loan:                 COLORS.purple,
     capital_contribution: COLORS.pink,
-    cash_advance:         COLORS.purple,
+    cash_advance:         COLORS.indigo,
     rental:               COLORS.cyan,
     savings:              COLORS.teal,
-    other:                COLORS.gray,
+    other:                COLORS.slate,
 }
 
 const DED_LABELS = {
@@ -53,8 +55,8 @@ const DED_LABELS = {
     pagibig:              'Pag-IBIG',
     tax:                  'W/H Tax',
     loan:                 'Loan',
-    capital_contribution: 'Capital contribution',
-    cash_advance:         'Cash advance',
+    capital_contribution: 'Capital Contribution',
+    cash_advance:         'Cash Advance',
     rental:               'Rental',
     savings:              'Savings',
     other:                'Other',
@@ -63,53 +65,25 @@ const DED_LABELS = {
 // ── Custom tooltip ─────────────────────────────────────────────────────────
 
 function PayrollTooltip({ active, payload, label }) {
-    if (! active || ! payload?.length) return null
+    if (!active || !payload?.length) return null
     return (
-        <div className="bg-panel border border-border rounded-xl shadow-lg p-3 min-w-44">
-            <p className="text-xs font-medium text-sub mb-2">{label}</p>
-            {payload.map(p => (
-                <div key={p.name} className="flex items-center justify-between gap-4 text-xs mb-1">
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-                        <span className="text-sub">{p.name}</span>
+        <div className="bg-panel/95 backdrop-blur-md border border-border/80 rounded-xl shadow-xl p-3.5 min-w-48 text-xs">
+            <p className="font-semibold text-text mb-2.5 pb-1.5 border-b border-border/60">{label}</p>
+            <div className="space-y-1.5">
+                {payload.map(p => (
+                    <div key={p.name} className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
+                            <span className="text-sub">{p.name}</span>
+                        </div>
+                        <span className="font-medium text-text font-mono">
+                            {typeof p.value === 'number' && p.value > 100
+                                ? '₱ ' + fmt(p.value)
+                                : p.value}
+                        </span>
                     </div>
-                    <span className="font-medium text-text">
-                        {typeof p.value === 'number' && p.value > 100
-                            ? '₱ ' + fmt(p.value)
-                            : p.value}
-                    </span>
-                </div>
-            ))}
-        </div>
-    )
-}
-
-// ── KPI card ───────────────────────────────────────────────────────────────
-
-function KpiCard({ label, value, sub, accent, icon }) {
-    return (
-        <div className="bg-panel rounded-xl border border-border p-4 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: accent }} />
-            <div className="flex items-start justify-between mb-2">
-                <p className="text-xs text-sub">{label}</p>
-                <span className="text-lg">{icon}</span>
+                ))}
             </div>
-            <p className="text-xl font-medium text-text mb-0.5">{value}</p>
-            {sub && <p className="text-xs text-dim">{sub}</p>}
-        </div>
-    )
-}
-
-// ── Section wrapper ────────────────────────────────────────────────────────
-
-function Section({ title, sub, children }) {
-    return (
-        <div className="bg-panel rounded-xl border border-border p-5">
-            <div className="mb-4">
-                <p className="text-sm font-medium text-text">{title}</p>
-                {sub && <p className="text-xs text-dim mt-0.5">{sub}</p>}
-            </div>
-            {children}
         </div>
     )
 }
@@ -117,13 +91,13 @@ function Section({ title, sub, children }) {
 // ── Main page ──────────────────────────────────────────────────────────────
 
 export default function PayrollAnalytics({
-    kpis, monthlyTrend, departmentBreakdown, deductionsBreakdown, latestPayroll,
+    kpis, monthlyTrend = [], departmentBreakdown = [], deductionsBreakdown = [], latestPayroll,
 }) {
     const [dedView, setDedView] = useState('chart')
 
-    const hasData     = monthlyTrend.length > 0
-    const hasDept     = departmentBreakdown.length > 0
-    const hasDed      = deductionsBreakdown.length > 0
+    const hasData = monthlyTrend.length > 0
+    const hasDept = departmentBreakdown.length > 0
+    const hasDed  = deductionsBreakdown.length > 0
 
     const dedKeys = Object.keys(DED_LABELS).filter(k =>
         deductionsBreakdown.some(r => (r[k] ?? 0) > 0)
@@ -131,318 +105,306 @@ export default function PayrollAnalytics({
 
     return (
         <AdminLayout>
-            <div className="min-h-screen bg-bg">
-            <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
 
                 {/* Header */}
-                <div className="mb-6">
-                    <h1 className="text-lg font-medium text-text">Payroll analytics</h1>
-                    <p className="text-sm text-sub mt-0.5">
-                        All-time payroll insights across all finalized payroll records
-                    </p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-2xl font-bold font-display text-text tracking-tight">Payroll Analytics</h1>
+                            <Badge variant="indigo" size="sm">Executive View</Badge>
+                        </div>
+                        <p className="text-sm text-sub mt-1">
+                            All-time organizational expenditure, statutory deductions, and compensation trend analysis
+                        </p>
+                    </div>
+
+                    {latestPayroll && (
+                        <div className="flex items-center gap-3 bg-panel border border-border px-4 py-2 rounded-xl shadow-xs">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <div className="text-xs">
+                                <span className="text-sub font-medium">Latest Run: </span>
+                                <span className="text-text font-semibold">{latestPayroll.period_label}</span>
+                                <span className="text-dim ml-1.5 font-mono">({latestPayroll.cutoff_label})</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* KPI cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                    <KpiCard
-                        label="Total gross cost"
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <StatCard
+                        title="Total Gross Cost"
                         value={fmtShort(kpis.total_payroll_cost)}
-                        sub={`across ${kpis.total_payrolls} payrolls`}
-                        accent={COLORS.teal}
-                        icon="💰"
+                        sub={`Across ${kpis.total_payrolls} finalized runs`}
+                        color="indigo"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        }
                     />
-                    <KpiCard
-                        label="Total net paid out"
+                    <StatCard
+                        title="Total Net Paid Out"
                         value={fmtShort(kpis.total_net_paid)}
-                        sub="after all deductions"
-                        accent={COLORS.emerald}
-                        icon="✅"
+                        sub="Disbursed to personnel take-home"
+                        color="emerald"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        }
                     />
-                    <KpiCard
-                        label="Total deductions"
+                    <StatCard
+                        title="Total Deductions"
                         value={fmtShort(kpis.total_deductions)}
-                        sub="govt + other combined"
-                        accent={COLORS.red}
-                        icon="📉"
+                        sub="Govt statutory + voluntary"
+                        color="rose"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                            </svg>
+                        }
                     />
-                    <KpiCard
-                        label="Avg net per employee"
+                    <StatCard
+                        title="Avg Net Per Employee"
                         value={fmtShort(kpis.avg_net_per_employee)}
-                        sub={`${kpis.active_employees} active employees`}
-                        accent={COLORS.purple}
-                        icon="👥"
+                        sub={`${kpis.active_employees} active employees on record`}
+                        color="amber"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        }
                     />
                 </div>
-
-                {/* Latest payroll snapshot */}
-                {latestPayroll && (
-                    <div className="mb-6 px-4 py-3 rounded-xl border border-border bg-field flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                            <p className="text-xs text-sub">Latest finalized payroll</p>
-                            <p className="text-sm font-medium text-text mt-0.5">
-                                {latestPayroll.period_label}
-                                <span className="ml-2 text-xs font-normal text-dim">
-                                    {latestPayroll.cutoff_label}
-                                </span>
-                            </p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-xs text-sub">Net payout</p>
-                            <p className="text-base font-medium text-teal">
-                                ₱ {fmt(kpis.latest_net)}
-                            </p>
-                        </div>
-                    </div>
-                )}
 
                 {/* Chart 1 — Monthly net pay trend */}
-                <div className="mb-5">
-                    <Section
-                        title="Monthly payroll trend"
-                        sub="Gross pay, deductions, and net pay per payroll period">
-                        {hasData ? (
-                            <ResponsiveContainer width="100%" height={280}>
-                                <ComposedChart data={monthlyTrend}
-                                    margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" />
-                                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
-                                        tickLine={false} axisLine={false} />
-                                    <YAxis tickFormatter={fmtShort}
-                                        tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
-                                        tickLine={false} axisLine={false} width={56} />
+                <Card
+                    title="Gross Pay, Net Payout & Deductions Trend"
+                    description="Semi-monthly historical trajectory of total compensation expenditure"
+                >
+                    {hasData ? (
+                        <div className="h-72 w-full pt-2">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <ComposedChart data={monthlyTrend} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="grossGradient" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor={COLORS.indigo} stopOpacity={0.25} />
+                                            <stop offset="95%" stopColor={COLORS.indigo} stopOpacity={0.0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" vertical={false} />
+                                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--color-dim)' }} tickLine={false} axisLine={false} />
+                                    <YAxis tickFormatter={fmtShort} tick={{ fontSize: 11, fill: 'var(--color-dim)' }} tickLine={false} axisLine={false} width={60} />
                                     <Tooltip content={<PayrollTooltip />} />
-                                    <Legend
-                                        wrapperStyle={{ fontSize: 11, paddingTop: 12 }}
-                                        iconType="circle" iconSize={8} />
-                                    <Area type="monotone" dataKey="total_gross"
-                                        name="Gross pay" fill="color-mix(in srgb, var(--color-teal) 15%, transparent)" stroke={COLORS.teal}
-                                        strokeWidth={2} fillOpacity={0.4} />
-                                    <Line type="monotone" dataKey="total_net"
-                                        name="Net pay" stroke={COLORS.emerald}
-                                        strokeWidth={2.5} dot={{ r: 3, fill: COLORS.emerald }}
-                                        activeDot={{ r: 5 }} />
-                                    <Line type="monotone" dataKey="total_deductions"
-                                        name="Deductions" stroke={COLORS.red}
-                                        strokeWidth={1.5} strokeDasharray="4 3"
-                                        dot={{ r: 2, fill: COLORS.red }} />
+                                    <Legend wrapperStyle={{ fontSize: 12, paddingTop: 16 }} iconType="circle" iconSize={8} />
+                                    <Area type="monotone" dataKey="total_gross" name="Gross Pay" fill="url(#grossGradient)" stroke={COLORS.indigo} strokeWidth={2.5} />
+                                    <Line type="monotone" dataKey="total_net" name="Net Pay" stroke={COLORS.emerald} strokeWidth={2.5} dot={{ r: 4, fill: COLORS.emerald, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                                    <Line type="monotone" dataKey="total_deductions" name="Deductions" stroke={COLORS.rose} strokeWidth={2} strokeDasharray="4 4" dot={{ r: 3, fill: COLORS.rose }} />
                                 </ComposedChart>
                             </ResponsiveContainer>
-                        ) : (
-                            <EmptyState message="No finalized payroll records yet." />
-                        )}
-                    </Section>
-                </div>
+                        </div>
+                    ) : (
+                        <EmptyState message="No finalized payroll records available yet." />
+                    )}
+                </Card>
 
-                {/* Chart 2 — Headcount vs payroll cost */}
-                <div className="mb-5">
-                    <Section
-                        title="Headcount vs payroll cost"
-                        sub="Number of employees paid vs total gross cost per period">
+                {/* Chart 2 & 3 Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Headcount vs Cost */}
+                    <Card
+                        title="Headcount vs Payroll Cost"
+                        description="Correlation between active payroll headcount and total gross outlay"
+                    >
                         {hasData ? (
-                            <ResponsiveContainer width="100%" height={240}>
-                                <ComposedChart data={monthlyTrend}
-                                    margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" />
-                                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
-                                        tickLine={false} axisLine={false} />
-                                    <YAxis yAxisId="cost" tickFormatter={fmtShort}
-                                        tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
-                                        tickLine={false} axisLine={false} width={56} />
-                                    <YAxis yAxisId="count" orientation="right"
-                                        tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
-                                        tickLine={false} axisLine={false} width={32}
-                                        label={{ value: 'Employees', angle: 90, position: 'insideRight', fontSize: 9, fill: 'var(--color-dim)' }} />
-                                    <Tooltip content={<PayrollTooltip />} />
-                                    <Legend
-                                        wrapperStyle={{ fontSize: 11, paddingTop: 12 }}
-                                        iconType="circle" iconSize={8} />
-                                    <Bar yAxisId="cost" dataKey="total_gross"
-                                        name="Gross pay" fill={COLORS.teal}
-                                        radius={[4, 4, 0, 0]} fillOpacity={0.85} />
-                                    <Line yAxisId="count" type="monotone" dataKey="headcount"
-                                        name="Headcount" stroke={COLORS.amber}
-                                        strokeWidth={2.5} dot={{ r: 3, fill: COLORS.amber }}
-                                        activeDot={{ r: 5 }} />
-                                </ComposedChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <EmptyState message="No finalized payroll records yet." />
-                        )}
-                    </Section>
-                </div>
-
-                {/* Chart 3 — Department breakdown */}
-                <div className="mb-5">
-                    <Section
-                        title="Department payroll cost"
-                        sub="Total gross and net pay grouped by department (all time)">
-                        {hasDept ? (
-                            <>
-                                <ResponsiveContainer width="100%" height={240}>
-                                    <BarChart data={departmentBreakdown}
-                                        margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
+                            <div className="h-64 w-full pt-2">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <ComposedChart data={monthlyTrend} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" vertical={false} />
-                                        <XAxis dataKey="department"
-                                            tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
-                                            tickLine={false} axisLine={false} />
-                                        <YAxis tickFormatter={fmtShort}
-                                            tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
-                                            tickLine={false} axisLine={false} width={56} />
+                                        <XAxis dataKey="month" tick={{ fontSize: 11, fill: 'var(--color-dim)' }} tickLine={false} axisLine={false} />
+                                        <YAxis yAxisId="cost" tickFormatter={fmtShort} tick={{ fontSize: 11, fill: 'var(--color-dim)' }} tickLine={false} axisLine={false} width={56} />
+                                        <YAxis yAxisId="count" orientation="right" tick={{ fontSize: 11, fill: 'var(--color-dim)' }} tickLine={false} axisLine={false} width={36} />
                                         <Tooltip content={<PayrollTooltip />} />
-                                        <Legend
-                                            wrapperStyle={{ fontSize: 11, paddingTop: 12 }}
-                                            iconType="circle" iconSize={8} />
-                                        <Bar dataKey="total_gross" name="Gross pay"
-                                            fill={COLORS.teal} radius={[4, 4, 0, 0]} fillOpacity={0.85} />
-                                        <Bar dataKey="total_net" name="Net pay"
-                                            fill={COLORS.emerald} radius={[4, 4, 0, 0]} fillOpacity={0.85} />
+                                        <Legend wrapperStyle={{ fontSize: 12, paddingTop: 14 }} iconType="circle" iconSize={8} />
+                                        <Bar yAxisId="cost" dataKey="total_gross" name="Gross Pay" fill={COLORS.indigo} radius={[6, 6, 0, 0]} opacity={0.85} maxBarSize={32} />
+                                        <Line yAxisId="count" type="monotone" dataKey="headcount" name="Headcount" stroke={COLORS.amber} strokeWidth={2.5} dot={{ r: 4, fill: COLORS.amber }} activeDot={{ r: 6 }} />
+                                    </ComposedChart>
+                                </ResponsiveContainer>
+                            </div>
+                        ) : (
+                            <EmptyState message="No payroll headcount history available." />
+                        )}
+                    </Card>
+
+                    {/* Department Cost Bar */}
+                    <Card
+                        title="Department Cost Distribution"
+                        description="All-time gross and net expenditure distributed across divisions"
+                    >
+                        {hasDept ? (
+                            <div className="h-64 w-full pt-2">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={departmentBreakdown} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" vertical={false} />
+                                        <XAxis dataKey="department" tick={{ fontSize: 11, fill: 'var(--color-dim)' }} tickLine={false} axisLine={false} />
+                                        <YAxis tickFormatter={fmtShort} tick={{ fontSize: 11, fill: 'var(--color-dim)' }} tickLine={false} axisLine={false} width={56} />
+                                        <Tooltip content={<PayrollTooltip />} />
+                                        <Legend wrapperStyle={{ fontSize: 12, paddingTop: 14 }} iconType="circle" iconSize={8} />
+                                        <Bar dataKey="total_gross" name="Gross Pay" fill={COLORS.indigo} radius={[4, 4, 0, 0]} opacity={0.9} maxBarSize={28} />
+                                        <Bar dataKey="total_net" name="Net Pay" fill={COLORS.emerald} radius={[4, 4, 0, 0]} opacity={0.9} maxBarSize={28} />
                                     </BarChart>
                                 </ResponsiveContainer>
+                            </div>
+                        ) : (
+                            <EmptyState message="No department distribution records found." />
+                        )}
+                    </Card>
+                </div>
 
-                                {/* Department table */}
-                                <div className="mt-4 border border-border rounded-lg overflow-hidden">
-                                    <table className="w-full text-xs">
-                                        <thead>
-                                            <tr className="bg-field border-b border-border">
-                                                <th className="text-left px-3 py-2 text-dim font-medium">Department</th>
-                                                <th className="text-center px-3 py-2 text-dim font-medium">Employees</th>
-                                                <th className="text-right px-3 py-2 text-dim font-medium">Gross pay</th>
-                                                <th className="text-right px-3 py-2 text-dim font-medium">Net pay</th>
-                                                <th className="text-right px-3 py-2 text-dim font-medium">Ded. %</th>
+                {/* Department Details Table */}
+                {hasDept && (
+                    <Card
+                        title="Department Financial Breakdown"
+                        description="Cumulative summary of payroll figures and effective deduction ratios"
+                    >
+                        <div className="overflow-x-auto -mx-6 -my-4">
+                            <table className="w-full text-xs">
+                                <thead>
+                                    <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold">
+                                        <th className="text-left px-6 py-3">Department</th>
+                                        <th className="text-center px-4 py-3">Active Headcount</th>
+                                        <th className="text-right px-4 py-3">Cumulative Gross</th>
+                                        <th className="text-right px-4 py-3">Cumulative Net</th>
+                                        <th className="text-right px-6 py-3">Deduction Ratio</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border/60 font-mono">
+                                    {departmentBreakdown.map(d => {
+                                        const dedPct = d.total_gross > 0
+                                            ? ((d.total_gross - d.total_net) / d.total_gross * 100).toFixed(1)
+                                            : '0.0'
+                                        return (
+                                            <tr key={d.department} className="hover:bg-hover/60 transition-colors">
+                                                <td className="px-6 py-3.5 font-sans font-medium text-text">{d.department}</td>
+                                                <td className="px-4 py-3.5 text-center text-sub">{d.headcount}</td>
+                                                <td className="px-4 py-3.5 text-right text-text">₱ {fmt(d.total_gross)}</td>
+                                                <td className="px-4 py-3.5 text-right text-emerald font-semibold">₱ {fmt(d.total_net)}</td>
+                                                <td className="px-6 py-3.5 text-right text-rose">{dedPct}%</td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            {departmentBreakdown.map(d => {
-                                                const dedPct = d.total_gross > 0
-                                                    ? ((d.total_gross - d.total_net) / d.total_gross * 100).toFixed(1)
-                                                    : '0.0'
-                                                return (
-                                                    <tr key={d.department} className="border-b border-border hover:bg-hover">
-                                                        <td className="px-3 py-2 font-medium text-sub">{d.department}</td>
-                                                        <td className="px-3 py-2 text-center text-sub">{d.headcount}</td>
-                                                        <td className="px-3 py-2 text-right text-sub">₱ {fmt(d.total_gross)}</td>
-                                                        <td className="px-3 py-2 text-right text-teal">₱ {fmt(d.total_net)}</td>
-                                                        <td className="px-3 py-2 text-right text-red">{dedPct}%</td>
-                                                    </tr>
-                                                )
-                                            })}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
+                )}
+
+                {/* Deductions Breakdown per Employee */}
+                <Card
+                    title={`Deductions Breakdown per Employee${latestPayroll ? ' — ' + latestPayroll.period_label : ''}`}
+                    description="Itemized statutory and company deduction allocations from the latest payroll"
+                    action={
+                        <div className="flex gap-1 p-1 bg-field rounded-lg border border-border">
+                            <button
+                                onClick={() => setDedView('chart')}
+                                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                                    dedView === 'chart'
+                                        ? 'bg-panel text-text shadow-xs'
+                                        : 'text-sub hover:text-text'
+                                }`}
+                            >
+                                Chart
+                            </button>
+                            <button
+                                onClick={() => setDedView('table')}
+                                className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
+                                    dedView === 'table'
+                                        ? 'bg-panel text-text shadow-xs'
+                                        : 'text-sub hover:text-text'
+                                }`}
+                            >
+                                Table
+                            </button>
+                        </div>
+                    }
+                >
+                    {hasDed ? (
+                        dedView === 'chart' ? (
+                            <div className="w-full pt-2" style={{ height: Math.max(300, deductionsBreakdown.length * 48) }}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart layout="vertical" data={deductionsBreakdown} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" horizontal={false} />
+                                        <XAxis type="number" tickFormatter={fmtShort} tick={{ fontSize: 11, fill: 'var(--color-dim)' }} tickLine={false} axisLine={false} />
+                                        <YAxis type="category" dataKey="name" width={130} tick={{ fontSize: 11, fill: 'var(--color-sub)' }} tickLine={false} axisLine={false} />
+                                        <Tooltip content={<PayrollTooltip />} />
+                                        <Legend wrapperStyle={{ fontSize: 11, paddingTop: 14 }} iconType="circle" iconSize={7} />
+                                        {dedKeys.map(key => (
+                                            <Bar
+                                                key={key}
+                                                dataKey={key}
+                                                name={DED_LABELS[key]}
+                                                stackId="ded"
+                                                fill={DED_COLORS[key]}
+                                                radius={key === dedKeys[dedKeys.length - 1] ? [0, 4, 4, 0] : [0, 0, 0, 0]}
+                                            />
+                                        ))}
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
                         ) : (
-                            <EmptyState message="No department data available." />
-                        )}
-                    </Section>
-                </div>
-
-                {/* Chart 4 — Deductions breakdown per employee */}
-                <div className="mb-5">
-                    <Section
-                        title={`Deductions breakdown per employee${latestPayroll ? ' — ' + latestPayroll.period_label : ''}`}
-                        sub="Stacked view of each deduction type per employee in the latest finalized payroll">
-                        {hasDed ? (
-                            <>
-                                {/* Toggle */}
-                                <div className="flex gap-1 p-1 bg-field rounded-lg mb-4 w-fit">
-                                    {['chart', 'table'].map(v => (
-                                        <button key={v} onClick={() => setDedView(v)}
-                                            className={`px-3 py-1.5 text-xs rounded-md capitalize transition-all ${
-                                                dedView === v
-                                                    ? 'bg-panel text-text font-medium shadow-sm border border-border'
-                                                    : 'text-sub'
-                                            }`}>
-                                            {v === 'chart' ? '📊 Chart' : '📋 Table'}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {dedView === 'chart' ? (
-                                    <ResponsiveContainer width="100%" height={Math.max(260, deductionsBreakdown.length * 44)}>
-                                        <BarChart
-                                            layout="vertical"
-                                            data={deductionsBreakdown}
-                                            margin={{ top: 4, right: 80, left: 8, bottom: 4 }}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke="var(--color-grid)" horizontal={false} />
-                                            <XAxis type="number" tickFormatter={fmtShort}
-                                                tick={{ fontSize: 10, fill: 'var(--color-dim)' }}
-                                                tickLine={false} axisLine={false} />
-                                            <YAxis type="category" dataKey="name" width={110}
-                                                tick={{ fontSize: 10, fill: 'var(--color-sub)' }}
-                                                tickLine={false} axisLine={false} />
-                                            <Tooltip content={<PayrollTooltip />} />
-                                            <Legend
-                                                wrapperStyle={{ fontSize: 10, paddingTop: 12 }}
-                                                iconType="circle" iconSize={7} />
-                                            {dedKeys.map(key => (
-                                                <Bar key={key} dataKey={key}
-                                                    name={DED_LABELS[key]}
-                                                    stackId="ded"
-                                                    fill={DED_COLORS[key]}
-                                                    radius={key === dedKeys[dedKeys.length - 1] ? [0, 3, 3, 0] : [0, 0, 0, 0]} />
+                            <div className="overflow-x-auto -mx-6 -my-4">
+                                <table className="w-full text-xs">
+                                    <thead>
+                                        <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold">
+                                            <th className="text-left px-6 py-3">Employee</th>
+                                            {dedKeys.map(k => (
+                                                <th key={k} className="text-right px-3 py-3">
+                                                    {DED_LABELS[k]}
+                                                </th>
                                             ))}
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-xs" style={{ minWidth: 700 }}>
-                                            <thead>
-                                                <tr className="bg-field border-b border-border">
-                                                    <th className="text-left px-3 py-2 text-dim font-medium">Employee</th>
-                                                    {dedKeys.map(k => (
-                                                        <th key={k} className="text-right px-3 py-2 text-dim font-medium">
-                                                            {DED_LABELS[k]}
-                                                        </th>
-                                                    ))}
-                                                    <th className="text-right px-3 py-2 text-dim font-medium">Net pay</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {deductionsBreakdown.map(r => (
-                                                    <tr key={r.name} className="border-b border-border hover:bg-hover">
-                                                        <td className="px-3 py-2">
-                                                            <p className="font-medium text-text">{r.name}</p>
-                                                            <p className="text-dim">{r.department}</p>
-                                                        </td>
-                                                        {dedKeys.map(k => (
-                                                            <td key={k} className="px-3 py-2 text-right text-red">
-                                                                {r[k] > 0 ? `₱ ${fmt(r[k])}` : '—'}
-                                                            </td>
-                                                        ))}
-                                                        <td className="px-3 py-2 text-right font-medium text-teal">
-                                                            ₱ {fmt(r.net_pay)}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                            <tfoot>
-                                                <tr className="border-t-2 border-border bg-field font-medium">
-                                                    <td className="px-3 py-2 text-sub">Totals</td>
-                                                    {dedKeys.map(k => (
-                                                        <td key={k} className="px-3 py-2 text-right text-red">
-                                                            ₱ {fmt(deductionsBreakdown.reduce((s, r) => s + (r[k] ?? 0), 0))}
-                                                        </td>
-                                                    ))}
-                                                    <td className="px-3 py-2 text-right text-teal">
-                                                        ₱ {fmt(deductionsBreakdown.reduce((s, r) => s + r.net_pay, 0))}
+                                            <th className="text-right px-6 py-3">Net Take-Home</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border/60 font-mono">
+                                        {deductionsBreakdown.map(r => (
+                                            <tr key={r.name} className="hover:bg-hover/60 transition-colors">
+                                                <td className="px-6 py-3.5 font-sans">
+                                                    <p className="font-semibold text-text">{r.name}</p>
+                                                    <p className="text-[11px] text-dim">{r.department}</p>
+                                                </td>
+                                                {dedKeys.map(k => (
+                                                    <td key={k} className="px-3 py-3.5 text-right text-rose">
+                                                        {r[k] > 0 ? `₱ ${fmt(r[k])}` : '—'}
                                                     </td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                )}
-                            </>
-                        ) : (
-                            <EmptyState message="No finalized payroll to analyze deductions from." />
-                        )}
-                    </Section>
-                </div>
+                                                ))}
+                                                <td className="px-6 py-3.5 text-right font-bold text-emerald">
+                                                    ₱ {fmt(r.net_pay)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr className="border-t-2 border-border bg-field/80 font-mono font-bold">
+                                            <td className="px-6 py-3.5 font-sans text-text">Aggregate Totals</td>
+                                            {dedKeys.map(k => (
+                                                <td key={k} className="px-3 py-3.5 text-right text-rose">
+                                                    ₱ {fmt(deductionsBreakdown.reduce((s, r) => s + (r[k] ?? 0), 0))}
+                                                </td>
+                                            ))}
+                                            <td className="px-6 py-3.5 text-right text-emerald text-sm">
+                                                ₱ {fmt(deductionsBreakdown.reduce((s, r) => s + r.net_pay, 0))}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        )
+                    ) : (
+                        <EmptyState message="No deductions data available for the selected period." />
+                    )}
+                </Card>
 
-                {/* Footer note */}
-                <p className="text-xs text-dim text-center mt-2">
-                    Analytics based on finalized payroll records only · Draft payrolls are excluded
-                </p>
-            </div>
             </div>
         </AdminLayout>
     )
@@ -450,9 +412,14 @@ export default function PayrollAnalytics({
 
 function EmptyState({ message }) {
     return (
-        <div className="py-12 text-center">
-            <div className="text-3xl mb-2">📊</div>
-            <p className="text-sm text-dim">{message}</p>
+        <div className="py-14 text-center">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+            </div>
+            <p className="text-sm font-medium text-text">{message}</p>
+            <p className="text-xs text-dim mt-1">Finalized payroll records will populate these analytics charts automatically.</p>
         </div>
     )
 }

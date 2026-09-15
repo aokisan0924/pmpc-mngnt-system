@@ -1,46 +1,47 @@
-import { useEffect, useState } from 'react'
-import { router, useForm, usePage } from '@inertiajs/react'
+import { useState } from 'react'
+import { useForm, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
-
-/* ---------- design tokens — resolve to CSS variables from app.css ---------- */
-const C = {
-    bg:       'var(--color-bg)',
-    panel:    'var(--color-panel)',
-    field:    'var(--color-field)',
-    fieldOff: 'var(--color-field)',
-    border:   'var(--color-border)',
-    text:     'var(--color-text)',
-    sub:      'var(--color-sub)',
-    dim:      'var(--color-dim)',
-    teal:     'var(--color-teal)',
-    blue:     'var(--color-blue)',
-    red:      'var(--color-red)',
-}
-
-const inputClass = "w-full px-3 py-2.5 text-sm rounded-lg border bg-transparent outline-none transition-colors"
-
-const IconLock = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-        <rect x="5" y="10.5" width="14" height="10" rx="2" />
-        <path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" />
-    </svg>
-)
+import Card from '@/Components/UI/Card'
+import Badge from '@/Components/UI/Badge'
+import Button from '@/Components/UI/Button'
 
 function initials(first, last) {
     return `${(first || '?')[0] ?? ''}${(last || '')[0] ?? ''}`.toUpperCase()
 }
 
+const TABS = [
+    {
+        key: 'info',
+        label: 'Personal Details',
+        icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+        ),
+    },
+    {
+        key: 'gov',
+        label: 'Government Identifiers',
+        icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        ),
+    },
+    {
+        key: 'password',
+        label: 'Security & Password',
+        icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+        ),
+    },
+]
+
 export default function Profile({ employee, govIds }) {
     const { flash } = usePage().props
     const [activeTab, setActiveTab] = useState('info')
-    const [loading, setLoading] = useState(false)
-
-    // Any in-flight Inertia visit (saving info, gov IDs, or password) is tracked here
-    useEffect(() => {
-        const stop = router.on('start', () => setLoading(true))
-        const finish = router.on('finish', () => setLoading(false))
-        return () => { stop(); finish() }
-    }, [])
 
     const infoForm = useForm({
         first_name: employee.first_name ?? '',
@@ -79,265 +80,289 @@ export default function Profile({ employee, govIds }) {
         })
     }
 
-    const tabs = [
-        { key: 'info',     label: 'Personal info'   },
-        { key: 'gov',      label: 'Government IDs'  },
-        { key: 'password', label: 'Change password' },
-    ]
-
     return (
-        <EmployeeLayout title="My profile">
-            <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
-                {/* top nav progress indicator — matches Dashboard / Notifications */}
-                {loading && (
-                    <div className="fixed top-0 left-0 right-0 h-0.5 z-50 overflow-hidden" style={{ background: 'color-mix(in srgb, var(--color-teal) 12%, transparent)' }}>
-                        <div className="h-full w-1/3 progress-sweep" style={{ background: C.teal }} />
+        <EmployeeLayout title="My Profile">
+            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-4xl mx-auto">
+
+                {flash?.success && (
+                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
+                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{flash.success}</span>
                     </div>
                 )}
 
-                {/* ambient glow — same palette/positioning as Dashboard */}
-                <div className="pointer-events-none absolute -top-40 -left-32 w-96 h-[28rem] rounded-full blur-[120px] opacity-20"
-                    style={{ background: C.teal }} />
-                <div className="pointer-events-none absolute top-1/3 -right-40 w-[24rem] h-96 rounded-full blur-[130px] opacity-10"
-                    style={{ background: C.blue }} />
-
-                <div className="relative p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto">
-
-                    {/* Flash */}
-                    {flash?.success && (
-                        <div className="mb-4 px-4 py-3 rounded-xl border text-sm animate-in"
-                            style={{ background: 'color-mix(in srgb, var(--color-teal) 8%, transparent)', borderColor: 'color-mix(in srgb, var(--color-teal) 30%, transparent)', color: C.teal }}>
-                            {flash.success}
-                        </div>
-                    )}
-
-                    {/* Header */}
-                    <div className="flex items-center gap-4 mb-6 animate-in">
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-display text-lg font-semibold shrink-0 border"
-                            style={{ background: 'color-mix(in srgb, var(--color-teal) 10%, transparent)', color: C.teal, borderColor: 'color-mix(in srgb, var(--color-teal) 30%, transparent)', boxShadow: `0 0 24px -8px ${C.teal}` }}>
+                {/* Profile Banner Card */}
+                <div className="p-6 rounded-2xl bg-panel border border-border shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div className="flex items-center gap-5">
+                        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-display text-2xl font-bold flex items-center justify-center shrink-0 shadow-xs">
                             {initials(employee.first_name, employee.last_name)}
                         </div>
-                        <div className="min-w-0">
-                            <p className="text-[11px] uppercase tracking-[0.2em] font-mono mb-1" style={{ color: C.teal }}>My Profile</p>
-                            <h1 className="font-display text-xl sm:text-2xl font-semibold truncate" style={{ color: C.text }}>
-                                {employee.first_name} {employee.last_name}
-                            </h1>
-                            <p className="text-sm mt-0.5 font-mono truncate" style={{ color: C.sub }}>
-                                {employee.employee_id} · {employee.department} · {employee.position}
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-2xl font-bold font-display text-text">
+                                    {employee.first_name} {employee.last_name}
+                                </h1>
+                                <Badge variant="emerald" size="sm">Active Staff</Badge>
+                            </div>
+                            <p className="text-xs font-mono text-sub mt-1">
+                                ID: <span className="font-bold text-text">{employee.employee_id}</span> · {employee.department} · {employee.position}
                             </p>
                         </div>
                     </div>
 
-                    {/* Tabs */}
-                    <div className="overflow-x-auto mb-6">
-                        <div className="flex gap-1 p-1 rounded-lg min-w-max md:min-w-0" style={{ background: 'var(--color-field)' }}>
-                            {tabs.map(tab => (
-                                <button key={tab.key}
-                                    onClick={() => setActiveTab(tab.key)}
-                                    className={`flex-1 text-xs py-2 px-3 rounded-md transition-all whitespace-nowrap font-medium ${
-                                        activeTab === tab.key ? 'shadow-sm' : ''
-                                    }`}
-                                    style={activeTab === tab.key
-                                        ? { background: 'var(--color-panel)', color: 'var(--color-text)', boxShadow: 'inset 0 0 0 1px var(--color-border)' }
-                                        : { color: 'var(--color-sub)' }}>
-                                    {tab.label}
-                                </button>
-                            ))}
-                        </div>
+                    <div className="flex sm:flex-col items-end justify-between text-right">
+                        <span className="text-[11px] font-semibold text-dim uppercase tracking-wider">Employment Rate</span>
+                        <span className="font-mono text-base font-bold text-emerald-600 dark:text-emerald-400">
+                            ₱ {Number(employee.daily_rate || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })} / day
+                        </span>
                     </div>
+                </div>
 
-                    {/* Personal info */}
-                    {activeTab === 'info' && (
-                        <form onSubmit={submitInfo} className="relative rounded-2xl border backdrop-blur-xl p-5 space-y-4 animate-in"
-                            style={{ background: C.panel, borderColor: C.border, opacity: loading ? 0.5 : 1, pointerEvents: loading ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-                            {loading && (
-                                <div className="absolute top-3 right-3 flex items-center gap-1.5 text-[11px]" style={{ color: C.teal }}>
-                                    <span className="w-3 h-3 rounded-full animate-spin" style={{ border: `2px solid color-mix(in srgb, ${C.teal} 33%, transparent)`, borderTopColor: C.teal }} />
-                                    Saving…
-                                </div>
-                            )}
-                            <div className="grid sm:grid-cols-2 gap-4">
+                {/* Tab Navigation */}
+                <div className="flex gap-2 p-1.5 bg-field rounded-2xl border border-border">
+                    {TABS.map(tab => (
+                        <button
+                            key={tab.key}
+                            type="button"
+                            onClick={() => setActiveTab(tab.key)}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all ${
+                                activeTab === tab.key
+                                    ? 'bg-panel text-emerald-600 dark:text-emerald-400 shadow-xs border border-border'
+                                    : 'text-sub hover:text-text hover:bg-panel/40'
+                            }`}
+                        >
+                            {tab.icon}
+                            <span>{tab.label}</span>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Personal Info Tab */}
+                {activeTab === 'info' && (
+                    <Card
+                        title="Personal Information"
+                        description="Update your contact number, physical address, and basic directory details"
+                    >
+                        <form onSubmit={submitInfo} className="space-y-5 pt-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs mb-1.5" style={{ color: C.sub }}>First name</label>
-                                    <input type="text"
+                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        First Name <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
                                         value={infoForm.data.first_name}
                                         onChange={e => infoForm.setData('first_name', e.target.value)}
-                                        className={inputClass}
-                                        style={{ borderColor: C.border, color: C.text }}
-                                        required />
-                                    {infoForm.errors.first_name && <p className="mt-1 text-xs" style={{ color: C.red }}>{infoForm.errors.first_name}</p>}
+                                        className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                                        required
+                                    />
+                                    {infoForm.errors.first_name && <p className="mt-1.5 text-xs text-rose-500">{infoForm.errors.first_name}</p>}
                                 </div>
                                 <div>
-                                    <label className="block text-xs mb-1.5" style={{ color: C.sub }}>Last name</label>
-                                    <input type="text"
+                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        Last Name <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
                                         value={infoForm.data.last_name}
                                         onChange={e => infoForm.setData('last_name', e.target.value)}
-                                        className={inputClass}
-                                        style={{ borderColor: C.border, color: C.text }}
-                                        required />
-                                    {infoForm.errors.last_name && <p className="mt-1 text-xs" style={{ color: C.red }}>{infoForm.errors.last_name}</p>}
+                                        className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                                        required
+                                    />
+                                    {infoForm.errors.last_name && <p className="mt-1.5 text-xs text-rose-500">{infoForm.errors.last_name}</p>}
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs mb-1.5" style={{ color: C.sub }}>Email</label>
+                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    Official Email Address
+                                </label>
                                 <div className="relative">
-                                    <input type="email"
+                                    <input
+                                        type="email"
                                         value={employee.email}
                                         disabled
-                                        className={`${inputClass} cursor-not-allowed pr-9`}
-                                        style={{ borderColor: C.border, color: C.dim, background: C.fieldOff }} />
-                                    <IconLock className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2" style={{ color: C.dim }} />
+                                        className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field/60 text-dim cursor-not-allowed pr-10"
+                                    />
+                                    <svg className="w-4 h-4 text-dim absolute right-3.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
                                 </div>
-                                <p className="mt-1 text-xs" style={{ color: C.dim }}>Email cannot be changed. Contact your administrator.</p>
+                                <p className="text-[11px] text-dim mt-1">Official email is managed by your system administrator.</p>
                             </div>
 
                             <div>
-                                <label className="block text-xs mb-1.5" style={{ color: C.sub }}>Phone number</label>
-                                <input type="text"
+                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    Mobile Phone Number
+                                </label>
+                                <input
+                                    type="text"
                                     value={infoForm.data.phone}
                                     onChange={e => infoForm.setData('phone', e.target.value)}
-                                    placeholder="e.g. 09xx-xxx-xxxx"
-                                    className={inputClass}
-                                    style={{ borderColor: C.border, color: C.text }} />
+                                    placeholder="09xx-xxx-xxxx"
+                                    className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                                />
                             </div>
 
                             <div>
-                                <label className="block text-xs mb-1.5" style={{ color: C.sub }}>Address</label>
+                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    Residential Address
+                                </label>
                                 <textarea
                                     value={infoForm.data.address}
                                     onChange={e => infoForm.setData('address', e.target.value)}
                                     rows={3}
-                                    placeholder="Your home address"
-                                    className={`${inputClass} resize-none`}
-                                    style={{ borderColor: C.border, color: C.text }} />
+                                    placeholder="Street, Barangay, City/Municipality..."
+                                    className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none"
+                                />
                             </div>
 
-                            <div className="pt-2">
-                                <button type="submit"
-                                        disabled={infoForm.processing}
-                                        className="px-5 py-2.5 text-sm font-semibold rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
-                                        style={{ background: C.teal, color: 'var(--color-bg)', boxShadow: `0 0 24px -8px ${C.teal}` }}>
-                                    {infoForm.processing ? 'Saving…' : 'Save changes'}
-                                </button>
+                            <div className="pt-4 border-t border-border flex justify-end">
+                                <Button variant="primary" size="md" type="submit" loading={infoForm.processing}>
+                                    Save Profile Changes
+                                </Button>
                             </div>
                         </form>
-                    )}
+                    </Card>
+                )}
 
-                    {/* Government IDs */}
-                    {activeTab === 'gov' && (
-                        <form onSubmit={submitGov} className="relative rounded-2xl border backdrop-blur-xl p-5 space-y-4 animate-in"
-                            style={{ background: C.panel, borderColor: C.border, opacity: loading ? 0.5 : 1, pointerEvents: loading ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-                            {loading && (
-                                <div className="absolute top-3 right-3 flex items-center gap-1.5 text-[11px]" style={{ color: C.teal }}>
-                                    <span className="w-3 h-3 rounded-full animate-spin" style={{ border: `2px solid color-mix(in srgb, ${C.teal} 33%, transparent)`, borderTopColor: C.teal }} />
-                                    Saving…
-                                </div>
-                            )}
-                            <div className="flex items-start gap-2 px-3 py-2.5 rounded-lg border" style={{ borderColor: C.border, background: C.fieldOff }}>
-                                <IconLock className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: C.dim }} />
-                                <p className="text-xs" style={{ color: C.dim }}>
-                                    These are kept confidential and used for payroll processing only.
-                                </p>
+                {/* Government IDs Tab */}
+                {activeTab === 'gov' && (
+                    <Card
+                        title="Government Statutory Numbers"
+                        description="Mandatory Philippine statutory registration identifiers used for monthly Remittance returns"
+                    >
+                        <form onSubmit={submitGov} className="space-y-5 pt-2">
+                            <div className="p-3.5 rounded-xl bg-field border border-border flex items-center gap-3 text-xs text-sub">
+                                <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>These statutory records are encrypted and utilized solely for SSS, PhilHealth, Pag-IBIG, and BIR compliance.</span>
                             </div>
 
-                            {[
-                                { key: 'sss_no',        label: 'SSS number',        placeholder: 'xx-xxxxxxx-x'   },
-                                { key: 'philhealth_no', label: 'PhilHealth number', placeholder: 'xx-xxxxxxxxx-x' },
-                                { key: 'tin_no',        label: 'TIN number',        placeholder: 'xxx-xxx-xxx'    },
-                                { key: 'pagibig_no',    label: 'Pag-IBIG number',   placeholder: 'xxxx-xxxx-xxxx' },
-                            ].map(({ key, label, placeholder }) => (
-                                <div key={key}>
-                                    <label className="block text-xs mb-1.5" style={{ color: C.sub }}>{label}</label>
-                                    <input type="text"
-                                        value={govForm.data[key]}
-                                        onChange={e => govForm.setData(key, e.target.value)}
-                                        placeholder={placeholder}
-                                        className={`${inputClass} font-mono`}
-                                        style={{ borderColor: C.border, color: C.text }} />
-                                    {govForm.errors[key] && <p className="mt-1 text-xs" style={{ color: C.red }}>{govForm.errors[key]}</p>}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        SSS Identification Number
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={govForm.data.sss_no}
+                                        onChange={e => govForm.setData('sss_no', e.target.value)}
+                                        placeholder="xx-xxxxxxx-x"
+                                        className="w-full px-3.5 py-2.5 text-sm font-medium font-mono border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                                    />
+                                    {govForm.errors.sss_no && <p className="mt-1 text-xs text-rose-500">{govForm.errors.sss_no}</p>}
                                 </div>
-                            ))}
+                                <div>
+                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        PhilHealth Pin
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={govForm.data.philhealth_no}
+                                        onChange={e => govForm.setData('philhealth_no', e.target.value)}
+                                        placeholder="xx-xxxxxxxxx-x"
+                                        className="w-full px-3.5 py-2.5 text-sm font-medium font-mono border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                                    />
+                                    {govForm.errors.philhealth_no && <p className="mt-1 text-xs text-rose-500">{govForm.errors.philhealth_no}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        Tax Identification Number (TIN)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={govForm.data.tin_no}
+                                        onChange={e => govForm.setData('tin_no', e.target.value)}
+                                        placeholder="xxx-xxx-xxx"
+                                        className="w-full px-3.5 py-2.5 text-sm font-medium font-mono border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                                    />
+                                    {govForm.errors.tin_no && <p className="mt-1 text-xs text-rose-500">{govForm.errors.tin_no}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        Pag-IBIG / HDMF MID
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={govForm.data.pagibig_no}
+                                        onChange={e => govForm.setData('pagibig_no', e.target.value)}
+                                        placeholder="xxxx-xxxx-xxxx"
+                                        className="w-full px-3.5 py-2.5 text-sm font-medium font-mono border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                                    />
+                                    {govForm.errors.pagibig_no && <p className="mt-1 text-xs text-rose-500">{govForm.errors.pagibig_no}</p>}
+                                </div>
+                            </div>
 
-                            <div className="pt-2">
-                                <button type="submit"
-                                        disabled={govForm.processing}
-                                        className="px-5 py-2.5 text-sm font-semibold rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
-                                        style={{ background: C.teal, color: 'var(--color-bg)', boxShadow: `0 0 24px -8px ${C.teal}` }}>
-                                    {govForm.processing ? 'Saving…' : 'Save IDs'}
-                                </button>
+                            <div className="pt-4 border-t border-border flex justify-end">
+                                <Button variant="primary" size="md" type="submit" loading={govForm.processing}>
+                                    Save Statutory Identifiers
+                                </Button>
                             </div>
                         </form>
-                    )}
+                    </Card>
+                )}
 
-                    {/* Change password */}
-                    {activeTab === 'password' && (
-                        <form onSubmit={submitPass} className="relative rounded-2xl border backdrop-blur-xl p-5 space-y-4 animate-in"
-                            style={{ background: C.panel, borderColor: C.border, opacity: loading ? 0.5 : 1, pointerEvents: loading ? 'none' : 'auto', transition: 'opacity 0.2s' }}>
-                            {loading && (
-                                <div className="absolute top-3 right-3 flex items-center gap-1.5 text-[11px]" style={{ color: C.teal }}>
-                                    <span className="w-3 h-3 rounded-full animate-spin" style={{ border: `2px solid color-mix(in srgb, ${C.teal} 33%, transparent)`, borderTopColor: C.teal }} />
-                                    Updating…
-                                </div>
-                            )}
+                {/* Password Tab */}
+                {activeTab === 'password' && (
+                    <Card
+                        title="Account Security Credentials"
+                        description="Ensure your portal credentials remain confidential with regular updates"
+                    >
+                        <form onSubmit={submitPass} className="space-y-5 pt-2 max-w-lg">
                             <div>
-                                <label className="block text-xs mb-1.5" style={{ color: C.sub }}>Current password</label>
-                                <input type="password"
+                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    Current Password <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="password"
                                     value={passForm.data.current_password}
                                     onChange={e => passForm.setData('current_password', e.target.value)}
-                                    className={inputClass}
-                                    style={{ borderColor: C.border, color: C.text }}
-                                    required />
-                                {passForm.errors.current_password && <p className="mt-1 text-xs" style={{ color: C.red }}>{passForm.errors.current_password}</p>}
+                                    className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono"
+                                    required
+                                />
+                                {passForm.errors.current_password && <p className="mt-1.5 text-xs text-rose-500">{passForm.errors.current_password}</p>}
                             </div>
 
                             <div>
-                                <label className="block text-xs mb-1.5" style={{ color: C.sub }}>New password</label>
-                                <input type="password"
+                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    New Password <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="password"
                                     value={passForm.data.password}
                                     onChange={e => passForm.setData('password', e.target.value)}
-                                    className={inputClass}
-                                    style={{ borderColor: C.border, color: C.text }}
-                                    required />
-                                {passForm.errors.password && <p className="mt-1 text-xs" style={{ color: C.red }}>{passForm.errors.password}</p>}
+                                    className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono"
+                                    required
+                                />
+                                {passForm.errors.password && <p className="mt-1.5 text-xs text-rose-500">{passForm.errors.password}</p>}
                             </div>
 
                             <div>
-                                <label className="block text-xs mb-1.5" style={{ color: C.sub }}>Confirm new password</label>
-                                <input type="password"
+                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    Confirm New Password <span className="text-rose-500">*</span>
+                                </label>
+                                <input
+                                    type="password"
                                     value={passForm.data.password_confirmation}
                                     onChange={e => passForm.setData('password_confirmation', e.target.value)}
-                                    className={inputClass}
-                                    style={{ borderColor: C.border, color: C.text }}
-                                    required />
+                                    className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono"
+                                    required
+                                />
                             </div>
 
-                            <div className="pt-2">
-                                <button type="submit"
-                                        disabled={passForm.processing}
-                                        className="px-5 py-2.5 text-sm font-semibold rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
-                                        style={{ background: C.teal, color: 'var(--color-bg)', boxShadow: `0 0 24px -8px ${C.teal}` }}>
-                                    {passForm.processing ? 'Updating…' : 'Update password'}
-                                </button>
+                            <div className="pt-4 border-t border-border flex justify-end">
+                                <Button variant="primary" size="md" type="submit" loading={passForm.processing}>
+                                    Update Portal Password
+                                </Button>
                             </div>
                         </form>
-                    )}
-                </div>
+                    </Card>
+                )}
 
-                <style>{`
-                    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
-                    .font-display { font-family: 'Space Grotesk', sans-serif; }
-                    .font-mono { font-family: 'JetBrains Mono', monospace; }
-                    input, textarea, select { font-family: 'Inter', sans-serif; }
-                    input:focus, textarea:focus { border-color: color-mix(in srgb, var(--color-teal) 50%, transparent) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-teal) 12%, transparent); }
-                    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-                    .animate-in { animation: fadeSlideUp 0.5s ease-out both; }
-                    @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
-                    .hud-grid { background-image: linear-gradient(color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
-                    @keyframes progressSweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
-                    .progress-sweep { animation: progressSweep 1.1s ease-in-out infinite; }
-                    @media (prefers-reduced-motion: reduce) { .animate-in, .hud-grid, .progress-sweep { animation: none; } }
-                `}</style>
             </div>
         </EmployeeLayout>
     )

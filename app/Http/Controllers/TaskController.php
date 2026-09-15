@@ -15,7 +15,7 @@ class TaskController extends Controller
 
         $tasks = Task::where('employee_id', $employee->id)
             ->orderBy('due_date')
-            ->orderByRaw("FIELD(priority, 'high', 'medium', 'low')")
+            ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END")
             ->get()
             ->map(fn($task) => [
                 'id'          => $task->id,

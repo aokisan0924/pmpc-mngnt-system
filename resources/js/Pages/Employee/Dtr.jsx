@@ -2,29 +2,10 @@ import { useEffect, useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import DtrEditRequestModal from '@/Components/DtrEditRequestModal'
-
-/* ---------- design tokens — resolve to CSS variables from app.css ---------- */
-const C = {
-    bg:     'var(--color-bg)',
-    panel:  'var(--color-panel)',
-    border: 'var(--color-border)',
-    text:   'var(--color-text)',
-    sub:    'var(--color-sub)',
-    dim:    'var(--color-dim)',
-    teal:   'var(--color-teal)',
-    blue:   'var(--color-blue)',
-    amber:  'var(--color-amber)',
-    purple: 'var(--color-purple)',
-    red:    'var(--color-red)',
-}
-
-const STATUS_STYLES = {
-    on_time:   { color: C.teal,   bg: 'bg-teal/10',   text: 'text-teal',   label: 'On time'   },
-    late:      { color: C.amber,  bg: 'bg-amber/10',  text: 'text-amber',  label: 'Late'      },
-    undertime: { color: C.blue,   bg: 'bg-blue/10',   text: 'text-blue',   label: 'Undertime' },
-    half_day:  { color: C.purple, bg: 'bg-purple/10', text: 'text-purple', label: 'Half day'  },
-    absent:    { color: C.red,    bg: 'bg-red/10',    text: 'text-red',    label: 'Absent'    },
-}
+import Card from '@/Components/UI/Card'
+import StatCard from '@/Components/UI/StatCard'
+import Badge from '@/Components/UI/Badge'
+import Button from '@/Components/UI/Button'
 
 const PUNCH_LABELS = {
     am_time_in:  'AM In',
@@ -34,33 +15,7 @@ const PUNCH_LABELS = {
 }
 const SLOT_ORDER = ['am_time_in', 'am_time_out', 'pm_time_in', 'pm_time_out']
 
-const IconArrow = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...p}>
-        <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-)
-const IconCheck = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" {...p}>
-        <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-)
-const IconChevronLeft = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...p}>
-        <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-)
-const IconChevronRight = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...p}>
-        <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-)
-
-/* ---------- skeleton primitive ---------- */
-const Skeleton = ({ className = '', style = {} }) => (
-    <span className={`inline-block skeleton-shimmer rounded-md align-middle ${className}`} style={style} />
-)
-
-export default function Dtr({ logs, today, summary, month, next_punch }) {
+export default function Dtr({ logs = [], today = {}, summary = {}, month, next_punch }) {
     const { flash } = usePage().props
     const [editTarget, setEditTarget] = useState(null)
     const [punching, setPunching]     = useState(false)
@@ -72,7 +27,6 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
         return () => clearInterval(id)
     }, [])
 
-    // Any in-flight Inertia visit (month change, punch, edit request) shows skeletons below
     useEffect(() => {
         const stop = router.on('start', () => setLoading(true))
         const finish = router.on('finish', () => setLoading(false))
@@ -95,222 +49,276 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
     }
 
     const nextLabel = next_punch ? PUNCH_LABELS[next_punch] : null
-    const nextIndex = next_punch ? SLOT_ORDER.indexOf(next_punch) : SLOT_ORDER.length
     const timeStr = now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
-    const stats = [
-        { label: 'Days present',  value: summary.days_present, accent: C.teal },
-        { label: 'Days late',     value: summary.days_late, accent: C.amber },
-        { label: 'Hours rendered',value: `${summary.hours_rendered}h`, accent: C.blue },
-        { label: 'Pending edits', value: summary.pending_edits, accent: C.purple },
-    ]
+    function getStatusBadge(log) {
+        if (log.has_pending_edit) {
+            return <Badge variant="purple" size="sm">Pending Edit</Badge>
+        }
+        switch (log.status) {
+            case 'on_time':
+                return <Badge variant="emerald" size="sm">On Time</Badge>
+            case 'late':
+                return <Badge variant="amber" size="sm">Late</Badge>
+            case 'undertime':
+                return <Badge variant="indigo" size="sm">Undertime</Badge>
+            case 'half_day':
+                return <Badge variant="purple" size="sm">Half Day</Badge>
+            case 'absent':
+                return <Badge variant="rose" size="sm">Absent</Badge>
+            default:
+                return <Badge variant="slate" size="sm">{log.status || '—'}</Badge>
+        }
+    }
 
     return (
-        <EmployeeLayout title="Daily time record">
-            <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
-                <div className="pointer-events-none absolute -top-40 -left-32 w-[28rem] h-[28rem] rounded-full blur-[120px] opacity-20"
-                    style={{ background: C.teal }} />
+        <EmployeeLayout title="Daily Time Record">
+            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-6xl mx-auto">
 
-                <div className="relative p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
+                {flash?.success && (
+                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
+                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{flash.success}</span>
+                    </div>
+                )}
 
-                    {/* Flash */}
-                    {flash?.success && (
-                        <div className="mb-4 px-4 py-3 rounded-xl border text-sm animate-in"
-                            style={{ background: 'color-mix(in srgb, var(--color-teal) 8%, transparent)', borderColor: 'color-mix(in srgb, var(--color-teal) 30%, transparent)', color: C.teal }}>
-                            {flash.success}
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-2xl font-bold font-display text-text tracking-tight">Daily Time Record</h1>
+                            <Badge variant="emerald" size="sm">Attendance Portal</Badge>
                         </div>
-                    )}
-
-                    {/* Header */}
-                    <div className="flex flex-col gap-1 mb-6 animate-in">
-                        <p className="text-[11px] uppercase tracking-[0.2em] font-mono" style={{ color: C.teal }}>
-                            Time &amp; Attendance
+                        <p className="text-sm text-sub mt-1">
+                            Punch attendance timestamps, inspect monthly hour totals, and file corrections
                         </p>
-                        <h1 className="font-display text-xl sm:text-2xl font-semibold" style={{ color: C.text }}>
-                            Daily time record
-                        </h1>
-                        <p className="text-sm" style={{ color: C.sub }}>Track your daily attendance</p>
                     </div>
 
-                    {/* Hero: live clock + punch stepper */}
-                    <div className="relative rounded-2xl border backdrop-blur-xl p-5 sm:p-6 mb-5 overflow-hidden animate-in"
-                        style={{ background: C.panel, borderColor: C.border, animationDelay: '80ms' }}>
+                    <a
+                        href={`/employee/dtr/print?month=${month}`}
+                        target="_blank"
+                        className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl border border-border bg-panel text-text hover:bg-hover hover:border-emerald-500/30 transition-all shadow-2xs"
+                    >
+                        <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        <span>Print Official DTR</span>
+                    </a>
+                </div>
 
-                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                            <div>
-                                <p className="text-xs mb-1" style={{ color: C.dim }}>
-                                    {now.toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' })}
-                                </p>
-                                <p className="font-mono text-4xl sm:text-5xl tabular-nums tracking-tight" style={{ color: C.text }}>
-                                    {timeStr}
-                                </p>
-                            </div>
+                {/* Hero Punch Stepper Card */}
+                <Card className="relative overflow-hidden">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-6 border-b border-border">
+                        <div>
+                            <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">
+                                {now.toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                            </p>
+                            <p className="font-mono text-4xl sm:text-5xl font-bold tracking-tight text-text">
+                                {timeStr}
+                            </p>
+                        </div>
 
+                        <div>
                             {nextLabel ? (
                                 <button
                                     onClick={handlePunch}
                                     disabled={punching}
-                                    className="w-full md:w-auto px-5 py-3 md:py-2.5 rounded-xl text-sm font-medium disabled:opacity-60 transition-opacity bg-teal"
-                                    style={{ color: 'var(--color-bg)' }}>
-                                    {punching ? 'Recording…' : `Clock ${nextLabel}`}
+                                    className="w-full sm:w-auto px-6 py-3 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                                >
+                                    <div className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
+                                    <span>{punching ? 'Recording Punch...' : `Clock In: ${nextLabel}`}</span>
                                 </button>
                             ) : (
-                                <span className="w-full md:w-auto text-center px-4 py-3 md:py-2 rounded-xl text-sm bg-field text-sub">
-                                    All punches complete ✓
-                                </span>
+                                <div className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span>All 4 Punches Completed Today</span>
+                                </div>
                             )}
                         </div>
+                    </div>
 
-                        {/* stepper */}
-                        <div className="mt-7 flex items-center">
+                    {/* Stepper Progress */}
+                    <div className="pt-6">
+                        <div className="grid grid-cols-4 gap-2 sm:gap-4 relative">
                             {SLOT_ORDER.map((slot, i) => {
                                 const done = Boolean(today[slot])
                                 const isNext = slot === next_punch
-                                const isLast = i === SLOT_ORDER.length - 1
-                                const nodeColor = done ? C.teal : isNext ? C.amber : C.dim
+
                                 return (
-                                    <div key={slot} className="flex items-center flex-1 last:flex-none">
-                                        <div className="flex flex-col items-center gap-2 min-w-[64px]">
-                                            <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${isNext ? 'pulse-ring' : ''}`}
-                                                style={{
-                                                    borderColor: nodeColor,
-                                                    background: done ? 'color-mix(in srgb, var(--color-teal) 12%, transparent)' : 'transparent',
-                                                    color: nodeColor,
-                                                }}>
-                                                {done ? <IconCheck className="w-4 h-4" /> : <span className="text-[11px] font-mono">{i + 1}</span>}
-                                            </div>
-                                            <div className="text-center">
-                                                <p className="text-[11px] font-medium" style={{ color: done ? C.text : isNext ? C.amber : C.dim }}>
-                                                    {PUNCH_LABELS[slot]}
-                                                </p>
-                                                <p className="text-[10px] font-mono" style={{ color: C.dim }}>
-                                                    {done ? today[slot].slice(0, 5) : isNext ? 'up next' : '—'}
-                                                </p>
-                                            </div>
+                                    <div key={slot} className="flex flex-col items-center text-center">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border font-mono text-xs font-bold transition-all ${
+                                            done
+                                                ? 'bg-emerald-500 text-white border-emerald-500 shadow-xs'
+                                                : isNext
+                                                    ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400 ring-4 ring-amber-500/20 animate-pulse'
+                                                    : 'bg-field border-border text-dim'
+                                        }`}>
+                                            {done ? (
+                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            ) : (
+                                                <span>0{i + 1}</span>
+                                            )}
                                         </div>
-                                        {!isLast && (
-                                            <div className="flex-1 h-[2px] mx-1 sm:mx-2 rounded-full"
-                                                style={{ background: done ? C.teal : C.border, opacity: done ? 0.6 : 1 }} />
-                                        )}
+                                        <p className={`text-xs font-semibold mt-2 ${done ? 'text-text' : isNext ? 'text-amber-600 dark:text-amber-400' : 'text-dim'}`}>
+                                            {PUNCH_LABELS[slot]}
+                                        </p>
+                                        <p className="text-[11px] font-mono mt-0.5 text-sub">
+                                            {done ? today[slot].slice(0, 5) : isNext ? 'Pending' : '—'}
+                                        </p>
                                     </div>
                                 )
                             })}
                         </div>
                     </div>
+                </Card>
 
-                    {/* Summary stats */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-                        {stats.map((s, i) => (
-                            <div key={s.label} className="relative rounded-2xl border backdrop-blur-xl p-3.5 overflow-hidden animate-in"
-                                 style={{ background: C.panel, borderColor: C.border, animationDelay: `${160 + i * 60}ms` }}>
-                                <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: s.accent, opacity: 0.6 }} />
-                                <p className="text-xs mb-1" style={{ color: C.sub }}>{s.label}</p>
-                                {loading ? (
-                                    <Skeleton className="h-6 w-12" />
-                                ) : (
-                                    <p className="font-mono text-xl font-medium" style={{ color: C.text }}>{s.value}</p>
-                                )}
-                            </div>
-                        ))}
-                    </div>
+                {/* Monthly Summary Stats */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <StatCard
+                        title="Days Present"
+                        value={summary.days_present ?? 0}
+                        sub="Verified attendance logs"
+                        color="emerald"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        }
+                    />
+                    <StatCard
+                        title="Days Marked Late"
+                        value={summary.days_late ?? 0}
+                        sub="Beyond shift grace period"
+                        color="amber"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        }
+                    />
+                    <StatCard
+                        title="Rendered Hours"
+                        value={`${summary.hours_rendered ?? 0}h`}
+                        sub="Cumulative working hours"
+                        color="indigo"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                        }
+                    />
+                    <StatCard
+                        title="Pending Edit Requests"
+                        value={summary.pending_edits ?? 0}
+                        sub="Awaiting admin review"
+                        color="purple"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        }
+                    />
+                </div>
 
-                    {/* Month navigator */}
-                    <div className="flex items-center justify-between mb-3 rounded-xl border px-2 py-1.5 flex-wrap gap-2"
-                        style={{ borderColor: C.border, background: C.panel }}>
-                        <button onClick={() => handleMonthChange(-1)}
+                {/* Monthly DTR Log Card */}
+                <Card
+                    title="Monthly Attendance Log"
+                    description="Itemized chronological punches and calculated rendered hours"
+                    action={
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => handleMonthChange(-1)}
                                 disabled={loading}
-                                aria-label="Previous month"
-                                className="flex items-center gap-1 text-sm px-2 py-1.5 rounded-lg transition-colors hover:bg-hover disabled:opacity-40 disabled:cursor-not-allowed"
-                                style={{ color: C.sub }}>
-                            <IconChevronLeft className="w-4 h-4" /> Prev
-                        </button>
-                        <p className="text-sm font-medium font-display" style={{ color: C.text }}>
-                            {new Date(month + '-01').toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}
-                        </p>
-                        <div className="flex items-center gap-1">
-                            <a href={`/employee/dtr/print?month=${month}`}
-                                target="_blank"
-                                className="text-xs px-2.5 py-1.5 rounded-lg border transition-colors hover:bg-hover"
-                                style={{ borderColor: C.border, color: C.sub }}>
-                                Print ↓
-                            </a>
-                            <button onClick={() => handleMonthChange(1)}
-                                    disabled={loading}
-                                    aria-label="Next month"
-                                    className="flex items-center gap-1 text-sm px-2 py-1.5 rounded-lg transition-colors hover:bg-hover disabled:opacity-40 disabled:cursor-not-allowed"
-                                    style={{ color: C.sub }}>
-                                Next <IconChevronRight className="w-4 h-4" />
+                                className="p-1.5 rounded-lg border border-border bg-panel text-sub hover:text-text hover:bg-hover disabled:opacity-40 transition-all"
+                                title="Previous Month"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <span className="text-xs font-semibold font-mono text-text px-2 py-1 rounded-md bg-field border border-border">
+                                {new Date(month + '-01').toLocaleDateString('en-PH', { month: 'short', year: 'numeric' })}
+                            </span>
+                            <button
+                                onClick={() => handleMonthChange(1)}
+                                disabled={loading}
+                                className="p-1.5 rounded-lg border border-border bg-panel text-sub hover:text-text hover:bg-hover disabled:opacity-40 transition-all"
+                                title="Next Month"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
                             </button>
                         </div>
-                    </div>
-
-                    {/* DTR log — table on desktop, cards on mobile */}
-
-                    {/* Desktop table */}
-                    <div className="hidden md:block rounded-xl border overflow-hidden overflow-x-auto"
-                        style={{ background: C.panel, borderColor: C.border }}>
-                        <table className="w-full text-sm min-w-[760px]">
+                    }
+                >
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto -mx-6 -my-4">
+                        <table className="w-full text-xs">
                             <thead>
-                                <tr className="border-b" style={{ background: 'var(--color-field)', borderColor: C.border }}>
-                                    <th className="text-left px-4 py-3 text-xs font-medium" style={{ color: C.dim }}>Date</th>
-                                    <th className="text-center px-3 py-3 text-xs font-medium" style={{ color: C.dim }}>AM In</th>
-                                    <th className="text-center px-3 py-3 text-xs font-medium border-r" style={{ color: C.dim, borderColor: C.border }}>AM Out</th>
-                                    <th className="text-center px-3 py-3 text-xs font-medium" style={{ color: C.dim }}>PM In</th>
-                                    <th className="text-center px-3 py-3 text-xs font-medium border-r" style={{ color: C.dim, borderColor: C.border }}>PM Out</th>
-                                    <th className="text-center px-3 py-3 text-xs font-medium" style={{ color: C.dim }}>Hours</th>
-                                    <th className="text-center px-3 py-3 text-xs font-medium" style={{ color: C.dim }}>Status</th>
-                                    <th className="text-center px-3 py-3 text-xs font-medium" style={{ color: C.dim }}></th>
+                                <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold">
+                                    <th className="text-left px-6 py-3.5">Calendar Date</th>
+                                    <th className="text-center px-3 py-3.5">AM In</th>
+                                    <th className="text-center px-3 py-3.5 border-r border-border">AM Out</th>
+                                    <th className="text-center px-3 py-3.5">PM In</th>
+                                    <th className="text-center px-3 py-3.5 border-r border-border">PM Out</th>
+                                    <th className="text-center px-4 py-3.5">Rendered</th>
+                                    <th className="text-center px-4 py-3.5">Status</th>
+                                    <th className="text-right px-6 py-3.5">Action</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {logs?.map((log) => {
-                                    const style = STATUS_STYLES[log.status] ?? STATUS_STYLES.absent
-                                    return (
-                                        <tr key={log.id} className="border-b last:border-0 transition-colors hover:bg-hover" style={{ borderColor: C.border }}>
-                                            <td className="px-4 py-3 text-xs whitespace-nowrap" style={{ color: C.sub }}>{log.date_label}</td>
-                                            <td className="px-3 py-3 text-center text-xs font-medium">
-                                                {log.am_time_in ? <span style={{ color: C.text }}>{log.am_time_in.slice(0,5)}</span> : <span style={{ color: C.dim }}>—</span>}
-                                            </td>
-                                            <td className="px-3 py-3 text-center text-xs font-medium border-r" style={{ borderColor: C.border }}>
-                                                {log.am_time_out ? <span style={{ color: C.text }}>{log.am_time_out.slice(0,5)}</span> : <span style={{ color: C.dim }}>—</span>}
-                                            </td>
-                                            <td className="px-3 py-3 text-center text-xs font-medium">
-                                                {log.pm_time_in ? <span style={{ color: C.text }}>{log.pm_time_in.slice(0,5)}</span> : <span style={{ color: C.dim }}>—</span>}
-                                            </td>
-                                            <td className="px-3 py-3 text-center text-xs font-medium border-r" style={{ borderColor: C.border }}>
-                                                {log.pm_time_out ? <span style={{ color: C.text }}>{log.pm_time_out.slice(0,5)}</span> : <span style={{ color: C.dim }}>—</span>}
-                                            </td>
-                                            <td className="px-3 py-3 text-center text-xs" style={{ color: C.sub }}>
-                                                {log.hours_rendered ? `${log.hours_rendered}h` : '—'}
-                                            </td>
-                                            <td className="px-3 py-3 text-center">
-                                                <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${style.bg} ${style.text}`}>
-                                                    {log.has_pending_edit ? 'Pending edit' : style.label}
-                                                </span>
-                                            </td>
-                                            <td className="px-3 py-3 text-center">
-                                                {!log.has_pending_edit && (
-                                                    log.edit_window_open ? (
-                                                        <button onClick={() => setEditTarget(log)}
-                                                            className="text-xs hover:underline text-teal">
-                                                            Request edit
-                                                        </button>
-                                                    ) : (
-                                                        <span className="text-xs cursor-not-allowed"
-                                                            style={{ color: C.dim }}
-                                                            title="Edit requests are only allowed within 7 days of the entry.">
-                                                            Window closed
-                                                        </span>
-                                                    )
-                                                )}
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
+                            <tbody className="divide-y divide-border/60 font-mono">
+                                {logs?.map((log) => (
+                                    <tr key={log.id} className="hover:bg-hover/60 transition-colors">
+                                        <td className="px-6 py-3.5 font-sans font-medium text-text whitespace-nowrap">
+                                            {log.date_label}
+                                        </td>
+                                        <td className="px-3 py-3.5 text-center text-text font-semibold">
+                                            {log.am_time_in ? log.am_time_in.slice(0, 5) : <span className="text-dim font-normal">—</span>}
+                                        </td>
+                                        <td className="px-3 py-3.5 text-center text-text font-semibold border-r border-border/60">
+                                            {log.am_time_out ? log.am_time_out.slice(0, 5) : <span className="text-dim font-normal">—</span>}
+                                        </td>
+                                        <td className="px-3 py-3.5 text-center text-text font-semibold">
+                                            {log.pm_time_in ? log.pm_time_in.slice(0, 5) : <span className="text-dim font-normal">—</span>}
+                                        </td>
+                                        <td className="px-3 py-3.5 text-center text-text font-semibold border-r border-border/60">
+                                            {log.pm_time_out ? log.pm_time_out.slice(0, 5) : <span className="text-dim font-normal">—</span>}
+                                        </td>
+                                        <td className="px-4 py-3.5 text-center text-sub font-semibold">
+                                            {log.hours_rendered ? `${log.hours_rendered}h` : <span className="text-dim font-normal">—</span>}
+                                        </td>
+                                        <td className="px-4 py-3.5 text-center font-sans">
+                                            {getStatusBadge(log)}
+                                        </td>
+                                        <td className="px-6 py-3.5 text-right font-sans">
+                                            {!log.has_pending_edit && (
+                                                log.edit_window_open ? (
+                                                    <button
+                                                        onClick={() => setEditTarget(log)}
+                                                        className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+                                                    >
+                                                        Request Edit
+                                                    </button>
+                                                ) : (
+                                                    <span className="text-xs text-dim cursor-not-allowed" title="Edits permitted only within 7 days of occurrence">
+                                                        Locked
+                                                    </span>
+                                                )
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
                                 {(!logs || logs.length === 0) && (
                                     <tr>
-                                        <td colSpan={8} className="px-4 py-8 text-center text-sm" style={{ color: C.dim }}>
-                                            No DTR records for this month.
+                                        <td colSpan={8} className="px-6 py-12 text-center text-dim font-sans">
+                                            No daily time record entries found for this month.
                                         </td>
                                     </tr>
                                 )}
@@ -318,71 +326,50 @@ export default function Dtr({ logs, today, summary, month, next_punch }) {
                         </table>
                     </div>
 
-                    {/* Mobile cards */}
-                    <div className="md:hidden space-y-2">
-                        {logs?.map((log) => {
-                            const style = STATUS_STYLES[log.status] ?? STATUS_STYLES.absent
-                            return (
-                                <div key={log.id} className="rounded-xl border p-4" style={{ background: C.panel, borderColor: C.border }}>
-                                    <div className="flex items-center justify-between mb-3">
-                                        <p className="text-sm font-medium" style={{ color: C.text }}>{log.date_label}</p>
-                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${style.bg} ${style.text}`}>
-                                            {log.has_pending_edit ? 'Pending edit' : style.label}
-                                        </span>
+                    {/* Mobile Card List */}
+                    <div className="md:hidden space-y-3 pt-2">
+                        {logs?.map((log) => (
+                            <div key={log.id} className="p-4 rounded-xl border border-border bg-field/60 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm font-semibold text-text">{log.date_label}</p>
+                                    {getStatusBadge(log)}
+                                </div>
+                                <div className="grid grid-cols-4 gap-2 text-center bg-panel p-2.5 rounded-lg border border-border/60 font-mono text-xs">
+                                    <div>
+                                        <span className="text-[10px] text-dim block">AM In</span>
+                                        <strong className="text-text">{log.am_time_in ? log.am_time_in.slice(0, 5) : '—'}</strong>
                                     </div>
-                                    <div className="grid grid-cols-4 gap-2 mb-3">
-                                        {['am_time_in','am_time_out','pm_time_in','pm_time_out'].map(slot => (
-                                            <div key={slot} className="text-center">
-                                                <p className="text-xs mb-0.5" style={{ color: C.dim }}>{PUNCH_LABELS[slot]}</p>
-                                                <p className="text-xs font-medium font-mono" style={{ color: log[slot] ? C.text : C.dim }}>
-                                                    {log[slot] ? log[slot].slice(0,5) : '—'}
-                                                </p>
-                                            </div>
-                                        ))}
+                                    <div>
+                                        <span className="text-[10px] text-dim block">AM Out</span>
+                                        <strong className="text-text">{log.am_time_out ? log.am_time_out.slice(0, 5) : '—'}</strong>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-xs" style={{ color: C.dim }}>
-                                            {log.hours_rendered ? `${log.hours_rendered}h rendered` : 'No hours recorded'}
-                                        </p>
-                                        {!log.has_pending_edit && (
-                                            log.edit_window_open ? (
-                                                <button onClick={() => setEditTarget(log)}
-                                                    className="text-xs font-medium text-teal">
-                                                    Request edit
-                                                </button>
-                                            ) : (
-                                                <span className="text-xs" style={{ color: C.dim }}
-                                                    title="Edit requests are only allowed within 7 days of the entry.">
-                                                    Window closed
-                                                </span>
-                                            )
-                                        )}
+                                    <div>
+                                        <span className="text-[10px] text-dim block">PM In</span>
+                                        <strong className="text-text">{log.pm_time_in ? log.pm_time_in.slice(0, 5) : '—'}</strong>
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] text-dim block">PM Out</span>
+                                        <strong className="text-text">{log.pm_time_out ? log.pm_time_out.slice(0, 5) : '—'}</strong>
                                     </div>
                                 </div>
-                            )
-                        })}
-                        {(!logs || logs.length === 0) && (
-                            <div className="rounded-xl border px-4 py-8 text-center" style={{ background: C.panel, borderColor: C.border }}>
-                                <p className="text-sm" style={{ color: C.dim }}>No DTR records for this month.</p>
+                                <div className="flex items-center justify-between text-xs pt-1">
+                                    <span className="text-sub font-mono font-medium">
+                                        {log.hours_rendered ? `${log.hours_rendered}h rendered` : 'No hours'}
+                                    </span>
+                                    {!log.has_pending_edit && log.edit_window_open && (
+                                        <button
+                                            onClick={() => setEditTarget(log)}
+                                            className="font-semibold text-emerald-600 dark:text-emerald-400"
+                                        >
+                                            Request Edit
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                        )}
+                        ))}
                     </div>
-                </div>
+                </Card>
 
-                <style>{`
-                    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
-                    .font-display { font-family: 'Space Grotesk', sans-serif; }
-                    .font-mono { font-family: 'JetBrains Mono', monospace; }
-                    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-                    .animate-in { animation: fadeSlideUp 0.5s ease-out both; }
-                    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-teal) 35%, transparent);} 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-teal) 0%, transparent);} }
-                    .pulse-ring { animation: pulseGlow 2.2s ease-out infinite; }
-                    @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
-                    .hud-grid { background-image: linear-gradient(color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
-                    .skeleton-shimmer { background: linear-gradient(90deg, color-mix(in srgb, var(--color-text) 8%, transparent) 25%, color-mix(in srgb, var(--color-text) 16%, transparent) 37%, color-mix(in srgb, var(--color-text) 8%, transparent) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.6s ease-in-out infinite; }
-                    @keyframes skeletonShimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
-                    @media (prefers-reduced-motion: reduce) { .animate-in, .pulse-ring, .hud-grid, .skeleton-shimmer { animation: none; } .skeleton-shimmer { opacity: 0.6; } }
-                `}</style>
             </div>
 
             {editTarget && (

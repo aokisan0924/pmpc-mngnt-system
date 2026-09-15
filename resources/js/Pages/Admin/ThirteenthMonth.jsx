@@ -1,10 +1,14 @@
 import { useState } from 'react'
-import { router, usePage } from '@inertiajs/react'
+import { router, usePage, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
+import Card from '@/Components/UI/Card'
+import StatCard from '@/Components/UI/StatCard'
+import Badge from '@/Components/UI/Badge'
+import Button from '@/Components/UI/Button'
 
-export default function ThirteenthMonth({ records }) {
-    const { flash }         = usePage().props
-    const [year, setYear]   = useState(new Date().getFullYear())
+export default function ThirteenthMonth({ records = [] }) {
+    const { flash } = usePage().props
+    const [year, setYear] = useState(new Date().getFullYear())
     const [tranche, setTranche] = useState('mid_year')
 
     function fmt(num) {
@@ -17,133 +21,212 @@ export default function ThirteenthMonth({ records }) {
         router.get('/admin/thirteenth-month/compute', { year, tranche })
     }
 
+    const totalHistoricalPayout = records.reduce((sum, r) => sum + (parseFloat(r.total_payout) || 0), 0)
+    const totalBatches = records.length
+
     return (
         <AdminLayout>
-            <div className="min-h-screen bg-bg">
-            <div className="p-4 sm:p-6 max-w-5xl mx-auto">
+            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-6xl mx-auto">
 
                 {flash?.success && (
-                    <div className="mb-4 px-4 py-3 rounded-lg bg-teal/10 border border-teal/25 text-teal text-sm">
-                        {flash.success}
+                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
+                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{flash.success}</span>
                     </div>
                 )}
 
-                <div className="mb-6">
-                    <h1 className="text-lg font-medium text-text">13th month pay</h1>
-                    <p className="text-sm text-sub mt-0.5">
-                        Compute semi-annual 13th month pay per Philippine labor law (RA 6686)
-                    </p>
-                </div>
-
-                {/* Compute form */}
-                <div className="bg-panel rounded-xl border border-border p-5 mb-6">
-                    <p className="text-sm font-medium text-text mb-1">Compute new 13th month pay</p>
-                    <p className="text-xs text-dim mb-4">
-                        Formula: <strong className="text-sub">total basic pay earned in period ÷ 12</strong>
-                        &nbsp;·&nbsp; Basic pay pulled from DTR (daily rate × days present)
-                    </p>
-
-                    <div className="flex flex-wrap items-end gap-3">
-                        <div>
-                            <label className="block text-xs text-sub mb-1">Year</label>
-                            <input type="number"
-                                value={year}
-                                onChange={e => setYear(e.target.value)}
-                                min="2020" max="2099"
-                                className="w-28 px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet" />
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-2xl font-bold font-display text-text tracking-tight">13th Month Pay</h1>
+                            <Badge variant="indigo" size="sm">Statutory (PD 851)</Badge>
                         </div>
-
-                        <div>
-                            <label className="block text-xs text-sub mb-1">Tranche</label>
-                            <div className="flex gap-1 p-1 bg-field rounded-lg">
-                                {[
-                                    { value: 'mid_year',  label: 'Mid-year  (Jan–Jun)'  },
-                                    { value: 'year_end',  label: 'Year-end  (Jul–Dec)'  },
-                                ].map(opt => (
-                                    <button key={opt.value} type="button"
-                                        onClick={() => setTranche(opt.value)}
-                                        className={`px-3 py-1.5 text-xs rounded-md transition-all whitespace-nowrap ${
-                                            tranche === opt.value
-                                                ? 'bg-panel text-text font-medium shadow-sm ring-1 ring-border'
-                                                : 'text-sub'
-                                        }`}>
-                                        {opt.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <button onClick={startCompute}
-                            className="px-5 py-2 text-sm font-medium rounded-lg bg-violet text-bg hover:brightness-110 transition-all">
-                            Compute →
-                        </button>
+                        <p className="text-sm text-sub mt-1">
+                            Compute and disburse semi-annual mandatory 13th month pay based on actual DTR days rendered
+                        </p>
                     </div>
                 </div>
 
-                {/* History */}
-                <div className="bg-panel rounded-xl border border-border overflow-hidden overflow-x-auto">
-                    <table className="w-full text-sm min-w-[640px]">
-                        <thead>
-                            <tr className="bg-field border-b border-border">
-                                <th className="text-left px-4 py-3 text-xs text-dim font-medium">Period</th>
-                                <th className="text-left px-4 py-3 text-xs text-dim font-medium">Tranche</th>
-                                <th className="text-center px-4 py-3 text-xs text-dim font-medium">Employees</th>
-                                <th className="text-right px-4 py-3 text-xs text-dim font-medium">Total payout</th>
-                                <th className="text-center px-4 py-3 text-xs text-dim font-medium">Status</th>
-                                <th className="px-4 py-3"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {records.map(r => (
-                                <tr key={r.batch_key}
-                                    className="border-b border-border hover:bg-hover transition-colors">
-                                    <td className="px-4 py-3">
-                                        <p className="text-sm font-medium text-text">{r.year}</p>
-                                        <p className="text-xs text-dim">{r.period_from} – {r.period_to}</p>
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                            r.tranche === 'mid_year'
-                                                ? 'bg-blue/10 text-blue'
-                                                : 'bg-purple/10 text-purple'
-                                        }`}>
-                                            {r.tranche_label}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-3 text-center text-sm text-sub">
-                                        {r.employee_count}
-                                    </td>
-                                    <td className="px-4 py-3 text-right font-medium text-teal">
-                                        ₱ {fmt(r.total_payout)}
-                                    </td>
-                                    <td className="px-4 py-3 text-center">
-                                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                            r.status === 'finalized'
-                                                ? 'bg-teal/10 text-teal'
-                                                : 'bg-amber/10 text-amber'
-                                        }`}>
-                                            {r.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-4 py-3 text-center">
-                                        <a href={`/admin/thirteenth-month/show?year=${r.year}&tranche=${r.tranche}`}
-                                            className="text-xs px-3 py-1.5 rounded-lg border border-border text-sub hover:bg-hover">
-                                            View
-                                        </a>
-                                    </td>
-                                </tr>
-                            ))}
-                            {records.length === 0 && (
-                                <tr>
-                                    <td colSpan={6} className="px-4 py-10 text-center text-sm text-dim">
-                                        No 13th month pay records yet. Compute one above.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                {/* Quick Stats */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <StatCard
+                        title="Historical 13th Month Total"
+                        value={`₱ ${fmt(totalHistoricalPayout)}`}
+                        sub="Cumulative statutory payout"
+                        color="indigo"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        }
+                    />
+                    <StatCard
+                        title="Recorded Batches"
+                        value={totalBatches}
+                        sub="Finalized computation runs"
+                        color="emerald"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                        }
+                    />
+                    <StatCard
+                        title="Legal Mandate Rule"
+                        value="1/12 Total Pay"
+                        sub="Daily Rate × Days Present ÷ 12"
+                        color="amber"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        }
+                    />
                 </div>
-            </div>
+
+                {/* Compute Action Card */}
+                <Card
+                    title="Run New 13th Month Computation"
+                    description="Pulls verified DTR attendance logs and employee daily rates for the designated tranche"
+                >
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pt-2">
+                        <div className="flex flex-wrap items-end gap-4">
+                            <div>
+                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    Calendar Year
+                                </label>
+                                <input
+                                    type="number"
+                                    value={year}
+                                    onChange={e => setYear(e.target.value)}
+                                    min="2020"
+                                    max="2099"
+                                    className="w-32 px-3.5 py-2.5 text-sm font-semibold border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-mono"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    Tranche Window
+                                </label>
+                                <div className="flex gap-1.5 p-1 bg-field rounded-xl border border-border">
+                                    {[
+                                        { value: 'mid_year', label: 'Mid-Year (Jan 1 – Jun 30)' },
+                                        { value: 'year_end', label: 'Year-End (Jul 1 – Dec 31)' },
+                                    ].map(opt => (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            onClick={() => setTranche(opt.value)}
+                                            className={`px-4 py-2 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${
+                                                tranche === opt.value
+                                                    ? 'bg-panel text-text font-semibold shadow-xs border border-border'
+                                                    : 'text-sub hover:text-text'
+                                            }`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        <Button
+                            variant="primary"
+                            size="md"
+                            onClick={startCompute}
+                            className="shrink-0"
+                        >
+                            <span>Compute Tranche</span>
+                            <svg className="w-4 h-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </Button>
+                    </div>
+                </Card>
+
+                {/* History Table */}
+                <Card
+                    title="13th Month Disbursement Records"
+                    description="Archive of finalized statutory calculations and disbursements"
+                >
+                    <div className="overflow-x-auto -mx-6 -my-4">
+                        <table className="w-full text-xs">
+                            <thead>
+                                <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold">
+                                    <th className="text-left px-6 py-3.5">Period Year</th>
+                                    <th className="text-left px-4 py-3.5">Coverage Window</th>
+                                    <th className="text-left px-4 py-3.5">Tranche</th>
+                                    <th className="text-center px-4 py-3.5">Eligible Staff</th>
+                                    <th className="text-right px-4 py-3.5">Total Payout</th>
+                                    <th className="text-center px-4 py-3.5">Batch Status</th>
+                                    <th className="text-right px-6 py-3.5">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border/60">
+                                {records.map(r => (
+                                    <tr key={r.batch_key} className="hover:bg-hover/60 transition-colors">
+                                        <td className="px-6 py-4 font-bold text-text font-mono text-sm">
+                                            {r.year}
+                                        </td>
+                                        <td className="px-4 py-4 text-sub font-mono">
+                                            {r.period_from} – {r.period_to}
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <Badge
+                                                variant={r.tranche === 'mid_year' ? 'indigo' : 'purple'}
+                                                size="sm"
+                                            >
+                                                {r.tranche_label}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-4 py-4 text-center font-mono text-text font-medium">
+                                            {r.employee_count} personnel
+                                        </td>
+                                        <td className="px-4 py-4 text-right font-mono font-bold text-emerald text-sm">
+                                            ₱ {fmt(r.total_payout)}
+                                        </td>
+                                        <td className="px-4 py-4 text-center">
+                                            <Badge
+                                                variant={r.status === 'finalized' ? 'emerald' : 'amber'}
+                                                size="sm"
+                                            >
+                                                {r.status}
+                                            </Badge>
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <Link
+                                                href={`/admin/thirteenth-month/show?year=${r.year}&tranche=${r.tranche}`}
+                                                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                                            >
+                                                <span>Inspect Batch</span>
+                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {records.length === 0 && (
+                                    <tr>
+                                        <td colSpan={7} className="px-6 py-12 text-center text-dim">
+                                            <div className="w-10 h-10 rounded-full bg-field flex items-center justify-center mx-auto mb-2 text-sub">
+                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                                </svg>
+                                            </div>
+                                            No 13th month disbursement batches have been generated yet.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </Card>
+
             </div>
         </AdminLayout>
     )

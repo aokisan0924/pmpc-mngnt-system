@@ -153,8 +153,12 @@ class AdminDashboardController extends Controller
             ->where('payrolls.status', 'finalized')
             ->where('payrolls.period_from', '>=', now()->subMonths(5)->startOfMonth())
             ->select(
-                DB::raw("DATE_FORMAT(payrolls.period_from, '%Y-%m') as month"),
-                DB::raw("DATE_FORMAT(payrolls.period_from, '%b %Y') as month_label"),
+                DB::raw(DB::getDriverName() === 'sqlite'
+                    ? "strftime('%Y-%m', payrolls.period_from) as month"
+                    : "DATE_FORMAT(payrolls.period_from, '%Y-%m') as month"),
+                DB::raw(DB::getDriverName() === 'sqlite'
+                    ? "strftime('%m/%Y', payrolls.period_from) as month_label"
+                    : "DATE_FORMAT(payrolls.period_from, '%b %Y') as month_label"),
                 DB::raw('SUM(payroll_items.gross_pay) as total_gross'),
                 DB::raw('SUM(payroll_items.total_deductions) as total_deductions'),
                 DB::raw('SUM(payroll_items.net_pay) as total_net'),

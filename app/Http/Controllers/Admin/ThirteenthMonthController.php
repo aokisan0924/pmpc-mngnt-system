@@ -18,7 +18,7 @@ class ThirteenthMonthController extends Controller
     {
         $records = ThirteenthMonthPay::with(['employee', 'processor'])
             ->orderBy('year', 'desc')
-            ->orderByRaw("FIELD(tranche, 'year_end', 'mid_year')")
+            ->orderByRaw("CASE tranche WHEN 'year_end' THEN 1 WHEN 'mid_year' THEN 2 ELSE 3 END")
             ->get()
             ->groupBy(fn($r) => $r->year . '_' . $r->tranche)
             ->map(fn($group) => [

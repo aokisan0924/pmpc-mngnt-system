@@ -1,16 +1,55 @@
 import { useForm, usePage } from '@inertiajs/react'
 import { useState } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
+import Card from '@/Components/UI/Card'
+import Badge from '@/Components/UI/Badge'
+import Button from '@/Components/UI/Button'
 
 const TABS = [
-    { key: 'coop',       label: 'Cooperative info' },
-    { key: 'shift',      label: 'Shift & attendance' },
-    { key: 'payroll',    label: 'Payroll' },
-    { key: 'signatories',label: 'Signatories' },
+    {
+        key: 'coop',
+        label: 'Cooperative Profile',
+        desc: 'Official organization identity and letterhead details',
+        icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+        ),
+    },
+    {
+        key: 'shift',
+        label: 'Shift & Attendance',
+        desc: 'Work hours, lunch breaks, and grace period thresholds',
+        icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        ),
+    },
+    {
+        key: 'payroll',
+        label: 'Payroll Parameters',
+        desc: 'Working days per month and overtime computation baselines',
+        icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        ),
+    },
+    {
+        key: 'signatories',
+        label: 'DTR Signatories',
+        desc: 'Authorized administrative signatories for printed timesheets',
+        icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+        ),
+    },
 ]
 
 export default function Settings({ settings }) {
-    const { flash }               = usePage().props
+    const { flash } = usePage().props
     const [activeTab, setActiveTab] = useState('coop')
 
     const { data, setData, post, processing, errors } = useForm({ ...settings })
@@ -22,34 +61,45 @@ export default function Settings({ settings }) {
 
     return (
         <AdminLayout>
-            <div className="min-h-screen bg-bg">
-            <div className="p-4 sm:p-6 max-w-2xl mx-auto">
+            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-4xl mx-auto">
 
                 {flash?.success && (
-                    <div className="mb-4 px-4 py-3 rounded-lg bg-teal/10 border border-teal/25 text-teal text-sm">
-                        {flash.success}
+                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
+                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{flash.success}</span>
                     </div>
                 )}
 
-                <div className="mb-6">
-                    <h1 className="text-lg font-medium text-text">System settings</h1>
-                    <p className="text-sm text-sub mt-0.5">
-                        Configure cooperative info, shift times, and payroll defaults
-                    </p>
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-2xl font-bold font-display text-text tracking-tight">System Settings</h1>
+                            <Badge variant="indigo" size="sm">Admin Configuration</Badge>
+                        </div>
+                        <p className="text-sm text-sub mt-1">
+                            Configure cooperative enterprise identity, official work schedules, and payroll computation rules
+                        </p>
+                    </div>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-1 p-1 bg-field rounded-lg mb-6 overflow-x-auto">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1.5 bg-field rounded-2xl border border-border">
                     {TABS.map(tab => (
-                        <button key={tab.key}
+                        <button
+                            key={tab.key}
                             type="button"
                             onClick={() => setActiveTab(tab.key)}
-                            className={`flex-1 text-xs py-2 px-2 rounded-md transition-all whitespace-nowrap ${
+                            className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all ${
                                 activeTab === tab.key
-                                    ? 'bg-panel text-text font-medium shadow-sm ring-1 ring-border'
-                                    : 'text-sub'
-                            }`}>
-                            {tab.label}
+                                    ? 'bg-panel text-indigo-600 dark:text-indigo-400 shadow-xs border border-border'
+                                    : 'text-sub hover:text-text hover:bg-panel/40'
+                            }`}
+                        >
+                            {tab.icon}
+                            <span>{tab.label}</span>
                         </button>
                     ))}
                 </div>
@@ -58,307 +108,373 @@ export default function Settings({ settings }) {
 
                     {/* Cooperative info */}
                     {activeTab === 'coop' && (
-                        <div className="bg-panel rounded-xl border border-border p-5 space-y-4">
-                            <p className="text-xs text-dim">
-                                This information appears on DTR prints and official documents.
-                            </p>
-
-                            <div>
-                                <label className="block text-xs text-sub mb-1">
-                                    Cooperative name <span className="text-red">*</span>
-                                </label>
-                                <input type="text"
-                                    value={data.coop_name}
-                                    onChange={e => setData('coop_name', e.target.value)}
-                                    className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet"
-                                    required />
-                                {errors.coop_name && <p className="mt-1 text-xs text-red">{errors.coop_name}</p>}
-                            </div>
-
-                            <div>
-                                <label className="block text-xs text-sub mb-1">Address</label>
-                                <textarea
-                                    value={data.coop_address ?? ''}
-                                    onChange={e => setData('coop_address', e.target.value)}
-                                    rows={2}
-                                    className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet resize-none" />
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Card
+                            title="Cooperative Organization Profile"
+                            description="Official legal name, address, and contact details used on formal certificates and DTR headers"
+                        >
+                            <div className="space-y-5 pt-2">
                                 <div>
-                                    <label className="block text-xs text-sub mb-1">Email</label>
-                                    <input type="email"
-                                        value={data.coop_email ?? ''}
-                                        onChange={e => setData('coop_email', e.target.value)}
-                                        placeholder="coop@example.com"
-                                        className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet" />
-                                    {errors.coop_email && <p className="mt-1 text-xs text-red">{errors.coop_email}</p>}
+                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        Cooperative Legal Name <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={data.coop_name}
+                                        onChange={e => setData('coop_name', e.target.value)}
+                                        className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        required
+                                    />
+                                    {errors.coop_name && <p className="mt-1.5 text-xs text-rose-500">{errors.coop_name}</p>}
                                 </div>
+
                                 <div>
-                                    <label className="block text-xs text-sub mb-1">Phone</label>
-                                    <input type="text"
-                                        value={data.coop_phone ?? ''}
-                                        onChange={e => setData('coop_phone', e.target.value)}
-                                        placeholder="09xx-xxx-xxxx"
-                                        className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet" />
+                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        Physical Address
+                                    </label>
+                                    <textarea
+                                        value={data.coop_address ?? ''}
+                                        onChange={e => setData('coop_address', e.target.value)}
+                                        rows={2}
+                                        className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                            Official Email Address
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={data.coop_email ?? ''}
+                                            onChange={e => setData('coop_email', e.target.value)}
+                                            placeholder="coop@example.com"
+                                            className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        />
+                                        {errors.coop_email && <p className="mt-1.5 text-xs text-rose-500">{errors.coop_email}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                            Contact Phone / Hotline
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.coop_phone ?? ''}
+                                            onChange={e => setData('coop_phone', e.target.value)}
+                                            placeholder="09xx-xxx-xxxx"
+                                            className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-border flex justify-end">
+                                    <Button variant="primary" size="md" type="submit" loading={processing}>
+                                        Save Organization Profile
+                                    </Button>
                                 </div>
                             </div>
-
-                            <SaveButton processing={processing} />
-                        </div>
+                        </Card>
                     )}
 
                     {/* Shift & attendance */}
                     {activeTab === 'shift' && (
-                        <div className="bg-panel rounded-xl border border-border p-5 space-y-5">
-
-                            <div>
-                                <p className="text-xs font-medium text-sub mb-3 uppercase tracking-wide">
-                                    Work shift
-                                </p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="block text-xs text-sub mb-1">
-                                            Shift start <span className="text-red">*</span>
-                                        </label>
-                                        <input type="time"
-                                            value={data.shift_start}
-                                            onChange={e => setData('shift_start', e.target.value)}
-                                            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet"
-                                            required />
-                                        {errors.shift_start && <p className="mt-1 text-xs text-red">{errors.shift_start}</p>}
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-sub mb-1">
-                                            Shift end <span className="text-red">*</span>
-                                        </label>
-                                        <input type="time"
-                                            value={data.shift_end}
-                                            onChange={e => setData('shift_end', e.target.value)}
-                                            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet"
-                                            required />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <p className="text-xs font-medium text-sub mb-3 uppercase tracking-wide">
-                                    Lunch break
-                                </p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="block text-xs text-sub mb-1">
-                                            Lunch start <span className="text-red">*</span>
-                                        </label>
-                                        <input type="time"
-                                            value={data.lunch_start}
-                                            onChange={e => setData('lunch_start', e.target.value)}
-                                            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet"
-                                            required />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-sub mb-1">
-                                            Lunch end <span className="text-red">*</span>
-                                        </label>
-                                        <input type="time"
-                                            value={data.lunch_end}
-                                            onChange={e => setData('lunch_end', e.target.value)}
-                                            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet"
-                                            required />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <p className="text-xs font-medium text-sub mb-3 uppercase tracking-wide">
-                                    Late policy
-                                </p>
+                        <Card
+                            title="Shift Hours & Punctuality Policy"
+                            description="Standard operational work hours, designated lunch break interval, and tardiness grace periods"
+                        >
+                            <div className="space-y-6 pt-2">
                                 <div>
-                                    <label className="block text-xs text-sub mb-1">
-                                        Grace period (minutes) <span className="text-red">*</span>
-                                    </label>
-                                    <input type="number"
-                                        value={data.late_grace_minutes}
-                                        onChange={e => setData('late_grace_minutes', e.target.value)}
-                                        min="0" max="60"
-                                        className="w-40 px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet" />
-                                    <p className="mt-1 text-xs text-dim">
-                                        Employees clocking in within this many minutes after shift start are not marked late.
+                                    <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-3">
+                                        Standard Working Shift
                                     </p>
-                                    {errors.late_grace_minutes && <p className="mt-1 text-xs text-red">{errors.late_grace_minutes}</p>}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                                Shift Start (AM In) <span className="text-rose-500">*</span>
+                                            </label>
+                                            <input
+                                                type="time"
+                                                value={data.shift_start}
+                                                onChange={e => setData('shift_start', e.target.value)}
+                                                className="w-full px-3.5 py-2 text-sm font-semibold border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
+                                                required
+                                            />
+                                            {errors.shift_start && <p className="mt-1 text-xs text-rose-500">{errors.shift_start}</p>}
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                                Shift End (PM Out) <span className="text-rose-500">*</span>
+                                            </label>
+                                            <input
+                                                type="time"
+                                                value={data.shift_end}
+                                                onChange={e => setData('shift_end', e.target.value)}
+                                                className="w-full px-3.5 py-2 text-sm font-semibold border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-3">
+                                        Lunch Break Window
+                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                                Lunch Start (AM Out) <span className="text-rose-500">*</span>
+                                            </label>
+                                            <input
+                                                type="time"
+                                                value={data.lunch_start}
+                                                onChange={e => setData('lunch_start', e.target.value)}
+                                                className="w-full px-3.5 py-2 text-sm font-semibold border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                                Lunch End (PM In) <span className="text-rose-500">*</span>
+                                            </label>
+                                            <input
+                                                type="time"
+                                                value={data.lunch_end}
+                                                onChange={e => setData('lunch_end', e.target.value)}
+                                                className="w-full px-3.5 py-2 text-sm font-semibold border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-3">
+                                        Punctuality & Grace Buffer
+                                    </p>
+                                    <div>
+                                        <label className="block text-xs text-sub mb-1.5 font-medium">
+                                            Grace Period Allowance (Minutes) <span className="text-rose-500">*</span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={data.late_grace_minutes}
+                                            onChange={e => setData('late_grace_minutes', e.target.value)}
+                                            min="0"
+                                            max="60"
+                                            className="w-48 px-3.5 py-2 text-sm font-semibold border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
+                                        />
+                                        <p className="mt-1.5 text-xs text-dim">
+                                            Personnel punching in within this grace threshold after shift start will not incur a tardiness deduction.
+                                        </p>
+                                        {errors.late_grace_minutes && <p className="mt-1 text-xs text-rose-500">{errors.late_grace_minutes}</p>}
+                                    </div>
+                                </div>
+
+                                {/* Preview Card */}
+                                <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant="indigo" size="sm">Active Schedule Preview</Badge>
+                                    </div>
+                                    <p className="text-sm font-mono font-medium text-text">
+                                        {data.shift_start} – {data.lunch_start} (AM) <span className="text-dim">| Lunch |</span> {data.lunch_end} – {data.shift_end} (PM)
+                                    </p>
+                                    <p className="text-xs text-sub">
+                                        Late mark triggered if clocking in after:{' '}
+                                        <strong className="text-rose-500 font-mono">
+                                            {(() => {
+                                                try {
+                                                    const [h, m] = data.shift_start.split(':').map(Number)
+                                                    const grace = parseInt(data.late_grace_minutes) || 0
+                                                    const total = h * 60 + m + grace
+                                                    return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`
+                                                } catch { return data.shift_start }
+                                            })()}
+                                        </strong>
+                                    </p>
+                                </div>
+
+                                <div className="pt-4 border-t border-border flex justify-end">
+                                    <Button variant="primary" size="md" type="submit" loading={processing}>
+                                        Save Shift Schedule
+                                    </Button>
                                 </div>
                             </div>
-
-                            {/* Preview */}
-                            <div className="bg-field rounded-lg p-3 border border-border">
-                                <p className="text-xs text-dim mb-1">Current shift preview</p>
-                                <p className="text-sm text-sub">
-                                    <strong>{data.shift_start}</strong> – <strong>{data.lunch_start}</strong>
-                                    <span className="text-dim mx-2">lunch</span>
-                                    <strong>{data.lunch_end}</strong> – <strong>{data.shift_end}</strong>
-                                </p>
-                                <p className="text-xs text-dim mt-1">
-                                    Late if clocking in after <strong>{
-                                        (() => {
-                                            try {
-                                                const [h, m] = data.shift_start.split(':').map(Number)
-                                                const grace = parseInt(data.late_grace_minutes) || 0
-                                                const total = h * 60 + m + grace
-                                                return `${String(Math.floor(total/60)).padStart(2,'0')}:${String(total%60).padStart(2,'0')}`
-                                            } catch { return data.shift_start }
-                                        })()
-                                    }</strong>
-                                </p>
-                            </div>
-
-                            <SaveButton processing={processing} />
-                        </div>
+                        </Card>
                     )}
 
                     {/* Payroll */}
                     {activeTab === 'payroll' && (
-                        <div className="bg-panel rounded-xl border border-border p-5 space-y-4">
-                            <p className="text-xs text-dim">
-                                These values are used in payroll computations for all employees.
-                            </p>
+                        <Card
+                            title="Payroll & Working Days Formula"
+                            description="Baseline working day constants used to derive daily rates, cutoffs, and statutory overtime coefficients"
+                        >
+                            <div className="space-y-6 pt-2">
+                                <div>
+                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        Working Days Per Month (Constant) <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={data.working_days_month}
+                                        onChange={e => setData('working_days_month', e.target.value)}
+                                        min="1"
+                                        max="31"
+                                        className="w-48 px-3.5 py-2 text-sm font-semibold border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono"
+                                        required
+                                    />
+                                    {errors.working_days_month && <p className="mt-1.5 text-xs text-rose-500">{errors.working_days_month}</p>}
+                                    <p className="mt-1.5 text-xs text-dim">
+                                        Formula: Monthly Basic Pay = Daily Rate × {data.working_days_month} Days. Standard labor factor is 22 days.
+                                    </p>
+                                </div>
 
-                            <div>
-                                <label className="block text-xs text-sub mb-1">
-                                    Working days per month <span className="text-red">*</span>
-                                </label>
-                                <input type="number"
-                                    value={data.working_days_month}
-                                    onChange={e => setData('working_days_month', e.target.value)}
-                                    min="1" max="31"
-                                    className="w-40 px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet"
-                                    required />
-                                {errors.working_days_month && <p className="mt-1 text-xs text-red">{errors.working_days_month}</p>}
-                                <p className="mt-1 text-xs text-dim">
-                                    Monthly basic pay = daily rate × this number. Standard is 22 days.
-                                </p>
+                                <div className="p-4 rounded-xl border border-border bg-field/60 space-y-2.5">
+                                    <p className="text-xs font-semibold text-sub uppercase tracking-wider">Payroll Multipliers Summary</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                        <div className="p-2.5 rounded-lg bg-panel border border-border">
+                                            <span className="text-dim block">Cutoff Base Pay:</span>
+                                            <strong className="text-text font-mono">Monthly Gross ÷ 2</strong>
+                                        </div>
+                                        <div className="p-2.5 rounded-lg bg-panel border border-border">
+                                            <span className="text-dim block">Weekday Overtime:</span>
+                                            <strong className="text-text font-mono">Hourly Rate × 125%</strong>
+                                        </div>
+                                        <div className="p-2.5 rounded-lg bg-panel border border-border">
+                                            <span className="text-dim block">Weekend / Rest Day OT:</span>
+                                            <strong className="text-text font-mono">Hourly Rate × 130%</strong>
+                                        </div>
+                                        <div className="p-2.5 rounded-lg bg-panel border border-border">
+                                            <span className="text-dim block">Hourly Base:</span>
+                                            <strong className="text-text font-mono">Daily Rate ÷ 8 Hours</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-border flex justify-end">
+                                    <Button variant="primary" size="md" type="submit" loading={processing}>
+                                        Save Payroll Parameters
+                                    </Button>
+                                </div>
                             </div>
-
-                            {/* Formula preview */}
-                            <div className="bg-field rounded-lg p-3 border border-border space-y-1">
-                                <p className="text-xs text-dim mb-2">Payroll formula preview</p>
-                                <p className="text-xs text-sub">Monthly basic = <strong>daily rate × {data.working_days_month} days</strong></p>
-                                <p className="text-xs text-sub">Per cutoff gross = <strong>monthly gross ÷ 2</strong></p>
-                                <p className="text-xs text-sub">Weekday OT = <strong>daily rate ÷ 8 × 125% × hours</strong></p>
-                                <p className="text-xs text-sub">Weekend OT = <strong>daily rate ÷ 8 × 130% × hours</strong></p>
-                            </div>
-
-                            <SaveButton processing={processing} />
-                        </div>
+                        </Card>
                     )}
 
                     {/* Signatories */}
                     {activeTab === 'signatories' && (
-                        <div className="bg-panel rounded-xl border border-border p-5 space-y-5">
-                            <p className="text-xs text-dim">
-                                These names and roles appear as signature blocks on printed DTR documents.
-                            </p>
-
-                            {/* Employee signature (auto) */}
-                            <div className="bg-field rounded-lg p-3 border border-border">
-                                <p className="text-xs text-dim mb-1">Signatory 1 (auto)</p>
-                                <p className="text-sm font-medium text-sub">Employee name</p>
-                                <p className="text-xs text-dim">Automatically filled from the employee's profile</p>
-                            </div>
-
-                            {/* Signatory 2 */}
-                            <div>
-                                <p className="text-xs font-medium text-sub mb-3 uppercase tracking-wide">
-                                    Signatory 2
-                                </p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Card
+                            title="Official Document Signatories"
+                            description="Designated organizational authorities printed at the bottom of Daily Time Records and certification docs"
+                        >
+                            <div className="space-y-6 pt-2">
+                                <div className="p-3.5 rounded-xl bg-field/70 border border-border flex items-center justify-between">
                                     <div>
-                                        <label className="block text-xs text-sub mb-1">
-                                            Name <span className="text-red">*</span>
-                                        </label>
-                                        <input type="text"
-                                            value={data.signatory_1_name}
-                                            onChange={e => setData('signatory_1_name', e.target.value)}
-                                            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet"
-                                            required />
-                                        {errors.signatory_1_name && <p className="mt-1 text-xs text-red">{errors.signatory_1_name}</p>}
+                                        <p className="text-xs font-semibold text-dim uppercase tracking-wider">Signatory 1 (Automated)</p>
+                                        <p className="text-sm font-semibold text-text mt-0.5">Employee Name & Signature</p>
                                     </div>
-                                    <div>
-                                        <label className="block text-xs text-sub mb-1">
-                                            Role / title <span className="text-red">*</span>
-                                        </label>
-                                        <input type="text"
-                                            value={data.signatory_1_role}
-                                            onChange={e => setData('signatory_1_role', e.target.value)}
-                                            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet"
-                                            required />
-                                    </div>
+                                    <Badge variant="slate" size="sm">System Dynamic</Badge>
                                 </div>
-                            </div>
 
-                            {/* Signatory 3 */}
-                            <div>
-                                <p className="text-xs font-medium text-sub mb-3 uppercase tracking-wide">
-                                    Signatory 3
-                                </p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="block text-xs text-sub mb-1">
-                                            Name <span className="text-red">*</span>
-                                        </label>
-                                        <input type="text"
-                                            value={data.signatory_2_name}
-                                            onChange={e => setData('signatory_2_name', e.target.value)}
-                                            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet"
-                                            required />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-sub mb-1">
-                                            Role / title <span className="text-red">*</span>
-                                        </label>
-                                        <input type="text"
-                                            value={data.signatory_2_role}
-                                            onChange={e => setData('signatory_2_role', e.target.value)}
-                                            className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet"
-                                            required />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Preview */}
-                            <div className="bg-field rounded-lg p-4 border border-border">
-                                <p className="text-xs text-dim mb-3">Signature block preview</p>
-                                <div className="flex flex-wrap justify-between gap-4 text-center">
-                                    {[
-                                        { name: 'Employee name',      role: 'Employee'             },
-                                        { name: data.signatory_1_name, role: data.signatory_1_role },
-                                        { name: data.signatory_2_name, role: data.signatory_2_role },
-                                    ].map((sig, i) => (
-                                        <div key={i} className="text-center w-1/3 px-2">
-                                            <div className="border-t border-border mb-1 mt-6"></div>
-                                            <p className="text-xs font-medium text-sub">{sig.name}</p>
-                                            <p className="text-xs text-dim">{sig.role}</p>
+                                <div>
+                                    <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-3">
+                                        Signatory 2 (Department Head / Supervisor)
+                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                                Full Name <span className="text-rose-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.signatory_1_name}
+                                                onChange={e => setData('signatory_1_name', e.target.value)}
+                                                className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                required
+                                            />
+                                            {errors.signatory_1_name && <p className="mt-1 text-xs text-rose-500">{errors.signatory_1_name}</p>}
                                         </div>
-                                    ))}
+                                        <div>
+                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                                Designation / Position Title <span className="text-rose-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.signatory_1_role}
+                                                onChange={e => setData('signatory_1_role', e.target.value)}
+                                                className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-3">
+                                        Signatory 3 (General Manager / HR Executive)
+                                    </p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                                Full Name <span className="text-rose-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.signatory_2_name}
+                                                onChange={e => setData('signatory_2_name', e.target.value)}
+                                                className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                                Designation / Position Title <span className="text-rose-500">*</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.signatory_2_role}
+                                                onChange={e => setData('signatory_2_role', e.target.value)}
+                                                className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Signature Block Preview */}
+                                <div className="p-5 rounded-xl border border-border bg-field/60">
+                                    <p className="text-xs font-semibold text-sub uppercase tracking-wider mb-6 text-center">
+                                        Printed Timesheet Signature Layout
+                                    </p>
+                                    <div className="grid grid-cols-3 gap-6 text-center">
+                                        <div className="px-2">
+                                            <div className="border-t border-text/40 pt-2 mb-1" />
+                                            <p className="text-xs font-semibold text-text">Employee Signature</p>
+                                            <p className="text-[11px] text-dim">Employee</p>
+                                        </div>
+                                        <div className="px-2">
+                                            <div className="border-t border-text/40 pt-2 mb-1" />
+                                            <p className="text-xs font-semibold text-text">{data.signatory_1_name || 'Signatory 1'}</p>
+                                            <p className="text-[11px] text-dim">{data.signatory_1_role || 'Title'}</p>
+                                        </div>
+                                        <div className="px-2">
+                                            <div className="border-t border-text/40 pt-2 mb-1" />
+                                            <p className="text-xs font-semibold text-text">{data.signatory_2_name || 'Signatory 2'}</p>
+                                            <p className="text-[11px] text-dim">{data.signatory_2_role || 'Title'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-border flex justify-end">
+                                    <Button variant="primary" size="md" type="submit" loading={processing}>
+                                        Save Signatories
+                                    </Button>
                                 </div>
                             </div>
-
-                            <SaveButton processing={processing} />
-                        </div>
+                        </Card>
                     )}
+
                 </form>
             </div>
-            </div>
         </AdminLayout>
-    )
-}
-
-function SaveButton({ processing }) {
-    return (
-        <div className="pt-2">
-            <button type="submit" disabled={processing}
-                className="px-5 py-2 text-sm font-medium rounded-lg disabled:opacity-60 bg-violet text-bg hover:brightness-110 transition-all">
-                {processing ? 'Saving…' : 'Save settings'}
-            </button>
-        </div>
     )
 }

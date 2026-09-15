@@ -1,47 +1,31 @@
 import { useState } from 'react'
-import { router, useForm, usePage } from '@inertiajs/react'
+import { router, usePage } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
-
-/* ---------- design tokens — resolve to CSS variables from app.css ---------- */
-const C = {
-    bg:        'var(--color-bg)',
-    panel:     'var(--color-panel)',
-    field:     'var(--color-field)',
-    border:    'var(--color-border)',
-    text:      'var(--color-text)',
-    sub:       'var(--color-sub)',
-    dim:       'var(--color-dim)',
-    teal:      'var(--color-teal)',
-    violet:    'var(--color-violet)',
-    red:       'var(--color-red)',
-}
-
-const STATUS_STYLES = {
-    pending:  { color: C.violet, label: 'Pending'  },
-    approved: { color: C.teal,   label: 'Approved' },
-    declined: { color: C.red,    label: 'Declined' },
-}
+import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
+import StatCard from '@/Components/UI/StatCard'
+import Badge from '@/Components/UI/Badge'
+import Button from '@/Components/UI/Button'
 
 const PUNCH_ROWS = [
-    ['AM In',  'am_time_in'],
+    ['AM In', 'am_time_in'],
     ['AM Out', 'am_time_out'],
-    ['PM In',  'pm_time_in'],
+    ['PM In', 'pm_time_in'],
     ['PM Out', 'pm_time_out'],
 ]
 
-const IconInbox = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-        <path d="M3 12.5V18a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5.5" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M3 12.5h5.2l1.3 2.5h4.9l1.3-2.5H21L17.8 5.4A2 2 0 0 0 16 4.3H8a2 2 0 0 0-1.8 1.1L3 12.5Z" strokeLinejoin="round" />
-    </svg>
-)
-
-export default function DtrEditRequests({ requests, pendingCount }) {
+export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
     const { flash } = usePage().props
-    const [filter, setFilter]         = useState('pending')
-    const [activeId, setActiveId]     = useState(null)
-    const [adminNote, setAdminNote]   = useState('')
+    const [filter, setFilter] = useState('pending')
+    const [activeId, setActiveId] = useState(null)
+    const [adminNote, setAdminNote] = useState('')
     const [processing, setProcessing] = useState(false)
+
+    const counts = {
+        pending: requests.filter(r => r.status === 'pending').length,
+        approved: requests.filter(r => r.status === 'approved').length,
+        declined: requests.filter(r => r.status === 'declined').length,
+        all: requests.length,
+    }
 
     const filtered = filter === 'all'
         ? requests
@@ -61,204 +45,237 @@ export default function DtrEditRequests({ requests, pendingCount }) {
 
     return (
         <AdminLayout pendingEditCount={pendingCount}>
-            <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
-                <div className="pointer-events-none absolute -top-40 -left-32 w-[28rem] h-[28rem] rounded-full blur-[120px] opacity-15"
-                    style={{ background: C.violet }} />
+            <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 page-enter">
+                {flash?.success && (
+                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                        {flash.success}
+                    </div>
+                )}
 
-                <div className="relative p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
-
-                    {/* Flash */}
-                    {flash?.success && (
-                        <div className="mb-4 px-4 py-3 rounded-xl border text-sm animate-in"
-                            style={{ background: 'color-mix(in srgb, var(--color-teal) 8%, transparent)', borderColor: 'color-mix(in srgb, var(--color-teal) 30%, transparent)', color: C.teal }}>
-                            {flash.success}
+                {/* ── Top Header ────────────────────────────────────── */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/80">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <Badge variant="amber" dot pulse={pendingCount > 0}>Attendance Dispute Hub</Badge>
+                            <span className="text-xs text-sub">• {pendingCount} awaiting supervisor review</span>
                         </div>
-                    )}
-
-                    {/* Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 animate-in">
-                        <div>
-                            <p className="text-[11px] uppercase tracking-[0.2em] font-mono mb-1" style={{ color: C.violet }}>
-                                Attendance Review
-                            </p>
-                            <h1 className="font-display text-xl sm:text-2xl font-semibold" style={{ color: C.text }}>
-                                DTR edit requests
-                            </h1>
-                            <p className="text-sm mt-0.5" style={{ color: C.sub }}>
-                                {pendingCount} pending review
-                            </p>
-                        </div>
-
-                        {/* Filter tabs */}
-                        <div className="flex gap-1 p-1 rounded-xl border overflow-x-auto" style={{ background: C.panel, borderColor: C.border }}>
-                            {['pending', 'approved', 'declined', 'all'].map((f) => (
-                                <button key={f}
-                                        onClick={() => setFilter(f)}
-                                        className="px-3 py-1.5 text-xs rounded-lg capitalize transition-all font-medium whitespace-nowrap"
-                                        style={filter === f
-                                            ? { background: 'color-mix(in srgb, var(--color-violet) 14%, transparent)', color: C.violet, boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--color-violet) 35%, transparent)' }
-                                            : { color: C.dim }}>
-                                    {f}
-                                </button>
-                            ))}
-                        </div>
+                        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
+                            DTR Edit Requests
+                        </h1>
+                        <p className="text-xs sm:text-sm text-sub mt-0.5">
+                            Verify and approve employee punch correction requests submitted within the 7-day dispute window.
+                        </p>
                     </div>
 
-                    {/* Requests list */}
-                    <div className="space-y-3">
-                        {filtered.map((req, i) => {
-                            const style     = STATUS_STYLES[req.status]
-                            const isOpen    = activeId === req.id
-                            const isPending = req.status === 'pending'
-
-                            return (
-                                <div key={req.id}
-                                    className="rounded-2xl border backdrop-blur-xl overflow-hidden animate-in"
-                                     style={{ background: C.panel, borderColor: C.border, animationDelay: `${i * 40}ms` }}>
-
-                                    {/* Request header */}
-                                    <div className="flex items-center justify-between px-4 sm:px-5 py-4 gap-3">
-                                        <div className="flex items-center gap-3 min-w-0">
-                                            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-semibold flex-shrink-0 border font-mono"
-                                                style={{ background: 'color-mix(in srgb, var(--color-violet) 12%, transparent)', color: C.violet, borderColor: 'color-mix(in srgb, var(--color-violet) 30%, transparent)' }}>
-                                                {req.employee_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-medium truncate" style={{ color: C.text }}>{req.employee_name}</p>
-                                                <p className="text-xs font-mono truncate" style={{ color: C.dim }}>{req.employee_id} · {req.date}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-3 flex-shrink-0">
-                                            <span className="text-xs px-2.5 py-0.5 rounded-full font-medium border"
-                                                style={{ color: style.color, borderColor: `color-mix(in srgb, ${style.color} 33%, transparent)`, background: `color-mix(in srgb, ${style.color} 8%, transparent)` }}>
-                                                {style.label}
-                                            </span>
-                                            <button
-                                                onClick={() => setActiveId(isOpen ? null : req.id)}
-                                                className="text-xs px-3 py-1.5 rounded-lg border transition-colors"
-                                                style={isPending
-                                                    ? { borderColor: C.border, color: C.sub }
-                                                    : { borderColor: 'transparent', color: C.dim }}>
-                                                {isPending ? (isOpen ? 'Close' : 'Review') : (isOpen ? 'Hide' : 'View')}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Expanded detail */}
-                                    {isOpen && (
-                                        <div className="px-4 sm:px-5 pb-5 border-t pt-4" style={{ borderColor: C.border }}>
-
-                                            {/* Times comparison */}
-                                            <div className="grid sm:grid-cols-2 gap-3 mb-4">
-                                                <div className="rounded-xl p-3 border" style={{ background: C.field, borderColor: C.border }}>
-                                                    <p className="text-xs mb-2" style={{ color: C.dim }}>Original times</p>
-                                                    <div className="grid grid-cols-2 gap-y-2">
-                                                        {PUNCH_ROWS.map(([label, key]) => (
-                                                            <div key={label}>
-                                                                <p className="text-[11px]" style={{ color: C.dim }}>{label}</p>
-                                                                <p className="text-xs font-mono font-medium" style={{ color: C.sub }}>
-                                                                    {req[`original_${key}`] ? req[`original_${key}`].slice(0, 5) : '—'}
-                                                                </p>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                <div className="rounded-xl p-3 border" style={{ background: 'color-mix(in srgb, var(--color-teal) 6%, transparent)', borderColor: 'color-mix(in srgb, var(--color-teal) 25%, transparent)' }}>
-                                                    <p className="text-xs mb-2" style={{ color: C.teal }}>Requested times</p>
-                                                    <div className="grid grid-cols-2 gap-y-2">
-                                                        {PUNCH_ROWS.map(([label, key]) => (
-                                                            <div key={label}>
-                                                                <p className="text-[11px]" style={{ color: 'color-mix(in srgb, var(--color-teal) 70%, transparent)' }}>{label}</p>
-                                                                <p className="text-xs font-mono font-medium" style={{ color: C.teal }}>
-                                                                    {req[`requested_${key}`] ? req[`requested_${key}`].slice(0, 5) : '—'}
-                                                                </p>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Reason */}
-                                            <div className="rounded-xl p-3 border mb-4" style={{ background: C.field, borderColor: C.border }}>
-                                                <p className="text-xs mb-1" style={{ color: C.dim }}>Reason</p>
-                                                <p className="text-sm italic" style={{ color: C.sub }}>"{req.reason}"</p>
-                                            </div>
-
-                                            {/* Admin note + actions */}
-                                            {isPending && (
-                                                <>
-                                                    <div className="mb-3">
-                                                        <label className="block text-xs mb-1.5" style={{ color: C.sub }}>
-                                                            Admin note (optional)
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            value={adminNote}
-                                                            onChange={e => setAdminNote(e.target.value)}
-                                                            placeholder="Add a note for the employee…"
-                                                            className="w-full px-3 py-2.5 text-sm rounded-lg border bg-transparent outline-none transition-colors"
-                                                            style={{ borderColor: C.border, color: C.text }}
-                                                        />
-                                                    </div>
-
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => resolve(req.id, 'approve')}
-                                                            disabled={processing}
-                                                            className="flex-1 py-2.5 text-sm font-semibold rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
-                                                            style={{ background: C.teal, color: 'var(--color-bg)', boxShadow: `0 0 20px -8px ${C.teal}` }}>
-                                                            Approve
-                                                        </button>
-                                                        <button
-                                                            onClick={() => resolve(req.id, 'decline')}
-                                                            disabled={processing}
-                                                            className="flex-1 py-2.5 text-sm font-medium rounded-lg border disabled:opacity-60 transition-colors"
-                                                            style={{ color: C.red, borderColor: 'color-mix(in srgb, var(--color-red) 35%, transparent)', background: 'color-mix(in srgb, var(--color-red) 8%, transparent)' }}>
-                                                            Decline
-                                                        </button>
-                                                    </div>
-                                                </>
-                                            )}
-
-                                            {/* Resolved state */}
-                                            {!isPending && req.admin_note && (
-                                                <div className="rounded-xl p-3 border" style={{ background: C.field, borderColor: C.border }}>
-                                                    <p className="text-xs mb-1" style={{ color: C.dim }}>Admin note</p>
-                                                    <p className="text-sm" style={{ color: C.sub }}>{req.admin_note}</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            )
-                        })}
-
-                        {filtered.length === 0 && (
-                            <div className="rounded-2xl border backdrop-blur-xl px-5 py-14 text-center animate-in"
-                                style={{ background: C.panel, borderColor: C.border }}>
-                                <IconInbox className="w-6 h-6 mx-auto mb-2" style={{ color: C.dim }} />
-                                <p className="text-sm" style={{ color: C.sub }}>
-                                    No {filter === 'all' ? '' : filter} requests found.
-                                </p>
-                            </div>
-                        )}
+                    {/* Filter Pills */}
+                    <div className="flex items-center gap-1 bg-field p-1 rounded-lg border border-border/70 self-start sm:self-auto">
+                        {[
+                            { key: 'pending', label: 'Pending' },
+                            { key: 'approved', label: 'Approved' },
+                            { key: 'declined', label: 'Declined' },
+                            { key: 'all', label: 'All Requests' },
+                        ].map(tab => (
+                            <button
+                                key={tab.key}
+                                onClick={() => setFilter(tab.key)}
+                                className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
+                                    filter === tab.key
+                                        ? 'bg-panel text-text shadow-2xs font-semibold'
+                                        : 'text-sub hover:text-text'
+                                }`}
+                            >
+                                {tab.label} ({counts[tab.key]})
+                            </button>
+                        ))}
                     </div>
                 </div>
 
-                <style>{`
-                    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
-                    .font-display { font-family: 'Space Grotesk', sans-serif; }
-                    .font-mono { font-family: 'JetBrains Mono', monospace; }
-                    input { font-family: 'Inter', sans-serif; }
-                    input:focus { border-color: color-mix(in srgb, var(--color-violet) 50%, transparent) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-violet) 12%, transparent); }
-                    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-                    .animate-in { animation: fadeSlideUp 0.5s ease-out both; }
-                    @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
-                    .hud-grid { background-image: linear-gradient(color-mix(in srgb, var(--color-violet) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-violet) 5%, transparent) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
-                    @media (prefers-reduced-motion: reduce) { .animate-in, .hud-grid { animation: none; } }
-                `}</style>
+                {/* ── Metric Summary Tiles ─────────────────────────── */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <StatCard
+                        title="Pending Review"
+                        value={counts.pending}
+                        subtitle="Awaiting your approval"
+                        accent={counts.pending > 0 ? 'amber' : 'slate'}
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        }
+                    />
+                    <StatCard
+                        title="Approved Corrections"
+                        value={counts.approved}
+                        subtitle="Punches updated & verified"
+                        accent="emerald"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        }
+                    />
+                    <StatCard
+                        title="Declined Requests"
+                        value={counts.declined}
+                        subtitle="Rejected with supervisor notes"
+                        accent="rose"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        }
+                    />
+                </div>
+
+                {/* ── Requests List ─────────────────────────────────── */}
+                <div className="space-y-3">
+                    {filtered.map(req => {
+                        const isOpen = activeId === req.id
+                        const isPending = req.status === 'pending'
+
+                        return (
+                            <Card key={req.id} className="overflow-hidden">
+                                <div className="p-4 sm:p-5 flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-3.5 min-w-0">
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 flex items-center justify-center font-heading font-semibold text-xs flex-shrink-0">
+                                            {req.employee_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <p className="font-heading font-semibold text-sm text-text truncate">
+                                                    {req.employee_name}
+                                                </p>
+                                                <span className="text-xs text-dim font-mono tnum">({req.employee_id})</span>
+                                            </div>
+                                            <p className="text-xs text-sub mt-0.5">
+                                                Date of Attendance:{' '}
+                                                <strong className="text-text font-medium">{req.date}</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 flex-shrink-0">
+                                        <Badge variant={req.status} dot size="sm">
+                                            {req.status}
+                                        </Badge>
+                                        <Button
+                                            variant={isPending ? 'primary' : 'outline'}
+                                            size="sm"
+                                            onClick={() => setActiveId(isOpen ? null : req.id)}
+                                        >
+                                            {isOpen ? 'Close' : isPending ? 'Review Diff' : 'View Details'}
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Expanded Diff & Resolution Drawer */}
+                                {isOpen && (
+                                    <div className="px-4 sm:px-5 pb-5 pt-3 border-t border-border/70 bg-field/30 space-y-4">
+                                        {/* Punch Diff Comparison */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {/* Original */}
+                                            <div className="p-4 rounded-xl bg-panel border border-border/80">
+                                                <p className="text-[11px] font-semibold text-sub uppercase tracking-wider mb-3">
+                                                    Original DTR Punches
+                                                </p>
+                                                <div className="grid grid-cols-2 gap-y-2.5">
+                                                    {PUNCH_ROWS.map(([label, key]) => (
+                                                        <div key={label}>
+                                                            <p className="text-[10px] text-dim">{label}</p>
+                                                            <p className="text-xs font-mono font-medium text-sub tnum">
+                                                                {req[`original_${key}`] ? req[`original_${key}`].slice(0, 5) : '—:—'}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Requested Corrections */}
+                                            <div className="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60">
+                                                <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider mb-3">
+                                                    Requested Corrections
+                                                </p>
+                                                <div className="grid grid-cols-2 gap-y-2.5">
+                                                    {PUNCH_ROWS.map(([label, key]) => {
+                                                        const orig = req[`original_${key}`]
+                                                        const mod = req[`requested_${key}`]
+                                                        const changed = Boolean(mod && mod !== orig)
+
+                                                        return (
+                                                            <div key={label}>
+                                                                <p className="text-[10px] text-emerald-600/80">{label}</p>
+                                                                <p className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 tnum flex items-center gap-1">
+                                                                    {mod ? mod.slice(0, 5) : '—:—'}
+                                                                    {changed && (
+                                                                        <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-200/60 text-emerald-800">
+                                                                            Edited
+                                                                        </span>
+                                                                    )}
+                                                                </p>
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Employee Reason */}
+                                        <div className="p-3.5 rounded-xl bg-panel border border-border/80 text-xs">
+                                            <p className="font-semibold text-text mb-1">Employee Explanation:</p>
+                                            <p className="text-sub italic leading-relaxed">
+                                                "{req.reason || 'No explanation provided.'}"
+                                            </p>
+                                        </div>
+
+                                        {/* Admin Action Area (if pending) */}
+                                        {isPending ? (
+                                            <div className="pt-2 border-t border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                                <input
+                                                    type="text"
+                                                    value={adminNote}
+                                                    onChange={e => setAdminNote(e.target.value)}
+                                                    placeholder="Add optional supervisor note or reason…"
+                                                    className="flex-1 px-3 py-2 text-xs border border-border rounded-lg bg-panel text-text placeholder:text-dim focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                                />
+                                                <div className="flex items-center gap-2 self-end sm:self-auto">
+                                                    <Button
+                                                        variant="danger"
+                                                        size="sm"
+                                                        loading={processing}
+                                                        onClick={() => resolve(req.id, 'decline')}
+                                                    >
+                                                        Decline Request
+                                                    </Button>
+                                                    <Button
+                                                        variant="emerald"
+                                                        size="sm"
+                                                        loading={processing}
+                                                        onClick={() => resolve(req.id, 'approve')}
+                                                    >
+                                                        Approve & Overwrite DTR
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ) : req.admin_note && (
+                                            <p className="text-xs text-dim italic">
+                                                Admin note: "{req.admin_note}"
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </Card>
+                        )
+                    })}
+
+                    {filtered.length === 0 && (
+                        <Card>
+                            <CardContent className="text-center py-12 text-sub">
+                                No DTR edit requests found for this filter.
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
             </div>
         </AdminLayout>
     )

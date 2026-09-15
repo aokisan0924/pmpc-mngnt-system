@@ -15,7 +15,7 @@ class DtrEditRequestController extends Controller
     public function index(): Response
     {
         $requests = DtrEditRequest::with(['employee', 'dtrLog'])
-            ->orderByRaw("FIELD(status, 'pending', 'approved', 'declined')")
+            ->orderByRaw("CASE status WHEN 'pending' THEN 1 WHEN 'approved' THEN 2 WHEN 'declined' THEN 3 ELSE 4 END")
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(fn($r) => [

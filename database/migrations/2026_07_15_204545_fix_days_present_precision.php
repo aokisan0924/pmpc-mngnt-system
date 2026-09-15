@@ -12,22 +12,26 @@ return new class extends Migration
      * them to DECIMAL(5,2) so half days are stored and displayed correctly.
      */
     public function up(): void {
-        if (Schema::hasColumn('payroll_items', 'days_present')) {
-            DB::statement('ALTER TABLE payroll_items MODIFY days_present DECIMAL(5,2) NOT NULL DEFAULT 0');
-        }
+        if (DB::getDriverName() === 'mysql') {
+            if (Schema::hasColumn('payroll_items', 'days_present')) {
+                DB::statement('ALTER TABLE payroll_items MODIFY days_present DECIMAL(5,2) NOT NULL DEFAULT 0');
+            }
 
-        if (Schema::hasColumn('thirteenth_month_pays', 'days_present')) {
-            DB::statement('ALTER TABLE thirteenth_month_pays MODIFY days_present DECIMAL(5,2) NOT NULL DEFAULT 0');
+            if (Schema::hasColumn('thirteenth_month_pays', 'days_present')) {
+                DB::statement('ALTER TABLE thirteenth_month_pays MODIFY days_present DECIMAL(5,2) NOT NULL DEFAULT 0');
+            }
         }
     }
 
     public function down(): void {
-        if (Schema::hasColumn('payroll_items', 'days_present')) {
-            DB::statement('ALTER TABLE payroll_items MODIFY days_present INT NOT NULL DEFAULT 0');
-        }
+        if (DB::getDriverName() === 'mysql') {
+            if (Schema::hasColumn('payroll_items', 'days_present')) {
+                DB::statement('ALTER TABLE payroll_items MODIFY days_present INT NOT NULL DEFAULT 0');
+            }
 
-        if (Schema::hasColumn('thirteenth_month_pays', 'days_present')) {
-            DB::statement('ALTER TABLE thirteenth_month_pays MODIFY days_present INT NOT NULL DEFAULT 0');
+            if (Schema::hasColumn('thirteenth_month_pays', 'days_present')) {
+                DB::statement('ALTER TABLE thirteenth_month_pays MODIFY days_present INT NOT NULL DEFAULT 0');
+            }
         }
     }
 };

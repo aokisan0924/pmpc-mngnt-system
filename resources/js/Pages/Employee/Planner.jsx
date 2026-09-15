@@ -1,28 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { router, useForm, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
-
-/* ---------- design tokens — resolve to CSS variables from app.css ---------- */
-const C = {
-    bg:       'var(--color-bg)',
-    panel:    'var(--color-panel)',
-    field:    'var(--color-field)',
-    border:   'var(--color-border)',
-    borderHi: 'color-mix(in srgb, var(--color-teal) 35%, transparent)',
-    text:     'var(--color-text)',
-    sub:      'var(--color-sub)',
-    dim:      'var(--color-dim)',
-    teal:     'var(--color-teal)',
-    blue:     'var(--color-blue)',
-    amber:    'var(--color-amber)',
-    red:      'var(--color-red)',
-}
-
-const PRIORITY_STYLES = {
-    high:   { color: C.red,   label: 'High'   },
-    medium: { color: C.amber, label: 'Medium' },
-    low:    { color: C.blue,  label: 'Low'    },
-}
+import Card from '@/Components/UI/Card'
+import Badge from '@/Components/UI/Badge'
+import Button from '@/Components/UI/Button'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -34,9 +15,6 @@ const EMPTY_FORM = {
     priority:    'medium',
 }
 
-const inputClass = "w-full px-3 py-2.5 text-sm rounded-lg border bg-transparent outline-none transition-colors"
-
-/* ---------- date helpers ---------- */
 function toKey(d) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
@@ -64,68 +42,18 @@ function buildMonthGrid(viewDate) {
     return cells
 }
 
-/* ---------- icons ---------- */
-const IconPlus = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...p}>
-        <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-    </svg>
-)
-const IconCheck = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" {...p}>
-        <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-)
-const IconChevronLeft = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...p}>
-        <path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-)
-const IconChevronRight = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...p}>
-        <path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-)
-const IconTag = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-        <path d="M20 12.5 12.5 20a1.5 1.5 0 0 1-2.1 0L3 12.6V4h8.6l8.4 8.4a1.5 1.5 0 0 1 0 2.1Z" strokeLinejoin="round" />
-        <circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none" />
-    </svg>
-)
-const IconClipboard = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-        <rect x="6" y="4" width="12" height="17" rx="2" />
-        <rect x="9" y="2.5" width="6" height="3" rx="1" />
-    </svg>
-)
-const IconX = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" {...p}>
-        <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
-    </svg>
-)
-const IconTrash = (p) => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
-        <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1l1-13" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-)
-
-/* ---------- skeleton primitive ---------- */
-const Skeleton = ({ className = '', style = {} }) => (
-    <span className={`inline-block skeleton-shimmer rounded-md align-middle ${className}`} style={style} />
-)
-
-export default function Planner({ tasks }) {
+export default function Planner({ tasks = [] }) {
     const { flash } = usePage().props
     const today = useMemo(() => new Date(), [])
     const todayKey = toKey(today)
 
-    const [viewDate, setViewDate]     = useState(startOfMonth(today))
+    const [viewDate, setViewDate]         = useState(startOfMonth(today))
     const [selectedDate, setSelectedDate] = useState(todayKey)
-    const [showForm, setShowForm]     = useState(false)
-    const [editTarget, setEditTarget] = useState(null)
-    const [filter, setFilter]         = useState('all')
-    const [loading, setLoading]       = useState(false)
+    const [showForm, setShowForm]         = useState(false)
+    const [editTarget, setEditTarget]     = useState(null)
+    const [filter, setFilter]             = useState('all')
+    const [loading, setLoading]           = useState(false)
 
-    // Any in-flight Inertia visit (create/edit/delete/toggle) shows a skeleton in the agenda panel
     useEffect(() => {
         const stop = router.on('start', () => setLoading(true))
         const finish = router.on('finish', () => setLoading(false))
@@ -219,363 +147,393 @@ export default function Planner({ tasks }) {
         weekday: 'long', month: 'long', day: 'numeric',
     })
 
+    function getPriorityBadge(priority) {
+        switch (priority) {
+            case 'high':
+                return <Badge variant="rose" size="sm">High</Badge>
+            case 'medium':
+                return <Badge variant="amber" size="sm">Medium</Badge>
+            case 'low':
+                return <Badge variant="indigo" size="sm">Low</Badge>
+            default:
+                return null
+        }
+    }
+
     return (
-        <EmployeeLayout title="Task planner">
-            <div className="relative min-h-screen overflow-hidden hud-grid" style={{ background: C.bg }}>
-                {loading && (
-                    <div className="fixed top-0 left-0 right-0 h-[2px] z-50 overflow-hidden" style={{ background: 'color-mix(in srgb, var(--color-teal) 12%, transparent)' }}>
-                        <div className="h-full w-1/3 progress-sweep" style={{ background: C.teal }} />
+        <EmployeeLayout title="Task Planner">
+            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
+
+                {flash?.success && (
+                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
+                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{flash.success}</span>
                     </div>
                 )}
-                <div className="pointer-events-none absolute -top-40 -right-32 w-[26rem] h-[26rem] rounded-full blur-[120px] opacity-15"
-                    style={{ background: C.teal }} />
 
-                <div className="relative p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-
-                    {/* Flash */}
-                    {flash?.success && (
-                        <div className="mb-4 px-4 py-3 rounded-xl border text-sm animate-in"
-                            style={{ background: 'color-mix(in srgb, var(--color-teal) 8%, transparent)', borderColor: 'color-mix(in srgb, var(--color-teal) 30%, transparent)', color: C.teal }}>
-                            {flash.success}
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-2xl font-bold font-display text-text tracking-tight">Work Planner</h1>
+                            <Badge variant="emerald" size="sm">Schedule & Deliverables</Badge>
                         </div>
-                    )}
+                        <p className="text-sm text-sub mt-1">
+                            Organize daily milestones, cooperative department tasks, and work priorities
+                        </p>
+                    </div>
 
-                    {/* Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-5 animate-in">
-                        <div>
-                            <p className="text-[11px] uppercase tracking-[0.2em] font-mono mb-1" style={{ color: C.teal }}>
-                                Task Planner
-                            </p>
-                            <h1 className="font-display text-xl sm:text-2xl font-semibold" style={{ color: C.text }}>
-                                Plan &amp; track your work
-                            </h1>
-                        </div>
-                        <button onClick={() => openNewTaskForm()}
-                                disabled={loading}
-                                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed w-fit"
-                                style={{ background: C.teal, color: 'var(--color-bg)', boxShadow: `0 0 24px -6px ${C.teal}` }}>
-                            <IconPlus className="w-4 h-4" /> New task
+                    <button
+                        onClick={() => openNewTaskForm()}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 active:scale-[0.98] transition-all w-fit"
+                    >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>New Task</span>
+                    </button>
+                </div>
+
+                {/* Controls Bar */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2 bg-panel rounded-2xl border border-border shadow-xs">
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => changeMonth(-1)}
+                            className="p-2 rounded-xl border border-border bg-field text-sub hover:text-text hover:bg-panel transition-all"
+                            title="Previous Month"
+                        >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <span className="text-sm font-bold font-display text-text min-w-[140px] text-center">
+                            {viewDate.toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}
+                        </span>
+                        <button
+                            onClick={() => changeMonth(1)}
+                            className="p-2 rounded-xl border border-border bg-field text-sub hover:text-text hover:bg-panel transition-all"
+                            title="Next Month"
+                        >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                        <button
+                            onClick={goToToday}
+                            className="ml-2 px-3 py-1.5 rounded-xl text-xs font-semibold border border-border bg-field text-emerald-600 dark:text-emerald-400 hover:bg-panel transition-all"
+                        >
+                            Today
                         </button>
                     </div>
 
-                    {/* Controls */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 animate-in">
-                        <div className="flex items-center gap-2 rounded-xl border px-2 py-1.5 w-fit" style={{ borderColor: C.border, background: C.panel }}>
-                            <button onClick={() => changeMonth(-1)} className="p-1.5 rounded-lg transition-colors" style={{ color: C.sub }}>
-                                <IconChevronLeft className="w-4 h-4" />
+                    <div className="flex gap-1 p-1 bg-field rounded-xl border border-border">
+                        {['all', 'pending', 'done'].map(f => (
+                            <button
+                                key={f}
+                                onClick={() => setFilter(f)}
+                                className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all ${
+                                    filter === f
+                                        ? 'bg-panel text-text shadow-xs border border-border'
+                                        : 'text-sub hover:text-text'
+                                }`}
+                            >
+                                {f}
                             </button>
-                            <p className="text-sm font-medium font-display min-w-[130px] text-center" style={{ color: C.text }}>
-                                {viewDate.toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}
-                            </p>
-                            <button onClick={() => changeMonth(1)} className="p-1.5 rounded-lg transition-colors" style={{ color: C.sub }}>
-                                <IconChevronRight className="w-4 h-4" />
-                            </button>
-                            <button onClick={goToToday}
-                                    className="ml-1 text-xs px-2.5 py-1 rounded-lg border transition-colors"
-                                    style={{ borderColor: C.border, color: C.teal }}>
-                                Today
-                            </button>
-                        </div>
-
-                        <div className="flex gap-1 p-1 rounded-xl border w-fit" style={{ background: C.panel, borderColor: C.border }}>
-                            {['all', 'pending', 'done'].map(f => (
-                                <button key={f} onClick={() => setFilter(f)}
-                                        className="text-xs px-3 py-1.5 rounded-lg capitalize transition-all font-medium"
-                                        style={filter === f
-                                            ? { background: 'color-mix(in srgb, var(--color-teal) 12%, transparent)', color: C.teal, boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--color-teal) 30%, transparent)' }
-                                            : { color: C.dim }}>
-                                    {f}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Calendar + agenda */}
-                    <div className="grid lg:grid-cols-[1fr_310px] gap-4 items-start">
-
-                        {/* Month grid */}
-                        <div className="rounded-2xl border backdrop-blur-xl p-2 sm:p-3 animate-in overflow-hidden"
-                            style={{ background: C.panel, borderColor: C.border }}>
-                            <div className="grid grid-cols-7 mb-1">
-                                {WEEKDAYS.map(w => (
-                                    <div key={w} className="text-center text-[10px] sm:text-[11px] font-medium uppercase tracking-wide py-2" style={{ color: C.dim }}>
-                                        {w}
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="grid grid-cols-7 gap-1">
-                                {cells.map((date, i) => {
-                                    const key = toKey(date)
-                                    const inMonth = date.getMonth() === viewDate.getMonth()
-                                    const isToday = key === todayKey
-                                    const isSelected = key === selectedDate
-                                    const dayTasks = tasksByDate[key] ?? []
-                                    const visible = dayTasks.slice(0, 2)
-                                    const overflow = dayTasks.length - visible.length
-
-                                    return (
-                                        <button key={i} onClick={() => selectDay(date)}
-                                                className="relative text-left rounded-xl border p-1.5 sm:p-2 min-h-[64px] sm:min-h-[92px] flex flex-col gap-1 transition-colors"
-                                                style={{
-                                                    borderColor: isSelected ? C.borderHi : 'transparent',
-                                                    background: isSelected ? 'color-mix(in srgb, var(--color-teal) 7%, transparent)' : inMonth ? 'var(--color-hover)' : 'transparent',
-                                                    opacity: inMonth ? 1 : 0.35,
-                                                }}>
-                                            <span className="inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full text-[11px] font-mono flex-shrink-0"
-                                                style={isToday
-                                                    ? { background: C.teal, color: 'var(--color-bg)', fontWeight: 600 }
-                                                    : { color: inMonth ? C.sub : C.dim }}>
-                                                {date.getDate()}
-                                            </span>
-                                            <div className="flex flex-col gap-0.5 overflow-hidden">
-                                                {visible.map(t => {
-                                                    const pr = PRIORITY_STYLES[t.priority]
-                                                    const done = t.status === 'done'
-                                                    return (
-                                                        <span key={t.id}
-                                                            className="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-md truncate font-medium"
-                                                            style={{
-                                                                color: pr.color,
-                                                                background: `color-mix(in srgb, ${pr.color} 10%, transparent)`,
-                                                                textDecoration: done ? 'line-through' : 'none',
-                                                                opacity: done ? 0.6 : 1,
-                                                            }}>
-                                                            {t.title}
-                                                        </span>
-                                                    )
-                                                })}
-                                                {overflow > 0 && (
-                                                    <span className="text-[9px] sm:text-[10px] px-1.5" style={{ color: C.dim }}>
-                                                        +{overflow} more
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </button>
-                                    )
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Agenda side panel */}
-                        <div className="rounded-2xl border backdrop-blur-xl p-4 sm:p-5 animate-in lg:sticky lg:top-4"
-                            style={{ background: C.panel, borderColor: C.border, animationDelay: '120ms' }}>
-                            <div className="flex items-center justify-between mb-3">
-                                <div>
-                                    <p className="text-[11px] font-mono" style={{ color: C.teal }}>
-                                        {selectedDate === todayKey ? 'TODAY' : 'SELECTED'}
-                                    </p>
-                                    <p className="text-sm font-medium font-display" style={{ color: C.text }}>{selectedLabel}</p>
-                                </div>
-                                <button onClick={() => openNewTaskForm(selectedDate)}
-                                        className="p-1.5 rounded-lg border transition-colors"
-                                        style={{ borderColor: C.border, color: C.teal }}>
-                                    <IconPlus className="w-3.5 h-3.5" />
-                                </button>
-                            </div>
-
-                            <div className="space-y-2 max-h-[440px] overflow-y-auto pr-0.5">
-                                {loading && selectedTasks.length > 0 && Array.from({ length: selectedTasks.length }).map((_, i) => (
-                                    <div key={`skeleton-${i}`} className="relative rounded-xl border p-3 overflow-hidden"
-                                        style={{ background: 'var(--color-field)', borderColor: C.border }}>
-                                        <div className="flex items-start gap-2 pl-1.5">
-                                            <Skeleton className="mt-0.5 w-4 h-4 rounded-md flex-shrink-0" />
-                                            <div className="flex-1 min-w-0 space-y-2">
-                                                <Skeleton className="h-3 w-3/4" />
-                                                <Skeleton className="h-2.5 w-1/3" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                                {!loading && selectedTasks.map(task => {
-                                    const pr = PRIORITY_STYLES[task.priority]
-                                    const done = task.status === 'done'
-                                    return (
-                                        <div key={task.id}
-                                            className="relative rounded-xl border p-3 overflow-hidden"
-                                            style={{ background: 'var(--color-field)', borderColor: C.border, opacity: done ? 0.55 : 1 }}>
-                                            <div className="absolute top-0 left-0 bottom-0 w-[3px]" style={{ background: pr.color, opacity: 0.7 }} />
-                                            <div className="flex items-start gap-2 pl-1.5">
-                                                <button onClick={() => toggleDone(task)}
-                                                        className="mt-0.5 w-4 h-4 rounded-md border flex-shrink-0 flex items-center justify-center transition-all"
-                                                        style={done
-                                                            ? { borderColor: C.teal, background: C.teal, color: 'var(--color-bg)' }
-                                                            : { borderColor: C.border, color: 'transparent' }}>
-                                                    {done && <IconCheck className="w-2.5 h-2.5" />}
-                                                </button>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs font-medium truncate"
-                                                        style={{ color: done ? C.dim : C.text, textDecoration: done ? 'line-through' : 'none' }}>
-                                                        {task.title}
-                                                    </p>
-                                                    {task.description && (
-                                                        <p className="text-[11px] mt-0.5 line-clamp-2" style={{ color: C.sub }}>{task.description}</p>
-                                                    )}
-                                                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                                        <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium border"
-                                                            style={{ color: pr.color, borderColor: `color-mix(in srgb, ${pr.color} 33%, transparent)`, background: `color-mix(in srgb, ${pr.color} 8%, transparent)` }}>
-                                                            {pr.label}
-                                                        </span>
-                                                        {task.category && (
-                                                            <span className="flex items-center gap-1 text-[10px]" style={{ color: C.dim }}>
-                                                                <IconTag className="w-2.5 h-2.5" /> {task.category}
-                                                            </span>
-                                                        )}
-                                                        {task.is_overdue && (
-                                                            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium border"
-                                                                style={{ color: C.red, borderColor: 'color-mix(in srgb, var(--color-red) 40%, transparent)', background: 'color-mix(in srgb, var(--color-red) 10%, transparent)' }}>
-                                                                Overdue
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className="flex flex-col gap-1 flex-shrink-0">
-                                                    <button onClick={() => startEdit(task)} disabled={loading} className="text-[10px] px-1.5 py-0.5 rounded disabled:opacity-40 disabled:cursor-not-allowed" style={{ color: C.sub }}>Edit</button>
-                                                    <button onClick={() => deleteTask(task)} disabled={loading} className="text-[10px] px-1.5 py-0.5 rounded disabled:opacity-40 disabled:cursor-not-allowed" style={{ color: C.red }}>Delete</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-
-                                {!loading && selectedTasks.length === 0 && (
-                                    <div className="text-center py-10 rounded-xl border border-dashed" style={{ borderColor: C.border }}>
-                                        <IconClipboard className="w-5 h-5 mx-auto mb-2" style={{ color: C.dim }} />
-                                        <p className="text-xs" style={{ color: C.sub }}>No tasks for this day.</p>
-                                        <button onClick={() => openNewTaskForm(selectedDate)}
-                                                className="mt-2 text-xs font-medium" style={{ color: C.teal }}>
-                                            + Add task
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
 
-                {/* Task form modal */}
-                {showForm && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                        style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-                        onClick={cancelForm}>
-                        <form onSubmit={submitTask} onClick={e => e.stopPropagation()}
-                            className="w-full max-w-md rounded-2xl border p-5 space-y-4 animate-in"
-                            style={{ background: C.panel, borderColor: C.border }}>
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-sm font-medium font-display" style={{ color: C.text }}>
-                                    {editTarget ? 'Edit task' : 'New task'}
-                                </h2>
-                                <button type="button" onClick={cancelForm} style={{ color: C.dim }}>
-                                    <IconX className="w-4 h-4" />
-                                </button>
-                            </div>
+                {/* Calendar + Agenda Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
+                    {/* Month Grid Card (2 Cols) */}
+                    <Card className="lg:col-span-2 overflow-hidden">
+                        <div className="grid grid-cols-7 mb-2 border-b border-border/60 pb-2">
+                            {WEEKDAYS.map(w => (
+                                <div key={w} className="text-center text-[11px] font-bold text-dim uppercase tracking-wider">
+                                    {w}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+                            {cells.map((date, i) => {
+                                const key = toKey(date)
+                                const inMonth = date.getMonth() === viewDate.getMonth()
+                                const isToday = key === todayKey
+                                const isSelected = key === selectedDate
+                                const dayTasks = tasksByDate[key] ?? []
+                                const visible = dayTasks.slice(0, 2)
+                                const overflow = dayTasks.length - visible.length
+
+                                return (
+                                    <button
+                                        key={i}
+                                        onClick={() => selectDay(date)}
+                                        className={`relative text-left rounded-xl border p-1.5 sm:p-2 min-h-[72px] sm:min-h-[100px] flex flex-col gap-1 transition-all ${
+                                            isSelected
+                                                ? 'border-emerald-500 bg-emerald-500/5 ring-2 ring-emerald-500/20 shadow-xs'
+                                                : inMonth
+                                                    ? 'border-border/60 bg-field/40 hover:bg-field hover:border-emerald-500/30'
+                                                    : 'border-transparent bg-transparent opacity-30'
+                                        }`}
+                                    >
+                                        <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-mono font-bold ${
+                                            isToday
+                                                ? 'bg-emerald-600 text-white'
+                                                : inMonth ? 'text-text' : 'text-dim'
+                                        }`}>
+                                            {date.getDate()}
+                                        </span>
+
+                                        <div className="flex flex-col gap-1 overflow-hidden w-full">
+                                            {visible.map(t => {
+                                                const done = t.status === 'done'
+                                                return (
+                                                    <span
+                                                        key={t.id}
+                                                        className={`text-[10px] px-1.5 py-0.5 rounded-md truncate font-medium ${
+                                                            done
+                                                                ? 'line-through opacity-50 bg-field text-dim'
+                                                                : t.priority === 'high'
+                                                                    ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                                                    : t.priority === 'medium'
+                                                                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                                                                        : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                                                        }`}
+                                                    >
+                                                        {t.title}
+                                                    </span>
+                                                )
+                                            })}
+                                            {overflow > 0 && (
+                                                <span className="text-[10px] font-mono font-semibold text-dim px-1">
+                                                    +{overflow} more
+                                                </span>
+                                            )}
+                                        </div>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </Card>
+
+                    {/* Day Agenda Panel (1 Col) */}
+                    <Card
+                        title={selectedDate === todayKey ? "Today's Agenda" : "Day Agenda"}
+                        description={selectedLabel}
+                        action={
+                            <button
+                                onClick={() => openNewTaskForm(selectedDate)}
+                                className="p-1.5 rounded-lg border border-border bg-field text-emerald-600 dark:text-emerald-400 hover:bg-panel transition-all"
+                                title="Add task to this date"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                            </button>
+                        }
+                    >
+                        <div className="space-y-3 pt-2 max-h-[500px] overflow-y-auto pr-1">
+                            {selectedTasks.map(task => {
+                                const done = task.status === 'done'
+                                return (
+                                    <div
+                                        key={task.id}
+                                        className={`p-3.5 rounded-xl border transition-all ${
+                                            done
+                                                ? 'border-border/60 bg-field/40 opacity-60'
+                                                : 'border-border bg-panel shadow-2xs hover:border-emerald-500/30'
+                                        }`}
+                                    >
+                                        <div className="flex items-start gap-3">
+                                            <button
+                                                onClick={() => toggleDone(task)}
+                                                className={`mt-0.5 w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                                                    done
+                                                        ? 'bg-emerald-600 border-emerald-600 text-white'
+                                                        : 'border-border hover:border-emerald-500 bg-field'
+                                                }`}
+                                            >
+                                                {done && (
+                                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                )}
+                                            </button>
+
+                                            <div className="flex-1 min-w-0">
+                                                <p className={`text-sm font-semibold truncate ${done ? 'line-through text-dim' : 'text-text'}`}>
+                                                    {task.title}
+                                                </p>
+                                                {task.description && (
+                                                    <p className="text-xs text-sub mt-0.5 line-clamp-2">{task.description}</p>
+                                                )}
+                                                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                                    {getPriorityBadge(task.priority)}
+                                                    {task.category && (
+                                                        <Badge variant="slate" size="sm">
+                                                            {task.category}
+                                                        </Badge>
+                                                    )}
+                                                    {task.is_overdue && !done && (
+                                                        <Badge variant="rose" size="sm">Overdue</Badge>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col gap-1 shrink-0">
+                                                <button
+                                                    onClick={() => startEdit(task)}
+                                                    className="text-xs text-sub hover:text-text font-medium px-1.5 py-0.5 rounded hover:bg-hover"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => deleteTask(task)}
+                                                    className="text-xs text-rose-500 hover:text-rose-600 font-medium px-1.5 py-0.5 rounded hover:bg-rose-500/10"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+
+                            {selectedTasks.length === 0 && (
+                                <div className="text-center py-12 rounded-xl border border-dashed border-border/80 p-4">
+                                    <div className="w-10 h-10 rounded-full bg-field flex items-center justify-center mx-auto mb-2 text-sub">
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                        </svg>
+                                    </div>
+                                    <p className="text-xs font-medium text-sub">No tasks scheduled for this day.</p>
+                                    <button
+                                        onClick={() => openNewTaskForm(selectedDate)}
+                                        className="mt-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+                                    >
+                                        + Schedule Task
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+
+                </div>
+
+            </div>
+
+            {/* Task Form Modal */}
+            {showForm && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+                    onClick={cancelForm}
+                >
+                    <div
+                        className="w-full max-w-md rounded-2xl border border-border bg-panel p-6 shadow-2xl space-y-5"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between pb-3 border-b border-border">
+                            <h2 className="text-lg font-bold font-display text-text">
+                                {editTarget ? 'Edit Task' : 'Schedule New Task'}
+                            </h2>
+                            <button
+                                type="button"
+                                onClick={cancelForm}
+                                className="text-sub hover:text-text p-1 rounded-lg hover:bg-hover"
+                            >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <form onSubmit={submitTask} className="space-y-4">
                             <div>
-                                <label className="block text-xs mb-1.5" style={{ color: C.sub }}>
-                                    Title <span style={{ color: C.red }}>*</span>
+                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
+                                    Task Title <span className="text-rose-500">*</span>
                                 </label>
-                                <input type="text"
+                                <input
+                                    type="text"
                                     value={data.title}
                                     onChange={e => setData('title', e.target.value)}
-                                    placeholder="What needs to be done?"
-                                    className={inputClass}
-                                    style={{ borderColor: C.border, color: C.text }}
-                                    required autoFocus
+                                    placeholder="What needs to be accomplished?"
+                                    className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                                    required
+                                    autoFocus
                                 />
-                                {errors.title && <p className="mt-1 text-xs" style={{ color: C.red }}>{errors.title}</p>}
+                                {errors.title && <p className="mt-1 text-xs text-rose-500">{errors.title}</p>}
                             </div>
 
                             <div>
-                                <label className="block text-xs mb-1.5" style={{ color: C.sub }}>Description</label>
+                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
+                                    Description (Optional)
+                                </label>
                                 <textarea
                                     value={data.description}
                                     onChange={e => setData('description', e.target.value)}
                                     rows={2}
-                                    placeholder="Optional details…"
-                                    className={`${inputClass} resize-none`}
-                                    style={{ borderColor: C.border, color: C.text }} />
+                                    placeholder="Details or deliverables..."
+                                    className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none"
+                                />
                             </div>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs mb-1.5" style={{ color: C.sub }}>
-                                        Due date <span style={{ color: C.red }}>*</span>
+                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
+                                        Due Date <span className="text-rose-500">*</span>
                                     </label>
-                                    <input type="date"
+                                    <input
+                                        type="date"
                                         value={data.due_date}
                                         onChange={e => setData('due_date', e.target.value)}
-                                        className={inputClass}
-                                        style={{ borderColor: C.border, color: C.text }}
+                                        className="w-full px-3.5 py-2 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs mb-1.5" style={{ color: C.sub }}>Priority</label>
+                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
+                                        Priority
+                                    </label>
                                     <select
                                         value={data.priority}
                                         onChange={e => setData('priority', e.target.value)}
-                                        className={inputClass}
-                                        style={{ borderColor: C.border, color: C.text, background: C.field }}>
-                                        <option value="low">Low</option>
-                                        <option value="medium">Medium</option>
-                                        <option value="high">High</option>
+                                        className="w-full px-3.5 py-2 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                                    >
+                                        <option value="low">Low Priority</option>
+                                        <option value="medium">Medium Priority</option>
+                                        <option value="high">High Priority</option>
                                     </select>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs mb-1.5" style={{ color: C.sub }}>Category</label>
-                                <input type="text"
+                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
+                                    Category / Label
+                                </label>
+                                <input
+                                    type="text"
                                     value={data.category}
                                     onChange={e => setData('category', e.target.value)}
-                                    placeholder="e.g. Finance, HR"
-                                    className={inputClass}
-                                    style={{ borderColor: C.border, color: C.text }}
+                                    placeholder="e.g. Operations, Accounting"
+                                    className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
                                 />
                             </div>
 
-                            <div className="flex gap-2 pt-1">
-                                <button type="button" onClick={cancelForm}
-                                        className="px-4 py-2.5 text-sm rounded-lg border transition-colors"
-                                        style={{ borderColor: C.border, color: C.sub }}>
+                            <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+                                <Button variant="secondary" size="md" type="button" onClick={cancelForm}>
                                     Cancel
-                                </button>
-                                <button type="submit" disabled={processing}
-                                        className="flex-1 px-5 py-2.5 text-sm font-semibold rounded-lg disabled:opacity-60 transition-all hover:brightness-110"
-                                        style={{ background: C.teal, color: 'var(--color-bg)' }}>
-                                    {processing ? 'Saving…' : editTarget ? 'Update task' : 'Add task'}
-                                </button>
-                                {editTarget && (
-                                    <button type="button" onClick={() => { deleteTask(editTarget); cancelForm() }}
-                                            className="px-3 py-2.5 text-sm rounded-lg border transition-colors"
-                                            style={{ borderColor: 'color-mix(in srgb, var(--color-red) 35%, transparent)', color: C.red }}>
-                                        <IconTrash className="w-4 h-4" />
-                                    </button>
-                                )}
+                                </Button>
+                                <Button variant="primary" size="md" type="submit" loading={processing}>
+                                    {editTarget ? 'Update Task' : 'Add Task'}
+                                </Button>
                             </div>
                         </form>
                     </div>
-                )}
-
-                <style>{`
-                    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
-                    .font-display { font-family: 'Space Grotesk', sans-serif; }
-                    .font-mono { font-family: 'JetBrains Mono', monospace; }
-                    input, textarea, select { font-family: 'Inter', sans-serif; }
-                    input:focus, textarea:focus, select:focus { border-color: color-mix(in srgb, var(--color-teal) 50%, transparent) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-teal) 12%, transparent); }
-                    ::-webkit-scrollbar { width: 6px; height: 6px; }
-                    ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-teal) 25%, transparent); border-radius: 8px; }
-                    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-                    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-                    .animate-in { animation: fadeSlideUp 0.4s ease-out both; }
-                    @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
-                    .hud-grid { background-image: linear-gradient(color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-teal) 5%, transparent) 1px, transparent 1px); background-size: 34px 34px; animation: gridDrift 16s linear infinite; }
-                    .skeleton-shimmer { background: linear-gradient(90deg, color-mix(in srgb, var(--color-text) 8%, transparent) 25%, color-mix(in srgb, var(--color-text) 16%, transparent) 37%, color-mix(in srgb, var(--color-text) 8%, transparent) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.6s ease-in-out infinite; }
-                    @keyframes skeletonShimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
-                    @keyframes progressSweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
-                    .progress-sweep { animation: progressSweep 1.1s ease-in-out infinite; }
-                    @media (prefers-reduced-motion: reduce) { .animate-in, .hud-grid, .skeleton-shimmer, .progress-sweep { animation: none; } .skeleton-shimmer { opacity: 0.6; } }
-                `}</style>
-            </div>
+                </div>
+            )}
         </EmployeeLayout>
     )
 }

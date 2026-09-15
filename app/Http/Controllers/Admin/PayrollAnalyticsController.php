@@ -14,12 +14,17 @@ use Inertia\Response;
 class PayrollAnalyticsController extends Controller
 {
     public function index(): Response {
+        $isSqlite = DB::getDriverName() === 'sqlite';
+        $monthExpr = $isSqlite
+            ? "strftime('%Y-%m', payrolls.period_from)"
+            : "DATE_FORMAT(payrolls.period_from, '%Y-%m')";
+
         // ── 1. Monthly net pay trend ───────────────────────
         $monthlyTrend = PayrollItem::query()
             ->join('payrolls', 'payroll_items.payroll_id', '=', 'payrolls.id')
             ->where('payrolls.status', 'finalized')
             ->select(
-                DB::raw("DATE_FORMAT(payrolls.period_from, '%Y-%m') as month"),
+                DB::raw("{$monthExpr} as month"),
                 DB::raw('SUM(payroll_items.gross_pay)      as total_gross'),
                 DB::raw('SUM(payroll_items.total_deductions) as total_deductions'),
                 DB::raw('SUM(payroll_items.net_pay)        as total_net'),
