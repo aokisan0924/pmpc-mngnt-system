@@ -5,40 +5,40 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-display: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
-    /* ── Semantic tokens — same names in light and dark, values swap
-        via the .dark class on <html>. Use these instead of hardcoding
-        hex anywhere in a page: bg-bg, text-text, border-border, etc. ── */
-    --color-bg:      #F7F7F8;
-    --color-panel:   #FFFFFF;
-    --color-field:   #F2F3F5;
-    --color-border:  #D9DADD;
-    --color-text:    #101114;
-    --color-sub:     #52555B;
-    --color-dim:     #7A7E87;
+    /* ── Semantic Modern SaaS Tokens ───────────────────────── */
+    --color-bg:         #F8FAFC;
+    --color-panel:      #FFFFFF;
+    --color-field:      #F1F5F9;
+    --color-border:     #E2E8F0;
+    --color-text:       #0F172A;
+    --color-sub:        #475569;
+    --color-dim:        #94A3B8;
 
-    /* Brand accents — teal is the cooperative's primary brand color,
-        used across both portals. Violet is reserved as the admin
-        portal's wayfinding accent (so "which portal am I in" is
-        visually obvious), teal alone is the employee portal's accent. */
-    --color-brand:   #002FA7;
-    --color-teal:    #002FA7;
-    --color-blue:    #002FA7;
-    --color-amber:   #B45309;
-    --color-purple:  #002FA7;
-    --color-violet:  #002FA7;
-    --color-red:     #DC2626;
-    --color-emerald: #059669;
-    --color-pink:    #DB2777;
-    --color-cyan:    #0891B2;
+    /* Brand & Accents: Indigo for Admin, Emerald for Employee */
+    --color-brand:      #4F46E5;
+    --color-indigo:     #4F46E5;
+    --color-emerald:    #10B981;
+    --color-teal:       #0D9488;
+    --color-blue:       #2563EB;
+    --color-amber:      #F59E0B;
+    --color-rose:       #F43F5E;
+    --color-red:        #EF4444;
+    --color-violet:     #7C3AED;
+    --color-cyan:       #06B6D4;
 
-    /* Overlay helpers — used for hover states, chart gridlines, and thin
-        row dividers that need to sit on top of *any* surface color, so
-        they can't be a flat --color-border value. */
-    --color-hover:      rgba(0,0,0,0.035);
-    --color-grid:       rgba(0,0,0,0.08);
-    --color-row-border: rgba(0,0,0,0.06);
+    /* Overlay Helpers */
+    --color-hover:      rgba(15, 23, 42, 0.04);
+    --color-grid:       rgba(15, 23, 42, 0.06);
+    --color-row-border: rgba(15, 23, 42, 0.05);
+
+    /* Shadows */
+    --shadow-subtle:    0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-card:      0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+    --shadow-card-hover:0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
 }
 
 :root {
@@ -47,27 +47,31 @@
 
 .dark {
     color-scheme: dark;
-    --color-hover:      rgba(255,255,255,0.03);
-    --color-grid:       rgba(255,255,255,0.06);
-    --color-row-border: rgba(255,255,255,0.04);
-    --color-bg:      #101114;
-    --color-panel:   #17191D;
-    --color-field:   #202329;
-    --color-border:  #34373E;
-    --color-text:    #F7F7F8;
-    --color-sub:     #C1C4CA;
-    --color-dim:     #8E929A;
+    --color-hover:      rgba(255, 255, 255, 0.04);
+    --color-grid:       rgba(255, 255, 255, 0.07);
+    --color-row-border: rgba(255, 255, 255, 0.06);
+    --color-bg:         #0B0F19;
+    --color-panel:      #111827;
+    --color-field:      #1E293B;
+    --color-border:     #1F2937;
+    --color-text:       #F8FAFC;
+    --color-sub:        #94A3B8;
+    --color-dim:        #64748B;
 
-    --color-brand:   #7EA6FF;
-    --color-teal:    #7EA6FF;
-    --color-blue:    #7EA6FF;
-    --color-amber:   #FFC168;
-    --color-purple:  #7EA6FF;
-    --color-violet:  #7EA6FF;
-    --color-red:     #FF6B81;
-    --color-emerald: #34D399;
-    --color-pink:    #F472B6;
-    --color-cyan:    #22D3EE;
+    --color-brand:      #6366F1;
+    --color-indigo:     #6366F1;
+    --color-emerald:    #34D399;
+    --color-teal:       #2DD4BF;
+    --color-blue:       #60A5FA;
+    --color-amber:      #FBBF24;
+    --color-rose:       #FB7185;
+    --color-red:        #F87171;
+    --color-violet:     #A78BFA;
+    --color-cyan:       #38BDF8;
+
+    --shadow-subtle:    0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-card:      0 1px 3px 0 rgba(0, 0, 0, 0.35), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+    --shadow-card-hover:0 4px 6px -1px rgba(0, 0, 0, 0.45), 0 2px 4px -2px rgba(0, 0, 0, 0.35);
 }
 
 @layer base {
@@ -78,6 +82,9 @@
     html {
         min-width: 320px;
         background: var(--color-bg);
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
     body {
@@ -85,9 +92,14 @@
         margin: 0;
         background-color: var(--color-bg);
         color: var(--color-text);
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-        font-feature-settings: 'kern' 1, 'tnum' 1;
+        font-family: var(--font-sans);
+        font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
         text-rendering: optimizeLegibility;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-heading);
+        letter-spacing: -0.02em;
     }
 
     button, input, select, textarea {
@@ -95,7 +107,7 @@
     }
 
     button, a, input, select, textarea {
-        outline-offset: 3px;
+        outline-offset: 2px;
     }
 
     :focus-visible {
@@ -113,14 +125,30 @@
 }
 
 @layer components {
+    .font-heading {
+        font-family: var(--font-heading);
+        letter-spacing: -0.02em;
+    }
+
     .font-display {
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+        font-family: var(--font-heading);
         letter-spacing: -0.025em;
     }
 
-    .font-mono {
-        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+    .tnum {
         font-variant-numeric: tabular-nums;
+    }
+
+    .saas-card {
+        background-color: var(--color-panel);
+        border: 1px solid var(--color-border);
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow-card);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .saas-card:hover {
+        border-color: rgba(148, 163, 184, 0.4);
     }
 
     .skip-link {
@@ -134,21 +162,15 @@
         padding: 0.65rem 0.9rem;
         font-size: 0.75rem;
         font-weight: 700;
+        border-radius: 0.375rem;
     }
 
     .skip-link:focus {
         transform: translateY(0);
     }
 
-    .swiss-grid {
-        background-image:
-            linear-gradient(var(--color-grid) 1px, transparent 1px),
-            linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
-        background-size: 48px 48px;
-    }
-
     .page-enter {
-        animation: page-enter 320ms cubic-bezier(.2,.75,.25,1) both;
+        animation: page-enter 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 }
 
@@ -157,45 +179,20 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes pulse-subtle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.08); }
+}
+
+.animate-pulse-subtle {
+    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         scroll-behavior: auto !important;
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
-    }
-}
-
-/* Keep the application surfaces crisp and aligned to the shared grid. */
-main .rounded-2xl,
-main .rounded-xl,
-main .rounded-lg {
-    border-radius: 0.25rem;
-}
-
-main .shadow-sm {
-    box-shadow: none;
-}
-
-main input:not([type='checkbox']):not([type='radio']),
-main select,
-main textarea {
-    min-height: 2.75rem;
-}
-
-main button,
-main a {
-    text-underline-offset: 0.2em;
-}
-
-@media (max-width: 767px) {
-    main table {
-        font-size: 0.75rem;
-    }
-
-    main input,
-    main select,
-    main textarea {
-        font-size: 1rem;
     }
 }
