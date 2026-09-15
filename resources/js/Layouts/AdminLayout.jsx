@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, router } from '@inertiajs/react'
+import { Link, router, usePage } from '@inertiajs/react'
 import ThemeToggle from '@/Components/ThemeToggle'
 import useTheme from '@/hooks/useTheme'
 
@@ -18,6 +18,8 @@ const navItems = [
 ]
 
 export default function AdminLayout({ children, pendingEditCount = 0 }) {
+    const { auth } = usePage().props
+    const employee = auth?.employee
     const { isDark, toggleTheme } = useTheme()
     const [drawerOpen, setDrawerOpen] = useState(false)
     const currentUrl = window.location.pathname
@@ -38,26 +40,31 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
 
     return (
         <div className="flex min-h-screen bg-bg">
+            <a href="#main-content" className="skip-link">Skip to main content</a>
 
             {/* ── Mobile top bar (hidden md:up) ─────────────────── */}
-            <div className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between px-4 h-14 border-b border-border bg-panel/95 backdrop-blur">
+            <div className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between px-4 h-16 border-b border-border bg-panel">
                 <button onClick={() => setDrawerOpen(true)} aria-label="Open menu"
                     className="w-9 h-9 -ml-2 flex items-center justify-center text-sub">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5">
                         <path strokeLinecap="round" d="M4 7h16M4 12h16M4 17h16" />
                     </svg>
                 </button>
-                <p className="text-sm font-medium text-text truncate">{activeLabel}</p>
+                <div className="min-w-0 text-center">
+                    <p className="text-[10px] font-semibold uppercase tracking-[.12em] text-brand">Admin</p>
+                    <p className="text-sm font-semibold text-text truncate">{activeLabel}</p>
+                </div>
                 <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
             </div>
 
             {/* ── Mobile drawer + backdrop ───────────────────────── */}
             {drawerOpen && (
-                <div className="md:hidden fixed inset-0 z-40 flex">
+                <div className="md:hidden fixed inset-0 z-40 flex" role="dialog" aria-modal="true" aria-label="Admin navigation">
                     <div className="absolute inset-0 bg-black/60" onClick={() => setDrawerOpen(false)} />
                     <SidebarContent
                         navItems={navItems} sections={sections} activeHref={activeHref}
                         pendingEditCount={pendingEditCount} onLogout={logout}
+                        employee={employee}
                         onNavigate={() => setDrawerOpen(false)}
                         className="relative w-64 max-w-[80vw] animate-in-left"
                     />
@@ -65,16 +72,17 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
             )}
 
             {/* ── Desktop sidebar (md:up) ────────────────────────── */}
-            <aside className="hidden md:flex w-56 flex-shrink-0 flex-col sticky top-0 h-screen">
+            <aside className="hidden md:flex w-64 flex-shrink-0 flex-col sticky top-0 h-screen">
                 <SidebarContent
                     navItems={navItems} sections={sections} activeHref={activeHref}
                     pendingEditCount={pendingEditCount} onLogout={logout}
+                    employee={employee}
                     headerExtra={<ThemeToggle isDark={isDark} onToggle={toggleTheme} />}
                     className="h-full"
                 />
             </aside>
 
-            <main className="flex-1 flex flex-col min-w-0 pt-14 md:pt-0 bg-bg">
+            <main id="main-content" tabIndex="-1" className="flex-1 flex flex-col min-w-0 pt-16 md:pt-0 bg-bg">
                 {children}
             </main>
 
@@ -86,31 +94,30 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
     )
 }
 
-function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLogout, onNavigate, className = '', headerExtra }) {
+function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLogout, onNavigate, className = '', headerExtra, employee }) {
     return (
-        <div className={`flex flex-col py-5 border-r border-border bg-panel ${className}`}>
+        <div className={`flex flex-col border-r border-border bg-panel ${className}`}>
             {/* Brand */}
-            <div className="flex items-center justify-between gap-2 px-4 pb-4 mb-2 border-b border-border">
+            <div className="flex items-center justify-between gap-3 min-h-20 px-5 border-b border-border">
                 <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center border flex-shrink-0 bg-violet/10 border-violet/30">
-                        <svg className="w-4 h-4 text-violet" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round"
-                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    <div className="w-9 h-9 flex items-center justify-center flex-shrink-0 bg-brand text-white">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 32 32" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+                            <circle cx="12" cy="12" r="7" /><circle cx="20" cy="12" r="7" /><circle cx="16" cy="20" r="7" />
                         </svg>
                     </div>
                     <div className="min-w-0">
-                        <p className="font-display font-semibold text-[12px] text-text truncate">PMPC WorkForce</p>
-                        <p className="font-mono text-[9px] text-dim tracking-[.12em]">SUPER ADMIN</p>
+                        <p className="font-display font-bold text-sm text-text truncate">PMPC WorkForce</p>
+                        <p className="text-[10px] text-brand font-semibold tracking-[.1em] uppercase">Admin portal</p>
                     </div>
                 </div>
                 {headerExtra}
             </div>
 
             {/* Nav */}
-            <nav className="flex-1 mt-2 overflow-y-auto">
+            <nav className="flex-1 py-4 overflow-y-auto" aria-label="Admin navigation">
                 {sections.map(section => (
                     <div key={section}>
-                        <p className="font-mono text-[9px] text-dim px-4 pt-2.5 pb-1 tracking-[.12em] uppercase">
+                        <p className="text-[10px] font-semibold text-dim px-5 pt-3 pb-1.5 tracking-[.12em] uppercase">
                             {section}
                         </p>
                         {navItems.filter(i => i.section === section).map(item => (
@@ -123,18 +130,18 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
             </nav>
 
             {/* User footer */}
-            <div className="px-4 pt-3 border-t border-border">
+            <div className="px-5 py-4 border-t border-border">
                 <div className="flex items-center gap-2 mb-2">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center font-mono font-medium border text-[11px] bg-violet/10 text-violet border-violet/30">
-                        SA
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-semibold border text-xs bg-brand/10 text-brand border-brand/30">
+                        {employee?.initials ?? 'SA'}
                     </div>
                     <div>
-                        <p className="font-medium text-[11px] text-text">Super Admin</p>
-                        <p className="text-[10px] text-dim">PMPC Head Office</p>
+                        <p className="font-semibold text-xs text-text truncate max-w-32">{employee?.full_name ?? 'Super Admin'}</p>
+                        <p className="text-[10px] text-dim">{employee?.employee_id}</p>
                     </div>
                 </div>
                 <button onClick={onLogout}
-                    className="w-full text-left px-2 py-1.5 rounded-lg text-xs text-dim transition-colors hover:text-red hover:bg-red/10">
+                    className="w-full min-h-10 text-left px-3 py-2 text-xs font-medium text-sub border border-border transition-colors hover:text-red hover:border-red/40">
                     Sign out
                 </button>
             </div>
@@ -146,10 +153,10 @@ function AdminNavLink({ item, activeHref, badge, onNavigate }) {
     const active = item.href === activeHref
     return (
         <Link href={item.href} onClick={onNavigate}
-            className={`flex items-center justify-between px-4 py-2.5 md:py-2 text-xs transition-colors border-l-2 ${
+            className={`flex items-center justify-between min-h-10 mx-3 px-3 py-2 text-xs font-medium transition-colors border-l-2 ${
                 active
-                    ? 'text-text bg-violet/10 border-l-violet'
-                    : 'text-sub border-l-transparent hover:text-text'
+                    ? 'text-brand bg-brand/10 border-l-brand'
+                    : 'text-sub border-l-transparent hover:text-text hover:bg-field'
             }`}>
             <span>{item.label}</span>
             {badge && (

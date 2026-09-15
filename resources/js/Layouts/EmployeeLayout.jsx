@@ -61,31 +61,30 @@ export default function EmployeeLayout({ children, title }) {
 
     return (
         <div className="flex min-h-screen bg-bg">
+            <a href="#main-content" className="skip-link">Skip to main content</a>
 
             {/* ── Desktop sidebar (hidden on mobile) ─────────── */}
-            <aside className="hidden md:flex w-52 flex-shrink-0 flex-col py-5 sticky top-0 h-screen border-r border-border"
-                style={{ background: 'linear-gradient(180deg, color-mix(in srgb, var(--color-panel) 90%, var(--color-teal) 4%) 0%, var(--color-bg) 100%)' }}>
+            <aside className="hidden md:flex w-64 flex-shrink-0 flex-col sticky top-0 h-screen border-r border-border bg-panel">
 
                 {/* Brand */}
-                <div className="flex items-center justify-between gap-2 px-4 pb-4 mb-2 border-b border-border">
+                <div className="flex items-center justify-between gap-3 min-h-20 px-5 border-b border-border">
                     <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center border flex-shrink-0 bg-teal/10 border-teal/30">
-                            <svg className="w-4 h-4 text-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round"
-                                    d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-4a4 4 0 10-8 0 4 4 0 008 0z"/>
+                        <div className="w-9 h-9 flex items-center justify-center flex-shrink-0 bg-brand text-white">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 32 32" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+                                <circle cx="12" cy="12" r="7" /><circle cx="20" cy="12" r="7" /><circle cx="16" cy="20" r="7" />
                             </svg>
                         </div>
                         <div className="min-w-0">
-                            <p className="font-display font-semibold text-[12px] text-text truncate">PMPC WorkForce</p>
-                            <p className="font-mono text-[9px] text-dim tracking-[.05em]">EMPLOYEE PORTAL</p>
+                            <p className="font-display font-bold text-sm text-text truncate">PMPC WorkForce</p>
+                            <p className="text-[10px] text-brand font-semibold tracking-[.1em] uppercase">Employee portal</p>
                         </div>
                     </div>
                     <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
                 </div>
 
                 {/* Nav */}
-                <nav className="flex-1 mt-2 overflow-y-auto">
-                    <p className="font-mono text-[9px] text-dim px-4 pt-1.5 pb-1 tracking-[.12em] uppercase">
+                <nav className="flex-1 py-4 overflow-y-auto" aria-label="Employee navigation">
+                    <p className="text-[10px] font-semibold text-dim px-5 pt-3 pb-1.5 tracking-[.12em] uppercase">
                         {isSuperAdmin ? 'Personal' : 'Main'}
                     </p>
                     {visibleNavMain.map(item => (
@@ -94,10 +93,10 @@ export default function EmployeeLayout({ children, title }) {
 
                     {!isSuperAdmin && (
                         <Link href="/employee/notifications"
-                            className={`flex items-center justify-between px-4 py-2 text-xs transition-colors border-l-2 ${
+                            className={`flex items-center justify-between min-h-10 mx-3 px-3 py-2 text-xs font-medium transition-colors border-l-2 ${
                                 currentUrl.startsWith('/employee/notifications')
-                                    ? 'text-text bg-teal/10 border-l-teal'
-                                    : 'text-sub border-l-transparent hover:text-text'
+                                    ? 'text-brand bg-brand/10 border-l-brand'
+                                    : 'text-sub border-l-transparent hover:text-text hover:bg-field'
                             }`}>
                             <span>Notifications</span>
                             {unreadCount > 0 && (
@@ -110,12 +109,12 @@ export default function EmployeeLayout({ children, title }) {
 
                     {isSuperAdmin ? (
                         <Link href="/admin/dashboard"
-                            className="flex items-center gap-2 px-4 py-2 text-xs mt-2 transition-colors text-violet border-l-2 border-l-transparent">
+                            className="flex items-center min-h-10 mx-3 px-3 py-2 text-xs font-medium mt-2 text-brand border border-brand/30">
                             ← Back to admin
                         </Link>
                     ) : (
                         <>
-                            <p className="font-mono text-[9px] text-dim px-4 pt-2.5 pb-1 tracking-[.12em] uppercase">
+                            <p className="text-[10px] font-semibold text-dim px-5 pt-3 pb-1.5 tracking-[.12em] uppercase">
                                 Account
                             </p>
                             {visibleNavAccount.map(item => (
@@ -126,18 +125,18 @@ export default function EmployeeLayout({ children, title }) {
                 </nav>
 
                 {/* User footer */}
-                <div className="px-4 pt-3 border-t border-border">
+                <div className="px-5 py-4 border-t border-border">
                     <div className="flex items-center gap-2 mb-2">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center font-mono font-medium border text-[11px] bg-teal/10 text-teal border-teal/30">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center font-semibold border text-xs bg-brand/10 text-brand border-brand/30">
                             {employee?.initials}
                         </div>
-                        <div>
-                            <p className="font-medium text-[11px] text-text">{employee?.full_name}</p>
+                        <div className="min-w-0">
+                            <p className="font-semibold text-xs text-text truncate">{employee?.full_name}</p>
                             <p className="text-[10px] text-dim">{employee?.employee_id}</p>
                         </div>
                     </div>
                     <button onClick={logout}
-                        className="w-full text-left px-2 py-1.5 rounded-lg text-xs text-dim transition-colors hover:text-red hover:bg-red/10">
+                        className="w-full min-h-10 text-left px-3 py-2 text-xs font-medium text-sub border border-border transition-colors hover:text-red hover:border-red/40">
                         Sign out
                     </button>
                 </div>
@@ -150,7 +149,7 @@ export default function EmployeeLayout({ children, title }) {
                 <MobileHeader title={title} unreadCount={unreadCount} isDark={isDark} onToggleTheme={toggleTheme} />
 
                 {/* Page content */}
-                <main className="flex-1 pb-20 md:pb-0">
+                <main id="main-content" tabIndex="-1" className="flex-1 pb-20 md:pb-0">
                     {children}
                 </main>
             </div>
@@ -171,10 +170,10 @@ function NavLink({ item, currentUrl }) {
     const active = currentUrl.startsWith(item.href)
     return (
         <Link href={item.href}
-            className={`flex items-center gap-2 px-4 py-2 text-xs transition-colors border-l-2 ${
+            className={`flex items-center min-h-10 mx-3 px-3 py-2 text-xs font-medium transition-colors border-l-2 ${
                 active
-                    ? 'text-text bg-teal/10 border-l-teal'
-                    : 'text-sub border-l-transparent hover:text-text'
+                    ? 'text-brand bg-brand/10 border-l-brand'
+                    : 'text-sub border-l-transparent hover:text-text hover:bg-field'
             }`}>
             {item.label}
         </Link>

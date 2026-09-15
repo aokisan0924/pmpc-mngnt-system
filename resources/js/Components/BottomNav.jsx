@@ -82,14 +82,15 @@ export default function BottomNav({ unreadCount = 0 }) {
         : tabs
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden backdrop-blur-xl border-t border-border bg-panel/90"
+        <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden border-t border-border bg-panel"
+            aria-label="Mobile navigation"
             style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
             <div className="flex">
                 {visibleTabs.map(tab => {
                     const active = currentUrl.startsWith(tab.href)
                     return (
                         <Link key={tab.href} href={tab.href}
-                            className={`flex-1 flex flex-col items-center justify-center py-2 relative ${active ? 'text-teal' : 'text-dim'}`}>
+                            className={`flex-1 min-h-16 flex flex-col items-center justify-center py-2 relative transition-colors ${active ? 'text-brand bg-brand/5' : 'text-dim'}`}>
 
                             <div className="relative">
                                 {tab.icon(active)}
@@ -101,12 +102,12 @@ export default function BottomNav({ unreadCount = 0 }) {
                                 )}
                             </div>
 
-                            <span className={`mt-0.5 font-medium text-[10px] ${active ? 'text-teal' : 'text-dim'}`}>
+                            <span className={`mt-1 font-semibold text-[10px] ${active ? 'text-brand' : 'text-dim'}`}>
                                 {tab.label}
                             </span>
 
                             {active && (
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-teal" />
+                                <div className="absolute top-0 inset-x-2 h-0.5 bg-brand" />
                             )}
                         </Link>
                     )

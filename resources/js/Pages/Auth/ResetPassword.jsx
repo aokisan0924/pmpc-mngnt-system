@@ -41,12 +41,12 @@ export default function ResetPassword({ email, token }) {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#F6F4EF] px-4 py-8 sm:py-12">
-            <div className="w-full max-w-4xl rounded-2xl sm:rounded-[28px] overflow-hidden shadow-xl border border-black/5 bg-white flex flex-col md:flex-row">
+        <div className="min-h-screen flex items-center justify-center bg-bg px-4 py-8 sm:py-12 swiss-grid">
+            <div className="w-full max-w-4xl overflow-hidden shadow-xl border border-border bg-panel flex flex-col md:flex-row">
 
                 <div
                     className="relative md:w-64 flex-shrink-0 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-between gap-4 md:gap-0 px-5 py-4 md:p-7 overflow-hidden"
-                    style={{ background: 'linear-gradient(160deg, #0F6E56 0%, #0B5344 100%)' }}
+                    style={{ background: 'var(--color-brand)' }}
                 >
                     <svg
                         className="pointer-events-none absolute -right-10 -bottom-10 w-40 h-40 md:w-56 md:h-56 opacity-[0.08]"
@@ -74,37 +74,37 @@ export default function ResetPassword({ email, token }) {
                     </p>
                 </div>
 
-                <div className="flex-1 flex flex-col justify-center px-5 py-7 sm:px-8 sm:py-8 md:px-10 md:py-10 bg-gray-50">
-                    <h1 className="text-xl sm:text-lg font-semibold text-gray-900 mb-1">Set a new password</h1>
-                    <p className="text-sm text-gray-500 mb-6">Choose a new password for your account.</p>
+                <div className="flex-1 flex flex-col justify-center px-5 py-7 sm:px-8 sm:py-8 md:px-10 md:py-10 bg-bg">
+                    <h1 className="text-xl sm:text-2xl font-bold text-text mb-1">Set a new password</h1>
+                    <p className="text-sm text-sub mb-6">Choose a new password for your account.</p>
 
                     <form onSubmit={submit} className="space-y-4" noValidate>
                         <div>
-                            <label htmlFor="email" className="block text-xs font-medium text-gray-600 mb-1">Email address</label>
+                            <label htmlFor="email" className="block text-sm font-medium text-text mb-2">Email address</label>
                             <input id="email" type="email"
                                 value={data.email}
                                 onChange={e => setData('email', e.target.value)}
-                                className="w-full px-3 py-2.5 sm:py-2 text-sm rounded-lg border border-gray-300 bg-white transition-shadow focus:outline-none focus:ring-2 focus:ring-[#0F6E56]/40 focus:border-[#0F6E56]"
+                                className="w-full px-4 py-3 text-sm border border-border bg-panel text-text focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand"
                                 autoComplete="username"
                                 required />
                             {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email}</p>}
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-xs font-medium text-gray-600 mb-1">New password</label>
+                            <label htmlFor="password" className="block text-sm font-medium text-text mb-2">New password</label>
                             <div className="relative">
                                 <input id="password" type={showPassword ? 'text' : 'password'}
                                     value={data.password}
                                     onChange={e => setData('password', e.target.value)}
                                     placeholder="At least 8 characters"
-                                    className="w-full px-3 py-2.5 sm:py-2 pr-10 text-sm rounded-lg border border-gray-300 bg-white transition-shadow focus:outline-none focus:ring-2 focus:ring-[#0F6E56]/40 focus:border-[#0F6E56]"
+                                    className="w-full px-4 py-3 pr-12 text-sm border border-border bg-panel text-text focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand"
                                     autoComplete="new-password"
                                     aria-invalid={Boolean(errors.password)}
                                     required />
                                 <button type="button"
                                     onClick={() => setShowPassword(s => !s)}
                                     aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                    className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:text-[#0F6E56]">
+                                    className="absolute inset-y-0 right-0 flex items-center justify-center w-12 text-dim hover:text-brand focus:outline-none">
                                     <EyeIcon off={showPassword} />
                                 </button>
                             </div>
@@ -112,18 +112,17 @@ export default function ResetPassword({ email, token }) {
                         </div>
 
                         <div>
-                            <label htmlFor="password_confirmation" className="block text-xs font-medium text-gray-600 mb-1">Confirm new password</label>
+                            <label htmlFor="password_confirmation" className="block text-sm font-medium text-text mb-2">Confirm new password</label>
                             <input id="password_confirmation" type={showPassword ? 'text' : 'password'}
                                 value={data.password_confirmation}
                                 onChange={e => setData('password_confirmation', e.target.value)}
-                                className="w-full px-3 py-2.5 sm:py-2 text-sm rounded-lg border border-gray-300 bg-white transition-shadow focus:outline-none focus:ring-2 focus:ring-[#0F6E56]/40 focus:border-[#0F6E56]"
+                                className="w-full px-4 py-3 text-sm border border-border bg-panel text-text focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand"
                                 autoComplete="new-password"
                                 required />
                         </div>
 
                         <button type="submit" disabled={processing}
-                            className="w-full py-3 sm:py-2.5 text-sm font-medium text-white rounded-lg transition-opacity disabled:opacity-60 hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0F6E56]"
-                            style={{ background: '#0F6E56' }}>
+                            className="w-full py-3 text-sm font-semibold text-white bg-brand transition-opacity disabled:opacity-60 hover:opacity-90">
                             {processing ? 'Resetting…' : 'Reset password'}
                         </button>
                     </form>

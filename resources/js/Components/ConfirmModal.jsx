@@ -44,7 +44,7 @@ export default function ConfirmModal({
                 onClick={onCancel} />
 
             {/* Modal */}
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-auto p-6
+            <div className="relative bg-panel border border-border shadow-2xl w-full max-w-sm mx-auto p-6
                             transform transition-all animate-in"
                 style={{ animation: 'modalIn .18s ease-out both' }}>
 
@@ -55,10 +55,10 @@ export default function ConfirmModal({
 
                 {/* Content */}
                 <h2 id="modal-title"
-                    className="text-base font-semibold text-gray-900 text-center mb-2">
+                    className="text-base font-semibold text-text text-center mb-2">
                     {title}
                 </h2>
-                <p className="text-sm text-gray-500 text-center leading-relaxed mb-6">
+                <p className="text-sm text-sub text-center leading-relaxed mb-6">
                     {message}
                 </p>
 
@@ -66,8 +66,8 @@ export default function ConfirmModal({
                 <div className="flex gap-3">
                     <button onClick={onCancel}
                         disabled={processing}
-                        className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700
-                                bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors
+                        className="flex-1 px-4 py-2.5 text-sm font-medium text-sub
+                                bg-field hover:text-text border border-border transition-colors
                                 disabled:opacity-50">
                         {cancelLabel}
                     </button>

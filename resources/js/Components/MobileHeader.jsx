@@ -28,18 +28,17 @@ export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleT
 
     return (
         <>
-            <header className="md:hidden sticky top-0 z-30 backdrop-blur-xl border-b border-border bg-panel/90 px-4 py-3">
+            <header className="md:hidden sticky top-0 z-30 border-b border-border bg-panel px-4 py-3">
                 <div className="flex items-center justify-between">
                     {/* Brand */}
                     <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-7 h-7 rounded-lg flex items-center justify-center border flex-shrink-0 bg-teal/10 border-teal/30">
-                            <svg className="w-4 h-4 text-teal" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round"
-                                    d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m6-4a4 4 0 10-8 0 4 4 0 008 0z"/>
+                        <div className="w-9 h-9 flex items-center justify-center flex-shrink-0 bg-brand text-white">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 32 32" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+                                <circle cx="12" cy="12" r="7" /><circle cx="20" cy="12" r="7" /><circle cx="16" cy="20" r="7" />
                             </svg>
                         </div>
                         <div className="min-w-0">
-                            <p className="text-xs font-medium leading-tight text-text truncate">PMPC WorkForce</p>
+                            <p className="text-xs font-bold leading-tight text-text truncate">PMPC WorkForce</p>
                             {title && <p className="text-xs text-dim truncate">{title}</p>}
                         </div>
                     </div>
@@ -67,8 +66,8 @@ export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleT
                         )}
 
                         {/* Avatar / menu toggle */}
-                        <button onClick={() => setMenuOpen(!menuOpen)}
-                            className="w-7 h-7 rounded-full flex items-center justify-center font-mono font-medium text-xs border flex-shrink-0 bg-teal/10 text-teal border-teal/30">
+                        <button onClick={() => setMenuOpen(!menuOpen)} aria-label="Open account menu" aria-expanded={menuOpen}
+                            className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-xs border flex-shrink-0 bg-brand/10 text-brand border-brand/30">
                             {employee?.initials}
                         </button>
                     </div>
@@ -80,7 +79,7 @@ export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleT
                 <>
                     <div className="md:hidden fixed inset-0 z-20 bg-black/60"
                         onClick={() => setMenuOpen(false)} />
-                    <div className="md:hidden fixed top-14 right-3 z-30 rounded-2xl shadow-xl border border-border backdrop-blur-xl w-56 overflow-hidden bg-panel">
+                    <div className="md:hidden fixed top-16 right-3 z-30 shadow-xl border border-border w-64 overflow-hidden bg-panel" role="dialog" aria-label="Account menu">
                         {/* User info */}
                         <div className="px-4 py-3 border-b border-border bg-teal/10">
                             <p className="text-sm font-medium text-text">{employee?.full_name}</p>

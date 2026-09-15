@@ -3,191 +3,123 @@ import { useForm, usePage } from '@inertiajs/react'
 import ThemeToggle from '@/Components/ThemeToggle'
 import useTheme from '@/hooks/useTheme'
 
-const NAV_ITEMS = [
-    { icon: '⏱', label: 'Daily time record' },
-    { icon: '📅', label: 'Task planner' },
-    { icon: '💰', label: 'Payroll' },
-    { icon: '👤', label: 'Employee profile' },
-]
-
-// Cooperative mark: three interlocking rings — shared ownership, shared work.
-function CoopMark({ className = 'w-5 h-5' }) {
+function CoopMark({ className = 'w-6 h-6' }) {
     return (
-        <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="9" cy="9" r="5.5" stroke="currentColor" strokeWidth="1.6" />
-            <circle cx="15" cy="9" r="5.5" stroke="currentColor" strokeWidth="1.6" />
-            <circle cx="12" cy="14.5" r="5.5" stroke="currentColor" strokeWidth="1.6" />
+        <svg className={className} viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.8" />
+            <circle cx="20" cy="12" r="7" stroke="currentColor" strokeWidth="1.8" />
+            <circle cx="16" cy="20" r="7" stroke="currentColor" strokeWidth="1.8" />
         </svg>
     )
 }
 
-function EyeIcon({ off, className = 'w-4 h-4' }) {
+function EyeIcon({ off }) {
     return off ? (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.6 10.6a2.5 2.5 0 003.5 3.5M9.9 5.1A10.4 10.4 0 0112 5c5 0 9 3.5 10 7-.4 1.3-1.1 2.5-2 3.6M6.2 6.6C4.3 7.9 2.9 9.7 2 12c1 3.5 5 7 10 7 1.4 0 2.7-.3 3.9-.7" />
         </svg>
     ) : (
-        <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M2 12c1-3.5 5-7 10-7s9 3.5 10 7c-1 3.5-5 7-10 7s-9-3.5-10-7z" />
-            <circle cx="12" cy="12" r="3" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="12" cy="12" r="3" />
         </svg>
     )
 }
 
+const FEATURES = [
+    ['Daily time record', <path key="dtr" strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />],
+    ['Tasks and schedules', <path key="tasks" strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12h14V7a2 2 0 00-2-2h-2M9 5a3 3 0 006 0M8 13l2 2 5-5" />],
+    ['Payroll and payslips', <path key="pay" strokeLinecap="round" strokeLinejoin="round" d="M7 3h10a2 2 0 012 2v16l-3-2-4 2-4-2-3 2V5a2 2 0 012-2zm2 6h6m-6 4h6" />],
+    ['Employee records', <path key="records" strokeLinecap="round" strokeLinejoin="round" d="M16 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2m6.5-10a4 4 0 100-8 4 4 0 000 8zm7-1 2 2 4-4" />],
+]
+
 export default function Login() {
     const { errors } = usePage().props
-    const [activeTab, setActiveTab] = useState('employee')
-    const [showPassword, setShowPassword] = useState(false)
     const { isDark, toggleTheme } = useTheme()
+    const [showPassword, setShowPassword] = useState(false)
+    const { data, setData, post, processing } = useForm({ login: '', password: '', remember: false })
 
-    const { data, setData, post, processing } = useForm({
-        login: '',
-        password: '',
-        remember: false,
-    })
-
-    function submit(e) {
-        e.preventDefault()
+    function submit(event) {
+        event.preventDefault()
         post('/login')
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-bg px-4 py-8 sm:py-12">
-            <div className="w-full max-w-4xl rounded-2xl sm:rounded-[28px] overflow-hidden shadow-xl border border-border bg-panel flex flex-col md:flex-row">
-
-                {/* Brand panel — full-width strip on mobile, side rail on desktop */}
-                <div
-                    className="relative md:w-64 flex-shrink-0 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-between gap-4 md:gap-0 px-5 py-4 md:p-7 overflow-hidden"
-                    style={{ background: 'linear-gradient(160deg, var(--color-teal) 0%, color-mix(in srgb, var(--color-teal) 65%, black) 100%)' }}
-                >
-                    {/* Signature texture: faint interlocking-ring pattern */}
-                    <svg
-                        className="pointer-events-none absolute -right-10 -bottom-10 w-40 h-40 md:w-56 md:h-56 opacity-[0.08]"
-                        viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <circle cx="9" cy="9" r="5.5" stroke="white" strokeWidth="0.6" />
-                        <circle cx="15" cy="9" r="5.5" stroke="white" strokeWidth="0.6" />
-                        <circle cx="12" cy="14.5" r="5.5" stroke="white" strokeWidth="0.6" />
-                    </svg>
-
-                    <div className="flex items-center gap-2.5 md:mb-8 relative">
-                        <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
-                            style={{ background: 'rgba(255,255,255,0.15)' }}>
-                            <CoopMark className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                            <p className="text-white text-sm md:text-xs font-semibold leading-tight">PMPC EMS</p>
-                            <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.55)' }}>People&apos;s Multi-Purpose Cooperative</p>
-                        </div>
+        <main className="min-h-screen bg-bg lg:grid lg:grid-cols-[minmax(320px,44%)_1fr]">
+            <section className="relative overflow-hidden bg-brand text-white px-6 py-7 sm:px-10 lg:px-14 lg:py-12 lg:min-h-screen flex flex-col" aria-label="About PMPC WorkForce">
+                <div className="absolute inset-0 opacity-[0.13] swiss-grid" aria-hidden="true" />
+                <div className="relative flex items-center gap-3 border-b border-white/30 pb-6">
+                    <div className="w-11 h-11 border border-white/50 flex items-center justify-center"><CoopMark /></div>
+                    <div>
+                        <p className="text-base font-semibold tracking-tight">PMPC WorkForce</p>
+                        <p className="text-xs text-white/70">People&apos;s Multi-Purpose Cooperative</p>
                     </div>
-
-                    {/* Nav list: hidden on small screens to keep the header compact, shown from md up */}
-                    <div className="hidden md:block relative">
-                        {NAV_ITEMS.map((item) => (
-                            <div key={item.label}
-                                className="flex items-center gap-2 px-2 py-2 rounded-lg mb-0.5"
-                                style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
-                                <span>{item.icon}</span>
-                                <span>{item.label}</span>
-                            </div>
-                        ))}
-                    </div>
-
-                    <p className="hidden md:block relative" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, lineHeight: 1.5 }}>
-                        Employee Management System v2.0<br />
-                        People&apos;s Multi-Purpose Cooperative
-                    </p>
                 </div>
 
-                {/* Form panel */}
-                <div className="relative flex-1 flex flex-col justify-center px-5 py-7 sm:px-8 sm:py-8 md:px-10 md:py-10 bg-field">
-                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5">
-                        <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+                <div className="relative flex-1 flex flex-col justify-center py-10 lg:py-16">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/65 mb-4">Employee management system</p>
+                    <h1 className="font-display text-[clamp(2.6rem,6vw,6.6rem)] leading-[0.88] font-bold tracking-[-0.07em] max-w-2xl">Work,<br />clearly.</h1>
+                    <p className="mt-6 text-sm sm:text-base leading-relaxed text-white/75 max-w-md">Attendance, employee records, payroll, and personal tasks in one cooperative workspace.</p>
+                </div>
+
+                <div className="relative hidden sm:grid grid-cols-2 border-t border-l border-white/30">
+                    {FEATURES.map(([label, icon]) => (
+                        <div key={label} className="flex items-center gap-3 px-4 py-3 border-r border-b border-white/30 text-xs text-white/80">
+                            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">{icon}</svg>
+                            <span>{label}</span>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            <section className="relative flex items-center justify-center px-6 py-12 sm:px-12 lg:px-16">
+                <div className="absolute top-5 right-5"><ThemeToggle isDark={isDark} onToggle={toggleTheme} /></div>
+                <div className="w-full max-w-md page-enter">
+                    <div className="mb-9">
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand mb-3">Secure access</p>
+                        <h2 className="font-display text-3xl sm:text-4xl font-bold text-text tracking-tight">Sign in</h2>
+                        <p className="text-sm text-sub mt-2 leading-relaxed">Use your employee ID or email. We&apos;ll open the correct portal for your account.</p>
                     </div>
 
-                    <h1 className="text-xl sm:text-lg font-semibold text-text mb-1">Welcome back</h1>
-                    <p className="text-sm text-sub mb-6">Sign in to your account to continue</p>
-
-                    {/* Role tabs */}
-                    <div className="flex gap-1 p-1 bg-panel rounded-lg mb-6 ring-1 ring-border" role="tablist">
-                        {['employee', 'super_admin'].map((tab) => (
-                            <button key={tab} type="button"
-                                role="tab"
-                                aria-selected={activeTab === tab}
-                                onClick={() => setActiveTab(tab)}
-                                className={`flex-1 text-xs sm:text-xs py-2.5 sm:py-1.5 rounded-md font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ${
-                                    activeTab === tab
-                                        ? 'bg-field text-text shadow-sm ring-1 ring-border'
-                                        : 'text-sub hover:text-text'
-                                }`}>
-                                {tab === 'employee' ? 'Employee' : 'Super admin'}
-                            </button>
-                        ))}
-                    </div>
-
-                    <form onSubmit={submit} className="space-y-4" noValidate>
+                    <form onSubmit={submit} className="space-y-5" noValidate>
                         <div>
-                            <label htmlFor="login" className="block text-xs font-medium text-sub mb-1">
-                                {activeTab === 'employee' ? 'Employee ID or email' : 'Admin username'}
-                            </label>
-                            <input id="login" type="text"
-                                value={data.login}
-                                onChange={e => setData('login', e.target.value)}
-                                placeholder={activeTab === 'employee' ? 'e.g. 2029-00078' : 'Admin username'}
-                                className="w-full px-3 py-2.5 sm:py-2 text-sm rounded-lg border border-border bg-panel text-text transition-shadow focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal"
-                                autoComplete="username"
-                                aria-invalid={Boolean(errors.login)}
-                                aria-describedby={errors.login ? 'login-error' : undefined}
-                                required />
-                            {errors.login && <p id="login-error" className="mt-1 text-xs text-red">{errors.login}</p>}
+                            <label htmlFor="login" className="block text-sm font-medium text-text mb-2">Employee ID or email</label>
+                            <input id="login" type="text" value={data.login} onChange={(event) => setData('login', event.target.value)}
+                                placeholder="Enter your employee ID or email"
+                                className="w-full min-h-12 px-4 py-3 text-sm border border-border bg-panel text-text transition-colors focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                                autoComplete="username" aria-invalid={Boolean(errors.login)} aria-describedby={errors.login ? 'login-error' : 'login-help'} autoFocus required />
+                            {errors.login ? <p id="login-error" className="mt-2 text-xs text-red" role="alert">{errors.login}</p> : <p id="login-help" className="mt-2 text-xs text-dim">Example: 2026-00028</p>}
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-xs font-medium text-sub mb-1">Password</label>
-                            <div className="relative">
-                                <input id="password" type={showPassword ? 'text' : 'password'}
-                                    value={data.password}
-                                    onChange={e => setData('password', e.target.value)}
-                                    placeholder="Enter your password"
-                                    className="w-full px-3 py-2.5 sm:py-2 pr-10 text-sm rounded-lg border border-border bg-panel text-text transition-shadow focus:outline-none focus:ring-2 focus:ring-teal/40 focus:border-teal"
-                                    autoComplete="current-password"
-                                    aria-invalid={Boolean(errors.password)}
-                                    aria-describedby={errors.password ? 'password-error' : undefined}
-                                    required />
-                                <button type="button"
-                                    onClick={() => setShowPassword(s => !s)}
-                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                                    aria-pressed={showPassword}
-                                    className="absolute inset-y-0 right-0 flex items-center justify-center w-10 text-dim hover:text-sub focus:outline-none focus-visible:text-teal">
-                                    <EyeIcon off={showPassword} />
-                                </button>
+                            <div className="flex items-center justify-between gap-4 mb-2">
+                                <label htmlFor="password" className="text-sm font-medium text-text">Password</label>
+                                <a href="/forgot-password" className="text-xs font-medium text-brand hover:underline">Forgot password?</a>
                             </div>
-                            {errors.password && <p id="password-error" className="mt-1 text-xs text-red">{errors.password}</p>}
+                            <div className="relative">
+                                <input id="password" type={showPassword ? 'text' : 'password'} value={data.password} onChange={(event) => setData('password', event.target.value)}
+                                    placeholder="Enter your password"
+                                    className="w-full min-h-12 px-4 py-3 pr-12 text-sm border border-border bg-panel text-text transition-colors focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                                    autoComplete="current-password" aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? 'password-error' : undefined} required />
+                                <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword}
+                                    className="absolute inset-y-0 right-0 w-12 flex items-center justify-center text-dim hover:text-brand"><EyeIcon off={showPassword} /></button>
+                            </div>
+                            {errors.password && <p id="password-error" className="mt-2 text-xs text-red" role="alert">{errors.password}</p>}
                         </div>
 
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                            <label className="flex items-center gap-2 text-xs text-sub cursor-pointer select-none">
-                                <input type="checkbox"
-                                    checked={data.remember}
-                                    onChange={e => setData('remember', e.target.checked)}
-                                    className="rounded border-border text-teal focus:ring-teal/40 w-4 h-4" />
-                                Remember me
-                            </label>
-                            <a href="/forgot-password" className="text-xs font-medium hover:underline text-teal">Forgot password?</a>
-                        </div>
+                        <label className="flex items-center gap-3 min-h-11 text-sm text-sub cursor-pointer select-none w-fit">
+                            <input type="checkbox" checked={data.remember} onChange={(event) => setData('remember', event.target.checked)} className="w-4 h-4 rounded-none border-border text-brand focus:ring-brand" />
+                            Remember me on this device
+                        </label>
 
-                        <button type="submit" disabled={processing}
-                            className="w-full py-3 sm:py-2.5 text-sm font-medium rounded-lg transition-opacity disabled:opacity-60 hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-teal bg-teal"
-                            style={{ color: 'var(--color-bg)' }}>
+                        <button type="submit" disabled={processing} className="w-full min-h-12 px-5 py-3 bg-brand text-white text-sm font-semibold transition-colors hover:bg-[#001f78] disabled:cursor-wait disabled:opacity-60">
                             {processing ? 'Signing in…' : 'Sign in'}
                         </button>
                     </form>
 
-                    <p className="mt-6 pt-4 border-t border-border text-xs text-dim text-center">
-                        Having trouble signing in? Contact your HR administrator.
-                    </p>
+                    <p className="mt-8 pt-5 border-t border-border text-xs text-dim">Having trouble signing in? Contact your HR administrator.</p>
                 </div>
-            </div>
-        </div>
+            </section>
+        </main>
     )
 }

@@ -11,13 +11,13 @@
         <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
         <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('android-chrome-192x192.png') }}">
         <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('android-chrome-512x512.png') }}">
-        <meta name="theme-color" content="#0F6E56">
+        <meta name="theme-color" content="#002FA7">
 
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.jsx'])
         @inertiaHead
     </head>
-    <body class="antialiased bg-gray-50">
+    <body class="antialiased bg-bg">
         @inertia
     </body>
 </html>
