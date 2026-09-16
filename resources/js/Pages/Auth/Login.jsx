@@ -92,13 +92,7 @@ export default function Login() {
             {/* ── Right Form Section ── */}
             <section className="relative flex items-center justify-center px-6 py-12 sm:px-12 lg:px-16">
                 {/* Top Utility Bar */}
-                <div className="absolute top-5 right-5 flex items-center gap-2 sm:gap-3">
-                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-panel/80 backdrop-blur-xs text-xs text-sub shadow-2xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="font-medium text-text">System Active</span>
-                        <span className="text-dim">•</span>
-                        <span className="text-[11px] text-dim">Asia/Manila (GMT+8)</span>
-                    </div>
+                <div className="absolute top-5 right-5 flex items-center">
                     <ThemeToggle isDark={isDark} onToggle={toggleTheme} className="rounded-lg shadow-2xs" />
                 </div>
 
@@ -107,18 +101,6 @@ export default function Login() {
                         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0F6E56] dark:text-emerald-400 mb-3">Secure access</p>
                         <h2 className="font-display text-3xl sm:text-4xl font-bold text-text tracking-tight">Sign in</h2>
                         <p className="text-sm text-sub mt-2 leading-relaxed">Use your employee ID or email. We&apos;ll open the correct portal for your account.</p>
-
-                        {/* Dual-Portal Destination Indicator Pills */}
-                        <div className="flex flex-wrap items-center gap-2 mt-3.5">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50 shadow-2xs">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                Employee Portal
-                            </span>
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-indigo-50 text-indigo-800 border border-indigo-200/80 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/50 shadow-2xs">
-                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                                HR &amp; Admin Console
-                            </span>
-                        </div>
                     </div>
 
                     <form onSubmit={submit} className="space-y-5" noValidate>
