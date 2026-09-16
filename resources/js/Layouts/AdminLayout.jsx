@@ -119,16 +119,17 @@ const navItems = [
 ]
 
 export default function AdminLayout({ children, pendingEditCount = 0 }) {
-    const { auth } = usePage().props
+    const page = usePage()
+    const { auth } = page.props
     const employee = auth?.employee
     const { isDark, toggleTheme } = useTheme()
     const [drawerOpen, setDrawerOpen] = useState(false)
-    const currentUrl = window.location.pathname
+    const currentUrl = new URL(page.url, 'http://localhost').pathname
     const sections = [...new Set(navItems.map(i => i.section))]
 
     const activeItem = navItems
         .filter(i => currentUrl === i.href || currentUrl.startsWith(i.href + '/'))
-        .reduce((best, i) => (!best || i.href.length > best.length ? i : best), navItems[0])
+        .reduce((best, i) => (!best || i.href.length > best.href.length ? i : best), null) ?? navItems[0]
 
     function logout() {
         router.post('/logout')
@@ -271,14 +272,15 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
                                         key={item.href}
                                         href={item.href}
                                         onClick={onNavigate}
-                                        className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 ${
+                                        aria-current={active ? 'page' : undefined}
+                                        className={`relative flex items-center justify-between rounded-lg border-l-2 py-2 pr-3 text-xs font-medium transition-all duration-150 ${
                                             active
-                                                ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 font-semibold shadow-2xs'
-                                                : 'text-sub hover:text-text hover:bg-field'
+                                                ? 'border-indigo-600 bg-indigo-100/80 pl-2.5 text-indigo-950 font-semibold shadow-2xs dark:border-indigo-400 dark:bg-indigo-950/70 dark:text-indigo-100'
+                                                : 'border-transparent px-3 text-sub hover:bg-field hover:text-text'
                                         }`}
                                     >
                                         <div className="flex items-center gap-2.5 min-w-0">
-                                            <span className={active ? 'text-indigo-600 dark:text-indigo-400' : 'text-dim group-hover:text-sub'}>
+                                            <span className={active ? 'text-indigo-700 dark:text-indigo-300' : 'text-dim'}>
                                                 {item.icon}
                                             </span>
                                             <span className="truncate">{item.label}</span>
