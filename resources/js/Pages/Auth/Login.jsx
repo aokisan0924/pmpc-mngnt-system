@@ -46,25 +46,25 @@ export default function Login() {
 
     return (
         <main className="login-portal min-h-screen bg-bg lg:grid lg:grid-cols-[minmax(320px,44%)_1fr]">
-            <section className="relative overflow-hidden bg-brand text-white px-6 py-7 sm:px-10 lg:px-14 lg:py-12 lg:min-h-screen flex flex-col" aria-label="About PMPC WorkForce">
-                <div className="absolute inset-0 opacity-[0.13] swiss-grid" aria-hidden="true" />
-                <div className="relative flex items-center gap-3 border-b border-white/30 pb-6">
-                    <div className="w-11 h-11 border border-white/50 flex items-center justify-center"><CoopMark /></div>
+            <section className="relative overflow-hidden bg-[#0F6E56] dark:bg-[#071D16] text-white px-6 py-7 sm:px-10 lg:px-14 lg:py-12 lg:min-h-screen flex flex-col border-b lg:border-b-0 lg:border-r border-white/20 dark:border-emerald-950/80 transition-colors" aria-label="About PMPC WorkForce">
+                <div className="absolute inset-0 opacity-[0.13] dark:opacity-[0.06] swiss-grid" aria-hidden="true" />
+                <div className="relative flex items-center gap-3 border-b border-white/30 dark:border-white/15 pb-6">
+                    <div className="w-11 h-11 border border-white/50 dark:border-white/30 flex items-center justify-center"><CoopMark /></div>
                     <div>
                         <p className="text-base font-semibold tracking-tight">PMPC WorkForce</p>
-                        <p className="text-xs text-white/70">People&apos;s Multi-Purpose Cooperative</p>
+                        <p className="text-xs text-white/70 dark:text-white/60">People&apos;s Multi-Purpose Cooperative</p>
                     </div>
                 </div>
 
                 <div className="relative flex-1 flex flex-col justify-center py-10 lg:py-16">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/65 mb-4">Employee management system</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/65 dark:text-white/50 mb-4">Employee management system</p>
                     <h1 className="font-display text-[clamp(2.6rem,6vw,6.6rem)] leading-[0.88] font-bold tracking-[-0.07em] max-w-2xl">Work,<br />clearly.</h1>
-                    <p className="mt-6 text-sm sm:text-base leading-relaxed text-white/75 max-w-md">Attendance, employee records, payroll, and personal tasks in one cooperative workspace.</p>
+                    <p className="mt-6 text-sm sm:text-base leading-relaxed text-white/75 dark:text-white/65 max-w-md">Attendance, employee records, payroll, and personal tasks in one cooperative workspace.</p>
                 </div>
 
-                <div className="relative hidden sm:grid grid-cols-2 border-t border-l border-white/30">
+                <div className="relative hidden sm:grid grid-cols-2 border-t border-l border-white/30 dark:border-white/15">
                     {FEATURES.map(([label, icon]) => (
-                        <div key={label} className="flex items-center gap-3 px-4 py-3 border-r border-b border-white/30 text-xs text-white/80">
+                        <div key={label} className="flex items-center gap-3 px-4 py-3 border-r border-b border-white/30 dark:border-white/15 text-xs text-white/80 dark:text-white/70">
                             <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">{icon}</svg>
                             <span>{label}</span>
                         </div>
@@ -76,7 +76,7 @@ export default function Login() {
                 <div className="absolute top-5 right-5"><ThemeToggle isDark={isDark} onToggle={toggleTheme} /></div>
                 <div className="w-full max-w-md page-enter">
                     <div className="mb-9">
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand mb-3">Secure access</p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-400 mb-3">Secure access</p>
                         <h2 className="font-display text-3xl sm:text-4xl font-bold text-text tracking-tight">Sign in</h2>
                         <p className="text-sm text-sub mt-2 leading-relaxed">Use your employee ID or email. We&apos;ll open the correct portal for your account.</p>
                     </div>
@@ -86,7 +86,7 @@ export default function Login() {
                             <label htmlFor="login" className="block text-sm font-medium text-text mb-2">Employee ID or email</label>
                             <input id="login" type="text" value={data.login} onChange={(event) => setData('login', event.target.value)}
                                 placeholder="Enter your employee ID or email"
-                                className="w-full min-h-12 px-4 py-3 text-sm border border-border bg-panel text-text transition-colors focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                                className="w-full min-h-12 px-4 py-3 text-sm border border-border bg-panel text-text transition-colors focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500 focus:ring-1 focus:ring-emerald-600 dark:focus:ring-emerald-500"
                                 autoComplete="username" aria-invalid={Boolean(errors.login)} aria-describedby={errors.login ? 'login-error' : 'login-help'} autoFocus required />
                             {errors.login ? <p id="login-error" className="mt-2 text-xs text-red" role="alert">{errors.login}</p> : <p id="login-help" className="mt-2 text-xs text-dim">Example: 2026-00028</p>}
                         </div>
@@ -94,25 +94,25 @@ export default function Login() {
                         <div>
                             <div className="flex items-center justify-between gap-4 mb-2">
                                 <label htmlFor="password" className="text-sm font-medium text-text">Password</label>
-                                <a href="/forgot-password" className="text-xs font-medium text-brand hover:underline">Forgot password?</a>
+                                <a href="/forgot-password" className="text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:underline">Forgot password?</a>
                             </div>
                             <div className="relative">
                                 <input id="password" type={showPassword ? 'text' : 'password'} value={data.password} onChange={(event) => setData('password', event.target.value)}
                                     placeholder="Enter your password"
-                                    className="w-full min-h-12 px-4 py-3 pr-12 text-sm border border-border bg-panel text-text transition-colors focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand"
+                                    className="w-full min-h-12 px-4 py-3 pr-12 text-sm border border-border bg-panel text-text transition-colors focus:outline-none focus:border-emerald-600 dark:focus:border-emerald-500 focus:ring-1 focus:ring-emerald-600 dark:focus:ring-emerald-500"
                                     autoComplete="current-password" aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? 'password-error' : undefined} required />
                                 <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword}
-                                    className="absolute inset-y-0 right-0 w-12 flex items-center justify-center text-dim hover:text-brand"><EyeIcon off={showPassword} /></button>
+                                    className="absolute inset-y-0 right-0 w-12 flex items-center justify-center text-dim hover:text-emerald-700 dark:hover:text-emerald-400"><EyeIcon off={showPassword} /></button>
                             </div>
                             {errors.password && <p id="password-error" className="mt-2 text-xs text-red" role="alert">{errors.password}</p>}
                         </div>
 
                         <label className="flex items-center gap-3 min-h-11 text-sm text-sub cursor-pointer select-none w-fit">
-                            <input type="checkbox" checked={data.remember} onChange={(event) => setData('remember', event.target.checked)} className="w-4 h-4 rounded-none border-border text-brand focus:ring-brand" />
+                            <input type="checkbox" checked={data.remember} onChange={(event) => setData('remember', event.target.checked)} className="w-4 h-4 rounded-none border-border text-emerald-600 dark:text-emerald-500 focus:ring-emerald-600 dark:focus:ring-emerald-500" />
                             Remember me on this device
                         </label>
 
-                        <button type="submit" disabled={processing} className="w-full min-h-12 px-5 py-3 bg-brand text-white text-sm font-semibold transition-[filter] hover:brightness-90 disabled:cursor-wait disabled:opacity-60">
+                        <button type="submit" disabled={processing} className="w-full min-h-12 px-5 py-3 bg-[#0F6E56] hover:bg-[#0C5946] dark:bg-[#0F6E56] dark:hover:bg-[#138266] text-white text-sm font-semibold transition-colors disabled:cursor-wait disabled:opacity-60 shadow-xs">
                             {processing ? 'Signing in…' : 'Sign in'}
                         </button>
                     </form>

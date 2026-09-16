@@ -143,15 +143,15 @@
 }
 
 .dark .employee-portal {
-    --color-brand: #47D7AC;
-    --color-indigo: #47D7AC;
-    --color-violet: #47D7AC;
-    --color-emerald: #47D7AC;
-    --color-teal: #47D7AC;
+    --color-brand: #2BB38C;
+    --color-indigo: #2BB38C;
+    --color-violet: #2BB38C;
+    --color-emerald: #2BB38C;
+    --color-teal: #2BB38C;
 }
 
 .dark .login-portal {
-    --color-brand: #47D7AC;
+    --color-brand: #2BB38C;
 }
 
 @layer base {
