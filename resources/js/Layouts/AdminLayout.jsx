@@ -273,14 +273,14 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
                                         href={item.href}
                                         onClick={onNavigate}
                                         aria-current={active ? 'page' : undefined}
-                                        className={`relative flex items-center justify-between rounded-lg border-l-2 py-2 pr-3 text-xs font-medium transition-all duration-150 ${
+                                        className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150 ${
                                             active
-                                                ? 'border-indigo-600 bg-indigo-100/80 pl-2.5 text-indigo-950 font-semibold shadow-2xs dark:border-indigo-400 dark:bg-indigo-950/70 dark:text-indigo-100'
-                                                : 'border-transparent px-3 text-sub hover:bg-field hover:text-text'
+                                                ? 'bg-indigo-50 text-indigo-700 font-semibold shadow-2xs dark:bg-indigo-950/50 dark:text-indigo-300'
+                                                : 'text-sub hover:bg-field hover:text-text'
                                         }`}
                                     >
                                         <div className="flex items-center gap-2.5 min-w-0">
-                                            <span className={active ? 'text-indigo-700 dark:text-indigo-300' : 'text-dim'}>
+                                            <span className={active ? 'text-indigo-600 dark:text-indigo-400' : 'text-dim'}>
                                                 {item.icon}
                                             </span>
                                             <span className="truncate">{item.label}</span>
