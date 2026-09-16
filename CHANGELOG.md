@@ -102,6 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Action Hub Tab Accessibility**: Added semantic ARIA tab relationships and standard keyboard navigation so assistive-technology and keyboard users can operate the employee dashboard tabs — see `Dashboard.jsx`.
 - **Banner Typography**: Fixed typographical glitch with extra whitespace before greeting comma in employee dashboard (`{greeting}, {first_name}!`).
 - **Ticking Clock Accessibility**: Added `aria-live="off"` to the live dashboard clock to prevent screen-reader announcement spam every second.
 - **Punch Step Accessibility**: Added explicit `role="status"` and accessible labels across attendance punch steps.

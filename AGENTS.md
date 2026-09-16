@@ -141,6 +141,8 @@ When performing specialized workflows, activate the corresponding skill:
 
 ## 5. Known Issues
 
+- ~~[SEVERITY: high] Employee dashboard Action Hub controls lack ARIA tablist, tab, and tabpanel relationships plus standard arrow-key navigation, preventing assistive technology from identifying and operating them as tabs — file: `resources/js/Pages/Employee/Dashboard.jsx`.~~ FIXED 2026-09-16, see `resources/js/Pages/Employee/Dashboard.jsx`
+
 - ~~[SEVERITY: high] Payroll persistence is not atomic — file: `app/Http/Controllers/Admin/PayrollController.php`. `store()` creates the `payrolls` header, saves each `payroll_items` row in a loop, and recalculates totals as separate writes without `DB::transaction()`. An exception or database failure after the header or any earlier item save leaves a draft payroll with partial items and default or stale aggregate totals. The same path accepts duplicate `items.*.employee_id` values; the unique database constraint can then fail only after preceding writes have already persisted.~~ FIXED 2026-09-16, see `app/Http/Controllers/Admin/PayrollController.php`
 
 - [SEVERITY: medium] Employee account creation is not atomic — file: `app/Http/Controllers/Admin/EmployeeController.php`. `store()` writes the `employees` record and then separately creates its required `employee_government_ids` row, without a transaction. If the second write fails, an account remains usable but has no corresponding government-ID record. `Employee::generateEmployeeId()` also reads the latest ID before inserting; simultaneous account creations can generate the same ID, leaving one request rejected by the unique constraint.

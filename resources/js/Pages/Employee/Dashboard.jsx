@@ -1,6 +1,6 @@
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import { Link, router } from '@inertiajs/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
@@ -17,6 +17,8 @@ function formatPunchTime(timeString) {
     return `${String(h12).padStart(2, '0')}:${m} ${ampm}`
 }
 
+const ACTION_HUB_TABS = ['tasks', 'alerts']
+
 export default function Dashboard({
     employee,
     summary,
@@ -32,6 +34,7 @@ export default function Dashboard({
     const [togglingTaskId, setTogglingTaskId] = useState(null)
     const [punchFeedback, setPunchFeedback] = useState(null)
     const [activeTab, setActiveTab] = useState('tasks') // 'tasks' | 'alerts'
+    const actionTabRefs = useRef({})
 
     useEffect(() => {
         const timer = setInterval(() => setNow(new Date()), 1000)
@@ -154,6 +157,33 @@ export default function Dashboard({
             preserveScroll: true,
             onFinish: () => setTogglingTaskId(null),
         })
+    }
+
+    function handleActionTabKeyDown(event, currentTab) {
+        const currentIndex = ACTION_HUB_TABS.indexOf(currentTab)
+        let nextIndex
+
+        switch (event.key) {
+            case 'ArrowRight':
+                nextIndex = (currentIndex + 1) % ACTION_HUB_TABS.length
+                break
+            case 'ArrowLeft':
+                nextIndex = (currentIndex - 1 + ACTION_HUB_TABS.length) % ACTION_HUB_TABS.length
+                break
+            case 'Home':
+                nextIndex = 0
+                break
+            case 'End':
+                nextIndex = ACTION_HUB_TABS.length - 1
+                break
+            default:
+                return
+        }
+
+        event.preventDefault()
+        const nextTab = ACTION_HUB_TABS[nextIndex]
+        setActiveTab(nextTab)
+        actionTabRefs.current[nextTab]?.focus()
     }
 
     const alertsList = notifications.length > 0 ? notifications : recentNotifications
@@ -454,10 +484,21 @@ export default function Dashboard({
                             <div>
                                 <CardHeader className="border-b border-border/60 pb-3">
                                     <div className="flex items-center justify-between w-full">
-                                        <div className="flex items-center gap-2 select-none">
+                                        <div
+                                            className="flex items-center gap-2 select-none"
+                                            role="tablist"
+                                            aria-label="Action Hub"
+                                        >
                                             <button
                                                 type="button"
+                                                ref={element => { actionTabRefs.current.tasks = element }}
+                                                id="action-hub-tab-tasks"
+                                                role="tab"
+                                                aria-selected={activeTab === 'tasks'}
+                                                aria-controls="action-hub-panel"
+                                                tabIndex={activeTab === 'tasks' ? 0 : -1}
                                                 onClick={() => setActiveTab('tasks')}
+                                                onKeyDown={event => handleActionTabKeyDown(event, 'tasks')}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                                                     activeTab === 'tasks'
                                                         ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 shadow-2xs border border-emerald-200 dark:border-emerald-800'
@@ -468,7 +509,14 @@ export default function Dashboard({
                                             </button>
                                             <button
                                                 type="button"
+                                                ref={element => { actionTabRefs.current.alerts = element }}
+                                                id="action-hub-tab-alerts"
+                                                role="tab"
+                                                aria-selected={activeTab === 'alerts'}
+                                                aria-controls="action-hub-panel"
+                                                tabIndex={activeTab === 'alerts' ? 0 : -1}
                                                 onClick={() => setActiveTab('alerts')}
+                                                onKeyDown={event => handleActionTabKeyDown(event, 'alerts')}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                                                     activeTab === 'alerts'
                                                         ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 shadow-2xs border border-emerald-200 dark:border-emerald-800'
@@ -491,7 +539,12 @@ export default function Dashboard({
                                     </div>
                                 </CardHeader>
 
-                                <CardContent className="p-5">
+                                <CardContent
+                                    className="p-5"
+                                    id="action-hub-panel"
+                                    role="tabpanel"
+                                    aria-labelledby={`action-hub-tab-${activeTab}`}
+                                >
                                     {activeTab === 'tasks' ? (
                                         recentTasks.length > 0 ? (
                                             <div className="divide-y divide-border/60">
