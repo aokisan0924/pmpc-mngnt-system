@@ -36,7 +36,7 @@ export function StatCard({
         >
             <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                    <p className="text-xs font-medium uppercase tracking-wider text-sub truncate">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] leading-tight text-sub min-h-7 line-clamp-2">
                         {title}
                     </p>
                     <div className="mt-2 flex items-baseline gap-2">

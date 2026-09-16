@@ -74,6 +74,78 @@
     --shadow-card-hover:0 4px 6px -1px rgba(0, 0, 0, 0.45), 0 2px 4px -2px rgba(0, 0, 0, 0.35);
 }
 
+.admin-portal {
+    --color-brand: #26215C;
+    --color-indigo: #26215C;
+    --color-violet: #26215C;
+    --color-indigo-50: #F2F1F8;
+    --color-indigo-100: #E5E3F0;
+    --color-indigo-200: #CBC7E1;
+    --color-indigo-300: #AAA4CF;
+    --color-indigo-400: #756DAB;
+    --color-indigo-500: #403878;
+    --color-indigo-600: #26215C;
+    --color-indigo-700: #201B4D;
+    --color-indigo-800: #19163E;
+    --color-indigo-900: #13102F;
+    --color-indigo-950: #0D0B21;
+}
+
+.employee-portal {
+    --color-brand: #0F6E56;
+    --color-indigo: #0F6E56;
+    --color-violet: #0F6E56;
+    --color-emerald: #0F6E56;
+    --color-teal: #0F6E56;
+    --color-indigo-50: #ECF8F4;
+    --color-indigo-100: #D3EFE5;
+    --color-indigo-200: #A8DECD;
+    --color-indigo-300: #75C8AE;
+    --color-indigo-400: #42AA8B;
+    --color-indigo-500: #23896D;
+    --color-indigo-600: #0F6E56;
+    --color-indigo-700: #0C5946;
+    --color-indigo-800: #0A4739;
+    --color-indigo-900: #07372C;
+    --color-indigo-950: #04251E;
+    --color-violet-50: #ECF8F4;
+    --color-violet-100: #D3EFE5;
+    --color-violet-200: #A8DECD;
+    --color-violet-300: #75C8AE;
+    --color-violet-400: #42AA8B;
+    --color-violet-500: #23896D;
+    --color-violet-600: #0F6E56;
+    --color-violet-700: #0C5946;
+    --color-violet-800: #0A4739;
+    --color-violet-900: #07372C;
+    --color-violet-950: #04251E;
+    --color-emerald-50: #ECF8F4;
+    --color-emerald-100: #D3EFE5;
+    --color-emerald-200: #A8DECD;
+    --color-emerald-300: #75C8AE;
+    --color-emerald-400: #42AA8B;
+    --color-emerald-500: #23896D;
+    --color-emerald-600: #0F6E56;
+    --color-emerald-700: #0C5946;
+    --color-emerald-800: #0A4739;
+    --color-emerald-900: #07372C;
+    --color-emerald-950: #04251E;
+}
+
+.dark .admin-portal {
+    --color-brand: #A5A0E8;
+    --color-indigo: #A5A0E8;
+    --color-violet: #A5A0E8;
+}
+
+.dark .employee-portal {
+    --color-brand: #47D7AC;
+    --color-indigo: #47D7AC;
+    --color-violet: #47D7AC;
+    --color-emerald: #47D7AC;
+    --color-teal: #47D7AC;
+}
+
 @layer base {
     * {
         box-sizing: border-box;

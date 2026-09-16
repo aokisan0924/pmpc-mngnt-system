@@ -135,7 +135,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
     }
 
     return (
-        <div className="flex min-h-screen bg-bg">
+        <div className="admin-portal flex min-h-screen bg-bg">
             <a href="#main-content" className="skip-link">Skip to main content</a>
 
             {/* ── Mobile Top Bar ───────────────────────────────── */}

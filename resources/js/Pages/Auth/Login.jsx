@@ -112,7 +112,7 @@ export default function Login() {
                             Remember me on this device
                         </label>
 
-                        <button type="submit" disabled={processing} className="w-full min-h-12 px-5 py-3 bg-brand text-white text-sm font-semibold transition-colors hover:bg-[#001f78] disabled:cursor-wait disabled:opacity-60">
+                        <button type="submit" disabled={processing} className="w-full min-h-12 px-5 py-3 bg-brand text-white text-sm font-semibold transition-[filter] hover:brightness-90 disabled:cursor-wait disabled:opacity-60">
                             {processing ? 'Signing in…' : 'Sign in'}
                         </button>
                     </form>

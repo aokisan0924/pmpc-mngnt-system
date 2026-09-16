@@ -79,7 +79,7 @@ export default function EmployeeLayout({ children, title }) {
     const currentItem = [...navMain, ...navAccount].find(i => currentUrl.startsWith(i.href))
 
     return (
-        <div className="flex min-h-screen bg-bg">
+        <div className="employee-portal flex min-h-screen bg-bg">
             <a href="#main-content" className="skip-link">Skip to main content</a>
 
             {/* ── Desktop Sidebar ───────────────────────────────── */}
