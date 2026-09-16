@@ -37,6 +37,7 @@ export default function Login() {
     const { errors } = usePage().props
     const { isDark, toggleTheme } = useTheme()
     const [showPassword, setShowPassword] = useState(false)
+    const [capsLockActive, setCapsLockActive] = useState(false)
     const { data, setData, post, processing } = useForm({ login: '', password: '', remember: false })
 
     function submit(event) {
@@ -44,12 +45,28 @@ export default function Login() {
         post('/login')
     }
 
+    function checkCapsLock(event) {
+        if (event.getModifierState) {
+            setCapsLockActive(event.getModifierState('CapsLock'))
+        }
+    }
+
     return (
         <main className="login-portal min-h-screen bg-bg lg:grid lg:grid-cols-[minmax(320px,44%)_1fr]">
-            <section className="relative overflow-hidden bg-[#0F6E56] text-white px-6 py-7 sm:px-10 lg:px-14 lg:py-12 lg:min-h-screen flex flex-col border-b lg:border-b-0 lg:border-r border-black/15 dark:border-white/10 transition-colors" aria-label="About PMPC WorkForce">
-                <div className="absolute inset-0 opacity-[0.10] swiss-grid" aria-hidden="true" />
+            {/* ── Left Hero Section: Ambient Depth Brand Pillar ── */}
+            <section
+                className="relative overflow-hidden bg-[#0F6E56] text-white px-6 py-7 sm:px-10 lg:px-14 lg:py-12 lg:min-h-screen flex flex-col border-b lg:border-b-0 lg:border-r border-black/15 dark:border-white/10 transition-colors"
+                style={{
+                    backgroundImage: 'radial-gradient(ellipse 90% 70% at 20% 20%, rgba(20, 138, 108, 0.45), transparent 75%), radial-gradient(ellipse 70% 60% at 85% 85%, rgba(6, 46, 36, 0.65), transparent)'
+                }}
+                aria-label="About PMPC WorkForce"
+            >
+                <div className="absolute inset-0 opacity-[0.08] swiss-grid pointer-events-none" aria-hidden="true" />
+
                 <div className="relative flex items-center gap-3 border-b border-white/20 pb-6">
-                    <div className="w-11 h-11 border border-white/40 flex items-center justify-center"><CoopMark /></div>
+                    <div className="w-11 h-11 border border-white/40 rounded-lg flex items-center justify-center bg-white/5 backdrop-blur-xs">
+                        <CoopMark />
+                    </div>
                     <div>
                         <p className="text-base font-semibold tracking-tight">PMPC WorkForce</p>
                         <p className="text-xs text-white/75">People&apos;s Multi-Purpose Cooperative</p>
@@ -72,23 +89,66 @@ export default function Login() {
                 </div>
             </section>
 
+            {/* ── Right Form Section ── */}
             <section className="relative flex items-center justify-center px-6 py-12 sm:px-12 lg:px-16">
-                <div className="absolute top-5 right-5"><ThemeToggle isDark={isDark} onToggle={toggleTheme} /></div>
+                {/* Top Utility Bar */}
+                <div className="absolute top-5 right-5 flex items-center gap-2 sm:gap-3">
+                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-panel/80 backdrop-blur-xs text-xs text-sub shadow-2xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="font-medium text-text">System Active</span>
+                        <span className="text-dim">•</span>
+                        <span className="text-[11px] text-dim">Asia/Manila (GMT+8)</span>
+                    </div>
+                    <ThemeToggle isDark={isDark} onToggle={toggleTheme} className="rounded-lg shadow-2xs" />
+                </div>
+
                 <div className="w-full max-w-md page-enter">
-                    <div className="mb-9">
+                    <div className="mb-8">
                         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0F6E56] dark:text-emerald-400 mb-3">Secure access</p>
                         <h2 className="font-display text-3xl sm:text-4xl font-bold text-text tracking-tight">Sign in</h2>
                         <p className="text-sm text-sub mt-2 leading-relaxed">Use your employee ID or email. We&apos;ll open the correct portal for your account.</p>
+
+                        {/* Dual-Portal Destination Indicator Pills */}
+                        <div className="flex flex-wrap items-center gap-2 mt-3.5">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50 shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                Employee Portal
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-indigo-50 text-indigo-800 border border-indigo-200/80 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/50 shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                                HR &amp; Admin Console
+                            </span>
+                        </div>
                     </div>
 
                     <form onSubmit={submit} className="space-y-5" noValidate>
                         <div>
                             <label htmlFor="login" className="block text-sm font-medium text-text mb-2">Employee ID or email</label>
-                            <input id="login" type="text" value={data.login} onChange={(event) => setData('login', event.target.value)}
-                                placeholder="Enter your employee ID or email"
-                                className="w-full min-h-12 px-4 py-3 text-sm border border-border bg-panel text-text transition-colors focus:outline-none focus:border-[#0F6E56] dark:focus:border-emerald-400 focus:ring-1 focus:ring-[#0F6E56] dark:focus:ring-emerald-400"
-                                autoComplete="username" aria-invalid={Boolean(errors.login)} aria-describedby={errors.login ? 'login-error' : 'login-help'} autoFocus required />
-                            {errors.login ? <p id="login-error" className="mt-2 text-xs text-red" role="alert">{errors.login}</p> : <p id="login-help" className="mt-2 text-xs text-dim">Example: 2026-00028</p>}
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-dim">
+                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.364a4.125 4.125 0 00-6.338 0" />
+                                    </svg>
+                                </span>
+                                <input
+                                    id="login"
+                                    type="text"
+                                    value={data.login}
+                                    onChange={(event) => setData('login', event.target.value)}
+                                    placeholder="Enter your employee ID or email"
+                                    className="w-full min-h-12 pl-10 pr-4 py-3 text-sm rounded-lg border border-border bg-panel text-text transition-all focus:outline-none focus:border-[#0F6E56] dark:focus:border-emerald-400 focus:ring-2 focus:ring-[#0F6E56]/20 dark:focus:ring-emerald-400/20 shadow-2xs"
+                                    autoComplete="username"
+                                    aria-invalid={Boolean(errors.login)}
+                                    aria-describedby={errors.login ? 'login-error' : 'login-help'}
+                                    autoFocus
+                                    required
+                                />
+                            </div>
+                            {errors.login ? (
+                                <p id="login-error" className="mt-2 text-xs text-red" role="alert">{errors.login}</p>
+                            ) : (
+                                <p id="login-help" className="mt-2 text-xs text-dim">e.g. EMP-0001 or name@pmpc.coop</p>
+                            )}
                         </div>
 
                         <div>
@@ -97,23 +157,77 @@ export default function Login() {
                                 <a href="/forgot-password" className="text-xs font-medium text-[#0F6E56] dark:text-emerald-400 hover:underline">Forgot password?</a>
                             </div>
                             <div className="relative">
-                                <input id="password" type={showPassword ? 'text' : 'password'} value={data.password} onChange={(event) => setData('password', event.target.value)}
+                                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-dim">
+                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                    </svg>
+                                </span>
+                                <input
+                                    id="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={data.password}
+                                    onChange={(event) => setData('password', event.target.value)}
+                                    onKeyDown={checkCapsLock}
+                                    onKeyUp={checkCapsLock}
+                                    onBlur={() => setCapsLockActive(false)}
                                     placeholder="Enter your password"
-                                    className="w-full min-h-12 px-4 py-3 pr-12 text-sm border border-border bg-panel text-text transition-colors focus:outline-none focus:border-[#0F6E56] dark:focus:border-emerald-400 focus:ring-1 focus:ring-[#0F6E56] dark:focus:ring-emerald-400"
-                                    autoComplete="current-password" aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? 'password-error' : undefined} required />
-                                <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword}
-                                    className="absolute inset-y-0 right-0 w-12 flex items-center justify-center text-dim hover:text-[#0F6E56] dark:hover:text-emerald-400"><EyeIcon off={showPassword} /></button>
+                                    className="w-full min-h-12 pl-10 pr-12 py-3 text-sm rounded-lg border border-border bg-panel text-text transition-all focus:outline-none focus:border-[#0F6E56] dark:focus:border-emerald-400 focus:ring-2 focus:ring-[#0F6E56]/20 dark:focus:ring-emerald-400/20 shadow-2xs"
+                                    autoComplete="current-password"
+                                    aria-invalid={Boolean(errors.password)}
+                                    aria-describedby={errors.password ? 'password-error' : undefined}
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword((visible) => !visible)}
+                                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                    aria-pressed={showPassword}
+                                    className="absolute inset-y-0 right-0 w-12 flex items-center justify-center text-dim hover:text-[#0F6E56] dark:hover:text-emerald-400 transition-colors"
+                                >
+                                    <EyeIcon off={showPassword} />
+                                </button>
                             </div>
+
+                            {/* Caps Lock Warning Indicator */}
+                            {capsLockActive && (
+                                <div className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+                                    <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    <span className="font-medium">Caps Lock is on</span>
+                                </div>
+                            )}
+
                             {errors.password && <p id="password-error" className="mt-2 text-xs text-red" role="alert">{errors.password}</p>}
                         </div>
 
                         <label className="flex items-center gap-3 min-h-11 text-sm text-sub cursor-pointer select-none w-fit">
-                            <input type="checkbox" checked={data.remember} onChange={(event) => setData('remember', event.target.checked)} className="w-4 h-4 rounded-none border-border text-[#0F6E56] focus:ring-[#0F6E56]" />
+                            <input
+                                type="checkbox"
+                                checked={data.remember}
+                                onChange={(event) => setData('remember', event.target.checked)}
+                                className="w-4 h-4 rounded border-border text-[#0F6E56] focus:ring-2 focus:ring-[#0F6E56]/20 transition-all"
+                            />
                             Remember me on this device
                         </label>
 
-                        <button type="submit" disabled={processing} className="w-full min-h-12 px-5 py-3 bg-[#0F6E56] hover:bg-[#0C5946] text-white text-sm font-semibold transition-colors disabled:cursor-wait disabled:opacity-60 shadow-xs">
-                            {processing ? 'Signing in…' : 'Sign in'}
+                        {/* Submit Button with Interactive Loading State */}
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="w-full min-h-12 px-5 py-3 rounded-lg bg-[#0F6E56] hover:bg-[#0C5946] active:bg-[#0A4739] text-white text-sm font-semibold transition-all flex items-center justify-center gap-2 disabled:cursor-wait disabled:opacity-70 shadow-xs cursor-pointer"
+                        >
+                            {processing ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                                    </svg>
+                                    <span>Signing in…</span>
+                                </>
+                            ) : (
+                                <span>Sign in</span>
+                            )}
                         </button>
                     </form>
 
