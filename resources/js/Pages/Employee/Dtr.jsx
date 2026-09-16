@@ -2,10 +2,9 @@ import { useEffect, useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import DtrEditRequestModal from '@/Components/DtrEditRequestModal'
-import Card from '@/Components/UI/Card'
+import Card, { CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
-import Button from '@/Components/UI/Button'
 
 const PUNCH_LABELS = {
     am_time_in:  'AM In',
@@ -73,7 +72,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
 
     return (
         <EmployeeLayout title="Daily Time Record">
-            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-6xl mx-auto">
+            <div className="mx-auto min-h-screen max-w-6xl space-y-6 bg-bg px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -85,9 +84,9 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 )}
 
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
                             <h1 className="text-2xl font-bold font-display text-text tracking-tight">Daily Time Record</h1>
                             <Badge variant="emerald" size="sm">Attendance Portal</Badge>
                         </div>
@@ -99,7 +98,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <a
                         href={`/employee/dtr/print?month=${month}`}
                         target="_blank"
-                        className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl border border-border bg-panel text-text hover:bg-hover hover:border-emerald-500/30 transition-all shadow-2xs"
+                        className="inline-flex min-h-10 w-fit items-center gap-2 rounded-xl border border-border bg-panel px-4 py-2 text-xs font-semibold text-text shadow-2xs transition-all hover:border-emerald-500/30 hover:bg-hover"
                     >
                         <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -109,8 +108,8 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 </div>
 
                 {/* Hero Punch Stepper Card */}
-                <Card className="relative overflow-hidden">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-6 border-b border-border">
+                <Card className="relative overflow-hidden p-5 sm:p-6">
+                    <div className="flex flex-col gap-5 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between sm:pb-6">
                         <div>
                             <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">
                                 {now.toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
@@ -142,8 +141,8 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     </div>
 
                     {/* Stepper Progress */}
-                    <div className="pt-6">
-                        <div className="grid grid-cols-4 gap-2 sm:gap-4 relative">
+                    <div className="pt-5 sm:pt-6">
+                        <div className="relative grid grid-cols-4 gap-2 sm:gap-4">
                             {SLOT_ORDER.map((slot, i) => {
                                 const done = Boolean(today[slot])
                                 const isNext = slot === next_punch
@@ -179,12 +178,12 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 </Card>
 
                 {/* Monthly Summary Stats */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
                     <StatCard
                         title="Days Present"
                         value={summary.days_present ?? 0}
-                        sub="Verified attendance logs"
-                        color="emerald"
+                        subtitle="Verified attendance logs"
+                        accent="emerald"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -192,10 +191,10 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                         }
                     />
                     <StatCard
-                        title="Days Marked Late"
+                        title="Late Days"
                         value={summary.days_late ?? 0}
-                        sub="Beyond shift grace period"
-                        color="amber"
+                        subtitle="Beyond shift grace period"
+                        accent="amber"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -205,8 +204,8 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <StatCard
                         title="Rendered Hours"
                         value={`${summary.hours_rendered ?? 0}h`}
-                        sub="Cumulative working hours"
-                        color="indigo"
+                        subtitle="Cumulative working hours"
+                        accent="indigo"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -214,10 +213,10 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                         }
                     />
                     <StatCard
-                        title="Pending Edit Requests"
+                        title="Pending Edits"
                         value={summary.pending_edits ?? 0}
-                        sub="Awaiting admin review"
-                        color="purple"
+                        subtitle="Awaiting admin review"
+                        accent="indigo"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -227,39 +226,46 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 </div>
 
                 {/* Monthly DTR Log Card */}
-                <Card
-                    title="Monthly Attendance Log"
-                    description="Itemized chronological punches and calculated rendered hours"
-                    action={
-                        <div className="flex items-center gap-2">
+                <Card className="overflow-hidden">
+                    <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center">
+                        <div className="min-w-0">
+                            <CardTitle>Monthly Attendance Log</CardTitle>
+                            <CardDescription>
+                                Itemized chronological punches and calculated rendered hours
+                            </CardDescription>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
                             <button
                                 onClick={() => handleMonthChange(-1)}
                                 disabled={loading}
-                                className="p-1.5 rounded-lg border border-border bg-panel text-sub hover:text-text hover:bg-hover disabled:opacity-40 transition-all"
+                                className="rounded-lg border border-border bg-panel p-2 text-sub transition-all hover:bg-hover hover:text-text disabled:opacity-40"
                                 title="Previous Month"
+                                aria-label="View previous month"
                             >
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
-                            <span className="text-xs font-semibold font-mono text-text px-2 py-1 rounded-md bg-field border border-border">
+                            <span className="min-w-24 rounded-lg border border-border bg-field px-3 py-2 text-center font-mono text-xs font-semibold text-text">
                                 {new Date(month + '-01').toLocaleDateString('en-PH', { month: 'short', year: 'numeric' })}
                             </span>
                             <button
                                 onClick={() => handleMonthChange(1)}
                                 disabled={loading}
-                                className="p-1.5 rounded-lg border border-border bg-panel text-sub hover:text-text hover:bg-hover disabled:opacity-40 transition-all"
+                                className="rounded-lg border border-border bg-panel p-2 text-sub transition-all hover:bg-hover hover:text-text disabled:opacity-40"
                                 title="Next Month"
+                                aria-label="View next month"
                             >
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
                         </div>
-                    }
-                >
+                    </CardHeader>
+
+                    <CardContent className="p-0">
                     {/* Desktop Table */}
-                    <div className="hidden md:block overflow-x-auto -mx-6 -my-4">
+                    <div className="hidden overflow-x-auto md:block">
                         <table className="w-full text-xs">
                             <thead>
                                 <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold">
@@ -327,7 +333,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     </div>
 
                     {/* Mobile Card List */}
-                    <div className="md:hidden space-y-3 pt-2">
+                    <div className="space-y-3 p-4 md:hidden">
                         {logs?.map((log) => (
                             <div key={log.id} className="p-4 rounded-xl border border-border bg-field/60 space-y-3">
                                 <div className="flex items-center justify-between">
@@ -368,6 +374,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                             </div>
                         ))}
                     </div>
+                    </CardContent>
                 </Card>
 
             </div>
