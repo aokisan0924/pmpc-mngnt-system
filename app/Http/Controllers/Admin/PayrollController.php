@@ -142,7 +142,7 @@ class PayrollController extends Controller
             'period_to'                       => ['required', 'date'],
             'cutoff'                          => ['required', 'in:first,second'],
             'items'                           => ['required', 'array', 'min:1'],
-            'items.*.employee_id'             => ['required', 'exists:employees,id'],
+            'items.*.employee_id'             => ['required', 'distinct', 'exists:employees,id'],
             'items.*.weekday_ot_hours'        => ['nullable', 'numeric', 'min:0'],
             'items.*.weekend_ot_hours'        => ['nullable', 'numeric', 'min:0'],
             'items.*.days_present'            => ['nullable', 'numeric', 'min:0'],
@@ -150,33 +150,37 @@ class PayrollController extends Controller
 
         $isFirst = $request->cutoff === 'first';
 
-        $payroll = Payroll::create([
-            'period_label' => $request->period_label,
-            'period_from'  => $request->period_from,
-            'period_to'    => $request->period_to,
-            'cutoff'       => $request->cutoff,
-            'status'       => 'draft',
-            'created_by'   => $request->user()->id,
-        ]);
+        $payroll = DB::transaction(function () use ($request, $isFirst) {
+            $payroll = Payroll::create([
+                'period_label' => $request->period_label,
+                'period_from'  => $request->period_from,
+                'period_to'    => $request->period_to,
+                'cutoff'       => $request->cutoff,
+                'status'       => 'draft',
+                'created_by'   => $request->user()->id,
+            ]);
 
-        foreach ($request->items as $itemData) {
-            $emp = Employee::find($itemData['employee_id']);
+            foreach ($request->items as $itemData) {
+                $emp = Employee::find($itemData['employee_id']);
 
-            $item = new PayrollItem();
-            $item->payroll_id       = $payroll->id;
-            $item->employee_id      = $emp->id;
-            $item->cutoff           = $request->cutoff;
-            $item->days_present     = $itemData['days_present'] ?? 0;
-            $item->weekday_ot_hours = floatval($itemData['weekday_ot_hours'] ?? 0);
-            $item->weekend_ot_hours = floatval($itemData['weekend_ot_hours'] ?? 0);
+                $item = new PayrollItem();
+                $item->payroll_id       = $payroll->id;
+                $item->employee_id      = $emp->id;
+                $item->cutoff           = $request->cutoff;
+                $item->days_present     = $itemData['days_present'] ?? 0;
+                $item->weekday_ot_hours = floatval($itemData['weekday_ot_hours'] ?? 0);
+                $item->weekend_ot_hours = floatval($itemData['weekend_ot_hours'] ?? 0);
 
-            // Eager load employee for computeTotals
-            $item->setRelation('employee', $emp);
-            $item->computeTotals($isFirst);
-            $item->save();
-        }
+                // Eager load employee for computeTotals
+                $item->setRelation('employee', $emp);
+                $item->computeTotals($isFirst);
+                $item->save();
+            }
 
-        $payroll->recalculateTotals();
+            $payroll->recalculateTotals();
+
+            return $payroll;
+        });
 
         return redirect()->route('admin.payroll.show', $payroll->id)
             ->with('success', 'Payroll saved successfully.');
