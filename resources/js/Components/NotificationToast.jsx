@@ -7,9 +7,21 @@ const C = {
 }
 
 const TYPE_STYLES = {
-    dtr_edit_approved: { icon: '✓', color: C.teal },
-    dtr_edit_declined: { icon: '✕', color: C.red },
-    default:           { icon: 'ℹ', color: C.violet },
+    dtr_edit_approved: { icon: 'check', color: C.teal },
+    dtr_edit_declined: { icon: 'x', color: C.red },
+    default:           { icon: 'info', color: C.violet },
+}
+
+function ToastIcon({ name }) {
+    if (name === 'check') {
+        return <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+    }
+
+    if (name === 'x') {
+        return <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+    }
+
+    return <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25 12 10.5m0 0 .75.75M12 10.5v4.5m0 6a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13.5h.008v.008H12V7.5Z" />
 }
 
 export default function NotificationToast({ notifications, onDismiss }) {
@@ -47,7 +59,9 @@ function Toast({ notification: n, style, onDismiss }) {
             {/* Icon */}
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
                 style={{ background: `color-mix(in srgb, ${style.color} 15%, transparent)`, color: style.color }}>
-                {style.icon}
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <ToastIcon name={style.icon} />
+                </svg>
             </div>
 
             {/* Content */}
@@ -59,18 +73,26 @@ function Toast({ notification: n, style, onDismiss }) {
                         onClick={() => onDismiss(n.id)}
                         className="text-xs font-medium mt-1 inline-block"
                         style={{ color: C.teal }}>
-                        View →
+                        <span className="inline-flex items-center gap-1">
+                            View
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m9 18 6-6-6-6" />
+                            </svg>
+                        </span>
                     </a>
                 )}
             </div>
 
             {/* Close */}
             <button onClick={() => onDismiss(n.id)}
-                className="text-lg leading-none flex-shrink-0 transition-colors"
+                className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg transition-colors"
                 style={{ color: C.dim }}
                 onMouseEnter={e => e.currentTarget.style.color = C.sub}
-                onMouseLeave={e => e.currentTarget.style.color = C.dim}>
-                ×
+                onMouseLeave={e => e.currentTarget.style.color = C.dim}
+                aria-label="Dismiss notification">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
             </button>
         </div>
     )

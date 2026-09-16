@@ -150,9 +150,12 @@ export default function Employees({ employees = [] }) {
                             {search && (
                                 <button
                                     onClick={() => setSearch('')}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-dim hover:text-text"
+                                    className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-dim transition-colors hover:bg-hover hover:text-text"
+                                    aria-label="Clear employee search"
                                 >
-                                    ✕
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                    </svg>
                                 </button>
                             )}
                         </div>

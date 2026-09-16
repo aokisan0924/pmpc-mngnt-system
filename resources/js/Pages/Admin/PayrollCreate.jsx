@@ -256,7 +256,14 @@ export default function PayrollCreate({ employees, period_from, period_to, perio
                 {/* Legend */}
                 <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-gray-400">
                     <span><span className="inline-block w-2 h-2 rounded-sm bg-amber-100 border border-amber-300 mr-1"></span>WD = Weekday OT (×1.25) &nbsp; WE = Weekend/Rest day OT (×1.30)</span>
-                    {!is_first && <span>⚠ 2nd cutoff — SSS, PhilHealth, Pag-IBIG, Tax not deducted this period.</span>}
+                    {!is_first && (
+                        <span className="inline-flex items-start gap-1.5">
+                            <svg className="mt-px h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.949 3.374H4.646c-1.732 0-2.815-1.874-1.949-3.374L10.05 3.374c.866-1.5 3.034-1.5 3.9 0l7.353 12.752zM12 15.75h.008v.008H12v-.008z" />
+                            </svg>
+                            <span>2nd cutoff — SSS, PhilHealth, Pag-IBIG, Tax not deducted this period.</span>
+                        </span>
+                    )}
                 </div>
             </div>
         </AdminLayout>

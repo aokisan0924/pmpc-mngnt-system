@@ -61,10 +61,15 @@ export default function EmployeeFormModal({ employee, onClose }) {
                         {isEdit ? 'Edit employee' : 'New employee'}
                     </h2>
                     <button onClick={onClose}
-                        className="text-2xl leading-none transition-colors"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
                         style={{ color: C.dim }}
                         onMouseEnter={e => e.currentTarget.style.color = C.text}
-                        onMouseLeave={e => e.currentTarget.style.color = C.dim}>×</button>
+                        onMouseLeave={e => e.currentTarget.style.color = C.dim}
+                        aria-label="Close employee form">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
 
                 <form onSubmit={submit} className="space-y-4">

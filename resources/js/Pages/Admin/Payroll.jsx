@@ -128,8 +128,11 @@ export default function Payroll({ payrolls = [] }) {
                         </div>
 
                         {error && (
-                            <p className="mt-3 text-xs text-rose-600 font-medium">
-                                ⚠ {error}
+                            <p className="mt-3 flex items-start gap-1.5 text-xs font-medium text-rose-600">
+                                <svg className="mt-px h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.949 3.374H4.646c-1.732 0-2.815-1.874-1.949-3.374L10.05 3.374c.866-1.5 3.034-1.5 3.9 0l7.353 12.752zM12 15.75h.008v.008H12v-.008z" />
+                                </svg>
+                                <span>{error}</span>
                             </p>
                         )}
                     </CardContent>

@@ -204,8 +204,11 @@ export default function Dashboard({ employee, summary, today, notifications = []
                                         </strong>
                                     </span>
                                 ) : (
-                                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                                        ✓ All punches for today are recorded and verified.
+                                    <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                        </svg>
+                                        All punches for today are recorded and verified.
                                     </span>
                                 )}
                             </div>

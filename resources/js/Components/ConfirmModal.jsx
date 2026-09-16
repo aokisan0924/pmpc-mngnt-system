@@ -28,9 +28,9 @@ export default function ConfirmModal({
     }
 
     const icons = {
-        danger:  { bg: 'bg-red-100',     icon: '⚠', color: 'text-red-600'     },
-        primary: { bg: 'bg-purple-100',   icon: '✓', color: 'text-purple-600'  },
-        emerald: { bg: 'bg-emerald-100',  icon: '✓', color: 'text-emerald-600' },
+        danger:  { bg: 'bg-red-100',     type: 'warning', color: 'text-red-600'     },
+        primary: { bg: 'bg-purple-100',  type: 'check',   color: 'text-purple-600'  },
+        emerald: { bg: 'bg-emerald-100', type: 'check',   color: 'text-emerald-600' },
     }
 
     const ic = icons[confirmStyle] ?? icons.danger
@@ -50,7 +50,15 @@ export default function ConfirmModal({
 
                 {/* Icon */}
                 <div className={`w-12 h-12 rounded-full ${ic.bg} flex items-center justify-center mx-auto mb-4`}>
-                    <span className={`text-xl ${ic.color}`}>{ic.icon}</span>
+                    {ic.type === 'warning' ? (
+                        <svg className={`h-6 w-6 ${ic.color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.949 3.374H4.646c-1.732 0-2.815-1.874-1.949-3.374L10.05 3.374c.866-1.5 3.034-1.5 3.9 0l7.353 12.752zM12 15.75h.008v.008H12v-.008z" />
+                        </svg>
+                    ) : (
+                        <svg className={`h-6 w-6 ${ic.color}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                    )}
                 </div>
 
                 {/* Content */}
