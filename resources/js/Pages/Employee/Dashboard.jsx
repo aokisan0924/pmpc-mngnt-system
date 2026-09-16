@@ -17,7 +17,83 @@ function formatPunchTime(timeString) {
     return `${String(h12).padStart(2, '0')}:${m} ${ampm}`
 }
 
-const ACTION_HUB_TABS = ['tasks', 'alerts']
+const PUNCH_SLOTS = [
+    {
+        key: 'am_time_in',
+        stepNum: 1,
+        label: 'AM In',
+        period: 'Morning Shift Start',
+        target: 'Target: 08:00 AM',
+        icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+            </svg>
+        ),
+    },
+    {
+        key: 'am_time_out',
+        stepNum: 2,
+        label: 'AM Out',
+        period: 'Lunch Break Start',
+        target: 'Target: 12:00 PM',
+        icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        ),
+    },
+    {
+        key: 'pm_time_in',
+        stepNum: 3,
+        label: 'PM In',
+        period: 'Lunch Break End',
+        target: 'Target: 01:00 PM',
+        icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v1.069m7.5 0c1.472.085 2.923.23 4.35.434m-11.85 0c-1.472.085-2.923.23-4.35.434" />
+            </svg>
+        ),
+    },
+    {
+        key: 'pm_time_out',
+        stepNum: 4,
+        label: 'PM Out',
+        period: 'Evening Shift End',
+        target: 'Target: 05:00 PM',
+        icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+            </svg>
+        ),
+    },
+]
+
+function LiveClock() {
+    const [time, setTime] = useState(() => new Date())
+
+    useEffect(() => {
+        const timer = setInterval(() => setTime(new Date()), 1000)
+        return () => clearInterval(timer)
+    }, [])
+
+    const timeStr = time.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    const dateStr = time.toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+
+    return (
+        <div
+            aria-live="off"
+            className="relative z-10 flex items-center gap-3 bg-white/10 backdrop-blur-md px-5 py-3.5 rounded-xl border border-white/15 w-fit self-start md:self-auto shrink-0 shadow-xs"
+        >
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" aria-hidden="true" />
+            <div>
+                <p className="font-heading font-bold text-2xl sm:text-3xl tracking-tight text-white tnum leading-none">
+                    {timeStr}
+                </p>
+                <p className="text-xs text-emerald-200/90 mt-1 leading-none">{dateStr}</p>
+            </div>
+        </div>
+    )
+}
 
 export default function Dashboard({
     employee,
@@ -29,74 +105,22 @@ export default function Dashboard({
     recentTasks = [],
     latestPayslip,
 }) {
-    const [now, setNow] = useState(new Date())
+    const [now, setNow] = useState(() => new Date())
     const [punching, setPunching] = useState(false)
     const [togglingTaskId, setTogglingTaskId] = useState(null)
     const [punchFeedback, setPunchFeedback] = useState(null)
     const [activeTab, setActiveTab] = useState('tasks') // 'tasks' | 'alerts'
     const actionTabRefs = useRef({})
 
+    // Low-frequency interval (30s) for non-second UI updates (greeting, elapsed shifts)
     useEffect(() => {
-        const timer = setInterval(() => setNow(new Date()), 1000)
+        const timer = setInterval(() => setNow(new Date()), 30000)
         return () => clearInterval(timer)
     }, [])
 
     const hour = now.getHours()
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
     const firstName = employee?.first_name ? employee.first_name.trim() : 'Employee'
-    const timeStr = now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    const dateStr = now.toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-
-    const PUNCH_SLOTS = [
-        {
-            key: 'am_time_in',
-            stepNum: 1,
-            label: 'AM In',
-            period: 'Morning Shift Start',
-            target: 'Target: 08:00 AM',
-            icon: (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
-                </svg>
-            ),
-        },
-        {
-            key: 'am_time_out',
-            stepNum: 2,
-            label: 'AM Out',
-            period: 'Lunch Break Start',
-            target: 'Target: 12:00 PM',
-            icon: (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            ),
-        },
-        {
-            key: 'pm_time_in',
-            stepNum: 3,
-            label: 'PM In',
-            period: 'Lunch Break End',
-            target: 'Target: 01:00 PM',
-            icon: (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v1.069m7.5 0c1.472.085 2.923.23 4.35.434m-11.85 0c-1.472.085-2.923.23-4.35.434" />
-                </svg>
-            ),
-        },
-        {
-            key: 'pm_time_out',
-            stepNum: 4,
-            label: 'PM Out',
-            period: 'Evening Shift End',
-            target: 'Target: 05:00 PM',
-            icon: (
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
-                </svg>
-            ),
-        },
-    ]
 
     // Determine current next expected punch index
     const completedPunches = PUNCH_SLOTS.filter(s => Boolean(today?.[s.key])).length
@@ -123,7 +147,9 @@ export default function Dashboard({
 
     // Direct 1-Tap Quick Punch Handler
     function handleQuickPunch() {
-        if (punching || nextPunchIndex === -1) return
+        if (punching || nextPunchIndex === -1 || !nextSlot) return
+        const slotLabel = nextSlot.label
+        const punchTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         setPunching(true)
         setPunchFeedback(null)
 
@@ -132,14 +158,14 @@ export default function Dashboard({
             onSuccess: () => {
                 setPunchFeedback({
                     type: 'success',
-                    message: `Recorded ${nextSlot.label} successfully at ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`,
+                    message: `Recorded ${slotLabel} successfully at ${punchTime}.`,
                 })
                 setTimeout(() => setPunchFeedback(null), 5000)
             },
             onError: (err) => {
                 setPunchFeedback({
                     type: 'error',
-                    message: err.punch || 'Punch recording failed. Please try again.',
+                    message: err?.punch || 'Punch recording failed. Please try again.',
                 })
                 setTimeout(() => setPunchFeedback(null), 6000)
             },
@@ -193,7 +219,11 @@ export default function Dashboard({
         <EmployeeLayout title="Dashboard">
             <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 page-enter">
                 {/* ── Welcome Banner & Live Clock ─────────────────── */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 p-6 sm:p-7 rounded-2xl bg-gradient-to-r from-[#0A4739] via-[#0F6E56] to-[#07372C] text-white shadow-sm relative overflow-hidden select-none">
+                <div
+                    role="region"
+                    aria-label="Shift overview"
+                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 p-6 sm:p-7 rounded-2xl bg-gradient-to-r from-[#0A4739] via-[#0F6E56] to-[#07372C] text-white shadow-sm relative overflow-hidden select-none"
+                >
                     <div className="absolute -right-12 -bottom-12 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
                     <div className="relative z-10 max-w-2xl">
                         <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -217,19 +247,8 @@ export default function Dashboard({
                         </p>
                     </div>
 
-                    {/* Live Ticking Clock (Accessible with aria-live="off") */}
-                    <div
-                        aria-live="off"
-                        className="relative z-10 flex items-center gap-3 bg-white/10 backdrop-blur-md px-5 py-3.5 rounded-xl border border-white/15 w-fit self-start md:self-auto shrink-0 shadow-xs"
-                    >
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" aria-hidden="true" />
-                        <div>
-                            <p className="font-heading font-bold text-2xl sm:text-3xl tracking-tight text-white tnum leading-none">
-                                {timeStr}
-                            </p>
-                            <p className="text-xs text-emerald-200/90 mt-1 leading-none">{dateStr}</p>
-                        </div>
-                    </div>
+                    {/* Live Ticking Clock (Self-contained LiveClock component) */}
+                    <LiveClock />
                 </div>
 
                 {/* ── Metric Cards with Contextual Progress Bars ───── */}
@@ -259,7 +278,9 @@ export default function Dashboard({
                         progress={{
                             value: Math.max(0, (summary?.days_present || 0) - (summary?.days_late || 0)),
                             max: Math.max(1, summary?.days_present || 1),
-                            label: 'On-time rate',
+                            label: (summary?.days_present || 0) > 0
+                                ? `${Math.max(0, (summary?.days_present || 0) - (summary?.days_late || 0))} of ${summary?.days_present} on time`
+                                : 'On-time rate',
                             color: summary?.days_late > 0 ? 'bg-amber-500' : 'bg-emerald-500',
                         }}
                         icon={
@@ -445,11 +466,12 @@ export default function Dashboard({
                                         size="lg"
                                         onClick={handleQuickPunch}
                                         disabled={punching}
+                                        aria-label={punching ? 'Recording punch...' : `Punch ${nextSlot.label}`}
                                         className="shadow-sm font-semibold px-6 min-w-[160px]"
                                     >
                                         {punching ? (
                                             <span className="inline-flex items-center gap-2">
-                                                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                                <svg className="animate-spin h-4 w-4 text-white" aria-hidden="true" fill="none" viewBox="0 0 24 24">
                                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                                 </svg>
@@ -557,7 +579,7 @@ export default function Dashboard({
                                                                     type="button"
                                                                     onClick={() => handleToggleTask(task.id)}
                                                                     disabled={togglingTaskId === task.id}
-                                                                    className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center transition-colors shrink-0 ${
+                                                                    className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center transition-colors shrink-0 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 focus:outline-none ${
                                                                         isDone
                                                                             ? 'bg-emerald-600 border-emerald-600 text-white'
                                                                             : 'border-border/90 hover:border-emerald-500 bg-field'
@@ -737,7 +759,7 @@ export default function Dashboard({
                                             <p className="text-[10px] text-sub">View logs & request edits</p>
                                         </div>
                                     </div>
-                                    <span className="text-dim text-xs">→</span>
+                                    <span className="text-dim text-xs" aria-hidden="true">→</span>
                                 </Link>
 
                                 <Link
@@ -755,7 +777,7 @@ export default function Dashboard({
                                             <p className="text-[10px] text-sub">Manage tasks & deadlines</p>
                                         </div>
                                     </div>
-                                    <span className="text-dim text-xs">→</span>
+                                    <span className="text-dim text-xs" aria-hidden="true">→</span>
                                 </Link>
 
                                 <Link
@@ -773,7 +795,7 @@ export default function Dashboard({
                                             <p className="text-[10px] text-sub">Government IDs & records</p>
                                         </div>
                                     </div>
-                                    <span className="text-dim text-xs">→</span>
+                                    <span className="text-dim text-xs" aria-hidden="true">→</span>
                                 </Link>
                             </CardContent>
                         </Card>

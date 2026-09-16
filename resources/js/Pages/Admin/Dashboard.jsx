@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link, router } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
+import useTheme from '@/hooks/useTheme'
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid,
     Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
@@ -59,10 +60,14 @@ export default function Dashboard({
     pending_edit_requests = [],
     recent_activity = [],
 }) {
+    const { isDark } = useTheme()
     const [snapshotFilter, setSnapshotFilter] = useState('all')
     const [searchQuery, setSearchQuery] = useState('')
     const [processingId, setProcessingId] = useState(null)
     const [triageFeedback, setTriageFeedback] = useState(null)
+    const [declineTarget, setDeclineTarget] = useState(null)
+    const [declineReason, setDeclineReason] = useState('')
+    const processingRef = useRef(false)
 
     const now = new Date()
     const dateStr = now.toLocaleDateString('en-PH', {
@@ -72,32 +77,39 @@ export default function Dashboard({
         day: 'numeric',
     })
 
-    // Filter snapshot by status and search query
-    const filteredSnapshot = today_snapshot.filter(e => {
-        const matchesFilter = snapshotFilter === 'all' || e.status === snapshotFilter
-        const matchesSearch = searchQuery.trim() === ''
-            || e.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
-            || e.department?.toLowerCase().includes(searchQuery.toLowerCase())
-        return matchesFilter && matchesSearch
-    })
+    // Filter snapshot by status and search query with memoization
+    const filteredSnapshot = useMemo(() => {
+        return today_snapshot.filter(e => {
+            const matchesFilter = snapshotFilter === 'all' || e.status === snapshotFilter
+            const matchesSearch = searchQuery.trim() === ''
+                || e.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+                || e.department?.toLowerCase().includes(searchQuery.toLowerCase())
+            return matchesFilter && matchesSearch
+        })
+    }, [today_snapshot, snapshotFilter, searchQuery])
 
-    const statusCounts = today_snapshot.reduce((acc, e) => {
-        acc[e.status] = (acc[e.status] || 0) + 1
-        return acc
-    }, { all: today_snapshot.length })
+    const statusCounts = useMemo(() => {
+        return today_snapshot.reduce((acc, e) => {
+            acc[e.status] = (acc[e.status] || 0) + 1
+            return acc
+        }, { all: today_snapshot.length })
+    }, [today_snapshot])
 
-    const donutData = [
-        { name: 'Present', value: stats.present_today || 0, color: '#10B981' },
-        { name: 'Late', value: stats.late_today || 0, color: '#F59E0B' },
-        { name: 'Absent', value: Math.max(0, stats.absent_today || 0), color: '#F43F5E' },
-    ].filter(d => d.value > 0)
+    const donutData = useMemo(() => {
+        return [
+            { name: 'Present', value: stats?.present_today || 0, color: '#10B981' },
+            { name: 'Late', value: stats?.late_today || 0, color: '#F59E0B' },
+            { name: 'Absent', value: Math.max(0, stats?.absent_today || 0), color: '#F43F5E' },
+        ].filter(d => d.value > 0)
+    }, [stats?.present_today, stats?.late_today, stats?.absent_today])
 
-    const axisTick = { fontSize: 11, fill: '#64748B' }
-    const gridColor = 'rgba(148, 163, 184, 0.15)'
+    const axisTick = { fontSize: 11, fill: isDark ? '#94A3B8' : '#64748B' }
+    const gridColor = isDark ? 'rgba(148, 163, 184, 0.10)' : 'rgba(148, 163, 184, 0.15)'
 
-    // Direct 1-Click Approve / Decline from Dashboard Triage Hub
+    // Direct 1-Click Approve / Accessible Modal Decline from Dashboard Triage Hub
     function handleApprove(requestId) {
-        if (processingId) return
+        if (processingRef.current) return
+        processingRef.current = true
         setProcessingId(requestId)
         setTriageFeedback(null)
 
@@ -108,32 +120,44 @@ export default function Dashboard({
                 setTimeout(() => setTriageFeedback(null), 4000)
             },
             onError: (err) => {
-                setTriageFeedback({ type: 'error', message: err.error || 'Failed to approve request.' })
+                setTriageFeedback({ type: 'error', message: err?.error || 'Failed to approve request.' })
                 setTimeout(() => setTriageFeedback(null), 5000)
             },
-            onFinish: () => setProcessingId(null),
+            onFinish: () => {
+                processingRef.current = false
+                setProcessingId(null)
+            },
         })
     }
 
-    function handleDecline(requestId) {
-        if (processingId) return
-        const reason = window.prompt('Enter an optional note/reason for declining (or leave blank):')
-        if (reason === null) return // cancelled prompt
+    function openDeclineModal(request) {
+        if (processingRef.current) return
+        setDeclineTarget(request)
+        setDeclineReason('')
+    }
 
-        setProcessingId(requestId)
+    function submitDecline() {
+        if (!declineTarget || processingRef.current) return
+        processingRef.current = true
+        setProcessingId(declineTarget.id)
         setTriageFeedback(null)
 
-        router.post(`/admin/edit-requests/${requestId}/decline`, { admin_note: reason }, {
+        router.post(`/admin/edit-requests/${declineTarget.id}/decline`, { admin_note: declineReason }, {
             preserveScroll: true,
             onSuccess: () => {
                 setTriageFeedback({ type: 'success', message: 'DTR edit request declined.' })
+                setDeclineTarget(null)
+                setDeclineReason('')
                 setTimeout(() => setTriageFeedback(null), 4000)
             },
             onError: (err) => {
-                setTriageFeedback({ type: 'error', message: err.error || 'Failed to decline request.' })
+                setTriageFeedback({ type: 'error', message: err?.error || 'Failed to decline request.' })
                 setTimeout(() => setTriageFeedback(null), 5000)
             },
-            onFinish: () => setProcessingId(null),
+            onFinish: () => {
+                processingRef.current = false
+                setProcessingId(null)
+            },
         })
     }
 
@@ -369,6 +393,7 @@ export default function Dashboard({
                                                     size="sm"
                                                     disabled={isProcessing}
                                                     onClick={() => handleApprove(req.id)}
+                                                    aria-label={`Approve DTR edit for ${req.employee_name}`}
                                                     className="font-semibold shadow-xs"
                                                 >
                                                     {isProcessing ? 'Saving...' : '✓ Approve'}
@@ -377,7 +402,8 @@ export default function Dashboard({
                                                     variant="outline"
                                                     size="sm"
                                                     disabled={isProcessing}
-                                                    onClick={() => handleDecline(req.id)}
+                                                    onClick={() => openDeclineModal(req)}
+                                                    aria-label={`Decline DTR edit for ${req.employee_name}`}
                                                     className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-border"
                                                 >
                                                     Decline
@@ -412,6 +438,7 @@ export default function Dashboard({
                                             value={searchQuery}
                                             onChange={e => setSearchQuery(e.target.value)}
                                             placeholder="Search staff..."
+                                            aria-label="Search employees by name or department"
                                             className="w-36 sm:w-44 text-xs px-2.5 py-1.5 rounded-lg border border-border bg-field/60 focus:bg-panel focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                                         />
                                         {searchQuery && (
@@ -426,7 +453,7 @@ export default function Dashboard({
                                         )}
                                     </div>
 
-                                    <div className="flex items-center gap-1 bg-field p-1 rounded-lg border border-border/70">
+                                    <div className="flex items-center gap-1 bg-field p-1 rounded-lg border border-border/70" role="tablist" aria-label="Attendance status filter">
                                         {[
                                             { key: 'all', label: 'All' },
                                             { key: 'on_time', label: 'On Time' },
@@ -435,6 +462,8 @@ export default function Dashboard({
                                         ].map(f => (
                                             <button
                                                 key={f.key}
+                                                role="tab"
+                                                aria-selected={snapshotFilter === f.key}
                                                 onClick={() => setSnapshotFilter(f.key)}
                                                 className={`px-2 py-1 text-xs rounded-md font-medium transition-all ${
                                                     snapshotFilter === f.key
@@ -495,26 +524,28 @@ export default function Dashboard({
                             <CardContent>
                                 {donutData.length > 0 ? (
                                     <>
-                                        <ResponsiveContainer width="100%" height={170}>
-                                            <PieChart>
-                                                <Pie
-                                                    data={donutData}
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius={48}
-                                                    outerRadius={75}
-                                                    paddingAngle={3}
-                                                    dataKey="value"
-                                                    startAngle={90}
-                                                    endAngle={-270}
-                                                >
-                                                    {donutData.map(entry => (
-                                                        <Cell key={entry.name} fill={entry.color} />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip content={<ChartTooltip />} />
-                                            </PieChart>
-                                        </ResponsiveContainer>
+                                        <div role="img" aria-label={`Today's attendance turnout ratio: ${stats?.present_today || 0} present, ${stats?.late_today || 0} late, ${Math.max(0, stats?.absent_today || 0)} absent`}>
+                                            <ResponsiveContainer width="100%" height={170}>
+                                                <PieChart>
+                                                    <Pie
+                                                        data={donutData}
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius={48}
+                                                        outerRadius={75}
+                                                        paddingAngle={3}
+                                                        dataKey="value"
+                                                        startAngle={90}
+                                                        endAngle={-270}
+                                                    >
+                                                        {donutData.map(entry => (
+                                                            <Cell key={entry.name} fill={entry.color} />
+                                                        ))}
+                                                    </Pie>
+                                                    <Tooltip content={<ChartTooltip />} />
+                                                </PieChart>
+                                            </ResponsiveContainer>
+                                        </div>
 
                                         <div className="space-y-2 mt-3 pt-3 border-t border-border/70">
                                             {donutData.map(d => (
@@ -555,25 +586,27 @@ export default function Dashboard({
                     </CardHeader>
                     <CardContent>
                         {monthly_attendance.length > 0 ? (
-                            <ResponsiveContainer width="100%" height={240}>
-                                <ComposedChart data={monthly_attendance} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                                    <defs>
-                                        <linearGradient id="rateGradient" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.2} />
-                                            <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                                    <XAxis dataKey="month_short" tick={axisTick} tickLine={false} axisLine={false} />
-                                    <YAxis yAxisId="rate" domain={[0, 100]} tickFormatter={v => v + '%'} tick={axisTick} tickLine={false} axisLine={false} width={40} />
-                                    <YAxis yAxisId="count" orientation="right" tick={axisTick} tickLine={false} axisLine={false} width={30} />
-                                    <Tooltip content={<ChartTooltip />} />
-                                    <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} iconType="circle" />
-                                    <Bar yAxisId="count" dataKey="present" name="Present Count" fill="#10B981" radius={[4, 4, 0, 0]} fillOpacity={0.3} stackId="a" />
-                                    <Bar yAxisId="count" dataKey="late" name="Late Count" fill="#F59E0B" radius={[0, 0, 0, 0]} fillOpacity={0.4} stackId="a" />
-                                    <Area yAxisId="rate" type="monotone" dataKey="rate" name="Turnout Rate (%)" stroke="#4F46E5" strokeWidth={2.5} fill="url(#rateGradient)" dot={{ r: 3, fill: '#4F46E5' }} activeDot={{ r: 5 }} />
-                                </ComposedChart>
-                            </ResponsiveContainer>
+                            <div role="img" aria-label="Monthly attendance rate and turnout volume over the last 6 operating months">
+                                <ResponsiveContainer width="100%" height={240}>
+                                    <ComposedChart data={monthly_attendance} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="rateGradient" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.2} />
+                                                <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+                                        <XAxis dataKey="month_short" tick={axisTick} tickLine={false} axisLine={false} />
+                                        <YAxis yAxisId="rate" domain={[0, 100]} tickFormatter={v => v + '%'} tick={axisTick} tickLine={false} axisLine={false} width={40} />
+                                        <YAxis yAxisId="count" orientation="right" tick={axisTick} tickLine={false} axisLine={false} width={30} />
+                                        <Tooltip content={<ChartTooltip />} />
+                                        <Legend wrapperStyle={{ fontSize: 11, paddingTop: 10 }} iconType="circle" />
+                                        <Bar yAxisId="count" dataKey="present" name="Present Count" fill="#10B981" radius={[4, 4, 0, 0]} fillOpacity={0.3} stackId="a" />
+                                        <Bar yAxisId="count" dataKey="late" name="Late Count" fill="#F59E0B" radius={[0, 0, 0, 0]} fillOpacity={0.4} stackId="a" />
+                                        <Area yAxisId="rate" type="monotone" dataKey="rate" name="Turnout Rate (%)" stroke="#4F46E5" strokeWidth={2.5} fill="url(#rateGradient)" dot={{ r: 3, fill: '#4F46E5' }} activeDot={{ r: 5 }} />
+                                    </ComposedChart>
+                                </ResponsiveContainer>
+                            </div>
                         ) : (
                             <div className="py-12 text-center text-xs text-sub">No monthly data accumulated yet.</div>
                         )}
@@ -593,17 +626,19 @@ export default function Dashboard({
                         <CardContent>
                             {department_attendance.length > 0 ? (
                                 <div className="space-y-4">
-                                    <ResponsiveContainer width="100%" height={180}>
-                                        <BarChart data={department_attendance} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                                            <XAxis dataKey="department" tick={axisTick} tickLine={false} axisLine={false} />
-                                            <YAxis tick={axisTick} tickLine={false} axisLine={false} />
-                                            <Tooltip content={<ChartTooltip />} />
-                                            <Bar dataKey="present" name="Present" fill="#10B981" stackId="a" />
-                                            <Bar dataKey="late" name="Late" fill="#F59E0B" stackId="a" />
-                                            <Bar dataKey="absent" name="Absent" fill="#F43F5E" radius={[3, 3, 0, 0]} stackId="a" />
-                                        </BarChart>
-                                    </ResponsiveContainer>
+                                    <div role="img" aria-label="Department attendance headcount and turnout comparison">
+                                        <ResponsiveContainer width="100%" height={180}>
+                                            <BarChart data={department_attendance} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+                                                <XAxis dataKey="department" tick={axisTick} tickLine={false} axisLine={false} />
+                                                <YAxis tick={axisTick} tickLine={false} axisLine={false} />
+                                                <Tooltip content={<ChartTooltip />} />
+                                                <Bar dataKey="present" name="Present" fill="#10B981" stackId="a" />
+                                                <Bar dataKey="late" name="Late" fill="#F59E0B" stackId="a" />
+                                                <Bar dataKey="absent" name="Absent" fill="#F43F5E" radius={[3, 3, 0, 0]} stackId="a" />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
 
                                     <div className="border border-border/80 rounded-xl overflow-hidden overflow-x-auto">
                                         <table className="w-full text-xs">
@@ -620,7 +655,7 @@ export default function Dashboard({
                                                     <tr key={d.department} className="hover:bg-field/40">
                                                         <td className="px-3 py-2.5 font-medium text-text truncate max-w-28">{d.department}</td>
                                                         <td className="px-2 py-2.5 text-center text-sub">{d.headcount}</td>
-                                                        <td className="px-2 py-2.5 text-center font-semibold text-emerald-600">
+                                                        <td className={`px-2 py-2.5 text-center font-semibold ${(d.today_present ?? 0) > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                                                             {d.today_present ?? 0} / {d.headcount}
                                                         </td>
                                                         <td className="px-3 py-2.5">
@@ -665,18 +700,20 @@ export default function Dashboard({
                         <CardContent>
                             {payroll_trend.length > 0 ? (
                                 <div className="space-y-4">
-                                    <ResponsiveContainer width="100%" height={180}>
-                                        <ComposedChart data={payroll_trend} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
-                                            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
-                                            <XAxis dataKey="month" tick={axisTick} tickLine={false} axisLine={false} />
-                                            <YAxis tickFormatter={fmtShort} tick={axisTick} tickLine={false} axisLine={false} width={45} />
-                                            <Tooltip content={<ChartTooltip />} />
-                                            <Legend wrapperStyle={{ fontSize: 10 }} iconType="circle" />
-                                            <Area type="monotone" dataKey="total_gross" name="Gross Pay" fill="#4F46E5" stroke="#4F46E5" fillOpacity={0.1} />
-                                            <Line type="monotone" dataKey="total_net" name="Net Pay" stroke="#10B981" strokeWidth={2.5} dot={{ r: 3, fill: '#10B981' }} />
-                                            <Line type="monotone" dataKey="total_deductions" name="Deductions" stroke="#F43F5E" strokeWidth={1.5} strokeDasharray="3 3" />
-                                        </ComposedChart>
-                                    </ResponsiveContainer>
+                                    <div role="img" aria-label="Historical gross, net pay, and deductions disbursement volumes">
+                                        <ResponsiveContainer width="100%" height={180}>
+                                            <ComposedChart data={payroll_trend} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+                                                <XAxis dataKey="month" tick={axisTick} tickLine={false} axisLine={false} />
+                                                <YAxis tickFormatter={fmtShort} tick={axisTick} tickLine={false} axisLine={false} width={45} />
+                                                <Tooltip content={<ChartTooltip />} />
+                                                <Legend wrapperStyle={{ fontSize: 10 }} iconType="circle" />
+                                                <Area type="monotone" dataKey="total_gross" name="Gross Pay" fill="#4F46E5" stroke="#4F46E5" fillOpacity={0.1} />
+                                                <Line type="monotone" dataKey="total_net" name="Net Pay" stroke="#10B981" strokeWidth={2.5} dot={{ r: 3, fill: '#10B981' }} />
+                                                <Line type="monotone" dataKey="total_deductions" name="Deductions" stroke="#F43F5E" strokeWidth={1.5} strokeDasharray="3 3" />
+                                            </ComposedChart>
+                                        </ResponsiveContainer>
+                                    </div>
 
                                     <div className="grid grid-cols-3 gap-2">
                                         {[
@@ -784,7 +821,7 @@ export default function Dashboard({
                 </div>
 
                 {/* ── Quick Admin Shortcuts ─────────────────────────── */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 select-none">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 select-none">
                     <Link
                         href="/admin/payroll"
                         className="p-4 rounded-xl border border-border/80 bg-panel hover:border-indigo-400 hover:shadow-xs transition-all flex items-center gap-3"
@@ -850,6 +887,69 @@ export default function Dashboard({
                         </div>
                     </Link>
                 </div>
+
+                {/* ── Accessible Decline Reason Dialog ──────────────── */}
+                {declineTarget && (
+                    <div
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="decline-dialog-title"
+                    >
+                        <div className="bg-panel border border-border rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4">
+                            <div className="flex items-center justify-between border-b border-border/70 pb-3">
+                                <h3 id="decline-dialog-title" className="font-heading font-semibold text-base text-text">
+                                    Decline Edit Request
+                                </h3>
+                                <button
+                                    type="button"
+                                    onClick={() => setDeclineTarget(null)}
+                                    className="text-sub hover:text-text text-sm p-1 rounded-lg"
+                                    aria-label="Close dialog"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            <div>
+                                <p className="text-xs text-sub">
+                                    You are declining the DTR edit request from <strong className="text-text font-semibold">{declineTarget.employee_name}</strong>.
+                                </p>
+                                <div className="mt-3 space-y-1.5">
+                                    <label htmlFor="decline-reason-input" className="block text-xs font-medium text-text">
+                                        Reason or Note (Optional):
+                                    </label>
+                                    <textarea
+                                        id="decline-reason-input"
+                                        rows={3}
+                                        value={declineReason}
+                                        onChange={e => setDeclineReason(e.target.value)}
+                                        placeholder="Enter reason for declining this request..."
+                                        className="w-full text-xs p-2.5 rounded-xl border border-border bg-field text-text focus:outline-none focus:ring-2 focus:ring-rose-500/30"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/70">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setDeclineTarget(null)}
+                                    disabled={processingId === declineTarget.id}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    variant="danger"
+                                    size="sm"
+                                    onClick={submitDecline}
+                                    disabled={processingId === declineTarget.id}
+                                    className="font-semibold"
+                                >
+                                    {processingId === declineTarget.id ? 'Declining...' : 'Confirm Decline'}
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </AdminLayout>
     )

@@ -102,6 +102,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **ThemeToggle Rounded Corners**: Added `rounded-lg` to the theme toggle button across both Employee and Admin portals so it matches the app-wide rounded aesthetic (`ThemeToggle.jsx`).
+- **Mobile Menu Dropdown Rounding**: Added `rounded-xl` to the mobile navigation slide-down menu in `MobileHeader.jsx`.
+- **Employee Punch Button Accessibility**: Added explicit accessible `aria-label` describing next punch action or recording status, and `aria-hidden="true"` on the loading spinner SVG (`Employee/Dashboard.jsx`).
+- **Task Toggle Focus Ring**: Added visible focus rings (`focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1`) for keyboard accessibility on task completion checkboxes (`Employee/Dashboard.jsx`).
+- **Welcome Banner Region Semantics**: Declared `role="region"` and `aria-label="Shift overview"` on the employee dashboard banner (`Employee/Dashboard.jsx`).
+- **Late Arrivals Progress Bar Metric Context**: Formatted on-time rate label to clearly state "X of Y on time" rather than ambiguous 0% when zero on-time arrivals occur (`Employee/Dashboard.jsx`).
+- **Stale Closure in Quick Punch**: Captured target punch slot label and current timestamp into local variables prior to Inertia post visit to prevent out-of-sync feedback text (`Employee/Dashboard.jsx`).
+- **Admin Decline Workflow Accessibility**: Replaced blocking, non-stylable `window.prompt()` with an accessible, theme-styled inline modal dialog with note/reason textarea and keyboard dismiss (`Admin/Dashboard.jsx`).
+- **Admin Attendance Filter Tabs**: Added `role="tablist"`, `role="tab"`, and `aria-selected` to live attendance filter pills (`Admin/Dashboard.jsx`).
+- **Staff Search Input Labeling**: Added `aria-label="Search employees by name or department"` to the live search field (`Admin/Dashboard.jsx`).
+- **Admin Triage Button Context**: Added contextual `aria-label` specifying the employee name for DTR edit request approval and decline actions (`Admin/Dashboard.jsx`).
+- **Recharts Chart Accessibility**: Wrapped Recharts containers in accessible `<div role="img" aria-label="...">` elements with contextual summaries (`Admin/Dashboard.jsx`).
+- **Chart Axis Dark Mode Contrast**: Connected axis tick colors to dynamic theme state (`isDark ? '#94A3B8' : '#64748B'`) for high contrast in dark mode (`Admin/Dashboard.jsx`).
+- **Department Table Attendance Status Color**: Applied conditional emerald/rose coloring to the "Today" turnout column so 0 present reflects a warning state instead of green (`Admin/Dashboard.jsx`).
+- **Admin Mobile Shortcuts Grid**: Updated shortcuts grid to `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` to prevent cramped cards on mobile viewports (`Admin/Dashboard.jsx`).
+- **Dashboard Component Re-render Performance**: Extracted `<LiveClock />` component in Employee Dashboard to isolate the 1-second timer state from the parent tree, and wrapped Admin Dashboard query filters and metrics in `useMemo` with `useRef` rapid-click locks (`Employee/Dashboard.jsx`, `Admin/Dashboard.jsx`).
 - **Action Hub Tab Accessibility**: Added semantic ARIA tab relationships and standard keyboard navigation so assistive-technology and keyboard users can operate the employee dashboard tabs — see `Dashboard.jsx`.
 - **Banner Typography**: Fixed typographical glitch with extra whitespace before greeting comma in employee dashboard (`{greeting}, {first_name}!`).
 - **Ticking Clock Accessibility**: Added `aria-live="off"` to the live dashboard clock to prevent screen-reader announcement spam every second.

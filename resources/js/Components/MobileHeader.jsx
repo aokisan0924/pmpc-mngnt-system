@@ -77,7 +77,7 @@ export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleT
                 <>
                     <div className="md:hidden fixed inset-0 z-20 bg-black/60"
                         onClick={() => setMenuOpen(false)} />
-                    <div className="md:hidden fixed top-16 right-3 z-30 shadow-xl border border-border w-64 overflow-hidden bg-panel" role="dialog" aria-label="Account menu">
+                    <div className="md:hidden fixed top-16 right-3 z-30 shadow-xl border border-border w-64 overflow-hidden bg-panel rounded-xl" role="dialog" aria-label="Account menu">
                         {/* User info */}
                         <div className="px-4 py-3 border-b border-border bg-teal/10">
                             <p className="text-sm font-medium text-text">{employee?.full_name}</p>
