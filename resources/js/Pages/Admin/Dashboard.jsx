@@ -141,7 +141,7 @@ export default function Dashboard({
         <AdminLayout pendingEditCount={stats.pending_edits}>
             <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 page-enter">
                 {/* ── Top Executive Command Banner & Cutoff Milestone Tracker ── */}
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 p-6 sm:p-7 rounded-2xl bg-gradient-to-r from-[#1E1B4B] via-[#26215C] to-indigo-950 text-white shadow-sm relative overflow-hidden">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5 p-6 sm:p-7 rounded-2xl bg-gradient-to-r from-[#1E1B4B] via-[#26215C] to-indigo-950 text-white shadow-sm relative overflow-hidden select-none">
                     <div className="absolute -right-12 -bottom-12 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
                     <div className="relative z-10 max-w-2xl">
                         <div className="flex flex-wrap items-center gap-2 mb-2.5">
@@ -784,7 +784,7 @@ export default function Dashboard({
                 </div>
 
                 {/* ── Quick Admin Shortcuts ─────────────────────────── */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 select-none">
                     <Link
                         href="/admin/payroll"
                         className="p-4 rounded-xl border border-border/80 bg-panel hover:border-indigo-400 hover:shadow-xs transition-all flex items-center gap-3"

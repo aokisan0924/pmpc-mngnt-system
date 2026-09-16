@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Mouse Hold Highlight Suppression**: Disabled accidental text selection and ghost dragging (`user-select: none; -webkit-user-drag: none;`) across non-content UI chrome (buttons, navigation links, sidebars, headers, table headers, status badges, StatCard metadata, punch timeline steps, and quick action cards) while strictly preserving full text selection (`user-select: text`) for table data, form inputs, and copyable text.
 - **Portal Branding Uniformity**: Replaced abstract 3-circle vector icon with official high-resolution PMPC crest emblem (`/pmpc_ems.png`) across `EmployeeLayout.jsx`, `AdminLayout.jsx` desktop sidebar, and `MobileHeader.jsx`.
 - **Palette Standardization**: Standardized login portal on authentic cooperative deep teal/emerald (`#0F6E56`) across both light and dark themes.
 - **Focused Input Outlines**: Upgraded input focus outlines with soft, layered focus glow rings (`focus:ring-2 focus:ring-[#0F6E56]/20`).

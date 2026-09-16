@@ -52,7 +52,7 @@ export function StatCard({
         >
             <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] leading-tight text-sub min-h-7 line-clamp-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] leading-tight text-sub min-h-7 line-clamp-2 select-none">
                         {title}
                     </p>
                     <div className="mt-2 flex items-baseline gap-2">
@@ -60,7 +60,7 @@ export function StatCard({
                             {value}
                         </span>
                         {trend && (
-                            <span className={`inline-flex items-center gap-0.5 text-xs font-medium px-2 py-0.5 rounded-full border ${trendColor}`}>
+                            <span className={`inline-flex items-center gap-0.5 text-xs font-medium px-2 py-0.5 rounded-full border select-none ${trendColor}`}>
                                 {trendDirection === 'up' && '↑'}
                                 {trendDirection === 'down' && '↓'}
                                 {trend}
@@ -69,13 +69,13 @@ export function StatCard({
                     </div>
                 </div>
                 {icon && (
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${accentStyles}`}>
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 select-none ${accentStyles}`}>
                         {icon}
                     </div>
                 )}
             </div>
             {progressPercent !== null && (
-                <div className="mt-3 space-y-1">
+                <div className="mt-3 space-y-1 select-none">
                     <div className="flex items-center justify-between text-[10px] text-sub font-medium">
                         <span className="truncate">{typeof progress === 'object' && progress?.label ? progress.label : 'Period progress'}</span>
                         <span className="font-semibold text-text tnum">{progressPercent}%</span>
@@ -89,7 +89,7 @@ export function StatCard({
                 </div>
             )}
             {subtitle && (
-                <div className="mt-3 pt-3 border-t border-border/60 text-xs text-sub flex items-center gap-1.5">
+                <div className="mt-3 pt-3 border-t border-border/60 text-xs text-sub flex items-center gap-1.5 select-none">
                     {subtitle}
                 </div>
             )}

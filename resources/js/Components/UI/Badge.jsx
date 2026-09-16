@@ -69,7 +69,7 @@ export function Badge({
 
     return (
         <span
-            className={`inline-flex items-center gap-1.5 rounded-full border leading-none tracking-normal ${sizeClasses} ${variantStyle} ${className}`}
+            className={`inline-flex items-center gap-1.5 rounded-full border leading-none tracking-normal select-none ${sizeClasses} ${variantStyle} ${className}`}
             {...props}
         >
             {dot && (

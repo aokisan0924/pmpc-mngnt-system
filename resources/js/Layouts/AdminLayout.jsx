@@ -175,7 +175,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
             )}
 
             {/* ── Desktop Sidebar ───────────────────────────────── */}
-            <aside className="hidden md:flex w-64 flex-shrink-0 flex-col sticky top-0 h-screen">
+            <aside className="hidden md:flex w-64 flex-shrink-0 flex-col sticky top-0 h-screen select-none">
                 <SidebarContent
                     navItems={navItems}
                     sections={sections}
@@ -190,7 +190,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
             {/* ── Main Content Area with Contextual Top Bar ────── */}
             <div className="flex-1 flex flex-col min-w-0 pt-16 md:pt-0">
                 {/* Desktop Sticky Header */}
-                <header className="hidden md:flex h-16 items-center justify-between px-8 border-b border-border/80 bg-panel/80 backdrop-blur-md sticky top-0 z-20">
+                <header className="hidden md:flex h-16 items-center justify-between px-8 border-b border-border/80 bg-panel/80 backdrop-blur-md sticky top-0 z-20 select-none">
                     {/* Breadcrumbs */}
                     <nav className="flex items-center gap-2 text-xs font-medium text-sub">
                         <Link href="/admin/dashboard" className="hover:text-text transition-colors">Admin</Link>
@@ -240,7 +240,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
 
 function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLogout, onNavigate, className = '', employee }) {
     return (
-        <div className={`flex flex-col border-r border-border bg-panel ${className}`}>
+        <div className={`flex flex-col border-r border-border bg-panel select-none ${className}`}>
             {/* Brand Header */}
             <div className="flex items-center gap-3 h-16 px-5 border-b border-border/80">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white dark:bg-slate-900 p-1 border border-border/80 shadow-2xs">

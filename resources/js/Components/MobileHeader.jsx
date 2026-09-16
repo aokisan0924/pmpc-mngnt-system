@@ -28,7 +28,7 @@ export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleT
 
     return (
         <>
-            <header className="md:hidden sticky top-0 z-30 border-b border-border bg-panel px-4 py-3">
+            <header className="md:hidden sticky top-0 z-30 border-b border-border bg-panel px-4 py-3 select-none">
                 <div className="flex items-center justify-between">
                     {/* Brand */}
                     <div className="flex items-center gap-2 min-w-0">

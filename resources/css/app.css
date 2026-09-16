@@ -199,6 +199,52 @@
         color: #FFFFFF;
     }
 
+    /* ── Disable mouse-drag / hold highlight on UI chrome & controls ── */
+    button,
+    [role="button"],
+    [type="button"],
+    [type="submit"],
+    [type="reset"],
+    nav,
+    aside,
+    header,
+    th,
+    label,
+    [role="tablist"],
+    [role="tab"],
+    [role="status"],
+    .select-none {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    /* Prevent ghost dragging and text highlighting on icons and decorative images */
+    svg,
+    img {
+        -webkit-user-drag: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    /* Ensure input fields, textareas, and content data remain easily selectable */
+    input,
+    textarea,
+    [contenteditable="true"],
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="number"],
+    input[type="search"],
+    input[type="date"],
+    td,
+    .select-text {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        user-select: text;
+    }
+
     table {
         font-variant-numeric: tabular-nums;
     }

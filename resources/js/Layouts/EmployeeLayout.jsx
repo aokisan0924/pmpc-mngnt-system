@@ -83,7 +83,7 @@ export default function EmployeeLayout({ children, title }) {
             <a href="#main-content" className="skip-link">Skip to main content</a>
 
             {/* ── Desktop Sidebar ───────────────────────────────── */}
-            <aside className="hidden md:flex w-64 flex-shrink-0 flex-col sticky top-0 h-screen border-r border-border/80 bg-panel">
+            <aside className="hidden md:flex w-64 flex-shrink-0 flex-col sticky top-0 h-screen border-r border-border/80 bg-panel select-none">
                 {/* Brand Header */}
                 <div className="flex items-center gap-3 h-16 px-5 border-b border-border/80">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white dark:bg-slate-900 p-1 border border-border/80 shadow-2xs">
@@ -188,7 +188,7 @@ export default function EmployeeLayout({ children, title }) {
             {/* ── Main Content Area ─────────────────────────────── */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Desktop Header */}
-                <header className="hidden md:flex h-16 items-center justify-between px-8 border-b border-border/80 bg-panel/80 backdrop-blur-md sticky top-0 z-20">
+                <header className="hidden md:flex h-16 items-center justify-between px-8 border-b border-border/80 bg-panel/80 backdrop-blur-md sticky top-0 z-20 select-none">
                     <nav className="flex items-center gap-2 text-xs font-medium text-sub">
                         <span>PMPC WorkForce</span>
                         <span className="text-dim">/</span>

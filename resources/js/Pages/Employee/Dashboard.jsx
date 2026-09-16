@@ -162,8 +162,8 @@ export default function Dashboard({
     return (
         <EmployeeLayout title="Dashboard">
             <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 page-enter">
-                {/* ── Top Welcome Banner & Live Clock ───────────────── */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 p-6 sm:p-7 rounded-2xl bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-900 text-white shadow-sm relative overflow-hidden">
+                {/* ── Welcome Banner & Live Clock ─────────────────── */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 p-6 sm:p-7 rounded-2xl bg-gradient-to-r from-[#0A4739] via-[#0F6E56] to-[#07372C] text-white shadow-sm relative overflow-hidden select-none">
                     <div className="absolute -right-12 -bottom-12 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
                     <div className="relative z-10 max-w-2xl">
                         <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -301,7 +301,7 @@ export default function Dashboard({
 
                     <CardContent className="p-5 sm:p-6 space-y-6">
                         {/* Connected 4-step Timeline */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative select-none">
                             {PUNCH_SLOTS.map((slot, index) => {
                                 const rawVal = today?.[slot.key]
                                 const isDone = Boolean(rawVal)
@@ -454,7 +454,7 @@ export default function Dashboard({
                             <div>
                                 <CardHeader className="border-b border-border/60 pb-3">
                                     <div className="flex items-center justify-between w-full">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 select-none">
                                             <button
                                                 type="button"
                                                 onClick={() => setActiveTab('tasks')}
@@ -668,7 +668,7 @@ export default function Dashboard({
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-xs uppercase tracking-wider text-dim">Quick Shortcuts</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-2">
+                            <CardContent className="space-y-2 select-none">
                                 <Link
                                     href="/employee/dtr"
                                     className="flex items-center justify-between p-2.5 rounded-xl border border-border/70 hover:bg-field transition-colors"
