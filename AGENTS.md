@@ -51,6 +51,19 @@ When performing specialized workflows, activate the corresponding skill:
 - **`pmpc-hris-payroll-engine`**: DTR 4-punch state machine, semi-monthly payroll logic, 13th month pay formulas, and statutory deductions.
 - **`code-verification-quality`**: Automated verification runbook (`pint`, `php artisan test`, `npm run build`, migrations).
 
+### Frontend & UI/UX Engineering Skills
+- **`frontend-developer`**: React 19, Next.js, modern component architecture, state handling, and Core Web Vitals optimization.
+- **`ui-ux-designer`**: Design systems, design tokens, component libraries, typography, and accessibility-first interfaces.
+- **`tailwind-design-system`**: Tailwind CSS utility architecture, fluid typography, dark mode theming, and responsive design systems.
+- **`react-modernization`**: Modern React patterns, functional components, hooks composition, and concurrent features.
+- **`react-state-management`**: Scalable client state architectures, async data caching, and store design.
+- **`frontend-mobile-development-component-scaffold`**: Production-ready, accessible, and responsive component scaffolding.
+- **`accessibility-compliance-accessibility-audit`**: WCAG compliance, screen reader support, keyboard navigation, and inclusive design.
+- **`ui-visual-validator`**: Visual consistency validation, viewport responsiveness, and design fidelity auditing.
+- **`frontend-security-coder`**: XSS prevention, output sanitization, CSRF token handling, and secure client-side practices.
+- **`e2e-testing-patterns`**: End-to-end frontend interaction testing, visual assertions, and user journey validation.
+- **`playwright-component-testing`**: Isolated component testing and interaction verification with Playwright.
+
 ### Google Antigravity Core Engineering Skills
 - **`code-review-specialist`**: Comprehensive code review across correctness, OWASP security, performance, clean architecture, and testability.
 - **`systematic-debugging`**: 5-phase hypothesis-driven root-cause investigation, isolating minimal reproduction cases, and preventing regressions.

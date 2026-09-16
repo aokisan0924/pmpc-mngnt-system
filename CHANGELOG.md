@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Installed specialized frontend engineering skills in `.agents/skills/`: `frontend-developer`, `ui-ux-designer`, `tailwind-design-system`, `react-modernization`, `react-state-management`, `frontend-mobile-development-component-scaffold`, `accessibility-compliance-accessibility-audit`, `ui-visual-validator`, `frontend-security-coder`, `e2e-testing-patterns`, and `playwright-component-testing`.
 - Login usability indicators: Caps Lock active warning indicator on password input.
 - Input icon prefixes: Added subtle SVG leading icons (ID badge and security lock) for login identifier and password fields.
 - Interactive loading spinner: Added inline SVG spinner on submit button during active Inertia requests.
