@@ -5,7 +5,7 @@
 ### Added
 
 ### Changed
-- Softened dark mode login page palette: replaced bright neon mint green with deep midnight spruce and eye-friendly emerald accents.
+- Unified login page green: standardized on signature PMPC deep teal/emerald (`#0F6E56`) across both light and dark modes for hero panel, primary action button, and interactive controls.
 
 ### Fixed
 - Enforce atomic database transaction and duplicate employee validation during payroll batch creation.
