@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
-import Card from '@/Components/UI/Card'
+import Card, { CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
@@ -22,7 +22,7 @@ export default function Archives({ archives = [], last_month }) {
 
     return (
         <AdminLayout>
-            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-5xl mx-auto">
+            <div className="mx-auto min-h-screen max-w-6xl space-y-6 bg-bg px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -42,9 +42,9 @@ export default function Archives({ archives = [], last_month }) {
                 )}
 
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
                             <h1 className="text-2xl font-bold font-display text-text tracking-tight">DTR Archives</h1>
                             <Badge variant="indigo" size="sm">Monthly Cold Storage</Badge>
                         </div>
@@ -59,8 +59,8 @@ export default function Archives({ archives = [], last_month }) {
                     <StatCard
                         title="Archived Packages"
                         value={archives.length}
-                        sub="Monthly ZIP bundles stored"
-                        color="indigo"
+                        subtitle="Monthly ZIP bundles stored"
+                        accent="indigo"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
@@ -70,8 +70,8 @@ export default function Archives({ archives = [], last_month }) {
                     <StatCard
                         title="Auto-Generation"
                         value="1st of Month"
-                        sub="Automated scheduled task"
-                        color="emerald"
+                        subtitle="Automated scheduled task"
+                        accent="emerald"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -81,8 +81,8 @@ export default function Archives({ archives = [], last_month }) {
                     <StatCard
                         title="Package Format"
                         value=".ZIP / .PDF"
-                        sub="Compressed PDF documents"
-                        color="slate"
+                        subtitle="Compressed PDF documents"
+                        accent="slate"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -92,20 +92,27 @@ export default function Archives({ archives = [], last_month }) {
                 </div>
 
                 {/* Manual generate card */}
-                <Card
-                    title="Generate Monthly Archive Bundle"
-                    description="Executes the archive compilation job immediately for all active employees during the specified month"
-                >
-                    <div className="flex flex-col sm:flex-row sm:items-end gap-4 pt-2">
+                <Card className="overflow-hidden">
+                    <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center">
                         <div>
-                            <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                            <CardTitle>Generate a Monthly Archive</CardTitle>
+                            <CardDescription>
+                                Compile PDF DTR certificates for active employees into one downloadable ZIP package.
+                            </CardDescription>
+                        </div>
+                        <Badge variant="indigo" size="sm">ZIP + PDF</Badge>
+                    </CardHeader>
+                    <CardContent className="p-5 sm:p-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+                        <div>
+                            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-sub">
                                 Target Month
                             </label>
                             <input
                                 type="month"
                                 value={month}
                                 onChange={e => setMonth(e.target.value)}
-                                className="px-3.5 py-2 text-sm font-semibold border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-mono"
+                                className="h-11 w-full rounded-xl border border-border bg-field px-3.5 font-mono text-sm font-semibold text-text transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 sm:w-44"
                             />
                         </div>
 
@@ -115,21 +122,29 @@ export default function Archives({ archives = [], last_month }) {
                             onClick={generate}
                             disabled={busy || !month}
                             loading={busy}
+                            className="h-11 w-full whitespace-nowrap sm:w-auto"
+                            icon={
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-1m-4-8-4-4m0 0L8 8m4-4v12" />
+                                </svg>
+                            }
                         >
-                            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                            </svg>
                             <span>Compile Archive</span>
                         </Button>
                     </div>
+                    </CardContent>
                 </Card>
 
                 {/* Archive list */}
-                <Card
-                    title="Available Archives"
-                    description="Click download to retrieve the compiled ZIP package"
-                >
-                    <div className="overflow-x-auto -mx-6 -my-4">
+                <Card className="overflow-hidden">
+                    <CardHeader>
+                        <div>
+                            <CardTitle>Available Archives</CardTitle>
+                            <CardDescription>Download a compiled ZIP package for an archived month.</CardDescription>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                    <div className={`overflow-x-auto ${archives.length === 0 ? 'hidden sm:block' : ''}`}>
                         <table className="w-full text-xs">
                             <thead>
                                 <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold">
@@ -187,6 +202,18 @@ export default function Archives({ archives = [], last_month }) {
                             </tbody>
                         </table>
                     </div>
+                    {archives.length === 0 && (
+                        <div className="px-5 py-12 text-center text-dim sm:hidden">
+                            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-field text-sub">
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7m16 0v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5m16 0h-2.586a1 1 0 0 0-.707.293l-2.414 2.414a1 1 0 0 1-.707.293h-3.172a1 1 0 0 1-.707-.293l-2.414-2.414A1 1 0 0 0 6.586 13H4" />
+                                </svg>
+                            </div>
+                            <p className="text-sm font-medium text-sub">No archives yet.</p>
+                            <p className="mt-1 text-xs">Generate the first archive using the form above.</p>
+                        </div>
+                    )}
+                    </CardContent>
                 </Card>
 
             </div>
