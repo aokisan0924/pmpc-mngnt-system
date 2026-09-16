@@ -31,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Department Attendance & Turnout Efficiency Table**:
   - Added structured department turnout overview alongside the department distribution chart.
   - Displays department name, active headcount, present staff count today, visual percentage turnout bar, and status badge (e.g. `100% Full Turnout`, `Partial Turnout`, `0% Absent`).
+- **Statutory Deduction Splits & Compensation Projections**:
+  - Enhanced the Payroll Financial card with full statutory deduction splits (SSS, PhilHealth, Pag-IBIG, Withholding Tax) and average staff daily compensation metrics.
+  - Built active baseline liabilities projection card when no batches are finalized yet, displaying estimated monthly payroll, average daily rate, and direct link to initiate a payroll batch.
 - **Enhanced Quick Action Shortcuts**:
   - Added quick navigation cards for Process Payroll, Review DTR Edits (with pending count badge), Staff Directory, and Analytics.
 
@@ -39,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live Shift Phase Calculator**: Added server-side resolution of Manila shift phase (`Pre-Shift Window`, `Morning Shift Active`, `Lunch Break Interval`, `Afternoon Shift Active`, `Evening / Post-Shift`).
 - **Pending DTR Edit Requests Query**: Added eager-loaded query retrieving top pending `DtrEditRequest` records with linked `employee` and department for inline dashboard review.
 - **Enriched Department Attendance Metrics**: Augmented department counts with today's attendance turnout count and calculated turnout percentages per department.
+- **Payroll Cost Breakdown & Statutory Engine**: Added calculation of finalized statutory deduction splits (SSS, PhilHealth, Pag-IBIG, Tax) or baseline monthly projections from active roster compensation rates.
 
 #### Employee Dashboard & Attendance Punch Flow
 - **1-Tap Direct Quick Punch**: Added a direct attendance punch button on the dashboard calling `POST /employee/dtr/punch` with real-time request handling, disabling during requests, and loading spinner animation.

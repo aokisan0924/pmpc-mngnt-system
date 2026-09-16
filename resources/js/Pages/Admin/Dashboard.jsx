@@ -54,6 +54,7 @@ export default function Dashboard({
     monthly_attendance = [],
     department_attendance = [],
     payroll_trend = [],
+    payroll_cost_summary = null,
     headcount_breakdown = [],
     pending_edit_requests = [],
     recent_activity = [],
@@ -689,9 +690,94 @@ export default function Dashboard({
                                             </div>
                                         ))}
                                     </div>
+
+                                    {payroll_cost_summary && (
+                                        <div className="pt-2 border-t border-border/70">
+                                            <p className="text-[11px] font-medium text-sub mb-1.5">Latest Finalized Statutory Deduction Split:</p>
+                                            <div className="grid grid-cols-4 gap-1.5 text-center">
+                                                <div className="p-2 rounded-lg bg-field/40 border border-border/60">
+                                                    <p className="text-[10px] text-sub uppercase font-medium">SSS</p>
+                                                    <p className="text-xs font-semibold text-text tnum">₱ {fmt(payroll_cost_summary.sss)}</p>
+                                                </div>
+                                                <div className="p-2 rounded-lg bg-field/40 border border-border/60">
+                                                    <p className="text-[10px] text-sub uppercase font-medium">PhilHealth</p>
+                                                    <p className="text-xs font-semibold text-text tnum">₱ {fmt(payroll_cost_summary.philhealth)}</p>
+                                                </div>
+                                                <div className="p-2 rounded-lg bg-field/40 border border-border/60">
+                                                    <p className="text-[10px] text-sub uppercase font-medium">Pag-IBIG</p>
+                                                    <p className="text-xs font-semibold text-text tnum">₱ {fmt(payroll_cost_summary.pagibig)}</p>
+                                                </div>
+                                                <div className="p-2 rounded-lg bg-field/40 border border-border/60">
+                                                    <p className="text-[10px] text-sub uppercase font-medium">W-Tax</p>
+                                                    <p className="text-xs font-semibold text-text tnum">₱ {fmt(payroll_cost_summary.tax)}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
-                                <div className="py-8 text-center text-xs text-sub">No finalized payrolls yet.</div>
+                                <div className="space-y-3">
+                                    <div className="p-3.5 rounded-xl border border-indigo-200/80 dark:border-indigo-900/50 bg-indigo-50/40 dark:bg-indigo-950/20">
+                                        <div className="flex items-center justify-between mb-2.5">
+                                            <div>
+                                                <p className="text-xs font-semibold text-text">
+                                                    {payroll_cost_summary?.period_label ?? 'Active Roster Projections'}
+                                                </p>
+                                                <p className="text-[10px] text-sub">
+                                                    {(payroll_cost_summary?.total_gross ?? 0) > 0
+                                                        ? 'Estimated monthly liabilities from active staff compensation'
+                                                        : 'Staff compensation rates unconfigured — set daily rates in Directory'}
+                                                </p>
+                                            </div>
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300">
+                                                Baseline Projections
+                                            </span>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 mb-2.5">
+                                            <div className="p-2.5 rounded-lg bg-panel border border-border/80 text-center">
+                                                <p className="text-[10px] text-sub uppercase font-medium">Est. Monthly Payroll</p>
+                                                <p className="text-sm font-heading font-bold text-text mt-0.5 tnum">₱ {fmt(payroll_cost_summary?.total_gross ?? 0)}</p>
+                                            </div>
+                                            <div className="p-2.5 rounded-lg bg-panel border border-border/80 text-center">
+                                                <p className="text-[10px] text-sub uppercase font-medium">Avg Staff Daily Rate</p>
+                                                <p className="text-sm font-heading font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tnum">₱ {fmt(payroll_cost_summary?.avg_daily_rate ?? 0)}/day</p>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-[10px] font-medium text-sub mb-1">Monthly Statutory Splits (Projected):</p>
+                                            <div className="grid grid-cols-4 gap-1.5 text-center">
+                                                <div className="p-1.5 rounded-lg bg-panel border border-border/70">
+                                                    <p className="text-[9px] text-sub uppercase">SSS</p>
+                                                    <p className="text-[11px] font-semibold text-text tnum">₱ {fmt(payroll_cost_summary?.sss ?? 0)}</p>
+                                                </div>
+                                                <div className="p-1.5 rounded-lg bg-panel border border-border/70">
+                                                    <p className="text-[9px] text-sub uppercase">PhilHealth</p>
+                                                    <p className="text-[11px] font-semibold text-text tnum">₱ {fmt(payroll_cost_summary?.philhealth ?? 0)}</p>
+                                                </div>
+                                                <div className="p-1.5 rounded-lg bg-panel border border-border/70">
+                                                    <p className="text-[9px] text-sub uppercase">Pag-IBIG</p>
+                                                    <p className="text-[11px] font-semibold text-text tnum">₱ {fmt(payroll_cost_summary?.pagibig ?? 0)}</p>
+                                                </div>
+                                                <div className="p-1.5 rounded-lg bg-panel border border-border/70">
+                                                    <p className="text-[9px] text-sub uppercase">W-Tax</p>
+                                                    <p className="text-[11px] font-semibold text-text tnum">₱ {fmt(payroll_cost_summary?.tax ?? 0)}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between gap-3 pt-1">
+                                        <p className="text-[11px] text-sub">No finalized batches yet for this period.</p>
+                                        <Link
+                                            href={`/admin/payroll/create?cutoff=${active_cutoff.key}&period_from=${active_cutoff.period_from}&period_to=${active_cutoff.period_to}`}
+                                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-colors shadow-xs"
+                                        >
+                                            Start Payroll Run →
+                                        </Link>
+                                    </div>
+                                </div>
                             )}
                         </CardContent>
                     </Card>

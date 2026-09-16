@@ -222,6 +222,37 @@ class AdminDashboardController extends Controller
                 'headcount' => $r->headcount,
             ]);
 
+        // ── Statutory & Compensation Breakdown ─────────────
+        $latestFinalizedPayroll = Payroll::where('status', 'finalized')->latest('period_to')->first();
+        if ($latestFinalizedPayroll) {
+            $payrollCostSummary = [
+                'has_finalized' => true,
+                'period_label' => $latestFinalizedPayroll->period_label,
+                'total_gross' => (float) PayrollItem::where('payroll_id', $latestFinalizedPayroll->id)->sum('gross_pay'),
+                'total_net' => (float) PayrollItem::where('payroll_id', $latestFinalizedPayroll->id)->sum('net_pay'),
+                'total_deductions' => (float) PayrollItem::where('payroll_id', $latestFinalizedPayroll->id)->sum('total_deductions'),
+                'sss' => (float) PayrollItem::where('payroll_id', $latestFinalizedPayroll->id)->sum('sss_deduction'),
+                'philhealth' => (float) PayrollItem::where('payroll_id', $latestFinalizedPayroll->id)->sum('philhealth_deduction'),
+                'pagibig' => (float) PayrollItem::where('payroll_id', $latestFinalizedPayroll->id)->sum('pagibig_deduction'),
+                'tax' => (float) PayrollItem::where('payroll_id', $latestFinalizedPayroll->id)->sum('tax_deduction'),
+                'avg_daily_rate' => (float) (Employee::where('is_staff', true)->where('status', 'active')->avg('daily_rate') ?? 0),
+            ];
+        } else {
+            $activeStaffMembers = Employee::where('is_staff', true)->where('status', 'active')->get();
+            $payrollCostSummary = [
+                'has_finalized' => false,
+                'period_label' => 'Active Roster Projections',
+                'total_gross' => (float) ($activeStaffMembers->sum('daily_rate') * 22),
+                'total_net' => 0.0,
+                'total_deductions' => (float) ($activeStaffMembers->sum('sss_deduction') + $activeStaffMembers->sum('philhealth_deduction') + $activeStaffMembers->sum('pagibig_deduction') + $activeStaffMembers->sum('tax_deduction')),
+                'sss' => (float) $activeStaffMembers->sum('sss_deduction'),
+                'philhealth' => (float) $activeStaffMembers->sum('philhealth_deduction'),
+                'pagibig' => (float) $activeStaffMembers->sum('pagibig_deduction'),
+                'tax' => (float) $activeStaffMembers->sum('tax_deduction'),
+                'avg_daily_rate' => (float) ($activeStaffMembers->avg('daily_rate') ?? 0),
+            ];
+        }
+
         // ── Chart 5: Headcount status breakdown ────────────
         $headcountBreakdown = [
             ['label' => 'Active',   'value' => $activeEmployees,                      'color' => '#0F6E56'],
@@ -316,6 +347,7 @@ class AdminDashboardController extends Controller
             'monthly_attendance' => $monthlyAttendance,
             'department_attendance' => $departmentAttendance,
             'payroll_trend' => $payrollTrend,
+            'payroll_cost_summary' => $payrollCostSummary,
             'headcount_breakdown' => $headcountBreakdown,
             'pending_edit_requests' => $pendingEditRequests,
             'recent_activity' => $recentActivity,
