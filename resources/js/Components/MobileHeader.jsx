@@ -32,10 +32,8 @@ export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleT
                 <div className="flex items-center justify-between">
                     {/* Brand */}
                     <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-9 h-9 flex items-center justify-center flex-shrink-0 bg-brand text-white">
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 32 32" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
-                                <circle cx="12" cy="12" r="7" /><circle cx="20" cy="12" r="7" /><circle cx="16" cy="20" r="7" />
-                            </svg>
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-white dark:bg-slate-900 p-1 border border-border/80 shadow-2xs">
+                            <img src="/pmpc_ems.png" alt="PMPC" className="w-full h-full object-contain" />
                         </div>
                         <div className="min-w-0">
                             <p className="text-xs font-bold leading-tight text-text truncate">PMPC WorkForce</p>

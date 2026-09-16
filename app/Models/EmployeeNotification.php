@@ -22,40 +22,44 @@ class EmployeeNotification extends Model
         'read_at' => 'datetime',
     ];
 
-    public function employee() {
+    public function employee()
+    {
         return $this->belongsTo(Employee::class);
     }
 
-    public function isRead(): bool {
+    public function isRead(): bool
+    {
         return $this->read_at !== null;
     }
 
-    public function isUnread(): bool {
+    public function isUnread(): bool
+    {
         return $this->read_at === null;
     }
 
     // ── Static helpers ─────────────────────────────────────
 
     public static function send(
-        int    $employeeId,
+        int $employeeId,
         string $type,
         string $title,
         string $message,
-        string $link = null
+        ?string $link = null
     ): void {
         $notification = static::create([
             'employee_id' => $employeeId,
-            'type'        => $type,
-            'title'       => $title,
-            'message'     => $message,
-            'link'        => $link,
+            'type' => $type,
+            'title' => $title,
+            'message' => $message,
+            'link' => $link,
         ]);
 
         // Broadcast in real-time via Pusher
         broadcast(new NotificationSent($notification))->toOthers();
     }
 
-    public static function unreadCount(int $employeeId): int {
+    public static function unreadCount(int $employeeId): int
+    {
         return static::where('employee_id', $employeeId)
             ->whereNull('read_at')
             ->count();

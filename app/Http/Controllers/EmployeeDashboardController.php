@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DtrLog;
 use App\Models\DtrEditRequest;
+use App\Models\DtrLog;
 use App\Models\EmployeeNotification;
+use App\Models\PayrollItem;
+use App\Models\Task;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,31 +14,89 @@ use Inertia\Response;
 
 class EmployeeDashboardController extends Controller
 {
-    public function index(Request $request): Response {
+    public function index(Request $request): Response
+    {
         $employee = $request->user();
 
-        $startOfMonth = now()->startOfMonth();
-        $endOfMonth   = now()->endOfMonth();
+        $now = now();
+        $startOfMonth = $now->copy()->startOfMonth();
+        $endOfMonth = $now->copy()->endOfMonth();
 
-        // Monthly summary
+        // Determine Semi-Monthly Cutoff Info
+        $isFirstCutoff = $now->day <= 15;
+        if ($isFirstCutoff) {
+            $cutoffName = '1st Cutoff';
+            $cutoffStart = $now->copy()->startOfMonth();
+            $cutoffEnd = $now->copy()->day(15)->endOfDay();
+            $cutoffLabel = '1st Cutoff ('.$cutoffStart->format('M 1').'–15)';
+        } else {
+            $cutoffName = '2nd Cutoff';
+            $cutoffStart = $now->copy()->day(16)->startOfDay();
+            $cutoffEnd = $now->copy()->endOfMonth();
+            $cutoffLabel = '2nd Cutoff ('.$cutoffStart->format('M 16').'–'.$cutoffEnd->format('d').')';
+        }
+
+        // Days remaining until cutoff ends (inclusive of today)
+        $daysRemaining = max(0, $now->copy()->startOfDay()->diffInDays($cutoffEnd->copy()->startOfDay(), false));
+
+        // Count workdays (Monday-Friday) in cutoff period
+        $workdaysInCutoff = 0;
+        $cursor = $cutoffStart->copy()->startOfDay();
+        $endCursor = $cutoffEnd->copy()->startOfDay();
+        while ($cursor->lte($endCursor)) {
+            if (! $cursor->isWeekend()) {
+                $workdaysInCutoff++;
+            }
+            $cursor->addDay();
+        }
+        $targetHours = $workdaysInCutoff * 8;
+
+        // Cutoff attendance metrics
+        $cutoffDaysPresent = DtrLog::where('employee_id', $employee->id)
+            ->whereBetween('date', [$cutoffStart->toDateString(), $cutoffEnd->toDateString()])
+            ->whereNotIn('status', ['absent'])
+            ->count();
+
+        $cutoffHoursRendered = round(
+            (float) DtrLog::where('employee_id', $employee->id)
+                ->whereBetween('date', [$cutoffStart->toDateString(), $cutoffEnd->toDateString()])
+                ->sum('hours_rendered'),
+            1
+        );
+
+        // Monthly & Cutoff summary
         $summary = [
-            'days_present'   => DtrLog::where('employee_id', $employee->id)
+            'days_present' => $cutoffDaysPresent,
+            'cutoff_workdays' => $workdaysInCutoff,
+            'days_late' => DtrLog::where('employee_id', $employee->id)
+                ->whereBetween('date', [$cutoffStart->toDateString(), $cutoffEnd->toDateString()])
+                ->where('status', 'late')
+                ->count(),
+            'hours_rendered' => $cutoffHoursRendered,
+            'cutoff_target_hours' => $targetHours,
+            'pending_edits' => DtrEditRequest::where('employee_id', $employee->id)
+                ->where('status', 'pending')
+                ->count(),
+            'monthly_days_present' => DtrLog::where('employee_id', $employee->id)
                 ->whereBetween('date', [$startOfMonth, $endOfMonth])
                 ->whereNotIn('status', ['absent'])
                 ->count(),
-            'days_late'      => DtrLog::where('employee_id', $employee->id)
-                ->whereBetween('date', [$startOfMonth, $endOfMonth])
-                ->where('status', 'late')
-                ->count(),
-            'hours_rendered' => round(
-                DtrLog::where('employee_id', $employee->id)
+            'monthly_hours' => round(
+                (float) DtrLog::where('employee_id', $employee->id)
                     ->whereBetween('date', [$startOfMonth, $endOfMonth])
                     ->sum('hours_rendered'),
                 1
             ),
-            'pending_edits'  => DtrEditRequest::where('employee_id', $employee->id)
-                ->where('status', 'pending')
-                ->count(),
+        ];
+
+        $cutoffInfo = [
+            'name' => $cutoffName,
+            'label' => $cutoffLabel,
+            'period_from' => $cutoffStart->format('M d, Y'),
+            'period_to' => $cutoffEnd->format('M d, Y'),
+            'days_remaining' => $daysRemaining,
+            'workdays' => $workdaysInCutoff,
+            'target_hours' => $targetHours,
         ];
 
         // Today's DTR log
@@ -45,40 +105,84 @@ class EmployeeDashboardController extends Controller
             ['status' => 'absent']
         );
 
-        // Recent notifications (last 3 unread)
+        // Recent notifications (last 5)
         $recentNotifications = EmployeeNotification::where('employee_id', $employee->id)
             ->whereNull('read_at')
             ->orderBy('created_at', 'desc')
-            ->limit(3)
+            ->limit(5)
             ->get()
-            ->map(fn($n) => [
-                'id'         => $n->id,
-                'title'      => $n->title,
-                'message'    => $n->message,
-                'type'       => $n->type,
-                'link'       => $n->link,
+            ->map(fn ($n) => [
+                'id' => $n->id,
+                'title' => $n->title,
+                'message' => $n->message,
+                'type' => $n->type,
+                'link' => $n->link,
                 'created_at' => $n->created_at->diffForHumans(),
             ]);
 
+        // Recent tasks (up to 5)
+        $recentTasks = Task::where('employee_id', $employee->id)
+            ->orderByRaw("CASE WHEN status = 'done' THEN 1 ELSE 0 END")
+            ->orderBy('due_date')
+            ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END")
+            ->limit(5)
+            ->get()
+            ->map(fn ($task) => [
+                'id' => $task->id,
+                'title' => $task->title,
+                'description' => $task->description,
+                'due_date' => $task->due_date->format('Y-m-d'),
+                'due_label' => $task->due_date->isToday() ? 'Today' : ($task->due_date->isTomorrow() ? 'Tomorrow' : $task->due_date->format('M d')),
+                'priority' => $task->priority,
+                'status' => $task->status,
+                'is_overdue' => $task->due_date->isPast() && ! $task->due_date->isToday() && $task->status !== 'done',
+            ]);
+
+        // Latest finalized payslip
+        $latestItem = PayrollItem::where('employee_id', $employee->id)
+            ->whereHas('payroll', fn ($q) => $q->where('status', 'finalized'))
+            ->with('payroll')
+            ->latest('id')
+            ->first();
+
+        $latestPayslip = null;
+        if ($latestItem && $latestItem->payroll) {
+            $periodMonth = Carbon::parse($latestItem->payroll->period_from)->format('Y-m');
+            $latestPayslip = [
+                'month' => $periodMonth,
+                'month_label' => Carbon::parse($periodMonth.'-01')->format('F Y'),
+                'cutoff' => $latestItem->cutoff === 'first' ? '1st Cutoff' : '2nd Cutoff',
+                'net_pay' => (float) $latestItem->net_pay,
+                'gross_pay' => (float) $latestItem->gross_pay,
+                'period_label' => $latestItem->payroll->period_from->format('M d').' – '.$latestItem->payroll->period_to->format('M d, Y'),
+            ];
+        }
+
         return Inertia::render('Employee/Dashboard', [
             'employee' => [
-                'id'          => $employee->id,
+                'id' => $employee->id,
                 'employee_id' => $employee->employee_id,
-                'first_name'  => $employee->first_name,
-                'full_name'   => $employee->full_name,
-                'initials'    => $employee->initials,
-                'department'  => $employee->department,
-                'position'    => $employee->position,
+                'first_name' => $employee->first_name,
+                'full_name' => $employee->full_name,
+                'initials' => $employee->initials,
+                'department' => $employee->department,
+                'position' => $employee->position,
             ],
             'summary' => $summary,
-            'today'   => [
-                'am_time_in'  => $today->am_time_in,
+            'cutoff' => $cutoffInfo,
+            'today' => [
+                'am_time_in' => $today->am_time_in,
                 'am_time_out' => $today->am_time_out,
-                'pm_time_in'  => $today->pm_time_in,
+                'pm_time_in' => $today->pm_time_in,
                 'pm_time_out' => $today->pm_time_out,
-                'status'      => $today->status,
+                'status' => $today->status,
+                'hours_rendered' => $today->hours_rendered,
+                'next_punch' => $today->getNextPunchSlot(),
             ],
+            'notifications' => $recentNotifications,
             'recentNotifications' => $recentNotifications,
+            'recentTasks' => $recentTasks,
+            'latestPayslip' => $latestPayslip,
         ]);
     }
 }

@@ -8,6 +8,7 @@ export function StatCard({
     trend,
     trendDirection = 'neutral',
     accent = 'indigo',
+    progress,
     className = '',
     onClick,
     ...props
@@ -26,6 +27,21 @@ export function StatCard({
         down: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border-rose-200/80 dark:border-rose-800/60',
         neutral: 'text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700',
     }[trendDirection]
+
+    const progressPercent = progress !== undefined && progress !== null
+        ? typeof progress === 'number'
+            ? Math.min(100, Math.max(0, Math.round(progress)))
+            : Math.min(100, Math.max(0, Math.round(((progress.value || 0) / (progress.max || 1)) * 100)))
+        : null
+
+    const progressBarColor = (typeof progress === 'object' && progress?.color) || {
+        indigo: 'bg-indigo-500',
+        emerald: 'bg-emerald-500',
+        amber: 'bg-amber-500',
+        rose: 'bg-rose-500',
+        sky: 'bg-sky-500',
+        slate: 'bg-slate-400',
+    }[accent] || 'bg-emerald-500'
 
     return (
         <Card
@@ -58,6 +74,20 @@ export function StatCard({
                     </div>
                 )}
             </div>
+            {progressPercent !== null && (
+                <div className="mt-3 space-y-1">
+                    <div className="flex items-center justify-between text-[10px] text-sub font-medium">
+                        <span className="truncate">{typeof progress === 'object' && progress?.label ? progress.label : 'Period progress'}</span>
+                        <span className="font-semibold text-text tnum">{progressPercent}%</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-field dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                            className={`h-full rounded-full transition-all duration-500 ${progressBarColor}`}
+                            style={{ width: `${progressPercent}%` }}
+                        />
+                    </div>
+                </div>
+            )}
             {subtitle && (
                 <div className="mt-3 pt-3 border-t border-border/60 text-xs text-sub flex items-center gap-1.5">
                     {subtitle}
