@@ -4,6 +4,7 @@ import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import Card from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
+import ConfirmModal from '@/Components/ConfirmModal'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -51,6 +52,7 @@ export default function Planner({ tasks = [] }) {
     const [selectedDate, setSelectedDate] = useState(todayKey)
     const [showForm, setShowForm]         = useState(false)
     const [editTarget, setEditTarget]     = useState(null)
+    const [taskToDelete, setTaskToDelete] = useState(null)
     const [filter, setFilter]             = useState('all')
     const [loading, setLoading]           = useState(false)
 
@@ -59,6 +61,17 @@ export default function Planner({ tasks = [] }) {
         const finish = router.on('finish', () => setLoading(false))
         return () => { stop(); finish() }
     }, [])
+
+    useEffect(() => {
+        if (!showForm) return
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                cancelForm()
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [showForm])
 
     const { data, setData, post, patch, processing, errors, reset } = useForm(EMPTY_FORM)
 
@@ -136,11 +149,16 @@ export default function Planner({ tasks = [] }) {
         router.patch(`/employee/planner/${task.id}/toggle`)
     }
 
-    function deleteTask(task) {
-        if (loading) return
-        if (confirm('Delete this task?')) {
-            router.delete(`/employee/planner/${task.id}`)
-        }
+    function confirmDelete(task) {
+        setTaskToDelete(task)
+    }
+
+    function handleDeleteTask() {
+        if (!taskToDelete || loading) return
+        router.delete(`/employee/planner/${taskToDelete.id}`, {
+            onSuccess: () => setTaskToDelete(null),
+            onFinish: () => setTaskToDelete(null),
+        })
     }
 
     const selectedLabel = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-PH', {
@@ -200,40 +218,49 @@ export default function Planner({ tasks = [] }) {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2 bg-panel rounded-2xl border border-border shadow-xs">
                     <div className="flex items-center gap-2">
                         <button
+                            type="button"
                             onClick={() => changeMonth(-1)}
-                            className="p-2 rounded-xl border border-border bg-field text-sub hover:text-text hover:bg-panel transition-all"
+                            className="p-2 rounded-xl border border-border bg-field text-sub hover:text-text hover:bg-panel transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                             title="Previous Month"
+                            aria-label="Previous Month"
                         >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
                         <span className="text-sm font-bold font-display text-text min-w-[140px] text-center">
-                            {viewDate.toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })}
+                            {`${viewDate.toLocaleDateString('en-PH', { month: 'long' })} ${viewDate.getFullYear()}`}
                         </span>
                         <button
+                            type="button"
                             onClick={() => changeMonth(1)}
-                            className="p-2 rounded-xl border border-border bg-field text-sub hover:text-text hover:bg-panel transition-all"
+                            className="p-2 rounded-xl border border-border bg-field text-sub hover:text-text hover:bg-panel transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                             title="Next Month"
+                            aria-label="Next Month"
                         >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                         </button>
                         <button
+                            type="button"
                             onClick={goToToday}
-                            className="ml-2 px-3 py-1.5 rounded-xl text-xs font-semibold border border-border bg-field text-emerald-600 dark:text-emerald-400 hover:bg-panel transition-all"
+                            aria-label="Jump to current date"
+                            className="ml-2 px-3 py-1.5 rounded-xl text-xs font-semibold border border-border bg-field text-emerald-600 dark:text-emerald-400 hover:bg-panel transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                         >
                             Today
                         </button>
                     </div>
 
-                    <div className="flex gap-1 p-1 bg-field rounded-xl border border-border">
+                    <div className="flex gap-1 p-1 bg-field rounded-xl border border-border" role="tablist" aria-label="Filter tasks">
                         {['all', 'pending', 'done'].map(f => (
                             <button
                                 key={f}
+                                type="button"
+                                role="tab"
+                                aria-selected={filter === f}
                                 onClick={() => setFilter(f)}
-                                className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all ${
+                                className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                     filter === f
                                         ? 'bg-panel text-text shadow-xs border border-border'
                                         : 'text-sub hover:text-text'
@@ -267,11 +294,19 @@ export default function Planner({ tasks = [] }) {
                                 const visible = dayTasks.slice(0, 2)
                                 const overflow = dayTasks.length - visible.length
 
+                                const formattedDate = date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
+                                const taskCountLabel = `${dayTasks.length} task${dayTasks.length === 1 ? '' : 's'}`
+                                const cellAriaLabel = `${formattedDate}, ${taskCountLabel}${isSelected ? ', selected' : ''}${isToday ? ', today' : ''}`
+
                                 return (
                                     <button
                                         key={i}
+                                        type="button"
                                         onClick={() => selectDay(date)}
-                                        className={`relative text-left rounded-xl border p-1.5 sm:p-2 min-h-[72px] sm:min-h-[100px] flex flex-col gap-1 transition-all ${
+                                        aria-label={cellAriaLabel}
+                                        aria-pressed={isSelected}
+                                        aria-current={isToday ? 'date' : undefined}
+                                        className={`relative text-left rounded-xl border p-1.5 sm:p-2 min-h-[72px] sm:min-h-[100px] flex flex-col gap-1 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                             isSelected
                                                 ? 'border-emerald-500 bg-emerald-500/5 ring-2 ring-emerald-500/20 shadow-xs'
                                                 : inMonth
@@ -325,9 +360,11 @@ export default function Planner({ tasks = [] }) {
                         description={selectedLabel}
                         action={
                             <button
+                                type="button"
                                 onClick={() => openNewTaskForm(selectedDate)}
-                                className="p-1.5 rounded-lg border border-border bg-field text-emerald-600 dark:text-emerald-400 hover:bg-panel transition-all"
+                                className="p-1.5 rounded-lg border border-border bg-field text-emerald-600 dark:text-emerald-400 hover:bg-panel transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                                 title="Add task to this date"
+                                aria-label="Add task to this date"
                             >
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -349,8 +386,12 @@ export default function Planner({ tasks = [] }) {
                                     >
                                         <div className="flex items-start gap-3">
                                             <button
+                                                type="button"
+                                                role="checkbox"
+                                                aria-checked={done}
+                                                aria-label={done ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
                                                 onClick={() => toggleDone(task)}
-                                                className={`mt-0.5 w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                                                className={`mt-0.5 w-5 h-5 rounded-lg border flex items-center justify-center transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                                     done
                                                         ? 'bg-emerald-600 border-emerald-600 text-white'
                                                         : 'border-border hover:border-emerald-500 bg-field'
@@ -385,13 +426,17 @@ export default function Planner({ tasks = [] }) {
 
                                             <div className="flex flex-col gap-1 shrink-0">
                                                 <button
+                                                    type="button"
                                                     onClick={() => startEdit(task)}
+                                                    aria-label={`Edit task "${task.title}"`}
                                                     className="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-panel px-3 text-xs font-semibold text-sub shadow-2xs transition-colors hover:bg-hover hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                                                 >
                                                     Edit
                                                 </button>
                                                 <button
-                                                    onClick={() => deleteTask(task)}
+                                                    type="button"
+                                                    onClick={() => confirmDelete(task)}
+                                                    aria-label={`Delete task "${task.title}"`}
                                                     className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 text-xs font-semibold text-rose-600 shadow-2xs transition-colors hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950/70"
                                                 >
                                                     Delete
@@ -411,6 +456,7 @@ export default function Planner({ tasks = [] }) {
                                     </div>
                                     <p className="text-xs font-medium text-sub">No tasks scheduled for this day.</p>
                                     <button
+                                        type="button"
                                         onClick={() => openNewTaskForm(selectedDate)}
                                         className="mt-3 inline-flex h-9 items-center justify-center rounded-lg bg-emerald-600 px-4 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:bg-emerald-500 dark:hover:bg-emerald-600"
                                     >
@@ -430,19 +476,23 @@ export default function Planner({ tasks = [] }) {
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
                     onClick={cancelForm}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="task-form-title"
                 >
                     <div
                         className="w-full max-w-md rounded-2xl border border-border bg-panel p-6 shadow-2xl space-y-5"
                         onClick={e => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between pb-3 border-b border-border">
-                            <h2 className="text-lg font-bold font-display text-text">
+                            <h2 id="task-form-title" className="text-lg font-bold font-display text-text">
                                 {editTarget ? 'Edit Task' : 'Schedule New Task'}
                             </h2>
                             <button
                                 type="button"
                                 onClick={cancelForm}
-                                className="text-sub hover:text-text p-1 rounded-lg hover:bg-hover"
+                                aria-label="Close task form"
+                                className="text-sub hover:text-text p-1 rounded-lg hover:bg-hover transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                             >
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -452,10 +502,11 @@ export default function Planner({ tasks = [] }) {
 
                         <form onSubmit={submitTask} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
+                                <label htmlFor="task-form-title-input" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
                                     Task Title <span className="text-rose-500">*</span>
                                 </label>
                                 <input
+                                    id="task-form-title-input"
                                     type="text"
                                     value={data.title}
                                     onChange={e => setData('title', e.target.value)}
@@ -468,10 +519,11 @@ export default function Planner({ tasks = [] }) {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
+                                <label htmlFor="task-form-desc-input" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
                                     Description (Optional)
                                 </label>
                                 <textarea
+                                    id="task-form-desc-input"
                                     value={data.description}
                                     onChange={e => setData('description', e.target.value)}
                                     rows={2}
@@ -482,10 +534,11 @@ export default function Planner({ tasks = [] }) {
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
+                                    <label htmlFor="task-form-due-date-input" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
                                         Due Date <span className="text-rose-500">*</span>
                                     </label>
                                     <input
+                                        id="task-form-due-date-input"
                                         type="date"
                                         value={data.due_date}
                                         onChange={e => setData('due_date', e.target.value)}
@@ -494,10 +547,11 @@ export default function Planner({ tasks = [] }) {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
+                                    <label htmlFor="task-form-priority-input" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
                                         Priority
                                     </label>
                                     <select
+                                        id="task-form-priority-input"
                                         value={data.priority}
                                         onChange={e => setData('priority', e.target.value)}
                                         className="w-full px-3.5 py-2 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
@@ -510,10 +564,11 @@ export default function Planner({ tasks = [] }) {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
+                                <label htmlFor="task-form-category-input" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
                                     Category / Label
                                 </label>
                                 <input
+                                    id="task-form-category-input"
                                     type="text"
                                     value={data.category}
                                     onChange={e => setData('category', e.target.value)}
@@ -526,7 +581,7 @@ export default function Planner({ tasks = [] }) {
                                 <Button variant="secondary" size="md" type="button" onClick={cancelForm}>
                                     Cancel
                                 </Button>
-                                <Button variant="primary" size="md" type="submit" loading={processing}>
+                                <Button variant="emerald" size="md" type="submit" loading={processing}>
                                     {editTarget ? 'Update Task' : 'Add Task'}
                                 </Button>
                             </div>
@@ -534,6 +589,18 @@ export default function Planner({ tasks = [] }) {
                     </div>
                 </div>
             )}
+
+            {/* Task Deletion Confirmation Dialog */}
+            <ConfirmModal
+                open={Boolean(taskToDelete)}
+                title="Delete Task"
+                message={taskToDelete ? `Are you sure you want to delete "${taskToDelete.title}"? This action cannot be undone.` : ''}
+                confirmLabel="Delete Task"
+                cancelLabel="Cancel"
+                confirmStyle="danger"
+                onConfirm={handleDeleteTask}
+                onCancel={() => setTaskToDelete(null)}
+            />
         </EmployeeLayout>
     )
 }

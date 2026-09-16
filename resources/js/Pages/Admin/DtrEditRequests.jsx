@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
@@ -20,16 +20,18 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
     const [adminNote, setAdminNote] = useState('')
     const [processing, setProcessing] = useState(false)
 
-    const counts = {
+    const counts = useMemo(() => ({
         pending: requests.filter(r => r.status === 'pending').length,
         approved: requests.filter(r => r.status === 'approved').length,
         declined: requests.filter(r => r.status === 'declined').length,
         all: requests.length,
-    }
+    }), [requests])
 
-    const filtered = filter === 'all'
-        ? requests
-        : requests.filter(r => r.status === filter)
+    const filtered = useMemo(() => {
+        return filter === 'all'
+            ? requests
+            : requests.filter(r => r.status === filter)
+    }, [filter, requests])
 
     function resolve(id, action) {
         setProcessing(true)
@@ -69,7 +71,11 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                     </div>
 
                     {/* Filter Pills */}
-                    <div className="flex items-center gap-1 bg-field p-1 rounded-lg border border-border/70 self-start sm:self-auto">
+                    <div
+                        role="tablist"
+                        aria-label="Filter edit requests by status"
+                        className="flex items-center gap-1 bg-field p-1 rounded-lg border border-border/70 self-start sm:self-auto"
+                    >
                         {[
                             { key: 'pending', label: 'Pending' },
                             { key: 'approved', label: 'Approved' },
@@ -78,6 +84,9 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                         ].map(tab => (
                             <button
                                 key={tab.key}
+                                type="button"
+                                role="tab"
+                                aria-selected={filter === tab.key}
                                 onClick={() => setFilter(tab.key)}
                                 className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
                                     filter === tab.key
@@ -162,6 +171,8 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                                         <Button
                                             variant={isPending ? 'primary' : 'outline'}
                                             size="sm"
+                                            aria-expanded={isOpen}
+                                            aria-label={`${isOpen ? 'Close' : isPending ? 'Review Diff for' : 'View Details for'} ${req.employee_name} (${req.date})`}
                                             onClick={() => setActiveId(isOpen ? null : req.id)}
                                         >
                                             {isOpen ? 'Close' : isPending ? 'Review Diff' : 'View Details'}
@@ -236,6 +247,7 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                                                     value={adminNote}
                                                     onChange={e => setAdminNote(e.target.value)}
                                                     placeholder="Add optional supervisor note or reason…"
+                                                    aria-label="Supervisor note or reason for decision"
                                                     className="flex-1 px-3 py-2 text-xs border border-border rounded-lg bg-panel text-text placeholder:text-dim focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                                                 />
                                                 <div className="flex items-center gap-2 self-end sm:self-auto">
@@ -243,6 +255,7 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                                                         variant="danger"
                                                         size="sm"
                                                         loading={processing}
+                                                        aria-label={`Decline edit request for ${req.employee_name}`}
                                                         onClick={() => resolve(req.id, 'decline')}
                                                     >
                                                         Decline Request
@@ -251,6 +264,7 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                                                         variant="emerald"
                                                         size="sm"
                                                         loading={processing}
+                                                        aria-label={`Approve edit request for ${req.employee_name}`}
                                                         onClick={() => resolve(req.id, 'approve')}
                                                     >
                                                         Approve & Overwrite DTR

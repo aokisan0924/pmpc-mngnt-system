@@ -14,17 +14,34 @@ const PUNCH_LABELS = {
 }
 const SLOT_ORDER = ['am_time_in', 'am_time_out', 'pm_time_in', 'pm_time_out']
 
-export default function Dtr({ logs = [], today = {}, summary = {}, month, next_punch }) {
-    const { flash } = usePage().props
-    const [editTarget, setEditTarget] = useState(null)
-    const [punching, setPunching]     = useState(false)
-    const [now, setNow] = useState(new Date())
-    const [loading, setLoading] = useState(false)
+function DtrLiveClock() {
+    const [now, setNow] = useState(() => new Date())
 
     useEffect(() => {
         const id = setInterval(() => setNow(new Date()), 1000)
         return () => clearInterval(id)
     }, [])
+
+    const timeStr = now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    const dateStr = now.toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+
+    return (
+        <div>
+            <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">
+                {dateStr}
+            </p>
+            <p className="font-mono text-4xl sm:text-5xl font-bold tracking-tight text-text tnum" aria-live="off">
+                {timeStr}
+            </p>
+        </div>
+    )
+}
+
+export default function Dtr({ logs = [], today = {}, summary = {}, month, next_punch }) {
+    const { flash } = usePage().props
+    const [editTarget, setEditTarget] = useState(null)
+    const [punching, setPunching]     = useState(false)
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         const stop = router.on('start', () => setLoading(true))
@@ -48,7 +65,6 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
     }
 
     const nextLabel = next_punch ? PUNCH_LABELS[next_punch] : null
-    const timeStr = now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
     function getStatusBadge(log) {
         if (log.has_pending_edit) {
@@ -110,23 +126,18 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 {/* Hero Punch Stepper Card */}
                 <Card className="relative overflow-hidden p-5 sm:p-6">
                     <div className="flex flex-col gap-5 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between sm:pb-6">
-                        <div>
-                            <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">
-                                {now.toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                            </p>
-                            <p className="font-mono text-4xl sm:text-5xl font-bold tracking-tight text-text">
-                                {timeStr}
-                            </p>
-                        </div>
+                        <DtrLiveClock />
 
                         <div>
                             {nextLabel ? (
                                 <button
+                                    type="button"
                                     onClick={handlePunch}
                                     disabled={punching}
+                                    aria-label={punching ? 'Recording punch...' : `Clock in ${nextLabel}`}
                                     className="w-full sm:w-auto px-6 py-3 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                                 >
-                                    <div className="w-2.5 h-2.5 rounded-full bg-white animate-ping" />
+                                    <div className="w-2.5 h-2.5 rounded-full bg-white animate-ping" aria-hidden="true" />
                                     <span>{punching ? 'Recording Punch...' : `Clock In: ${nextLabel}`}</span>
                                 </button>
                             ) : (
@@ -269,14 +280,14 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                         <table className="w-full text-xs">
                             <thead>
                                 <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold">
-                                    <th className="text-left px-6 py-3.5">Calendar Date</th>
-                                    <th className="text-center px-3 py-3.5">AM In</th>
-                                    <th className="text-center px-3 py-3.5 border-r border-border">AM Out</th>
-                                    <th className="text-center px-3 py-3.5">PM In</th>
-                                    <th className="text-center px-3 py-3.5 border-r border-border">PM Out</th>
-                                    <th className="text-center px-4 py-3.5">Rendered</th>
-                                    <th className="text-center px-4 py-3.5">Status</th>
-                                    <th className="text-right px-6 py-3.5">Action</th>
+                                    <th scope="col" className="text-left px-6 py-3.5">Calendar Date</th>
+                                    <th scope="col" className="text-center px-3 py-3.5">AM In</th>
+                                    <th scope="col" className="text-center px-3 py-3.5 border-r border-border">AM Out</th>
+                                    <th scope="col" className="text-center px-3 py-3.5">PM In</th>
+                                    <th scope="col" className="text-center px-3 py-3.5 border-r border-border">PM Out</th>
+                                    <th scope="col" className="text-center px-4 py-3.5">Rendered</th>
+                                    <th scope="col" className="text-center px-4 py-3.5">Status</th>
+                                    <th scope="col" className="text-right px-6 py-3.5">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border/60 font-mono">
@@ -307,7 +318,9 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                             {!log.has_pending_edit && (
                                                 log.edit_window_open ? (
                                                     <button
+                                                        type="button"
                                                         onClick={() => setEditTarget(log)}
+                                                        aria-label={`Request edit for ${log.date_label}`}
                                                         className="inline-flex h-8 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
                                                     >
                                                         Request Edit
@@ -364,7 +377,9 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                     </span>
                                     {!log.has_pending_edit && log.edit_window_open && (
                                         <button
+                                            type="button"
                                             onClick={() => setEditTarget(log)}
+                                            aria-label={`Request edit for ${log.date_label}`}
                                             className="inline-flex h-8 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-3 font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
                                         >
                                             Request Edit

@@ -79,7 +79,11 @@ export default function Payroll({ payrolls = [] }) {
                             {/* Cutoff Selector */}
                             <div>
                                 <label className="block text-xs font-medium text-sub mb-1.5">Cutoff Type</label>
-                                <div className="flex items-center gap-1 bg-field p-1 rounded-lg border border-border/70">
+                                <div
+                                    role="radiogroup"
+                                    aria-label="Cutoff type selection"
+                                    className="flex items-center gap-1 bg-field p-1 rounded-lg border border-border/70"
+                                >
                                     {[
                                         { value: 'first', label: '1st Cutoff (1st–15th: Full Deductions)' },
                                         { value: 'second', label: '2nd Cutoff (16th–EOM: Deductions Waived)' },
@@ -87,6 +91,8 @@ export default function Payroll({ payrolls = [] }) {
                                         <button
                                             key={opt.value}
                                             type="button"
+                                            role="radio"
+                                            aria-checked={cutoff === opt.value}
                                             onClick={() => setCutoff(opt.value)}
                                             className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
                                                 cutoff === opt.value
@@ -103,8 +109,9 @@ export default function Payroll({ payrolls = [] }) {
                             {/* Date Range */}
                             <div className="flex items-center gap-3">
                                 <div>
-                                    <label className="block text-xs font-medium text-sub mb-1.5">From Date</label>
+                                    <label htmlFor="payroll-period-from" className="block text-xs font-medium text-sub mb-1.5">From Date</label>
                                     <input
+                                        id="payroll-period-from"
                                         type="date"
                                         value={periodFrom}
                                         onChange={e => setPeriodFrom(e.target.value)}
@@ -112,8 +119,9 @@ export default function Payroll({ payrolls = [] }) {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-sub mb-1.5">To Date</label>
+                                    <label htmlFor="payroll-period-to" className="block text-xs font-medium text-sub mb-1.5">To Date</label>
                                     <input
+                                        id="payroll-period-to"
                                         type="date"
                                         value={periodTo}
                                         onChange={e => setPeriodTo(e.target.value)}
@@ -149,13 +157,13 @@ export default function Payroll({ payrolls = [] }) {
                             <table className="w-full text-xs min-w-[760px]">
                                 <thead>
                                     <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[11px]">
-                                        <th className="text-left px-5 py-3 font-semibold">Period</th>
-                                        <th className="text-left px-4 py-3 font-semibold">Cutoff</th>
-                                        <th className="text-right px-4 py-3 font-semibold">Gross Pay</th>
-                                        <th className="text-right px-4 py-3 font-semibold text-rose-600">Deductions</th>
-                                        <th className="text-right px-4 py-3 font-semibold text-emerald-600">Net Pay</th>
-                                        <th className="text-center px-4 py-3 font-semibold">Status</th>
-                                        <th className="text-right px-5 py-3 font-semibold">Action</th>
+                                        <th scope="col" className="text-left px-5 py-3 font-semibold">Period</th>
+                                        <th scope="col" className="text-left px-4 py-3 font-semibold">Cutoff</th>
+                                        <th scope="col" className="text-right px-4 py-3 font-semibold">Gross Pay</th>
+                                        <th scope="col" className="text-right px-4 py-3 font-semibold text-rose-600">Deductions</th>
+                                        <th scope="col" className="text-right px-4 py-3 font-semibold text-emerald-600">Net Pay</th>
+                                        <th scope="col" className="text-center px-4 py-3 font-semibold">Status</th>
+                                        <th scope="col" className="text-right px-5 py-3 font-semibold">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/60 tnum">
@@ -166,7 +174,7 @@ export default function Payroll({ payrolls = [] }) {
                                                 <p className="text-[11px] text-dim">{p.period_from} — {p.period_to}</p>
                                             </td>
                                             <td className="px-4 py-3.5">
-                                                <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-slate-100 dark:bg-slate-800 text-sub border border-border/60">
+                                                <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-field text-sub border border-border/60">
                                                     {p.cutoff === 'first' ? '1st Cutoff' : '2nd Cutoff'}
                                                 </span>
                                             </td>
@@ -187,6 +195,7 @@ export default function Payroll({ payrolls = [] }) {
                                             <td className="px-5 py-3.5 text-right">
                                                 <Link
                                                     href={`/admin/payroll/${p.id}`}
+                                                    aria-label={`Open payroll batch for ${p.period_label}`}
                                                     className="inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-indigo-200 bg-indigo-50 px-3 text-xs font-semibold text-indigo-700 shadow-2xs transition-colors hover:bg-indigo-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-indigo-800/70 dark:bg-indigo-950/50 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
                                                 >
                                                     Open Batch →

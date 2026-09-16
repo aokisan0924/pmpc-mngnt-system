@@ -1,5 +1,5 @@
-import { router } from '@inertiajs/react'
-import { useState } from 'react'
+import { router, Link } from '@inertiajs/react'
+import { useState, useMemo } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
@@ -25,10 +25,10 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
         }, { preserveState: true })
     }
 
-    const monthLabel = new Date(month + '-02').toLocaleDateString('en-PH', {
+    const monthLabel = useMemo(() => new Date(month + '-02').toLocaleDateString('en-PH', {
         month: 'long',
         year: 'numeric',
-    })
+    }), [month])
 
     return (
         <AdminLayout>
@@ -51,17 +51,21 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                     {/* Month Navigator */}
                     <div className="flex items-center gap-2 bg-panel p-1 rounded-xl border border-border/80 shadow-xs self-start sm:self-auto">
                         <button
+                            type="button"
                             onClick={() => handleMonthChange(-1)}
                             className="p-1.5 rounded-lg text-sub hover:text-text hover:bg-field transition-colors"
                             title="Previous Month"
+                            aria-label="View previous month"
                         >
                             ←
                         </button>
                         <span className="text-xs font-semibold px-2 text-text font-heading">{monthLabel}</span>
                         <button
+                            type="button"
                             onClick={() => handleMonthChange(1)}
                             className="p-1.5 rounded-lg text-sub hover:text-text hover:bg-field transition-colors"
                             title="Next Month"
+                            aria-label="View next month"
                         >
                             →
                         </button>
@@ -73,8 +77,9 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                     <CardContent className="p-4">
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 flex-wrap">
                             <div>
-                                <label className="block text-xs font-medium text-sub mb-1">Month Period</label>
+                                <label htmlFor="dtr-month-period" className="block text-xs font-medium text-sub mb-1">Month Period</label>
                                 <input
+                                    id="dtr-month-period"
                                     type="month"
                                     defaultValue={month}
                                     onChange={e => router.get('/admin/dtr', {
@@ -86,8 +91,9 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                             </div>
 
                             <div className="flex-1 min-w-[200px]">
-                                <label className="block text-xs font-medium text-sub mb-1">Employee Filter</label>
+                                <label htmlFor="dtr-employee-filter" className="block text-xs font-medium text-sub mb-1">Employee Filter</label>
                                 <select
+                                    id="dtr-employee-filter"
                                     value={selectedEmployee}
                                     onChange={e => setSelectedEmployee(e.target.value)}
                                     className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
@@ -120,13 +126,13 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                             <table className="w-full text-xs min-w-[760px]">
                                 <thead>
                                     <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[11px]">
-                                        <th className="text-left px-5 py-3 font-semibold">Employee</th>
-                                        <th className="text-center px-4 py-3 font-semibold text-emerald-600">Present</th>
-                                        <th className="text-center px-4 py-3 font-semibold text-amber-600">Late</th>
-                                        <th className="text-center px-4 py-3 font-semibold text-rose-600">Absent</th>
-                                        <th className="text-center px-4 py-3 font-semibold text-sky-600">Half Day</th>
-                                        <th className="text-center px-4 py-3 font-semibold">Hours</th>
-                                        <th className="text-right px-5 py-3 font-semibold">Actions</th>
+                                        <th scope="col" className="text-left px-5 py-3 font-semibold">Employee</th>
+                                        <th scope="col" className="text-center px-4 py-3 font-semibold text-emerald-600">Present</th>
+                                        <th scope="col" className="text-center px-4 py-3 font-semibold text-amber-600">Late</th>
+                                        <th scope="col" className="text-center px-4 py-3 font-semibold text-rose-600">Absent</th>
+                                        <th scope="col" className="text-center px-4 py-3 font-semibold text-sky-600">Half Day</th>
+                                        <th scope="col" className="text-center px-4 py-3 font-semibold">Hours</th>
+                                        <th scope="col" className="text-right px-5 py-3 font-semibold">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/60 tnum">
@@ -166,16 +172,18 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                                             </td>
                                             <td className="px-5 py-3.5 text-right">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    <a
+                                                    <Link
                                                         href={`/admin/dtr/${emp.id}?month=${month}`}
+                                                        aria-label={`View DTR log for ${emp.full_name}`}
                                                         className="px-2.5 py-1 text-xs rounded-md border border-border/80 text-text hover:bg-field font-medium transition-colors"
                                                     >
                                                         View Log
-                                                    </a>
+                                                    </Link>
                                                     <a
                                                         href={`/admin/dtr/${emp.id}/print?month=${month}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
+                                                        aria-label={`Print DTR PDF for ${emp.full_name}`}
                                                         className="px-2.5 py-1 text-xs rounded-md bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 font-medium hover:bg-indigo-100 transition-colors"
                                                     >
                                                         Print PDF ↗
