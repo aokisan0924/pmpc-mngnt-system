@@ -243,10 +243,8 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
         <div className={`flex flex-col border-r border-border bg-panel ${className}`}>
             {/* Brand Header */}
             <div className="flex items-center gap-3 h-16 px-5 border-b border-border/80">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-indigo-600 text-white shadow-xs">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 32 32" stroke="currentColor" strokeWidth="1.8">
-                        <circle cx="12" cy="12" r="7" /><circle cx="20" cy="12" r="7" /><circle cx="16" cy="20" r="7" />
-                    </svg>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white dark:bg-slate-900 p-1 border border-border/80 shadow-2xs">
+                    <img src="/pmpc_ems.png" alt="PMPC" className="w-full h-full object-contain" />
                 </div>
                 <div className="min-w-0">
                     <p className="font-heading font-bold text-sm text-text tracking-tight truncate">PMPC WorkForce</p>

@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+#### Admin Dashboard & Executive Operations (`Dashboard.jsx`)
+- **Executive Command Banner & Cutoff Milestone Tracker**:
+  - Designed in signature Admin Portal deep indigo theme (`#26215C` via `#1E1B4B` to `indigo-950`).
+  - Integrated real-time Manila clock and shift phase indicator (`Pre-Shift Window`, `Morning Shift Active`, `Lunch Break Interval`, `Afternoon Shift Active`, `Evening / Post-Shift`).
+  - Semi-Monthly Cutoff milestone badge indicating current cycle (`1st Cutoff (1–15)` or `2nd Cutoff (16–EOM)`), calendar date bounds, and countdown of days remaining until cutoff finalization.
+  - Cutoff payroll batch status badge (`Not Started`, `Draft`, `Finalized`) and direct 1-click **Process Payroll** action button linking to `/admin/payroll/create` with pre-filled cutoff parameters.
+- **1-Click DTR Edit Requests Triage Hub**:
+  - Built an inline administrative triage hub on the dashboard for instant resolution of pending attendance adjustment requests.
+  - Direct 1-click Approve (`POST /admin/edit-requests/{id}/approve`) and Decline with reason prompt (`POST /admin/edit-requests/{id}/decline`) actions with inline processing spinners and feedback alert notices.
+  - Displays employee name, department, target date, punch slot (AM In/Out, PM In/Out), original vs requested timestamps, and employee's submitted explanation.
+- **Live Staff Search & Attendance Turnout Monitor**:
+  - Added real-time client-side search input filtering the attendance roster dynamically by employee name or department.
+  - Combined with one-tap status filter pills (`All`, `On Time`, `Late`, `Absent`).
+  - Attendance turnout breakdown summary (`Present`, `Late`, `Absent`) alongside interactive donut turnout chart.
+- **Contextual Progress Bars on KPI StatCards**:
+  - Total Workforce: visual progress bar tracking active workforce ratio against total registered records.
+  - Present Today: dynamic turnout progress track showing percentage of workforce checked in today.
+  - Late Arrivals: on-time punctuality rate progress track showing percentage of present staff who arrived within scheduled shift bounds.
+  - Pending DTR Edits: status indicator displaying "Awaiting Review" when pending requests exist or "All Clear" badge when queue is empty.
+- **Department Attendance & Turnout Efficiency Table**:
+  - Added structured department turnout overview alongside the department distribution chart.
+  - Displays department name, active headcount, present staff count today, visual percentage turnout bar, and status badge (e.g. `100% Full Turnout`, `Partial Turnout`, `0% Absent`).
+- **Enhanced Quick Action Shortcuts**:
+  - Added quick navigation cards for Process Payroll, Review DTR Edits (with pending count badge), Staff Directory, and Analytics.
+
+#### Backend Analytics & Dashboard Data (`AdminDashboardController.php`)
+- **Semi-Monthly Cutoff Engine**: Added server-side detection of active semi-monthly cutoff period (1st-15th or 16th-EOM), bounds, calendar days remaining, and check for existing payroll batch status.
+- **Live Shift Phase Calculator**: Added server-side resolution of Manila shift phase (`Pre-Shift Window`, `Morning Shift Active`, `Lunch Break Interval`, `Afternoon Shift Active`, `Evening / Post-Shift`).
+- **Pending DTR Edit Requests Query**: Added eager-loaded query retrieving top pending `DtrEditRequest` records with linked `employee` and department for inline dashboard review.
+- **Enriched Department Attendance Metrics**: Augmented department counts with today's attendance turnout count and calculated turnout percentages per department.
+
 #### Employee Dashboard & Attendance Punch Flow
 - **1-Tap Direct Quick Punch**: Added a direct attendance punch button on the dashboard calling `POST /employee/dtr/punch` with real-time request handling, disabling during requests, and loading spinner animation.
 - **Dynamic Punch Feedback**: Added timestamped success/error banner below the punch controls displaying the exact time and slot recorded (e.g. "Recorded AM In successfully at 08:02 AM").
@@ -55,7 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Portal Branding Uniformity**: Replaced abstract 3-circle vector icon with official high-resolution PMPC crest emblem (`/pmpc_ems.png`) in `EmployeeLayout.jsx` desktop sidebar and `MobileHeader.jsx`.
+- **Portal Branding Uniformity**: Replaced abstract 3-circle vector icon with official high-resolution PMPC crest emblem (`/pmpc_ems.png`) across `EmployeeLayout.jsx`, `AdminLayout.jsx` desktop sidebar, and `MobileHeader.jsx`.
 - **Palette Standardization**: Standardized login portal on authentic cooperative deep teal/emerald (`#0F6E56`) across both light and dark themes.
 - **Focused Input Outlines**: Upgraded input focus outlines with soft, layered focus glow rings (`focus:ring-2 focus:ring-[#0F6E56]/20`).
 - **Hero Vignette**: Enhanced login brand hero section with an ambient radial gradient vignette behind the institutional crest.
