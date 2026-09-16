@@ -1,7 +1,7 @@
 import { useForm, usePage } from '@inertiajs/react'
 import { useState } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
-import Card from '@/Components/UI/Card'
+import Card, { CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 
@@ -61,7 +61,7 @@ export default function Settings({ settings }) {
 
     return (
         <AdminLayout>
-            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-4xl mx-auto">
+            <div className="mx-auto min-h-screen max-w-4xl space-y-6 bg-bg px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -73,9 +73,9 @@ export default function Settings({ settings }) {
                 )}
 
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
                             <h1 className="text-2xl font-bold font-display text-text tracking-tight">System Settings</h1>
                             <Badge variant="indigo" size="sm">Admin Configuration</Badge>
                         </div>
@@ -86,7 +86,7 @@ export default function Settings({ settings }) {
                 </div>
 
                 {/* Tabs */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1.5 bg-field rounded-2xl border border-border">
+                <div className="grid grid-cols-2 gap-1.5 rounded-2xl border border-border bg-field p-1.5 sm:grid-cols-4">
                     {TABS.map(tab => (
                         <button
                             key={tab.key}
@@ -108,11 +108,11 @@ export default function Settings({ settings }) {
 
                     {/* Cooperative info */}
                     {activeTab === 'coop' && (
-                        <Card
+                        <SettingsCard
                             title="Cooperative Organization Profile"
                             description="Official legal name, address, and contact details used on formal certificates and DTR headers"
                         >
-                            <div className="space-y-5 pt-2">
+                            <div className="space-y-5">
                                 <div>
                                     <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                         Cooperative Legal Name <span className="text-rose-500">*</span>
@@ -168,21 +168,21 @@ export default function Settings({ settings }) {
                                 </div>
 
                                 <div className="pt-4 border-t border-border flex justify-end">
-                                    <Button variant="primary" size="md" type="submit" loading={processing}>
+                                    <Button variant="primary" size="md" type="submit" loading={processing} className="w-full sm:w-auto">
                                         Save Organization Profile
                                     </Button>
                                 </div>
                             </div>
-                        </Card>
+                        </SettingsCard>
                     )}
 
                     {/* Shift & attendance */}
                     {activeTab === 'shift' && (
-                        <Card
+                        <SettingsCard
                             title="Shift Hours & Punctuality Policy"
                             description="Standard operational work hours, designated lunch break interval, and tardiness grace periods"
                         >
-                            <div className="space-y-6 pt-2">
+                            <div className="space-y-6">
                                 <div>
                                     <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-3">
                                         Standard Working Shift
@@ -295,21 +295,21 @@ export default function Settings({ settings }) {
                                 </div>
 
                                 <div className="pt-4 border-t border-border flex justify-end">
-                                    <Button variant="primary" size="md" type="submit" loading={processing}>
+                                    <Button variant="primary" size="md" type="submit" loading={processing} className="w-full sm:w-auto">
                                         Save Shift Schedule
                                     </Button>
                                 </div>
                             </div>
-                        </Card>
+                        </SettingsCard>
                     )}
 
                     {/* Payroll */}
                     {activeTab === 'payroll' && (
-                        <Card
+                        <SettingsCard
                             title="Payroll & Working Days Formula"
                             description="Baseline working day constants used to derive daily rates, cutoffs, and statutory overtime coefficients"
                         >
-                            <div className="space-y-6 pt-2">
+                            <div className="space-y-6">
                                 <div>
                                     <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                         Working Days Per Month (Constant) <span className="text-rose-500">*</span>
@@ -352,21 +352,21 @@ export default function Settings({ settings }) {
                                 </div>
 
                                 <div className="pt-4 border-t border-border flex justify-end">
-                                    <Button variant="primary" size="md" type="submit" loading={processing}>
+                                    <Button variant="primary" size="md" type="submit" loading={processing} className="w-full sm:w-auto">
                                         Save Payroll Parameters
                                     </Button>
                                 </div>
                             </div>
-                        </Card>
+                        </SettingsCard>
                     )}
 
                     {/* Signatories */}
                     {activeTab === 'signatories' && (
-                        <Card
+                        <SettingsCard
                             title="Official Document Signatories"
                             description="Designated organizational authorities printed at the bottom of Daily Time Records and certification docs"
                         >
-                            <div className="space-y-6 pt-2">
+                            <div className="space-y-6">
                                 <div className="p-3.5 rounded-xl bg-field/70 border border-border flex items-center justify-between">
                                     <div>
                                         <p className="text-xs font-semibold text-dim uppercase tracking-wider">Signatory 1 (Automated)</p>
@@ -445,7 +445,7 @@ export default function Settings({ settings }) {
                                     <p className="text-xs font-semibold text-sub uppercase tracking-wider mb-6 text-center">
                                         Printed Timesheet Signature Layout
                                     </p>
-                                    <div className="grid grid-cols-3 gap-6 text-center">
+                                    <div className="grid grid-cols-1 gap-5 text-center sm:grid-cols-3 sm:gap-6">
                                         <div className="px-2">
                                             <div className="border-t border-text/40 pt-2 mb-1" />
                                             <p className="text-xs font-semibold text-text">Employee Signature</p>
@@ -465,16 +465,30 @@ export default function Settings({ settings }) {
                                 </div>
 
                                 <div className="pt-4 border-t border-border flex justify-end">
-                                    <Button variant="primary" size="md" type="submit" loading={processing}>
+                                    <Button variant="primary" size="md" type="submit" loading={processing} className="w-full sm:w-auto">
                                         Save Signatories
                                     </Button>
                                 </div>
                             </div>
-                        </Card>
+                        </SettingsCard>
                     )}
 
                 </form>
             </div>
         </AdminLayout>
+    )
+}
+
+function SettingsCard({ title, description, children }) {
+    return (
+        <Card className="overflow-hidden">
+            <CardHeader>
+                <div>
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>{description}</CardDescription>
+                </div>
+            </CardHeader>
+            <CardContent className="p-5 sm:p-6">{children}</CardContent>
+        </Card>
     )
 }
