@@ -45,7 +45,7 @@ export default function Login() {
     }
 
     return (
-        <main className="min-h-screen bg-bg lg:grid lg:grid-cols-[minmax(320px,44%)_1fr]">
+        <main className="login-portal min-h-screen bg-bg lg:grid lg:grid-cols-[minmax(320px,44%)_1fr]">
             <section className="relative overflow-hidden bg-brand text-white px-6 py-7 sm:px-10 lg:px-14 lg:py-12 lg:min-h-screen flex flex-col" aria-label="About PMPC WorkForce">
                 <div className="absolute inset-0 opacity-[0.13] swiss-grid" aria-hidden="true" />
                 <div className="relative flex items-center gap-3 border-b border-white/30 pb-6">
