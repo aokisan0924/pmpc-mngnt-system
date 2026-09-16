@@ -308,12 +308,12 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                                 log.edit_window_open ? (
                                                     <button
                                                         onClick={() => setEditTarget(log)}
-                                                        className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+                                                        className="inline-flex h-8 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
                                                     >
                                                         Request Edit
                                                     </button>
                                                 ) : (
-                                                    <span className="text-xs text-dim cursor-not-allowed" title="Edits permitted only within 7 days of occurrence">
+                                                    <span className="inline-flex h-8 cursor-not-allowed items-center rounded-lg border border-border bg-field px-3 text-xs text-dim" title="Edits permitted only within 7 days of occurrence">
                                                         Locked
                                                     </span>
                                                 )
@@ -365,7 +365,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                     {!log.has_pending_edit && log.edit_window_open && (
                                         <button
                                             onClick={() => setEditTarget(log)}
-                                            className="font-semibold text-emerald-600 dark:text-emerald-400"
+                                            className="inline-flex h-8 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-3 font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
                                         >
                                             Request Edit
                                         </button>

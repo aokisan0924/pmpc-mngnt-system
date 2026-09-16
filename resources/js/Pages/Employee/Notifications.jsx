@@ -191,7 +191,7 @@ export default function Notifications({ notifications = [] }) {
                                             {notif.link && (
                                                 <Link
                                                     href={notif.link}
-                                                    className="font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                                                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
                                                 >
                                                     <span>Open Record</span>
                                                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

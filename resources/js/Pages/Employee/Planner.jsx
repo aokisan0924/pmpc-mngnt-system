@@ -386,13 +386,13 @@ export default function Planner({ tasks = [] }) {
                                             <div className="flex flex-col gap-1 shrink-0">
                                                 <button
                                                     onClick={() => startEdit(task)}
-                                                    className="text-xs text-sub hover:text-text font-medium px-1.5 py-0.5 rounded hover:bg-hover"
+                                                    className="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-panel px-3 text-xs font-semibold text-sub shadow-2xs transition-colors hover:bg-hover hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                                                 >
                                                     Edit
                                                 </button>
                                                 <button
                                                     onClick={() => deleteTask(task)}
-                                                    className="text-xs text-rose-500 hover:text-rose-600 font-medium px-1.5 py-0.5 rounded hover:bg-rose-500/10"
+                                                    className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 text-xs font-semibold text-rose-600 shadow-2xs transition-colors hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950/70"
                                                 >
                                                     Delete
                                                 </button>
@@ -412,7 +412,7 @@ export default function Planner({ tasks = [] }) {
                                     <p className="text-xs font-medium text-sub">No tasks scheduled for this day.</p>
                                     <button
                                         onClick={() => openNewTaskForm(selectedDate)}
-                                        className="mt-3 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+                                        className="mt-3 inline-flex h-9 items-center justify-center rounded-lg bg-emerald-600 px-4 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:bg-emerald-500 dark:hover:bg-emerald-600"
                                     >
                                         + Schedule Task
                                     </button>

@@ -226,7 +226,7 @@ export default function Dashboard({ employee, summary, today, notifications = []
                             <CardHeader>
                                 <CardTitle>Recent Alerts & Notifications</CardTitle>
                                 {notifications.length > 0 && (
-                                    <Link href="/employee/notifications" className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">
+                                    <Link href="/employee/notifications" className="inline-flex h-8 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60">
                                         View all ({notifications.length}) →
                                     </Link>
                                 )}
@@ -242,7 +242,7 @@ export default function Dashboard({ employee, summary, today, notifications = []
                                                     <p className="text-[11px] text-dim">{n.created_at}</p>
                                                 </div>
                                                 {n.link && (
-                                                    <Link href={n.link} className="text-xs text-emerald-600 font-medium hover:underline flex-shrink-0">
+                                                    <Link href={n.link} className="inline-flex h-8 flex-shrink-0 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60">
                                                         Open →
                                                     </Link>
                                                 )}
