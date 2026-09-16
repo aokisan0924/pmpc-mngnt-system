@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { router, usePage, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
-import Card from '@/Components/UI/Card'
+import Card, { CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
@@ -26,7 +26,7 @@ export default function ThirteenthMonth({ records = [] }) {
 
     return (
         <AdminLayout>
-            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-6xl mx-auto">
+            <div className="mx-auto min-h-screen max-w-6xl space-y-6 bg-bg px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -38,9 +38,9 @@ export default function ThirteenthMonth({ records = [] }) {
                 )}
 
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-2">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
                             <h1 className="text-2xl font-bold font-display text-text tracking-tight">13th Month Pay</h1>
                             <Badge variant="indigo" size="sm">Statutory (PD 851)</Badge>
                         </div>
@@ -55,8 +55,8 @@ export default function ThirteenthMonth({ records = [] }) {
                     <StatCard
                         title="Historical 13th Month Total"
                         value={`₱ ${fmt(totalHistoricalPayout)}`}
-                        sub="Cumulative statutory payout"
-                        color="indigo"
+                        subtitle="Cumulative statutory payout"
+                        accent="indigo"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -66,8 +66,8 @@ export default function ThirteenthMonth({ records = [] }) {
                     <StatCard
                         title="Recorded Batches"
                         value={totalBatches}
-                        sub="Finalized computation runs"
-                        color="emerald"
+                        subtitle="Finalized computation runs"
+                        accent="emerald"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -77,8 +77,8 @@ export default function ThirteenthMonth({ records = [] }) {
                     <StatCard
                         title="Legal Mandate Rule"
                         value="1/12 Total Pay"
-                        sub="Daily Rate × Days Present ÷ 12"
-                        color="amber"
+                        subtitle="Daily Rate × Days Present ÷ 12"
+                        accent="amber"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -88,14 +88,21 @@ export default function ThirteenthMonth({ records = [] }) {
                 </div>
 
                 {/* Compute Action Card */}
-                <Card
-                    title="Run New 13th Month Computation"
-                    description="Pulls verified DTR attendance logs and employee daily rates for the designated tranche"
-                >
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pt-2">
-                        <div className="flex flex-wrap items-end gap-4">
+                <Card className="overflow-hidden">
+                    <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center">
+                        <div>
+                            <CardTitle>Run a New Computation</CardTitle>
+                            <CardDescription>
+                                Pull verified DTR attendance and employee daily rates for the selected period.
+                            </CardDescription>
+                        </div>
+                        <Badge variant="indigo" size="sm">PD 851</Badge>
+                    </CardHeader>
+                    <CardContent className="p-5 sm:p-6">
+                    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                        <div className="grid gap-4 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-end">
                             <div>
-                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-sub">
                                     Calendar Year
                                 </label>
                                 <input
@@ -104,15 +111,15 @@ export default function ThirteenthMonth({ records = [] }) {
                                     onChange={e => setYear(e.target.value)}
                                     min="2020"
                                     max="2099"
-                                    className="w-32 px-3.5 py-2.5 text-sm font-semibold border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all font-mono"
+                                    className="h-11 w-full rounded-xl border border-border bg-field px-3.5 font-mono text-sm font-semibold text-text transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-sub">
                                     Tranche Window
                                 </label>
-                                <div className="flex gap-1.5 p-1 bg-field rounded-xl border border-border">
+                                <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-field p-1">
                                     {[
                                         { value: 'mid_year', label: 'Mid-Year (Jan 1 – Jun 30)' },
                                         { value: 'year_end', label: 'Year-End (Jul 1 – Dec 31)' },
@@ -121,10 +128,10 @@ export default function ThirteenthMonth({ records = [] }) {
                                             key={opt.value}
                                             type="button"
                                             onClick={() => setTranche(opt.value)}
-                                            className={`px-4 py-2 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${
+                                            className={`min-h-9 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
                                                 tranche === opt.value
-                                                    ? 'bg-panel text-text font-semibold shadow-xs border border-border'
-                                                    : 'text-sub hover:text-text'
+                                                    ? 'border border-indigo-200 bg-panel font-semibold text-indigo-800 shadow-xs dark:border-indigo-800 dark:text-indigo-200'
+                                                    : 'text-sub hover:bg-panel/70 hover:text-text'
                                             }`}
                                         >
                                             {opt.label}
@@ -138,22 +145,30 @@ export default function ThirteenthMonth({ records = [] }) {
                             variant="primary"
                             size="md"
                             onClick={startCompute}
-                            className="shrink-0"
+                            className="h-11 w-full shrink-0 whitespace-nowrap sm:w-auto"
+                            icon={
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0-7 7m7-7H3" />
+                                </svg>
+                            }
+                            iconPosition="right"
                         >
                             <span>Compute Tranche</span>
-                            <svg className="w-4 h-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                            </svg>
                         </Button>
                     </div>
+                    </CardContent>
                 </Card>
 
                 {/* History Table */}
-                <Card
-                    title="13th Month Disbursement Records"
-                    description="Archive of finalized statutory calculations and disbursements"
-                >
-                    <div className="overflow-x-auto -mx-6 -my-4">
+                <Card className="overflow-hidden">
+                    <CardHeader>
+                        <div>
+                            <CardTitle>13th Month Disbursement Records</CardTitle>
+                            <CardDescription>Archive of finalized statutory calculations and disbursements.</CardDescription>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                    <div className={`overflow-x-auto ${records.length === 0 ? 'hidden sm:block' : ''}`}>
                         <table className="w-full text-xs">
                             <thead>
                                 <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold">
@@ -225,6 +240,18 @@ export default function ThirteenthMonth({ records = [] }) {
                             </tbody>
                         </table>
                     </div>
+                    {records.length === 0 && (
+                        <div className="px-5 py-12 text-center text-dim sm:hidden">
+                            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-field text-sub">
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7m16 0v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5m16 0h-2.586a1 1 0 0 0-.707.293l-2.414 2.414a1 1 0 0 1-.707.293h-3.172a1 1 0 0 1-.707-.293l-2.414-2.414A1 1 0 0 0 6.586 13H4" />
+                                </svg>
+                            </div>
+                            <p className="text-sm font-medium text-sub">No disbursement records yet.</p>
+                            <p className="mt-1 text-xs">Run a computation above to create the first record.</p>
+                        </div>
+                    )}
+                    </CardContent>
                 </Card>
 
             </div>
