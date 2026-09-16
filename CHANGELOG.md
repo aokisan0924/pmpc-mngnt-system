@@ -1,42 +1,81 @@
 # Changelog
 
+All notable changes to the PMPC WorkForce (People's Multi-Purpose Cooperative Management System) will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## [Unreleased]
 
 ### Added
-- Direct 1-Tap Quick Punch action on Employee Dashboard (`POST /employee/dtr/punch`) with loading spinner and dynamic state transitions.
-- Live semi-monthly cutoff badge (`1st Cutoff (1–15)` / `2nd Cutoff (16–EOM)` with days remaining) in the welcome banner.
-- Live elapsed shift time calculation during active morning and afternoon work periods.
-- Contextual target progress bars on Dashboard StatCards (Cutoff attendance vs workdays target, on-time rate, hours rendered vs cutoff target).
-- Interactive Employee Action Hub with dual tabs for Priority Tasks (with 1-click completion toggle via `PATCH /employee/planner/{task}/toggle`) and Alerts & Notices.
-- Latest Payslip Voucher card with period net pay summary and direct 1-click PDF voucher download link.
-- Official PMPC emblem branding (`/pmpc_ems.png`) integrated into the brand hero panel and responsive mobile header.
-- Elevated glassmorphic form card container with rounded-2xl geometry, subtle border, and soft elevation depth.
-- Tactile form inputs: Quick-clear button (`✕`) on identifier input and automatic whitespace trimming (`.trim()`) on blur.
-- Custom accessible animated SVG checkbox for "Remember me on this device" with brand teal accent.
-- WCAG 2.1 AA accessibility improvements: `aria-live="polite"` feedback on Caps Lock warning and password visibility toggle, with high-contrast text ratios.
-- Micro-animation error shake (`.animate-shake`) triggered on credential validation failure.
-- Installed specialized frontend engineering skills in `.agents/skills/`: `frontend-developer`, `ui-ux-designer`, `tailwind-design-system`, `react-modernization`, `react-state-management`, `frontend-mobile-development-component-scaffold`, `accessibility-compliance-accessibility-audit`, `ui-visual-validator`, `frontend-security-coder`, `e2e-testing-patterns`, and `playwright-component-testing`.
-- Login usability indicators: Caps Lock active warning indicator on password input.
-- Input icon prefixes: Added subtle SVG leading icons (ID badge and security lock) for login identifier and password fields.
-- Interactive loading spinner: Added inline SVG spinner on submit button during active Inertia requests.
+
+#### Employee Dashboard & Attendance Punch Flow
+- **1-Tap Direct Quick Punch**: Added a direct attendance punch button on the dashboard calling `POST /employee/dtr/punch` with real-time request handling, disabling during requests, and loading spinner animation.
+- **Dynamic Punch Feedback**: Added timestamped success/error banner below the punch controls displaying the exact time and slot recorded (e.g. "Recorded AM In successfully at 08:02 AM").
+- **Connected 4-Step Attendance Timeline**: Implemented visual 4-punch step cards (AM In → AM Out → PM In → PM Out) showing sequence numbers, recorded punch times, active pulsing badges for the next expected punch, and reference shift target windows.
+- **Live Elapsed Shift Timer**: Added dynamic shift duration counter tracking elapsed hours and minutes during active morning and afternoon work periods (e.g. `Morning Shift Active • 4h 12m elapsed`).
+- **Semi-Monthly Cutoff Indicator**: Added a live cutoff badge in the dashboard banner indicating the current semi-monthly cycle (`1st Cutoff (1–15)` or `2nd Cutoff (16–EOM)`) and countdown of days remaining until cutoff finalization.
+- **Employee Action Hub**: Built a dual-tab operational hub featuring:
+  - *Priority Tasks Tab*: Displays top pending assignments with priority indicators (High, Medium, Low) and due date tags ("Today", "Tomorrow", "Overdue").
+  - *1-Click Task Toggle*: Instant status toggle checkbox calling `PATCH /employee/planner/{task}/toggle` with live optimistic completion.
+  - *Alerts & Notices Tab*: Unread HR notifications feed with relative timestamps and direct modal/page navigation links.
+- **Latest Payslip Voucher Card**: Added a dedicated payslip summary widget displaying the employee's latest finalized net pay, payroll period bounds, cutoff designation, and a direct 1-click PDF download link (`/employee/payslips/{month}`).
+- **Contextual Metric Progress Bars**: Extended `StatCard` with a responsive progress track showing:
+  - Days present against total cutoff workdays target (e.g., 11 workdays).
+  - On-time arrival rate relative to monitored grace periods.
+  - Rendered work hours against the standard semi-monthly target (88h).
+  - Pending DTR adjustment request status awaiting administrative review.
+- **Quick Navigation Shortcuts**: Added streamlined direct shortcuts to Daily Time Record, Task Planner, and Employee Profile records.
+
+#### Backend Analytics & Dashboard Data (`EmployeeDashboardController.php`)
+- **Semi-Monthly Cutoff Engine**: Added server-side calculation of cutoff periods, exact calendar bounds, remaining calendar days, and non-weekend working days count.
+- **Cutoff-Specific Metrics**: Integrated queries for cutoff attendance days present and sum of hours rendered filtered to the active semi-monthly period.
+- **Priority Tasks Query**: Added server-side query retrieving uncompleted tasks ordered by due date and priority weight.
+- **Latest Finalized Payslip Query**: Added query fetching the most recent finalized `PayrollItem` with eager-loaded `payroll` metadata.
+- **Next Punch Resolution**: Exposed next expected punch slot directly via `DtrLog::getNextPunchSlot()`.
+
+#### Authentication & Login Overhaul (`Login.jsx`)
+- **Official Institutional Emblem**: Integrated the official high-resolution PMPC crest logo (`/pmpc_ems.png`) into both desktop hero and mobile brand headers.
+- **Elevated Glassmorphic Card**: Redesigned the sign-in panel into an elevated card container with rounded-2xl geometry, subtle borders, and soft elevation shadows.
+- **Tactile Identifier Clear Button (`✕`)**: Added a 1-click input clear button when typing an employee ID or email.
+- **Automatic Whitespace Trimming**: Added `.trim()` on credential field blur to prevent failed logins from pasted whitespace.
+- **Custom Animated Checkbox**: Built an accessible, custom animated SVG checkbox for "Remember me on this device".
+- **Caps Lock Detection**: Added a real-time warning banner on the password field when Caps Lock is active.
+- **Input Icon Prefixes**: Added SVG leading icons (employee badge and security padlock) to credential input fields.
+- **Form Submission Spinner**: Added inline SVG loading spinner to the primary sign-in button during active Inertia requests.
+- **Validation Error Shake**: Added CSS keyframe micro-animation (`.animate-shake`) triggered on authentication error.
+
+#### Component Library Enhancements (`StatCard.jsx`)
+- **Progress Prop Support**: Added optional `progress` prop accepting `{ value, max, label, color }` or a raw percentage number.
+- **Dynamic Progress Bar**: Built an accessible progress bar with fluid CSS transitions and theme-aware accent colors.
+
+#### Frontend Engineering & UI/UX Skills
+- **Frontend Skills Package**: Installed 11 specialized agent engineering skills into `.agents/skills/`:
+  - `frontend-developer`, `ui-ux-designer`, `tailwind-design-system`, `react-modernization`, `react-state-management`, `frontend-mobile-development-component-scaffold`, `accessibility-compliance-accessibility-audit`, `ui-visual-validator`, `frontend-security-coder`, `e2e-testing-patterns`, and `playwright-component-testing`.
 
 ### Changed
-- Replaced abstract 3-circle vector icon with official high-resolution PMPC crest emblem (`/pmpc_ems.png`) in `EmployeeLayout.jsx` desktop sidebar and `MobileHeader.jsx`.
-- Unified login page green: standardized on signature PMPC deep teal/emerald (`#0F6E56`) across both light and dark modes for hero panel, primary action button, and interactive controls.
-- Replaced single-pixel input focus outlines with soft, layered focus ring glow (`focus:ring-2 focus:ring-[#0F6E56]/20`).
-- Enhanced brand hero section with an ambient radial gradient vignette behind the cooperative crest.
+
+- **Portal Branding Uniformity**: Replaced abstract 3-circle vector icon with official high-resolution PMPC crest emblem (`/pmpc_ems.png`) in `EmployeeLayout.jsx` desktop sidebar and `MobileHeader.jsx`.
+- **Palette Standardization**: Standardized login portal on authentic cooperative deep teal/emerald (`#0F6E56`) across both light and dark themes.
+- **Focused Input Outlines**: Upgraded input focus outlines with soft, layered focus glow rings (`focus:ring-2 focus:ring-[#0F6E56]/20`).
+- **Hero Vignette**: Enhanced login brand hero section with an ambient radial gradient vignette behind the institutional crest.
 
 ### Removed
-- Auxiliary portal destination badges (`Employee Portal` and `HR & Admin Console`) and ambient system status badge (`System Active • Asia/Manila (GMT+8)`) from the login page for a streamlined, minimal interface.
+
+- **Login Badges**: Removed redundant portal badges (`Employee Portal`, `HR & Admin Console`) and system status pill (`System Active • Asia/Manila (GMT+8)`) from the login page for a cleaner presentation.
 
 ### Fixed
-- Fixed typographic spacing glitch before greeting comma in employee dashboard banner.
-- Added `aria-live="off"` on live ticking clock element to prevent screen-reader interruptions.
-- Fixed PHP 8.4 deprecation warning for implicit nullable parameter in `EmployeeNotification::send()`.
-- Enforce atomic database transaction and duplicate employee validation during payroll batch creation.
-- Aligned login helper text with system-generated employee ID format (`e.g. EMP-0001 or name@pmpc.coop`), resolving Known Issue 5.4 in `AGENTS.md`.
+
+- **Banner Typography**: Fixed typographical glitch with extra whitespace before greeting comma in employee dashboard (`{greeting}, {first_name}!`).
+- **Ticking Clock Accessibility**: Added `aria-live="off"` to the live dashboard clock to prevent screen-reader announcement spam every second.
+- **Punch Step Accessibility**: Added explicit `role="status"` and accessible labels across attendance punch steps.
+- **PHP 8.4 Deprecation**: Resolved PHP 8.4 implicit nullable parameter deprecation in `EmployeeNotification::send()` by explicitly declaring `?string $link = null`.
+- **Atomic Payroll Persistence**: Wrapped payroll creation and item calculations inside `DB::transaction()` to prevent partial batch persistence upon database constraint failure.
+- **Login Helper Text Alignment**: Aligned login example placeholder with system-generated ID format (`EMP-0001`), resolving Known Issue 5.4 in `AGENTS.md`.
 
 ### Security
+
+- Enforced strict user authorization checks on task toggle and modification routes (`TaskController.php`).
 
 ## [0.1.0] - 2026-09-16
 
