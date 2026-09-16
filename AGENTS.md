@@ -137,3 +137,13 @@ When performing specialized workflows, activate the corresponding skill:
 - [SEVERITY: low] Login helper text uses a different ID format from generated accounts — file: `resources/js/Pages/Auth/Login.jsx`. The login page shows `2026-00028`, while `Employee::generateEmployeeId()` in `app/Models/Employee.php` generates `EMP-0001`, `EMP-0002`, and so on. This is cosmetic for generated accounts: authentication treats non-email input as `employee_id`, so an actual `EMP-0001` value succeeds. The example only causes a failed login if a user enters it verbatim and no employee has that exact stored ID.
 
 - [SEVERITY: low] Rental-deduction schema repair depends on the migration remaining applied — file: `database/migrations/2026_07_16_143457_add_rental_deduction_to_payroll_items_table.php`. This migration restores `payroll_items.rental_deduction`, which `PayrollItem::computeTotals()` and `PayrollController` currently read and write. The current migration sequence includes the repair after the table recreation and no later migration removes the column, so normal up-to-date deployments do not regress the original failure. A database left before this migration, or an explicit rollback of it while current code runs, restores the “Unknown column `rental_deduction`” payroll-save failure.
+
+---
+
+## 6. Versioning Rules
+
+- **PATCH (`x.x.+1`)**: Bug fixes with no behavior change for the end user, such as fixing the missing database-transaction issue.
+- **MINOR (`x.+1.0`)**: Backward-compatible new features, such as adding a new payroll report type.
+- **MAJOR (`+1.0.0`)**: Breaking changes, such as changing the employee-ID format or an API response shape on which existing frontend code depends.
+
+Every code change from either Codex or Antigravity must be logged under `## [Unreleased]` in `CHANGELOG.md`, categorized as Added, Changed, Fixed, or Security, before it is committed. Version numbers are assigned only when the user explicitly says “cut a release”; do not assign a version automatically for a commit.
