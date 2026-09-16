@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- Official PMPC emblem branding (`/pmpc_ems.png`) integrated into the brand hero panel and responsive mobile header.
+- Elevated glassmorphic form card container with rounded-2xl geometry, subtle border, and soft elevation depth.
+- Tactile form inputs: Quick-clear button (`✕`) on identifier input and automatic whitespace trimming (`.trim()`) on blur.
+- Custom accessible animated SVG checkbox for "Remember me on this device" with brand teal accent.
+- WCAG 2.1 AA accessibility improvements: `aria-live="polite"` feedback on Caps Lock warning and password visibility toggle, with high-contrast text ratios.
+- Micro-animation error shake (`.animate-shake`) triggered on credential validation failure.
 - Installed specialized frontend engineering skills in `.agents/skills/`: `frontend-developer`, `ui-ux-designer`, `tailwind-design-system`, `react-modernization`, `react-state-management`, `frontend-mobile-development-component-scaffold`, `accessibility-compliance-accessibility-audit`, `ui-visual-validator`, `frontend-security-coder`, `e2e-testing-patterns`, and `playwright-component-testing`.
 - Login usability indicators: Caps Lock active warning indicator on password input.
 - Input icon prefixes: Added subtle SVG leading icons (ID badge and security lock) for login identifier and password fields.

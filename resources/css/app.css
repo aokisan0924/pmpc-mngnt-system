@@ -259,6 +259,20 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes head-shake {
+    0% { transform: translateX(0); }
+    15% { transform: translateX(-6px); }
+    30% { transform: translateX(5px); }
+    45% { transform: translateX(-4px); }
+    60% { transform: translateX(3px); }
+    75% { transform: translateX(-1px); }
+    100% { transform: translateX(0); }
+}
+
+.animate-shake {
+    animation: head-shake 0.45s ease-in-out both;
+}
+
 @keyframes pulse-subtle {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.6; transform: scale(1.08); }
