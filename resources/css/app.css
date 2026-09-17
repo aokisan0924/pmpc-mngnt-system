@@ -161,6 +161,7 @@
 
     html {
         min-width: 320px;
+        font-size: 14px;
         background: var(--color-bg);
         font-family: var(--font-sans);
         -webkit-font-smoothing: antialiased;

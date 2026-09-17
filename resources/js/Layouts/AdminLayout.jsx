@@ -140,11 +140,11 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
             <a href="#main-content" className="skip-link">Skip to main content</a>
 
             {/* ── Mobile Top Bar ───────────────────────────────── */}
-            <div className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between px-4 h-16 border-b border-border bg-panel/95 backdrop-blur-md">
+            <div className="md:hidden fixed top-0 inset-x-0 z-30 flex items-center justify-between px-4 h-13 border-b border-border bg-panel/95 backdrop-blur-md">
                 <button
                     onClick={() => setDrawerOpen(true)}
                     aria-label="Open menu"
-                    className="w-10 h-10 -ml-2 rounded-lg flex items-center justify-center text-sub hover:text-text hover:bg-field transition-colors"
+                    className="w-9 h-9 -ml-2 rounded-lg flex items-center justify-center text-sub hover:text-text hover:bg-field transition-colors"
                 >
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5">
                         <path strokeLinecap="round" d="M4 7h16M4 12h16M4 17h16" />
@@ -175,7 +175,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
             )}
 
             {/* ── Desktop Sidebar ───────────────────────────────── */}
-            <aside className="hidden md:flex w-64 flex-shrink-0 flex-col sticky top-0 h-screen select-none">
+            <aside className="hidden md:flex w-56 lg:w-60 flex-shrink-0 flex-col sticky top-0 h-screen select-none">
                 <SidebarContent
                     navItems={navItems}
                     sections={sections}
@@ -188,9 +188,9 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
             </aside>
 
             {/* ── Main Content Area with Contextual Top Bar ────── */}
-            <div className="flex-1 flex flex-col min-w-0 pt-16 md:pt-0">
+            <div className="flex-1 flex flex-col min-w-0 pt-13 md:pt-0">
                 {/* Desktop Sticky Header */}
-                <header className="hidden md:flex h-16 items-center justify-between px-8 border-b border-border/80 bg-panel/80 backdrop-blur-md sticky top-0 z-20 select-none">
+                <header className="hidden md:flex h-13 items-center justify-between px-5 sm:px-6 border-b border-border/80 bg-panel/80 backdrop-blur-md sticky top-0 z-20 select-none">
                     {/* Breadcrumbs */}
                     <nav className="flex items-center gap-2 text-xs font-medium text-sub">
                         <Link href="/admin/dashboard" className="hover:text-text transition-colors">Admin</Link>
@@ -242,15 +242,15 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
     return (
         <div className={`flex flex-col border-r border-border bg-panel select-none ${className}`}>
             {/* Brand Header */}
-            <div className="flex items-center gap-3 h-16 px-5 border-b border-border/80">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white dark:bg-slate-900 p-1 border border-border/80 shadow-2xs">
+            <div className="flex items-center gap-2.5 h-13 px-4 border-b border-border/80">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-white dark:bg-slate-900 p-0.5 border border-border/80 shadow-2xs">
                     <img src="/pmpc_ems.png" alt="PMPC" className="w-full h-full object-contain" />
                 </div>
                 <div className="min-w-0">
-                    <p className="font-heading font-bold text-sm text-text tracking-tight truncate">PMPC WorkForce</p>
+                    <p className="font-heading font-bold text-xs text-text tracking-tight truncate">PMPC WorkForce</p>
                     <div className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                        <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold tracking-wider uppercase">Admin Portal</p>
+                        <p className="text-[9px] text-indigo-600 dark:text-indigo-400 font-semibold tracking-wider uppercase">Admin Portal</p>
                     </div>
                 </div>
             </div>

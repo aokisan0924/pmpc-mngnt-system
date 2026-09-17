@@ -27,10 +27,10 @@ function DtrLiveClock() {
 
     return (
         <div>
-            <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">
+            <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-0.5">
                 {dateStr}
             </p>
-            <p className="font-mono text-4xl sm:text-5xl font-bold tracking-tight text-text tnum" aria-live="off">
+            <p className="font-mono text-2xl sm:text-3xl font-bold tracking-tight text-text tnum" aria-live="off">
                 {timeStr}
             </p>
         </div>
@@ -71,6 +71,8 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
             return <Badge variant="purple" size="sm">Pending Edit</Badge>
         }
         switch (log.status) {
+            case 'in_progress':
+                return <Badge variant="amber" dot pulse size="sm">In Progress</Badge>
             case 'on_time':
                 return <Badge variant="emerald" size="sm">On Time</Badge>
             case 'late':
@@ -88,11 +90,11 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
 
     return (
         <EmployeeLayout title="Daily Time Record">
-            <div className="mx-auto min-h-screen max-w-6xl space-y-6 bg-bg px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+            <div className="mx-auto max-w-6xl space-y-3.5 sm:space-y-4 bg-bg px-3.5 sm:px-5 lg:px-6 py-3.5 sm:py-4">
 
                 {flash?.success && (
-                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium">
+                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         <span>{flash.success}</span>
@@ -100,13 +102,13 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 )}
 
                 {/* Header */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                            <h1 className="text-2xl font-bold font-display text-text tracking-tight">Daily Time Record</h1>
+                            <h1 className="text-xl sm:text-2xl font-bold font-display text-text tracking-tight">Daily Time Record</h1>
                             <Badge variant="emerald" size="sm">Attendance Portal</Badge>
                         </div>
-                        <p className="text-sm text-sub mt-1">
+                        <p className="text-xs text-sub mt-0.5">
                             Punch attendance timestamps, inspect monthly hour totals, and file corrections
                         </p>
                     </div>
@@ -114,9 +116,9 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <a
                         href={`/employee/dtr/print?month=${month}`}
                         target="_blank"
-                        className="inline-flex min-h-10 w-fit items-center gap-2 rounded-xl border border-border bg-panel px-4 py-2 text-xs font-semibold text-text shadow-2xs transition-all hover:border-emerald-500/30 hover:bg-hover"
+                        className="inline-flex min-h-8 w-fit items-center gap-2 rounded-xl border border-border bg-panel px-3.5 py-1.5 text-xs font-semibold text-text shadow-2xs transition-all hover:border-emerald-500/30 hover:bg-hover"
                     >
-                        <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                         </svg>
                         <span>Print Official DTR</span>
@@ -124,8 +126,8 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 </div>
 
                 {/* Hero Punch Stepper Card */}
-                <Card className="relative overflow-hidden p-5 sm:p-6">
-                    <div className="flex flex-col gap-5 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between sm:pb-6">
+                <Card className="relative overflow-hidden p-3.5 sm:p-4">
+                    <div className="flex flex-col gap-3.5 border-b border-border pb-3.5 sm:flex-row sm:items-center sm:justify-between sm:pb-4">
                         <DtrLiveClock />
 
                         <div>
@@ -135,14 +137,14 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                     onClick={handlePunch}
                                     disabled={punching}
                                     aria-label={punching ? 'Recording punch...' : `Clock in ${nextLabel}`}
-                                    className="w-full sm:w-auto px-6 py-3 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                                 >
-                                    <div className="w-2.5 h-2.5 rounded-full bg-white animate-ping" aria-hidden="true" />
+                                    <div className="w-2 h-2 rounded-full bg-white animate-ping" aria-hidden="true" />
                                     <span>{punching ? 'Recording Punch...' : `Clock In: ${nextLabel}`}</span>
                                 </button>
                             ) : (
-                                <div className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                     </svg>
                                     <span>All 4 Punches Completed Today</span>
@@ -152,33 +154,33 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     </div>
 
                     {/* Stepper Progress */}
-                    <div className="pt-5 sm:pt-6">
-                        <div className="relative grid grid-cols-4 gap-2 sm:gap-4">
+                    <div className="pt-3.5 sm:pt-4">
+                        <div className="relative grid grid-cols-4 gap-2 sm:gap-3">
                             {SLOT_ORDER.map((slot, i) => {
                                 const done = Boolean(today[slot])
                                 const isNext = slot === next_punch
 
                                 return (
                                     <div key={slot} className="flex flex-col items-center text-center">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border font-mono text-xs font-bold transition-all ${
+                                        <div className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center border font-mono text-xs font-bold transition-all ${
                                             done
                                                 ? 'bg-emerald-500 text-white border-emerald-500 shadow-xs'
                                                 : isNext
-                                                    ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400 ring-4 ring-amber-500/20 animate-pulse'
+                                                    ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400 ring-3 ring-amber-500/20 animate-pulse'
                                                     : 'bg-field border-border text-dim'
                                         }`}>
                                             {done ? (
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                                                 </svg>
                                             ) : (
                                                 <span>0{i + 1}</span>
                                             )}
                                         </div>
-                                        <p className={`text-xs font-semibold mt-2 ${done ? 'text-text' : isNext ? 'text-amber-600 dark:text-amber-400' : 'text-dim'}`}>
+                                        <p className={`text-[11px] font-semibold mt-1.5 ${done ? 'text-text' : isNext ? 'text-amber-600 dark:text-amber-400' : 'text-dim'}`}>
                                             {PUNCH_LABELS[slot]}
                                         </p>
-                                        <p className="text-[11px] font-mono mt-0.5 text-sub">
+                                        <p className="text-[10px] font-mono mt-0.5 text-sub">
                                             {done ? today[slot].slice(0, 5) : isNext ? 'Pending' : '—'}
                                         </p>
                                     </div>
@@ -390,54 +392,54 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <div className="hidden overflow-x-auto md:block">
                         <table className="w-full text-xs">
                             <thead>
-                                <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold">
-                                    <th scope="col" className="text-left px-6 py-3.5">Calendar Date</th>
-                                    <th scope="col" className="text-center px-3 py-3.5">AM In</th>
-                                    <th scope="col" className="text-center px-3 py-3.5 border-r border-border">AM Out</th>
-                                    <th scope="col" className="text-center px-3 py-3.5">PM In</th>
-                                    <th scope="col" className="text-center px-3 py-3.5 border-r border-border">PM Out</th>
-                                    <th scope="col" className="text-center px-4 py-3.5">Rendered</th>
-                                    <th scope="col" className="text-center px-4 py-3.5">Status</th>
-                                    <th scope="col" className="text-right px-6 py-3.5">Action</th>
+                                <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold text-[10px]">
+                                    <th scope="col" className="text-left px-4 py-2.5">Calendar Date</th>
+                                    <th scope="col" className="text-center px-2.5 py-2.5">AM In</th>
+                                    <th scope="col" className="text-center px-2.5 py-2.5 border-r border-border">AM Out</th>
+                                    <th scope="col" className="text-center px-2.5 py-2.5">PM In</th>
+                                    <th scope="col" className="text-center px-2.5 py-2.5 border-r border-border">PM Out</th>
+                                    <th scope="col" className="text-center px-3 py-2.5">Rendered</th>
+                                    <th scope="col" className="text-center px-3 py-2.5">Status</th>
+                                    <th scope="col" className="text-right px-4 py-2.5">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border/60 font-mono">
                                 {logs?.map((log) => (
                                     <tr key={log.id} className="hover:bg-hover/60 transition-colors">
-                                        <td className="px-6 py-3.5 font-sans font-medium text-text whitespace-nowrap">
+                                        <td className="px-4 py-2 sm:py-2.5 font-sans font-medium text-text whitespace-nowrap">
                                             {log.date_label}
                                         </td>
-                                        <td className="px-3 py-3.5 text-center text-text font-semibold">
+                                        <td className="px-2.5 py-2 sm:py-2.5 text-center text-text font-semibold">
                                             {log.am_time_in ? log.am_time_in.slice(0, 5) : <span className="text-dim font-normal">—</span>}
                                         </td>
-                                        <td className="px-3 py-3.5 text-center text-text font-semibold border-r border-border/60">
+                                        <td className="px-2.5 py-2 sm:py-2.5 text-center text-text font-semibold border-r border-border/60">
                                             {log.am_time_out ? log.am_time_out.slice(0, 5) : <span className="text-dim font-normal">—</span>}
                                         </td>
-                                        <td className="px-3 py-3.5 text-center text-text font-semibold">
+                                        <td className="px-2.5 py-2 sm:py-2.5 text-center text-text font-semibold">
                                             {log.pm_time_in ? log.pm_time_in.slice(0, 5) : <span className="text-dim font-normal">—</span>}
                                         </td>
-                                        <td className="px-3 py-3.5 text-center text-text font-semibold border-r border-border/60">
+                                        <td className="px-2.5 py-2 sm:py-2.5 text-center text-text font-semibold border-r border-border/60">
                                             {log.pm_time_out ? log.pm_time_out.slice(0, 5) : <span className="text-dim font-normal">—</span>}
                                         </td>
-                                        <td className="px-4 py-3.5 text-center text-sub font-semibold">
+                                        <td className="px-3 py-2 sm:py-2.5 text-center text-sub font-semibold">
                                             {log.hours_rendered ? `${log.hours_rendered}h` : <span className="text-dim font-normal">—</span>}
                                         </td>
-                                        <td className="px-4 py-3.5 text-center font-sans">
+                                        <td className="px-3 py-2 sm:py-2.5 text-center font-sans">
                                             {getStatusBadge(log)}
                                         </td>
-                                        <td className="px-6 py-3.5 text-right font-sans">
+                                        <td className="px-4 py-2 sm:py-2.5 text-right font-sans">
                                             {!log.has_pending_edit && (
                                                 log.edit_window_open ? (
                                                     <button
                                                         type="button"
                                                         onClick={() => setEditTarget(log)}
                                                         aria-label={`Request edit for ${log.date_label}`}
-                                                        className="inline-flex h-8 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+                                                        className="inline-flex h-7 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
                                                     >
                                                         Request Edit
                                                     </button>
                                                 ) : (
-                                                    <span className="inline-flex h-8 cursor-not-allowed items-center rounded-lg border border-border bg-field px-3 text-xs text-dim" title="Edits permitted only within 7 days of occurrence">
+                                                    <span className="inline-flex h-7 cursor-not-allowed items-center rounded-lg border border-border bg-field px-2.5 text-[11px] text-dim" title="Edits permitted only within 7 days of occurrence">
                                                         Locked
                                                     </span>
                                                 )

@@ -58,8 +58,9 @@ class DtrController extends Controller
             $weekDates[] = $weekStart->copy()->addDays($i)->toDateString();
         }
 
+        $weekEnd = $weekStart->copy()->addDays(4)->endOfDay();
         $weekLogs = DtrLog::where('employee_id', $employee->id)
-            ->whereIn('date', $weekDates)
+            ->whereBetween('date', [$weekStart->copy()->startOfDay(), $weekEnd])
             ->get()
             ->keyBy(fn ($log) => Carbon::parse($log->date)->toDateString());
 
@@ -188,6 +189,11 @@ class DtrController extends Controller
     {
         $daysOld = $log->date->diffInDays(today());
 
+        $status = $log->status;
+        if ($log->date->isToday() && $log->am_time_in && $status === 'absent') {
+            $status = 'in_progress';
+        }
+
         return [
             'id' => $log->id,
             'date' => $log->date->format('Y-m-d'),
@@ -197,7 +203,7 @@ class DtrController extends Controller
             'pm_time_in' => $log->pm_time_in,
             'pm_time_out' => $log->pm_time_out,
             'hours_rendered' => $log->hours_rendered,
-            'status' => $log->status,
+            'status' => $status,
             'has_pending_edit' => $log->pendingEditRequest !== null,
             // Mirrors the 7-day rule enforced in requestEdit() below, so the
             // UI can hide/disable the button and explain why — instead of

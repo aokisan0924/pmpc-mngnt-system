@@ -207,8 +207,9 @@ class EmployeeDashboardController extends Controller
             $weekDates[] = $weekStart->copy()->addDays($i)->toDateString();
         }
 
+        $weekEnd = $weekStart->copy()->addDays(4)->endOfDay();
         $weekLogs = DtrLog::where('employee_id', $employee->id)
-            ->whereIn('date', $weekDates)
+            ->whereBetween('date', [$weekStart->copy()->startOfDay(), $weekEnd])
             ->get()
             ->keyBy(fn ($log) => Carbon::parse($log->date)->toDateString());
 
