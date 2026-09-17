@@ -83,6 +83,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Component Library Enhancements (`StatCard.jsx`)
 - **Progress Prop Support**: Added optional `progress` prop accepting `{ value, max, label, color }` or a raw percentage number.
 - **Dynamic Progress Bar**: Built an accessible progress bar with fluid CSS transitions and theme-aware accent colors.
+- **Login Emblem Watermark**: Added a subtle radial-gradient masked institutional emblem watermark (`/pmpc_ems.png`) behind the brand hero message on the green pillar of the login page (`Login.jsx`).
 
 #### Frontend Engineering & UI/UX Skills
 - **Frontend Skills Package**: Installed 11 specialized agent engineering skills into `.agents/skills/`:

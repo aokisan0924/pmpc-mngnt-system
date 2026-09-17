@@ -61,6 +61,18 @@ export default function Login() {
             >
                 <div className="absolute inset-0 opacity-[0.08] swiss-grid pointer-events-none" aria-hidden="true" />
 
+                {/* Subtle Watermark Emblem Background */}
+                <div
+                    className="absolute right-[-12%] sm:right-[-8%] top-1/2 -translate-y-1/2 w-[340px] h-[340px] sm:w-[460px] sm:h-[460px] lg:w-[560px] lg:h-[560px] pointer-events-none select-none opacity-[0.08] dark:opacity-[0.06] [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_80%)]"
+                    aria-hidden="true"
+                >
+                    <img
+                        src="/pmpc_ems.png"
+                        alt=""
+                        className="w-full h-full object-contain filter grayscale brightness-200 contrast-125"
+                    />
+                </div>
+
                 {/* Top Brand Identity with Authentic Emblem */}
                 <div className="relative flex items-center gap-3.5 border-b border-white/20 pb-6">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white p-1.5 shadow-sm border border-white/30 shrink-0">
