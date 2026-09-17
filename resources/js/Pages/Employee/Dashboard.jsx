@@ -225,36 +225,27 @@ export default function Dashboard({
                 >
                     <div className="absolute -right-12 -bottom-12 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
                     <div className="relative z-10 max-w-2xl">
-                        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/25 text-emerald-100 border border-emerald-400/30">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                Asia/Manila Time
-                            </span>
-                            {cutoff && (
-                                <>
-                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/15 text-white border border-white/20">
-                                        <span className="font-semibold">{cutoff.label}</span>
-                                        <span className="text-emerald-200">• {cutoff.days_remaining} {cutoff.days_remaining === 1 ? 'day' : 'days'} left</span>
+                        {cutoff && (
+                            <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/15 text-white border border-white/20">
+                                    <span className="font-semibold">{cutoff.label}</span>
+                                    <span className="text-emerald-200">• {cutoff.days_remaining} {cutoff.days_remaining === 1 ? 'day' : 'days'} left</span>
+                                </span>
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-400/25 text-emerald-100 border border-emerald-300/35 shadow-xs">
+                                    <svg className="w-3 h-3 text-emerald-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>Next Payday: <strong className="text-white">{cutoff.payday_label}</strong></span>
+                                    <span className="text-emerald-200 font-normal">
+                                        ({cutoff.is_payday_today ? 'Today!' : `${cutoff.days_to_payday}d left`})
                                     </span>
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-400/25 text-emerald-100 border border-emerald-300/35 shadow-xs">
-                                        <svg className="w-3 h-3 text-emerald-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <span>Next Payday: <strong className="text-white">{cutoff.payday_label}</strong></span>
-                                        <span className="text-emerald-200 font-normal">
-                                            ({cutoff.is_payday_today ? 'Today!' : `${cutoff.days_to_payday}d left`})
-                                        </span>
-                                    </span>
-                                </>
-                            )}
-                            <span className="text-[11px] text-emerald-200/90 font-mono">ID: {employee?.employee_id}</span>
-                        </div>
+                                </span>
+                            </div>
+                        )}
                         <h1 className="font-heading font-bold text-lg sm:text-xl text-white tracking-tight">
                             {greeting}, {firstName}!
                         </h1>
-                        <p className="text-xs text-emerald-100/90 mt-0.5 leading-relaxed">
-                            Here is your live attendance sequence, cutoff targets, and priority tasks for today.
-                        </p>
+
                     </div>
 
                     {/* Live Ticking Clock */}
@@ -283,11 +274,7 @@ export default function Dashboard({
                                 </Badge>
                             )}
                         </div>
-                        <Link href="/employee/dtr" className="shrink-0">
-                            <Button variant="outline" size="sm" className="h-8 text-xs">
-                                Open Full DTR →
-                            </Button>
-                        </Link>
+
                     </CardHeader>
 
                     <CardContent className="p-3.5 sm:p-4 space-y-3.5">
@@ -355,7 +342,7 @@ export default function Dashboard({
                                             <p className="font-heading font-bold text-lg lg:text-xl text-text tnum tracking-tight">
                                                 {isDone ? formatPunchTime(rawVal) : '--:--'}
                                             </p>
-                                            <p className="text-[10px] text-sub mt-0.5 truncate">{slot.period}</p>
+
                                         </div>
                                     </div>
                                 )
@@ -371,13 +358,6 @@ export default function Dashboard({
                                     }`}>
                                         {punchFeedback.message}
                                     </p>
-                                ) : !nextSlot ? (
-                                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                                        <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                        </svg>
-                                        <p className="text-xs font-semibold">All 4 attendance punches recorded for today.</p>
-                                    </div>
                                 ) : null}
 
                                 <button
@@ -438,7 +418,7 @@ export default function Dashboard({
                     <StatCard
                         title="Days Present"
                         value={summary?.days_present ?? 0}
-                        subtitle={`Target: ${summary?.cutoff_workdays ?? 11} workdays this cutoff`}
+
                         accent="emerald"
                         progress={{
                             value: summary?.days_present ?? 0,
@@ -455,7 +435,7 @@ export default function Dashboard({
                     <StatCard
                         title="Late Arrivals"
                         value={summary?.days_late ?? 0}
-                        subtitle={summary?.days_late === 0 ? 'Flawless on-time record' : `${summary.days_late} arrival(s) outside grace`}
+
                         accent={summary?.days_late > 0 ? 'amber' : 'slate'}
                         progress={{
                             value: Math.max(0, (summary?.days_present || 0) - (summary?.days_late || 0)),
@@ -474,7 +454,7 @@ export default function Dashboard({
                     <StatCard
                         title="Hours Rendered"
                         value={summary?.hours_rendered ? `${summary.hours_rendered}h` : '0h'}
-                        subtitle={`Target: ${summary?.cutoff_target_hours ?? 88}h (${cutoff?.name || 'Cutoff'})`}
+
                         accent="indigo"
                         progress={{
                             value: summary?.hours_rendered ?? 0,
@@ -494,10 +474,7 @@ export default function Dashboard({
                             ? `₱${Number(summary?.accrued_basic || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                             : '₱0.00'
                         }
-                        subtitle={summary?.daily_rate > 0
-                            ? `Target: ₱${Number(summary?.projected_basic || 0).toLocaleString()} • ₱${Number(summary.daily_rate).toFixed(0)}/day`
-                            : 'Daily rate pending setup'
-                        }
+
                         accent="emerald"
                         progress={summary?.daily_rate > 0 ? {
                             value: summary?.accrued_basic ?? 0,
@@ -648,7 +625,6 @@ export default function Dashboard({
                                                     </svg>
                                                 </div>
                                                 <p className="text-xs font-medium text-text">No pending tasks</p>
-                                                <p className="text-[11px] text-sub mt-0.5">Organize daily responsibilities in your task planner.</p>
                                                 <Link href="/employee/planner" className="inline-block mt-2">
                                                     <Button variant="outline" size="sm" className="h-7 text-xs">
                                                         Add a task in Planner →
@@ -684,7 +660,6 @@ export default function Dashboard({
                                                 </svg>
                                             </div>
                                             <p className="text-xs font-medium text-text">No pending alerts</p>
-                                            <p className="text-[11px] text-sub mt-0.5">When HR approves your edit requests or sends an update, it will appear here.</p>
                                         </div>
                                     )}
                                 </CardContent>
@@ -742,9 +717,7 @@ export default function Dashboard({
                                     </>
                                 ) : (
                                     <div>
-                                        <p className="text-xs text-sub leading-relaxed">
-                                            Payslips are generated on the 15th and end-of-month cutoffs once finalized by HR.
-                                        </p>
+                                        <p className="text-xs text-sub">No finalized payslip yet.</p>
                                         <Link href="/employee/payslips" className="inline-block mt-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
                                             Open Payslip Archive →
                                         </Link>
