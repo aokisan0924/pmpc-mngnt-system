@@ -98,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **Login Subtitle Text**: Removed the explanatory subtitle ("Use your employee ID or email. We'll open the correct portal for your account.") below the sign-in header for a cleaner, more concise form layout (`Login.jsx`).
 - **Login Badges**: Removed redundant portal badges (`Employee Portal`, `HR & Admin Console`) and system status pill (`System Active • Asia/Manila (GMT+8)`) from the login page for a cleaner presentation.
 
 ### Fixed

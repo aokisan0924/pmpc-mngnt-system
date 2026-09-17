@@ -117,7 +117,6 @@ export default function Login() {
                         <div className="mb-7">
                             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0F6E56] dark:text-emerald-400 mb-2">Secure access</p>
                             <h2 className="font-display text-2xl sm:text-3xl font-bold text-text tracking-tight">Sign in</h2>
-                            <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">Use your employee ID or email. We&apos;ll open the correct portal for your account.</p>
                         </div>
 
                         <form onSubmit={submit} className="space-y-5" noValidate>
