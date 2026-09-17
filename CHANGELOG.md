@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Payroll Cost Breakdown & Statutory Engine**: Added calculation of finalized statutory deduction splits (SSS, PhilHealth, Pag-IBIG, Tax) or baseline monthly projections from active roster compensation rates.
 
 #### Employee Dashboard & Attendance Punch Flow
+- **Payday Countdown Badge & Accrued Cutoff Pay StatCard**: Added a live Next Payday countdown badge in the Welcome Banner (`Next Payday: Sep 30 (13d left)`), upgraded the 4th StatCard to **Accrued Cutoff Pay** displaying accumulated basic earnings with an interactive progress bar against projected cutoff target pay, and relocated pending DTR edit alerts to an inline badge on the attendance header (`Employee/Dashboard.jsx`).
 - **5-Day Weekly Attendance Strip**: Added a compact horizontal Monday–Friday attendance sanity check strip inside the DTR card displaying weekday names, calendar day numbers, highlighted `TODAY` ring/badge, punch completion counts (`4/4`, `2/4`), rendered hours, and quick morning check-in timestamps (`Employee/Dashboard.jsx`).
 - **1-Tap Direct Quick Punch**: Added a direct attendance punch button on the dashboard calling `POST /employee/dtr/punch` with real-time request handling, disabling during requests, and loading spinner animation.
 - **Dynamic Punch Feedback**: Added timestamped success/error banner below the punch controls displaying the exact time and slot recorded (e.g. "Recorded AM In successfully at 08:02 AM").
@@ -64,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Quick Navigation Shortcuts**: Added streamlined direct shortcuts to Daily Time Record, Task Planner, and Employee Profile records.
 
 #### Backend Analytics & Dashboard Data (`EmployeeDashboardController.php`)
+- **Cutoff Earnings & Payday Engine**: Added server-side calculation of next payday calendar date, countdown of days remaining until payday, employee daily rate, accrued basic earnings from attendance present days, and projected full-attendance cutoff basic compensation (`EmployeeDashboardController.php`).
 - **Weekly Attendance Strip Engine**: Added server-side query aggregating current work week (Monday–Friday) DTR records with completion counts, hours rendered, status resolution, and check-in times (`EmployeeDashboardController.php`).
 - **Semi-Monthly Cutoff Engine**: Added server-side calculation of cutoff periods, exact calendar bounds, remaining calendar days, and non-weekend working days count.
 - **Cutoff-Specific Metrics**: Integrated queries for cutoff attendance days present and sum of hours rendered filtered to the active semi-monthly period.

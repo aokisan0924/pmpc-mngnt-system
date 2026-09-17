@@ -64,6 +64,16 @@ class EmployeeDashboardController extends Controller
             1
         );
 
+        // Payday calculation (15th for 1st cutoff, end of month for 2nd cutoff)
+        $paydayDate = $cutoffEnd->copy()->startOfDay();
+        $daysToPayday = max(0, $now->copy()->startOfDay()->diffInDays($paydayDate, false));
+
+        // Cutoff Earnings & Accruals
+        $dailyRate = (float) $employee->daily_rate;
+        $accruedBasic = round($dailyRate * $cutoffDaysPresent, 2);
+        $projectedBasic = round($dailyRate * $workdaysInCutoff, 2);
+        $accrualRate = $projectedBasic > 0 ? min(100, round(($accruedBasic / $projectedBasic) * 100, 1)) : 0;
+
         // Monthly & Cutoff summary
         $summary = [
             'days_present' => $cutoffDaysPresent,
@@ -74,6 +84,10 @@ class EmployeeDashboardController extends Controller
                 ->count(),
             'hours_rendered' => $cutoffHoursRendered,
             'cutoff_target_hours' => $targetHours,
+            'daily_rate' => $dailyRate,
+            'accrued_basic' => $accruedBasic,
+            'projected_basic' => $projectedBasic,
+            'accrual_rate' => $accrualRate,
             'pending_edits' => DtrEditRequest::where('employee_id', $employee->id)
                 ->where('status', 'pending')
                 ->count(),
@@ -97,6 +111,10 @@ class EmployeeDashboardController extends Controller
             'days_remaining' => $daysRemaining,
             'workdays' => $workdaysInCutoff,
             'target_hours' => $targetHours,
+            'payday_date' => $paydayDate->format('M d, Y'),
+            'payday_label' => $paydayDate->format('M d'),
+            'days_to_payday' => $daysToPayday,
+            'is_payday_today' => $daysToPayday === 0,
         ];
 
         // Today's DTR log

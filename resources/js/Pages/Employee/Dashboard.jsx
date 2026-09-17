@@ -229,10 +229,21 @@ export default function Dashboard({
                                 Asia/Manila Time
                             </span>
                             {cutoff && (
-                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/15 text-white border border-white/20">
-                                    <span className="font-semibold">{cutoff.label}</span>
-                                    <span className="text-emerald-200">• {cutoff.days_remaining} {cutoff.days_remaining === 1 ? 'day' : 'days'} left</span>
-                                </span>
+                                <>
+                                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/15 text-white border border-white/20">
+                                        <span className="font-semibold">{cutoff.label}</span>
+                                        <span className="text-emerald-200">• {cutoff.days_remaining} {cutoff.days_remaining === 1 ? 'day' : 'days'} left</span>
+                                    </span>
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-400/25 text-emerald-100 border border-emerald-300/35 shadow-xs">
+                                        <svg className="w-3 h-3 text-emerald-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>Next Payday: <strong className="text-white">{cutoff.payday_label}</strong></span>
+                                        <span className="text-emerald-200 font-normal">
+                                            ({cutoff.is_payday_today ? 'Today!' : `${cutoff.days_to_payday}d left`})
+                                        </span>
+                                    </span>
+                                </>
                             )}
                             <span className="text-[11px] text-emerald-200/90 font-mono">ID: {employee?.employee_id}</span>
                         </div>
@@ -263,6 +274,11 @@ export default function Dashboard({
                                 <Badge variant="amber" dot size="sm">Break / In Transition</Badge>
                             ) : (
                                 <Badge variant="draft" size="sm">Awaiting Morning In</Badge>
+                            )}
+                            {summary?.pending_edits > 0 && (
+                                <Badge variant="amber" size="sm">
+                                    {summary.pending_edits} edit request{summary.pending_edits > 1 ? 's' : ''} pending
+                                </Badge>
                             )}
                         </div>
                         <Link href="/employee/dtr" className="shrink-0">
@@ -570,15 +586,25 @@ export default function Dashboard({
                         }
                     />
                     <StatCard
-                        title="Pending Edits"
-                        value={summary?.pending_edits ?? 0}
-                        subtitle={summary?.pending_edits > 0 ? 'Awaiting HR review' : 'All DTR logs finalized'}
-                        accent={summary?.pending_edits > 0 ? 'rose' : 'slate'}
-                        trend={summary?.pending_edits > 0 ? 'In review' : 'Up to date'}
-                        trendDirection={summary?.pending_edits > 0 ? 'down' : 'neutral'}
+                        title="Accrued Cutoff Pay"
+                        value={summary?.daily_rate > 0
+                            ? `₱${Number(summary?.accrued_basic || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                            : '₱0.00'
+                        }
+                        subtitle={summary?.daily_rate > 0
+                            ? `Target: ₱${Number(summary?.projected_basic || 0).toLocaleString()} • ₱${Number(summary.daily_rate).toFixed(0)}/day`
+                            : 'Daily rate pending setup'
+                        }
+                        accent="emerald"
+                        progress={summary?.daily_rate > 0 ? {
+                            value: summary?.accrued_basic ?? 0,
+                            max: Math.max(1, summary?.projected_basic || 1),
+                            label: 'Cutoff accrual',
+                            color: 'bg-emerald-500',
+                        } : undefined}
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         }
                     />
