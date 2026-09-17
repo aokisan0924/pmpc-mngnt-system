@@ -4,13 +4,6 @@ import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 
-const STATUS_STYLES = {
-    on_time:   { bg: 'bg-emerald-500/10 border-emerald-500/20', text: 'text-emerald-600 dark:text-emerald-400', label: 'On time' },
-    late:      { bg: 'bg-amber-500/10 border-amber-500/20',   text: 'text-amber-600 dark:text-amber-400',     label: 'Late' },
-    undertime: { bg: 'bg-sky-500/10 border-sky-500/20',       text: 'text-sky-600 dark:text-sky-400',         label: 'Undertime' },
-    half_day:  { bg: 'bg-indigo-500/10 border-indigo-500/20', text: 'text-indigo-600 dark:text-indigo-400', label: 'Half day' },
-    absent:    { bg: 'bg-rose-500/10 border-rose-500/20',     text: 'text-rose-600 dark:text-rose-400',       label: 'Absent' },
-}
 
 export default function DtrShow({ employee, logs = [], summary = {}, month }) {
     function handleMonthChange(dir) {
@@ -134,10 +127,8 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/60 tnum">
-                                    {logs.map(log => {
-                                        const style = STATUS_STYLES[log.status] ?? STATUS_STYLES.absent
-                                        return (
-                                            <tr
+                                    {logs.map(log => (
+                                        <tr
                                                 key={log.id}
                                                 className={`transition-colors ${
                                                     log.is_weekend ? 'bg-field/20' : 'hover:bg-field/40'
@@ -168,18 +159,18 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
                                                 </td>
                                                 <td className="px-4 py-3.5 text-center">
                                                     {log.has_pending_edit ? (
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                                                        <Badge variant="amber" size="sm" dot>
                                                             Pending Edit
-                                                        </span>
+                                                        </Badge>
                                                     ) : (
-                                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${style.bg} ${style.text}`}>
-                                                            {style.label}
-                                                        </span>
+                                                        <Badge variant={log.status ?? 'absent'} size="sm">
+                                                            {(log.status ?? 'absent').replace('_', ' ')}
+                                                        </Badge>
                                                     )}
                                                 </td>
                                             </tr>
                                         )
-                                    })}
+                                    )}
                                     {logs.length === 0 && (
                                         <tr>
                                             <td colSpan={7} className="px-5 py-12 text-center text-sub">

@@ -125,7 +125,7 @@ export default function Payslips({ payslips = [] }) {
 
     return (
         <EmployeeLayout title="My Payslips">
-            <div className="mx-auto max-w-6xl space-y-4 bg-bg px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6">
+            <div className="mx-auto max-w-6xl space-y-4 p-3.5 sm:p-5 lg:p-6">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -386,9 +386,9 @@ export default function Payslips({ payslips = [] }) {
                                         <Card title="Monthly pay breakdown">
                                             <div className="space-y-3 pt-1">
                                                 {[
-                                                    { label: 'Gross Total', value: active.total_gross, color: '#0F6E56', pct: 100 },
-                                                    { label: 'Statutory & Other Deductions', value: active.total_ded, color: '#BE123C', pct: active.total_gross > 0 ? (active.total_ded / active.total_gross * 100) : 0 },
-                                                    { label: 'Final Take-Home Net', value: active.total_net, color: '#0C5946', pct: active.total_gross > 0 ? (active.total_net / active.total_gross * 100) : 0 },
+                                                    { label: 'Gross Total', value: active.total_gross, colorClass: 'bg-emerald-600', pct: 100 },
+                                                    { label: 'Statutory & Other Deductions', value: active.total_ded, colorClass: 'bg-rose-600', pct: active.total_gross > 0 ? (active.total_ded / active.total_gross * 100) : 0 },
+                                                    { label: 'Final Take-Home Net', value: active.total_net, colorClass: 'bg-emerald-700 dark:bg-emerald-500', pct: active.total_gross > 0 ? (active.total_net / active.total_gross * 100) : 0 },
                                                 ].map(row => (
                                                     <div key={row.label}>
                                                         <div className="mb-1 flex justify-between gap-4 text-xs font-mono">
@@ -397,8 +397,8 @@ export default function Payslips({ payslips = [] }) {
                                                         </div>
                                                         <div className="h-2 bg-field rounded-full overflow-hidden border border-border/40">
                                                             <div
-                                                                className="h-full rounded-full transition-all"
-                                                                style={{ width: `${Math.min(row.pct, 100)}%`, background: row.color }}
+                                                                className={`h-full rounded-full transition-all ${row.colorClass}`}
+                                                                style={{ width: `${Math.min(row.pct, 100)}%` }}
                                                             />
                                                         </div>
                                                     </div>

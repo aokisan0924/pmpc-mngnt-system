@@ -22,7 +22,7 @@ export default function ThirteenthMonth({ records = [] }) {
 
     return (
         <AdminLayout>
-            <div className="mx-auto min-h-screen max-w-6xl space-y-4 bg-bg px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6">
+            <div className="mx-auto max-w-6xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -46,7 +46,6 @@ export default function ThirteenthMonth({ records = [] }) {
                     </div>
                 </div>
 
-                {/* Quick Stats */}
                 {/* Compute Action Card */}
                 <Card className="overflow-hidden">
                     <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center">
@@ -79,7 +78,11 @@ export default function ThirteenthMonth({ records = [] }) {
                                 <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-sub">
                                     Tranche Window
                                 </label>
-                                <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-field p-1">
+                                <div
+                                    role="radiogroup"
+                                    aria-label="Tranche window selection"
+                                    className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-field p-1"
+                                >
                                     {[
                                         { value: 'mid_year', label: 'Mid-Year (Jan 1 – Jun 30)' },
                                         { value: 'year_end', label: 'Year-End (Jul 1 – Dec 31)' },
@@ -87,6 +90,8 @@ export default function ThirteenthMonth({ records = [] }) {
                                         <button
                                             key={opt.value}
                                             type="button"
+                                            role="radio"
+                                            aria-checked={tranche === opt.value}
                                             onClick={() => setTranche(opt.value)}
                                             className={`min-h-9 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
                                                 tranche === opt.value
@@ -161,7 +166,7 @@ export default function ThirteenthMonth({ records = [] }) {
                                         <td className="px-4 py-4 text-center font-mono text-text font-medium">
                                             {r.employee_count} personnel
                                         </td>
-                                        <td className="px-4 py-4 text-right font-mono font-bold text-emerald text-sm">
+                                        <td className="px-4 py-4 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm">
                                             ₱ {fmt(r.total_payout)}
                                         </td>
                                         <td className="px-4 py-4 text-center">

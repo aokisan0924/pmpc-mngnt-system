@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react'
-import { router } from '@inertiajs/react'
 
 export default function useNotifications(employeeId, initialCount = 0) {
     const [unreadCount, setUnreadCount]         = useState(initialCount)

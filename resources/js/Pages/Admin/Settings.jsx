@@ -61,7 +61,7 @@ export default function Settings({ settings }) {
 
     return (
         <AdminLayout>
-            <div className="mx-auto min-h-screen max-w-4xl space-y-4 bg-bg px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6">
+            <div className="mx-auto max-w-4xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -86,11 +86,19 @@ export default function Settings({ settings }) {
                 </div>
 
                 {/* Tabs */}
-                <div className="grid grid-cols-2 gap-1.5 rounded-2xl border border-border bg-field p-1.5 sm:grid-cols-4">
+                <div
+                    role="tablist"
+                    aria-label="Settings categories"
+                    className="grid grid-cols-2 gap-1.5 rounded-2xl border border-border bg-field p-1.5 sm:grid-cols-4"
+                >
                     {TABS.map(tab => (
                         <button
                             key={tab.key}
                             type="button"
+                            role="tab"
+                            id={`tab-${tab.key}`}
+                            aria-selected={activeTab === tab.key}
+                            aria-controls={`panel-${tab.key}`}
                             onClick={() => setActiveTab(tab.key)}
                             className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all ${
                                 activeTab === tab.key
@@ -114,10 +122,11 @@ export default function Settings({ settings }) {
                         >
                             <div className="space-y-5">
                                 <div>
-                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    <label htmlFor="settings-coop-name" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                         Cooperative Legal Name <span className="text-rose-500">*</span>
                                     </label>
                                     <input
+                                        id="settings-coop-name"
                                         type="text"
                                         value={data.coop_name}
                                         onChange={e => setData('coop_name', e.target.value)}
@@ -128,10 +137,11 @@ export default function Settings({ settings }) {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    <label htmlFor="settings-coop-address" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                         Physical Address
                                     </label>
                                     <textarea
+                                        id="settings-coop-address"
                                         value={data.coop_address ?? ''}
                                         onChange={e => setData('coop_address', e.target.value)}
                                         rows={2}
@@ -141,10 +151,11 @@ export default function Settings({ settings }) {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        <label htmlFor="settings-coop-email" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                             Official Email Address
                                         </label>
                                         <input
+                                            id="settings-coop-email"
                                             type="email"
                                             value={data.coop_email ?? ''}
                                             onChange={e => setData('coop_email', e.target.value)}
@@ -154,10 +165,11 @@ export default function Settings({ settings }) {
                                         {errors.coop_email && <p className="mt-1.5 text-xs text-rose-500">{errors.coop_email}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        <label htmlFor="settings-coop-phone" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                             Contact Phone / Hotline
                                         </label>
                                         <input
+                                            id="settings-coop-phone"
                                             type="text"
                                             value={data.coop_phone ?? ''}
                                             onChange={e => setData('coop_phone', e.target.value)}
@@ -189,10 +201,11 @@ export default function Settings({ settings }) {
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                            <label htmlFor="settings-shift-start" className="block text-xs text-sub mb-1.5 font-medium">
                                                 Shift Start (AM In) <span className="text-rose-500">*</span>
                                             </label>
                                             <input
+                                                id="settings-shift-start"
                                                 type="time"
                                                 value={data.shift_start}
                                                 onChange={e => setData('shift_start', e.target.value)}
@@ -202,10 +215,11 @@ export default function Settings({ settings }) {
                                             {errors.shift_start && <p className="mt-1 text-xs text-rose-500">{errors.shift_start}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                            <label htmlFor="settings-shift-end" className="block text-xs text-sub mb-1.5 font-medium">
                                                 Shift End (PM Out) <span className="text-rose-500">*</span>
                                             </label>
                                             <input
+                                                id="settings-shift-end"
                                                 type="time"
                                                 value={data.shift_end}
                                                 onChange={e => setData('shift_end', e.target.value)}
@@ -222,10 +236,11 @@ export default function Settings({ settings }) {
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                            <label htmlFor="settings-lunch-start" className="block text-xs text-sub mb-1.5 font-medium">
                                                 Lunch Start (AM Out) <span className="text-rose-500">*</span>
                                             </label>
                                             <input
+                                                id="settings-lunch-start"
                                                 type="time"
                                                 value={data.lunch_start}
                                                 onChange={e => setData('lunch_start', e.target.value)}
@@ -234,10 +249,11 @@ export default function Settings({ settings }) {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                            <label htmlFor="settings-lunch-end" className="block text-xs text-sub mb-1.5 font-medium">
                                                 Lunch End (PM In) <span className="text-rose-500">*</span>
                                             </label>
                                             <input
+                                                id="settings-lunch-end"
                                                 type="time"
                                                 value={data.lunch_end}
                                                 onChange={e => setData('lunch_end', e.target.value)}
@@ -253,10 +269,11 @@ export default function Settings({ settings }) {
                                         Punctuality & Grace Buffer
                                     </p>
                                     <div>
-                                        <label className="block text-xs text-sub mb-1.5 font-medium">
+                                        <label htmlFor="settings-late-grace-minutes" className="block text-xs text-sub mb-1.5 font-medium">
                                             Grace Period Allowance (Minutes) <span className="text-rose-500">*</span>
                                         </label>
                                         <input
+                                            id="settings-late-grace-minutes"
                                             type="number"
                                             value={data.late_grace_minutes}
                                             onChange={e => setData('late_grace_minutes', e.target.value)}
@@ -311,10 +328,11 @@ export default function Settings({ settings }) {
                         >
                             <div className="space-y-6">
                                 <div>
-                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    <label htmlFor="settings-working-days-month" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                         Working Days Per Month (Constant) <span className="text-rose-500">*</span>
                                     </label>
                                     <input
+                                        id="settings-working-days-month"
                                         type="number"
                                         value={data.working_days_month}
                                         onChange={e => setData('working_days_month', e.target.value)}
@@ -381,10 +399,11 @@ export default function Settings({ settings }) {
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                            <label htmlFor="settings-signatory-1-name" className="block text-xs text-sub mb-1.5 font-medium">
                                                 Full Name <span className="text-rose-500">*</span>
                                             </label>
                                             <input
+                                                id="settings-signatory-1-name"
                                                 type="text"
                                                 value={data.signatory_1_name}
                                                 onChange={e => setData('signatory_1_name', e.target.value)}
@@ -394,10 +413,11 @@ export default function Settings({ settings }) {
                                             {errors.signatory_1_name && <p className="mt-1 text-xs text-rose-500">{errors.signatory_1_name}</p>}
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                            <label htmlFor="settings-signatory-1-role" className="block text-xs text-sub mb-1.5 font-medium">
                                                 Designation / Position Title <span className="text-rose-500">*</span>
                                             </label>
                                             <input
+                                                id="settings-signatory-1-role"
                                                 type="text"
                                                 value={data.signatory_1_role}
                                                 onChange={e => setData('signatory_1_role', e.target.value)}
@@ -414,10 +434,11 @@ export default function Settings({ settings }) {
                                     </p>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                            <label htmlFor="settings-signatory-2-name" className="block text-xs text-sub mb-1.5 font-medium">
                                                 Full Name <span className="text-rose-500">*</span>
                                             </label>
                                             <input
+                                                id="settings-signatory-2-name"
                                                 type="text"
                                                 value={data.signatory_2_name}
                                                 onChange={e => setData('signatory_2_name', e.target.value)}
@@ -426,10 +447,11 @@ export default function Settings({ settings }) {
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs text-sub mb-1.5 font-medium">
+                                            <label htmlFor="settings-signatory-2-role" className="block text-xs text-sub mb-1.5 font-medium">
                                                 Designation / Position Title <span className="text-rose-500">*</span>
                                             </label>
                                             <input
+                                                id="settings-signatory-2-role"
                                                 type="text"
                                                 value={data.signatory_2_role}
                                                 onChange={e => setData('signatory_2_role', e.target.value)}

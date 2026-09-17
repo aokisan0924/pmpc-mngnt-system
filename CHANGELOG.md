@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Payroll Batch Ledger Rental Deduction Calculation**: Added missing `item.rental_deduction` and safe numeric float casting to the itemized row deductions breakdown in `PayrollShow.jsx`, reconciling the display with `PayrollCreate.jsx` and preventing financial ledger discrepancies.
+- **Full-Page Browser Reloads on Admin Back Navigation**: Replaced raw `<a>` tags with Inertia `<Link>` components in `EmployeeShow.jsx`, `ThirteenthMonthCompute.jsx`, and `ThirteenthMonthShow.jsx`, ensuring smooth client-side SPA navigation without tearing down application state.
+- **Invalid HTML Interactive Element Nesting**: Removed `<Button>` nested inside `<Link>` in `Payroll.jsx` (which violated HTML specifications and generated hydration warnings) and replaced it with a styled Inertia `<Link>`.
+- **Shared State Contamination in DTR Dispute List**: Keyed supervisor decision notes by request ID (`adminNotes[req.id]`) in `DtrEditRequests.jsx`, preventing notes typed on one dispute card from inadvertently being submitted to another.
+- **Accessibility & ARIA Tab Semantics**: Added explicit `role="tablist"`, `role="tab"`, and `aria-selected` attributes to status filter pills and navigation tabs in `Employees.jsx`, `EmployeeShow.jsx`, `Settings.jsx`, and `PayrollAnalytics.jsx`, added `role="radiogroup"` to tranche controls in `ThirteenthMonth.jsx`, and explicitly linked labels to input `id`s across `Settings.jsx`, `Archives.jsx`, and `EmployeeFormModal.jsx`.
+- **Employee Action Hub Keyboard Navigation Crash**: Fixed undefined `ACTION_HUB_TABS` in `Dashboard.jsx` that caused an uncaught `ReferenceError` when navigating tabs with arrow keys.
+- **Card Component Prop Handling & Missing Headers**: Enhanced `Card.jsx` to natively accept and render `title`, `description`, and `action` props into a `CardHeader`, restoring missing headers and action buttons on `Planner.jsx`, `Profile.jsx`, and `Payslips.jsx`.
+- **StatCard Subtitles & Theme Colors**: Fixed `StatCard` prop mismatches in `Notifications.jsx` (`sub` → `subtitle`, `color` → `accent`), restoring dropped subtitles and fixing fallback to Admin indigo.
+- **Profile Submit Button Theme**: Updated submit buttons in `Profile.jsx` from Admin indigo (`variant="primary"`) to Employee emerald (`variant="emerald"`).
+- **Mobile Header & Bottom Navigation Design Tokens**: Replaced legacy theme tokens (`bg-brand`, `text-teal`, `bg-red`) with standard Tailwind emerald/rose utilities in `MobileHeader.jsx` and `BottomNav.jsx`, and added `aria-haspopup="dialog"`.
+- **DTR Dead Code & Element Cleanup**: Removed dead hidden `StatCard` and hidden weekly strip `<div>` in `Dtr.jsx`, and standardized the punch action button to `<Button variant="emerald">`.
+- **Task Planner Cleanup & Standard Button**: Replaced ad-hoc "+ New Task" button with `<Button variant="emerald">` and removed redundant global router event listeners in `Planner.jsx`.
+- **Timezone Compliance**: Added explicit `{ timeZone: 'Asia/Manila' }` formatting to `LiveClock` in `Dashboard.jsx`.
+- **Accessibility & Spacing Consistency**: Added ARIA tablist, tab, and tabpanel semantics to `Profile.jsx`, linked `aria-controls` in `Notifications.jsx`, and standardized container padding across all employee portal pages.
+
+### Changed
+
+- **Employee Form Modal Standard Tailwind Architecture**: Refactored `EmployeeFormModal.jsx` away from legacy ad-hoc JavaScript color dictionaries (`const C = { ... }`), runtime `<style>` injection, and inline styles into standard Tailwind CSS classes, modern modal layout, and shared `<Button>` components.
+- **Design Tokens & Status Badges Standardization**: Standardized status badges across `Dashboard.jsx` and `DtrShow.jsx` to use the centralized `<Badge>` component with built-in status mapping, replaced legacy arbitrary color utilities (`bg-violet`, `text-teal`, `bg-blue/10`, `text-emerald`, `text-rose`) in `EmployeeShow.jsx`, `PayrollAnalytics.jsx`, `ThirteenthMonthCompute.jsx`, and `ThirteenthMonthShow.jsx` with consistent semantic Tailwind tokens, and standardized buttons to shared UI `<Button>` variants.
+
+### Removed
+
+- **Dead Personal Navigation Configuration**: Removed unused `My DTR` and `My tasks` entries under section `'Personal'` and the redundant filter in `AdminLayout.jsx`.
+- **Redundant Nested Containers**: Removed redundant `min-h-screen` and duplicate `bg-bg` background wrappers across `EmployeeShow.jsx`, `PayrollAnalytics.jsx`, `ThirteenthMonth.jsx`, `ThirteenthMonthCompute.jsx`, `ThirteenthMonthShow.jsx`, `Archives.jsx`, and `Settings.jsx`.
+- **Dead Comments & Unused Imports**: Cleaned up dead comments and removed unused `Button` import in `PayrollAnalytics.jsx`.
+
+
 ### Added
 
 - **PMPC Navigation Loader** — replaced the generic Inertia/Laravel progress indicator with a branded, accessible PMPC WorkForce loading overlay that appears for meaningful page transitions.

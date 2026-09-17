@@ -90,24 +90,27 @@ export default function BottomNav({ unreadCount = 0 }) {
                     const active = currentUrl.startsWith(tab.href)
                     return (
                         <Link key={tab.href} href={tab.href}
-                            className={`flex-1 min-h-16 flex flex-col items-center justify-center py-2 relative transition-colors ${active ? 'text-brand bg-brand/5' : 'text-dim'}`}>
+                            className={`flex-1 min-h-16 flex flex-col items-center justify-center py-2 relative transition-colors ${
+                                active
+                                    ? 'text-emerald-700 dark:text-emerald-300 bg-emerald-50/70 dark:bg-emerald-950/40 font-semibold'
+                                    : 'text-sub hover:text-text'
+                            }`}>
 
                             <div className="relative">
                                 {tab.icon(active)}
                                 {tab.badge && unreadCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center font-medium text-[9px] bg-red"
-                                        style={{ color: 'var(--color-bg)' }}>
+                                    <span className="absolute -top-1 -right-1.5 min-w-4 h-4 px-1 rounded-full flex items-center justify-center font-bold text-[9px] bg-rose-500 text-white shadow-2xs">
                                         {unreadCount > 9 ? '9+' : unreadCount}
                                     </span>
                                 )}
                             </div>
 
-                            <span className={`mt-1 font-semibold text-[10px] ${active ? 'text-brand' : 'text-dim'}`}>
+                            <span className={`mt-1 text-[10px] ${active ? 'font-bold text-emerald-700 dark:text-emerald-300' : 'font-medium text-dim'}`}>
                                 {tab.label}
                             </span>
 
                             {active && (
-                                <div className="absolute top-0 inset-x-2 h-0.5 bg-brand" />
+                                <div className="absolute top-0 inset-x-2 h-0.5 bg-emerald-500 rounded-full" />
                             )}
                         </Link>
                     )

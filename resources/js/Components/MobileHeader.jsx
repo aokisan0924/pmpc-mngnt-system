@@ -55,8 +55,7 @@ export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleT
                                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                             </svg>
                             {unreadCount > 0 && (
-                                <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center font-medium text-[8px] bg-red"
-                                    style={{ color: 'var(--color-bg)' }}>
+                                <span className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center font-bold text-[8px] bg-rose-500 text-white shadow-2xs">
                                     {unreadCount > 9 ? '9+' : unreadCount}
                                 </span>
                             )}
@@ -64,8 +63,13 @@ export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleT
                         )}
 
                         {/* Avatar / menu toggle */}
-                        <button onClick={() => setMenuOpen(!menuOpen)} aria-label="Open account menu" aria-expanded={menuOpen}
-                            className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-xs border flex-shrink-0 bg-brand/10 text-brand border-brand/30">
+                        <button
+                            onClick={() => setMenuOpen(!menuOpen)}
+                            aria-label="Open account menu"
+                            aria-expanded={menuOpen}
+                            aria-haspopup="dialog"
+                            className="w-10 h-10 rounded-full flex items-center justify-center font-semibold text-xs border flex-shrink-0 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60 shadow-2xs"
+                        >
                             {employee?.initials}
                         </button>
                     </div>
@@ -79,9 +83,9 @@ export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleT
                         onClick={() => setMenuOpen(false)} />
                     <div className="md:hidden fixed top-16 right-3 z-30 shadow-xl border border-border w-64 overflow-hidden bg-panel rounded-xl" role="dialog" aria-label="Account menu">
                         {/* User info */}
-                        <div className="px-4 py-3 border-b border-border bg-teal/10">
+                        <div className="px-4 py-3 border-b border-border bg-emerald-50/60 dark:bg-emerald-950/30">
                             <p className="text-sm font-medium text-text">{employee?.full_name}</p>
-                            <p className="text-xs text-teal">{employee?.employee_id}</p>
+                            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">{employee?.employee_id}</p>
                         </div>
 
                         {/* Nav links */}
@@ -96,14 +100,14 @@ export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleT
                         {isSuperAdmin && (
                             <Link href="/admin/dashboard"
                                 onClick={() => setMenuOpen(false)}
-                                className="flex items-center px-4 py-3 text-sm text-teal border-b border-border transition-colors hover:bg-hover">
+                                className="flex items-center px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400 border-b border-border transition-colors hover:bg-hover">
                                 ← Back to admin
                             </Link>
                         )}
 
                         {/* Sign out */}
                         <button onClick={logout}
-                            className="w-full text-left px-4 py-3 text-sm text-red border-t border-border transition-colors hover:bg-red/10">
+                            className="w-full text-left px-4 py-3 text-sm text-rose-600 dark:text-rose-400 border-t border-border transition-colors hover:bg-rose-50 dark:hover:bg-rose-950/30">
                             Sign out
                         </button>
                     </div>

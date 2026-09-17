@@ -16,16 +16,7 @@ function changeLabels(request) {
 }
 
 function AttendanceStatus({ status }) {
-    const variants = {
-        on_time: 'emerald',
-        late: 'amber',
-        absent: 'rose',
-        undertime: 'amber',
-        half_day: 'amber',
-        in_progress: 'amber',
-    }
-
-    return <Badge variant={variants[status] ?? 'slate'} size="sm">{(status ?? 'No record').replace('_', ' ')}</Badge>
+    return <Badge variant={status ?? 'slate'} size="sm">{(status ?? 'No record').replace('_', ' ')}</Badge>
 }
 
 export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapshot = [], pending_edit_requests = [] }) {
@@ -89,7 +80,7 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
 
     return (
         <AdminLayout pendingEditCount={stats.pending_edits ?? 0}>
-            <div className="mx-auto max-w-7xl space-y-4 bg-bg px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6">
+            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6">
                 <section className="flex flex-col gap-4 rounded-2xl bg-gradient-to-r from-[#1E1B4B] via-[#26215C] to-indigo-950 p-5 text-white shadow-xs sm:flex-row sm:items-center sm:justify-between sm:p-6">
                     <div>
                         <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo-200">Admin portal</p>
@@ -196,7 +187,7 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
                         <p className="mt-1 text-sm text-sub">Add a brief note for {declineTarget.employee_name}.</p>
                         <label className="mt-4 block text-xs font-semibold text-text" htmlFor="decline-note">Reason</label>
                         <textarea id="decline-note" value={declineReason} onChange={event => setDeclineReason(event.target.value)} required rows={4} className="mt-2 w-full rounded-xl border border-border bg-field p-3 text-sm text-text outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15" placeholder="Explain what needs to be corrected or clarified." />
-                        <div className="mt-5 flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setDeclineTarget(null)}>Cancel</Button><Button type="submit" disabled={processingId === declineTarget.id} className="bg-rose-600 hover:bg-rose-700">{processingId === declineTarget.id ? 'Declining...' : 'Decline request'}</Button></div>
+                        <div className="mt-5 flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setDeclineTarget(null)}>Cancel</Button><Button type="submit" variant="danger" loading={processingId === declineTarget.id}>Decline request</Button></div>
                     </form>
                 </div>
             )}

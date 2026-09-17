@@ -1,6 +1,9 @@
 import { useState } from 'react'
-import { router, usePage } from '@inertiajs/react'
+import { router, usePage, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
+import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
+import Badge from '@/Components/UI/Badge'
+import Button from '@/Components/UI/Button'
 import ConfirmModal from '@/Components/ConfirmModal'
 
 function fmt(num) {
@@ -10,7 +13,7 @@ function fmt(num) {
 }
 
 export default function ThirteenthMonthShow({
-    records, year, tranche, tranche_label,
+    records = [], year, tranche, tranche_label,
     period_from, period_to, status, total_payout,
 }) {
     const { flash } = usePage().props
@@ -33,157 +36,166 @@ export default function ThirteenthMonthShow({
 
     return (
         <AdminLayout>
-            <div className="min-h-screen bg-bg">
-                <div className="mx-auto max-w-6xl px-3.5 py-3.5 sm:px-5 sm:py-4 lg:px-6">
+            <div className="mx-auto max-w-6xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
+                {flash?.success && (
+                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                        {flash.success}
+                    </div>
+                )}
 
-                    {flash?.success && (
-                        <div className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">
-                            {flash.success}
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-2 border-b border-border/80">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1.5 text-xs text-sub">
+                            <Link href="/admin/thirteenth-month" className="hover:text-text font-medium transition-colors">
+                                ← Back to 13th Month Ledger
+                            </Link>
+                            <span>/</span>
+                            <span className="text-text font-semibold">{year} · {tranche_label}</span>
                         </div>
+                        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
+                            13th Month Pay — {year}
+                        </h1>
+                        <div className="flex items-center gap-2 mt-1.5">
+                            <Badge variant={tranche === 'mid_year' ? 'indigo' : 'purple'} dot size="sm">
+                                {tranche_label}
+                            </Badge>
+                            <span className="text-xs text-sub font-mono">
+                                ({period_from} – {period_to})
+                            </span>
+                            <Badge variant={status === 'finalized' ? 'emerald' : 'amber'} size="sm">
+                                {status}
+                            </Badge>
+                        </div>
+                    </div>
+
+                    {status === 'draft' && (
+                        <Button
+                            variant="primary"
+                            size="md"
+                            onClick={finalize}
+                            className="shadow-xs self-start sm:self-auto"
+                        >
+                            Finalize Batch
+                        </Button>
                     )}
+                </div>
 
-                    {/* Header */}
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-                        <div>
-                            <div className="flex items-center gap-2 mb-1 text-sm text-dim">
-                                <a href="/admin/thirteenth-month" className="hover:text-text">
-                                    ← 13th month pay
-                                </a>
-                                <span>/</span>
-                                <span className="text-sub">{year} · {tranche_label}</span>
-                            </div>
-                            <h1 className="font-display text-xl font-bold tracking-tight text-text sm:text-2xl">
-                                13th month pay — {year}
-                            </h1>
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                    tranche === 'mid_year'
-                                        ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
-                                        : 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
-                                }`}>
-                                    {tranche_label}
-                                </span>
-                                <span className="text-xs text-dim">
-                                    {period_from} – {period_to}
-                                </span>
-                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                                    status === 'finalized'
-                                        ? 'bg-teal/10 text-teal'
-                                        : 'bg-amber/10 text-amber'
-                                }`}>
-                                    {status}
-                                </span>
-                            </div>
-                        </div>
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <Card>
+                        <CardContent className="p-4 sm:p-5">
+                            <p className="text-xs font-semibold text-sub uppercase tracking-wider mb-1">Employees Covered</p>
+                            <p className="text-2xl font-heading font-bold text-text tnum">{records.length}</p>
+                            <p className="text-[11px] text-dim mt-1">Eligible cooperative personnel</p>
+                        </CardContent>
+                    </Card>
 
-                        {status === 'draft' && (
-                            <button onClick={finalize}
-                                className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white shadow-xs transition-all hover:bg-indigo-800">
-                                Finalize
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Summary card */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                        <div className="bg-panel rounded-xl border border-border p-4">
-                            <p className="text-xs text-dim mb-1">Employees covered</p>
-                            <p className="text-xl font-medium text-text">{records.length}</p>
-                        </div>
-                        <div className="bg-panel rounded-xl border border-border p-4">
-                            <p className="text-xs text-dim mb-1">Total basic pay (period)</p>
-                            <p className="text-xl font-medium text-text">
-                                ₱ {fmt(records.reduce((s, r) => s + r.total_basic_pay, 0))}
+                    <Card>
+                        <CardContent className="p-4 sm:p-5">
+                            <p className="text-xs font-semibold text-sub uppercase tracking-wider mb-1">Total Basic Pay (Period)</p>
+                            <p className="text-2xl font-heading font-bold text-text tnum">
+                                ₱ {fmt(records.reduce((s, r) => s + (parseFloat(r.total_basic_pay) || 0), 0))}
                             </p>
-                        </div>
-                        <div className="bg-panel rounded-xl border border-border p-4">
-                            <p className="text-xs text-dim mb-1">Total 13th month payout</p>
-                            <p className="text-xl font-semibold text-emerald-600">₱ {fmt(total_payout)}</p>
-                        </div>
-                    </div>
+                            <p className="text-[11px] text-dim mt-1">Cumulative qualifying earnings</p>
+                        </CardContent>
+                    </Card>
 
-                    {/* Table */}
-                    <div className="bg-panel rounded-xl border border-border overflow-hidden overflow-x-auto">
-                        <table className="w-full text-sm min-w-[680px]">
+                    <Card>
+                        <CardContent className="p-4 sm:p-5">
+                            <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">Total 13th Month Payout</p>
+                            <p className="text-2xl font-heading font-bold text-emerald-600 dark:text-emerald-400 tnum">
+                                ₱ {fmt(total_payout)}
+                            </p>
+                            <p className="text-[11px] text-dim mt-1">Total statutory disbursement</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Table Card */}
+                <Card className="overflow-hidden">
+                    <CardHeader>
+                        <CardTitle>Batch Personnel Breakdown</CardTitle>
+                        <span className="text-xs text-sub">{records.length} records in batch</span>
+                    </CardHeader>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-xs min-w-[720px]">
                             <thead>
-                                <tr className="bg-field border-b border-border">
-                                    <th className="text-left px-4 py-3 text-xs text-dim font-medium">Employee</th>
-                                    <th className="text-center px-4 py-3 text-xs text-dim font-medium">Days present</th>
-                                    <th className="text-right px-4 py-3 text-xs text-dim font-medium">Daily rate</th>
-                                    <th className="text-right px-4 py-3 text-xs text-dim font-medium">Total basic pay</th>
-                                    <th className="text-right px-4 py-3 text-xs text-dim font-medium">13th month pay</th>
+                                <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[11px]">
+                                    <th scope="col" className="text-left px-5 py-3 font-semibold">Employee</th>
+                                    <th scope="col" className="text-center px-4 py-3 font-semibold">Days Present</th>
+                                    <th scope="col" className="text-right px-4 py-3 font-semibold">Daily Rate</th>
+                                    <th scope="col" className="text-right px-4 py-3 font-semibold">Total Basic Pay</th>
+                                    <th scope="col" className="text-right px-5 py-3 font-semibold text-emerald-600 dark:text-emerald-400">13th Month Pay</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-border/60 tnum">
                                 {records.map(r => (
-                                    <tr key={r.id}
-                                        className="border-b border-border hover:bg-hover transition-colors">
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 bg-violet/15 text-violet">
+                                    <tr key={r.id} className="hover:bg-field/40 transition-colors">
+                                        <td className="px-5 py-3.5">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 flex items-center justify-center font-heading font-semibold text-xs flex-shrink-0">
                                                     {r.initials}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-text">{r.full_name}</p>
-                                                    <p className="text-xs text-dim">
-                                                        {r.employee_id} · {r.department}
-                                                    </p>
+                                                    <p className="font-semibold text-text">{r.full_name}</p>
+                                                    <p className="text-[11px] text-sub font-mono">{r.employee_id} · {r.department}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 text-center text-sub font-medium">
+                                        <td className="px-4 py-3.5 text-center font-semibold text-text">
                                             {r.days_present}
                                         </td>
-                                        <td className="px-4 py-3 text-right text-sub">
+                                        <td className="px-4 py-3.5 text-right font-medium text-sub">
                                             ₱ {fmt(r.daily_rate)}
                                         </td>
-                                        <td className="px-4 py-3 text-right text-text">
+                                        <td className="px-4 py-3.5 text-right font-medium text-text">
                                             ₱ {fmt(r.total_basic_pay)}
-                                            <p className="text-xs text-dim">
+                                            <p className="text-[10px] text-dim font-mono">
                                                 ₱{fmt(r.daily_rate)} × {r.days_present}d
                                             </p>
                                         </td>
-                                        <td className="px-4 py-3 text-right font-medium text-teal">
+                                        <td className="px-5 py-3.5 text-right font-heading font-bold text-emerald-600 dark:text-emerald-400 text-sm">
                                             ₱ {fmt(r.thirteenth_month_pay)}
-                                            <p className="text-xs text-dim font-normal">
-                                                ÷ 12
-                                            </p>
+                                            <p className="text-[10px] text-dim font-mono">÷ 12</p>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                             <tfoot>
-                                <tr className="border-t-2 border-border bg-field font-medium">
-                                    <td className="px-4 py-3 text-sub">
+                                <tr className="border-t-2 border-border/80 bg-field/60 font-semibold tnum">
+                                    <td className="px-5 py-3.5 text-text font-heading">
                                         Totals — {records.length} employees
                                     </td>
-                                    <td className="px-4 py-3 text-center text-sub">
-                                        {records.reduce((s, r) => s + r.days_present, 0)}d
+                                    <td className="px-4 py-3.5 text-center text-text font-mono">
+                                        {records.reduce((s, r) => s + (r.days_present || 0), 0)}d
                                     </td>
-                                    <td></td>
-                                    <td className="px-4 py-3 text-right text-text">
-                                        ₱ {fmt(records.reduce((s, r) => s + r.total_basic_pay, 0))}
+                                    <td className="px-4 py-3.5"></td>
+                                    <td className="px-4 py-3.5 text-right text-text font-bold">
+                                        ₱ {fmt(records.reduce((s, r) => s + (parseFloat(r.total_basic_pay) || 0), 0))}
                                     </td>
-                                    <td className="px-4 py-3 text-right text-teal">
+                                    <td className="px-5 py-3.5 text-right text-emerald-600 dark:text-emerald-400 font-heading font-bold text-base">
                                         ₱ {fmt(total_payout)}
                                     </td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
+                </Card>
 
-                    {/* Law reference */}
-                    <p className="mt-4 text-xs text-dim text-center">
-                        Computed per Republic Act 6686 and Presidential Decree 851
-                        · Formula: total basic pay earned in period ÷ 12
-                    </p>
-                </div>
+                {/* Statutory Reference */}
+                <p className="text-center text-xs text-dim">
+                    Computed under Republic Act 6686 and Presidential Decree 851 · Statutory formula: Total basic pay earned in period ÷ 12
+                </p>
             </div>
+
             <ConfirmModal
                 open={confirmOpen}
                 title="Finalize 13th month pay?"
-                message={`This will lock the ${year} ${tranche_label} 13th month pay for all ${records.length} employees permanently. This action cannot be undone.`}
-                confirmLabel="Yes, finalize"
+                message={`This will lock the ${year} ${tranche_label} 13th month pay for all ${records.length} employees permanently. Under statutory accounting rules, finalized batches cannot be undone or altered.`}
+                confirmLabel="Yes, finalize batch"
                 cancelLabel="Cancel"
                 confirmStyle="emerald"
                 processing={processing}

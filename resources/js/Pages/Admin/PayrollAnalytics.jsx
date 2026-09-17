@@ -3,7 +3,6 @@ import AdminLayout from '@/Layouts/AdminLayout'
 import Card from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
-import Button from '@/Components/UI/Button'
 import {
     LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
     Tooltip, Legend, ResponsiveContainer, ComposedChart, Area,
@@ -105,7 +104,7 @@ export default function PayrollAnalytics({
 
     return (
         <AdminLayout>
-            <div className="mx-auto min-h-screen max-w-7xl space-y-5 bg-bg px-3.5 py-3.5 sm:px-5 sm:py-4 lg:px-6">
+            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
 
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -289,8 +288,8 @@ export default function PayrollAnalytics({
                                                 <td className="px-6 py-3.5 font-sans font-medium text-text">{d.department}</td>
                                                 <td className="px-4 py-3.5 text-center text-sub">{d.headcount}</td>
                                                 <td className="px-4 py-3.5 text-right text-text">₱ {fmt(d.total_gross)}</td>
-                                                <td className="px-4 py-3.5 text-right text-emerald font-semibold">₱ {fmt(d.total_net)}</td>
-                                                <td className="px-6 py-3.5 text-right text-rose">{dedPct}%</td>
+                                                <td className="px-4 py-3.5 text-right text-emerald-600 dark:text-emerald-400 font-semibold">₱ {fmt(d.total_net)}</td>
+                                                <td className="px-6 py-3.5 text-right text-rose-600 dark:text-rose-400">{dedPct}%</td>
                                             </tr>
                                         )
                                     })}
@@ -305,22 +304,32 @@ export default function PayrollAnalytics({
                     title={`Deductions Breakdown per Employee${latestPayroll ? ' — ' + latestPayroll.period_label : ''}`}
                     description="Itemized statutory and company deduction allocations from the latest payroll"
                     action={
-                        <div className="flex gap-1 p-1 bg-field rounded-lg border border-border">
+                        <div
+                            role="tablist"
+                            aria-label="Deductions view mode"
+                            className="flex gap-1 p-1 bg-field rounded-lg border border-border"
+                        >
                             <button
+                                type="button"
+                                role="tab"
+                                aria-selected={dedView === 'chart'}
                                 onClick={() => setDedView('chart')}
                                 className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
                                     dedView === 'chart'
-                                        ? 'bg-panel text-text shadow-xs'
+                                        ? 'bg-panel text-text shadow-2xs font-semibold'
                                         : 'text-sub hover:text-text'
                                 }`}
                             >
                                 Chart
                             </button>
                             <button
+                                type="button"
+                                role="tab"
+                                aria-selected={dedView === 'table'}
                                 onClick={() => setDedView('table')}
                                 className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
                                     dedView === 'table'
-                                        ? 'bg-panel text-text shadow-xs'
+                                        ? 'bg-panel text-text shadow-2xs font-semibold'
                                         : 'text-sub hover:text-text'
                                 }`}
                             >
@@ -374,11 +383,11 @@ export default function PayrollAnalytics({
                                                     <p className="text-[11px] text-dim">{r.department}</p>
                                                 </td>
                                                 {dedKeys.map(k => (
-                                                    <td key={k} className="px-3 py-3.5 text-right text-rose">
+                                                    <td key={k} className="px-3 py-3.5 text-right text-rose-600 dark:text-rose-400">
                                                         {r[k] > 0 ? `₱ ${fmt(r[k])}` : '—'}
                                                     </td>
                                                 ))}
-                                                <td className="px-6 py-3.5 text-right font-bold text-emerald">
+                                                <td className="px-6 py-3.5 text-right font-bold text-emerald-600 dark:text-emerald-400">
                                                     ₱ {fmt(r.net_pay)}
                                                 </td>
                                             </tr>
@@ -388,11 +397,11 @@ export default function PayrollAnalytics({
                                         <tr className="border-t-2 border-border bg-field/80 font-mono font-bold">
                                             <td className="px-6 py-3.5 font-sans text-text">Aggregate Totals</td>
                                             {dedKeys.map(k => (
-                                                <td key={k} className="px-3 py-3.5 text-right text-rose">
+                                                <td key={k} className="px-3 py-3.5 text-right text-rose-600 dark:text-rose-400">
                                                     ₱ {fmt(deductionsBreakdown.reduce((s, r) => s + (r[k] ?? 0), 0))}
                                                 </td>
                                             ))}
-                                            <td className="px-6 py-3.5 text-right text-emerald text-sm">
+                                            <td className="px-6 py-3.5 text-right text-emerald-600 dark:text-emerald-400 text-sm">
                                                 ₱ {fmt(deductionsBreakdown.reduce((s, r) => s + r.net_pay, 0))}
                                             </td>
                                         </tr>

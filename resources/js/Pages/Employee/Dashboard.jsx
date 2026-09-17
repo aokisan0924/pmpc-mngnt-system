@@ -60,6 +60,8 @@ const PUNCH_SLOTS = [
     },
 ]
 
+const ACTION_HUB_TABS = ['tasks', 'alerts']
+
 const SOFT_EMERALD_ACTION_CLASS = 'inline-flex h-8 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 shadow-xs transition-all duration-150 hover:border-emerald-300 hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60'
 
 function LiveClock() {
@@ -70,8 +72,9 @@ function LiveClock() {
         return () => clearInterval(timer)
     }, [])
 
-    const timeStr = time.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    const dateStr = time.toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+    const formatOptions = { timeZone: 'Asia/Manila' }
+    const timeStr = time.toLocaleTimeString('en-PH', { ...formatOptions, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    const dateStr = time.toLocaleDateString('en-PH', { ...formatOptions, weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
 
     return (
         <div
@@ -362,7 +365,6 @@ export default function Dashboard({
                     <StatCard
                         title="Late Arrivals"
                         value={summary?.days_late ?? 0}
-
                         accent={summary?.days_late > 0 ? 'amber' : 'slate'}
                         progress={{
                             value: Math.max(0, (summary?.days_present || 0) - (summary?.days_late || 0)),
@@ -381,7 +383,6 @@ export default function Dashboard({
                     <StatCard
                         title="Hours Rendered"
                         value={summary?.hours_rendered ? `${summary.hours_rendered}h` : '0h'}
-
                         accent="indigo"
                         progress={{
                             value: summary?.hours_rendered ?? 0,
@@ -401,7 +402,6 @@ export default function Dashboard({
                             ? `₱${Number(summary?.accrued_basic || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                             : '₱0.00'
                         }
-
                         accent="emerald"
                         progress={summary?.daily_rate > 0 ? {
                             value: summary?.accrued_basic ?? 0,

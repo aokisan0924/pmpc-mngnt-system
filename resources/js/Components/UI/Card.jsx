@@ -1,4 +1,14 @@
-export function Card({ children, className = '', hover = false, ...props }) {
+export function Card({
+    children,
+    title,
+    description,
+    action,
+    className = '',
+    hover = false,
+    ...props
+}) {
+    const hasHeader = Boolean(title || description || action)
+
     return (
         <div
             className={`bg-panel border border-border rounded-xl shadow-xs transition-all duration-200 ${
@@ -6,6 +16,15 @@ export function Card({ children, className = '', hover = false, ...props }) {
             } ${className}`}
             {...props}
         >
+            {hasHeader && (
+                <CardHeader>
+                    <div className="min-w-0">
+                        {title && <CardTitle>{title}</CardTitle>}
+                        {description && <CardDescription>{description}</CardDescription>}
+                    </div>
+                    {action && <div className="shrink-0">{action}</div>}
+                </CardHeader>
+            )}
             {children}
         </div>
     )

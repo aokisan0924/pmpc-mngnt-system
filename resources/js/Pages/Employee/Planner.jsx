@@ -54,13 +54,6 @@ export default function Planner({ tasks = [] }) {
     const [editTarget, setEditTarget]     = useState(null)
     const [taskToDelete, setTaskToDelete] = useState(null)
     const [filter, setFilter]             = useState('all')
-    const [loading, setLoading]           = useState(false)
-
-    useEffect(() => {
-        const stop = router.on('start', () => setLoading(true))
-        const finish = router.on('finish', () => setLoading(false))
-        return () => { stop(); finish() }
-    }, [])
 
     useEffect(() => {
         if (!showForm) return
@@ -145,8 +138,7 @@ export default function Planner({ tasks = [] }) {
     }
 
     function toggleDone(task) {
-        if (loading) return
-        router.patch(`/employee/planner/${task.id}/toggle`)
+        router.patch(`/employee/planner/${task.id}/toggle`, {}, { preserveScroll: true })
     }
 
     function confirmDelete(task) {
@@ -154,8 +146,9 @@ export default function Planner({ tasks = [] }) {
     }
 
     function handleDeleteTask() {
-        if (!taskToDelete || loading) return
+        if (!taskToDelete) return
         router.delete(`/employee/planner/${taskToDelete.id}`, {
+            preserveScroll: true,
             onSuccess: () => setTaskToDelete(null),
             onFinish: () => setTaskToDelete(null),
         })
@@ -180,7 +173,7 @@ export default function Planner({ tasks = [] }) {
 
     return (
         <EmployeeLayout title="Task Planner">
-            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
+            <div className="mx-auto max-w-7xl space-y-4 p-3.5 sm:p-5 lg:p-6">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -203,15 +196,17 @@ export default function Planner({ tasks = [] }) {
                         </p>
                     </div>
 
-                    <button
+                    <Button
+                        variant="emerald"
+                        size="md"
                         onClick={() => openNewTaskForm()}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 active:scale-[0.98] transition-all w-fit"
+                        className="shadow-xs w-fit"
                     >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                         </svg>
                         <span>New Task</span>
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Controls Bar */}

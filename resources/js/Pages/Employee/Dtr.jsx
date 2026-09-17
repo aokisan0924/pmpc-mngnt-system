@@ -5,6 +5,7 @@ import DtrEditRequestModal from '@/Components/DtrEditRequestModal'
 import Card, { CardContent, CardHeader, CardTitle } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
+import Button from '@/Components/UI/Button'
 
 const PUNCH_LABELS = {
     am_time_in:  'AM In',
@@ -136,16 +137,17 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
 
                         <div>
                             {nextLabel ? (
-                                <button
-                                    type="button"
+                                <Button
+                                    variant="emerald"
+                                    size="md"
                                     onClick={handlePunch}
                                     disabled={punching}
+                                    loading={punching}
                                     aria-label={punching ? 'Recording punch...' : `Record ${nextLabel}`}
-                                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                                    className="w-full sm:w-auto h-9 px-4 text-xs font-semibold shadow-xs"
                                 >
-                                    <div className="w-2 h-2 rounded-full bg-white animate-ping" aria-hidden="true" />
-                                    <span>{punching ? 'Recording Punch...' : `Record ${nextLabel}`}</span>
-                                </button>
+                                    Record {nextLabel}
+                                </Button>
                             ) : (
                                 <Badge variant="emerald" dot size="sm">Day Complete</Badge>
                             )}
@@ -265,17 +267,6 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                                     <span className="text-[10px] text-sub">--</span>
                                                 )}
                                             </div>
-
-                                            {/* Punch Time snippet */}
-                                            <div className="hidden">
-                                                {day.am_time_in ? (
-                                                    <span>In: {day.am_time_in.slice(0, 5)}</span>
-                                                ) : day.is_future ? (
-                                                    <span>—</span>
-                                                ) : (
-                                                    <span>No log</span>
-                                                )}
-                                            </div>
                                         </div>
                                     )
                                 })}
@@ -289,7 +280,6 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <StatCard
                         title="Days Present"
                         value={summary.days_present ?? 0}
-
                         accent="emerald"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -300,7 +290,6 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <StatCard
                         title="Late Days"
                         value={summary.days_late ?? 0}
-
                         accent="amber"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -311,23 +300,10 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <StatCard
                         title="Rendered Hours"
                         value={`${summary.hours_rendered ?? 0}h`}
-
                         accent="emerald"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="Pending Edits"
-                        className="hidden"
-                        value={summary.pending_edits ?? 0}
-
-                        accent="indigo"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                         }
                     />

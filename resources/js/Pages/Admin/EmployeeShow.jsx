@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import { useForm, usePage } from '@inertiajs/react'
+import { useForm, usePage, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
+import Button from '@/Components/UI/Button'
+import Badge from '@/Components/UI/Badge'
 
-const inputClass = "w-full px-3 py-2.5 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-violet/20 focus:border-violet transition-colors placeholder:text-dim"
+const inputClass = "w-full px-3 py-2.5 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors placeholder:text-dim"
 
 /* ---------- icons ---------- */
 const IconArrowLeft = (p) => (
@@ -127,55 +129,58 @@ export default function EmployeeShow({ employee, govIds }) {
 
     return (
         <AdminLayout>
-            <div className="min-h-screen bg-bg">
-            <div className="mx-auto max-w-3xl px-3.5 py-3.5 sm:px-5 sm:py-4 lg:px-6">
+            <div className="mx-auto max-w-3xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
 
                 {flash?.success && (
-                    <div className="mb-5 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-teal/10 border border-teal/25 text-teal text-sm">
-                        <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-teal flex-shrink-0" />
+                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
                         {flash.success}
                     </div>
                 )}
 
                 {/* Breadcrumb */}
-                <a href="/admin/employees" className="inline-flex items-center gap-1.5 text-sm text-dim hover:text-text transition-colors mb-4">
-                    <IconArrowLeft className="w-4 h-4" /> Employees
-                </a>
+                <Link href="/admin/employees" className="inline-flex items-center gap-1.5 text-xs text-sub hover:text-text font-medium transition-colors">
+                    <IconArrowLeft className="w-3.5 h-3.5" /> Back to Employees
+                </Link>
 
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 pb-2 border-b border-border/80">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-semibold flex-shrink-0 bg-violet/15 text-violet">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold font-heading flex-shrink-0 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 shadow-xs">
                             {employee.initials ?? initials(employee.first_name, employee.last_name)}
                         </div>
                         <div className="min-w-0">
-                            <p className="text-lg font-semibold text-text truncate">{employee.full_name}</p>
-                            <p className="text-xs text-dim font-mono truncate">
+                            <p className="text-lg font-bold font-heading text-text truncate">{employee.full_name}</p>
+                            <p className="text-xs text-sub font-mono truncate">
                                 {employee.employee_id} {employee.department && `· ${employee.department}`}
                             </p>
                         </div>
                     </div>
-                    <span className={`inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-full font-medium w-fit ${
-                        employee.status === 'active'
-                            ? 'bg-teal/10 text-teal'
-                            : 'bg-red/10 text-red'
-                    }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${employee.status === 'active' ? 'bg-teal' : 'bg-red'}`} />
+                    <Badge variant={employee.status} dot size="sm">
                         {employee.status}
-                    </span>
+                    </Badge>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-1 p-1 bg-field rounded-xl mb-6 overflow-x-auto">
+                <div
+                    role="tablist"
+                    aria-label="Employee profile sections"
+                    className="flex gap-1 p-1 bg-field rounded-xl overflow-x-auto border border-border/70"
+                >
                     {tabs.map(tab => (
-                        <button key={tab.key}
+                        <button
+                            key={tab.key}
+                            type="button"
+                            role="tab"
+                            aria-selected={activeTab === tab.key}
                             onClick={() => setActiveTab(tab.key)}
-                            className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm py-2.5 px-3 rounded-lg transition-all font-medium whitespace-nowrap ${
+                            className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm py-2 px-3 rounded-lg transition-all font-medium whitespace-nowrap ${
                                 activeTab === tab.key
-                                    ? 'bg-panel text-text shadow-sm ring-1 ring-border'
+                                    ? 'bg-panel text-text shadow-2xs font-semibold'
                                     : 'text-sub hover:text-text'
-                            }`}>
-                            <tab.Icon className={`w-4 h-4 ${activeTab === tab.key ? 'text-violet' : ''}`} />
+                            }`}
+                        >
+                            <tab.Icon className={`w-4 h-4 ${activeTab === tab.key ? 'text-indigo-600 dark:text-indigo-400' : ''}`} />
                             {tab.label}
                         </button>
                     ))}
@@ -259,12 +264,11 @@ export default function EmployeeShow({ employee, govIds }) {
                         </Field>
 
                         <div className="pt-2 flex items-center gap-3">
-                            <button type="submit" disabled={infoForm.processing}
-                                className="px-5 py-2.5 text-sm font-medium rounded-lg shadow-sm hover:shadow-md hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition-all bg-violet text-bg">
-                                {infoForm.processing ? 'Saving…' : 'Save changes'}
-                            </button>
+                            <Button type="submit" variant="primary" size="md" loading={infoForm.processing}>
+                                Save changes
+                            </Button>
                             {infoForm.recentlySuccessful && (
-                                <span className="text-xs text-teal font-medium">Saved</span>
+                                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Saved</span>
                             )}
                         </div>
                     </form>
@@ -276,7 +280,7 @@ export default function EmployeeShow({ employee, govIds }) {
                         className="bg-panel rounded-2xl border border-border shadow-sm p-5 sm:p-6 space-y-6">
 
                         {/* Live preview */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl border" style={{ background: 'color-mix(in srgb, var(--color-violet) 6%, transparent)', borderColor: 'color-mix(in srgb, var(--color-violet) 15%, transparent)' }}>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl border border-indigo-200/80 dark:border-indigo-800/60 bg-indigo-50/40 dark:bg-indigo-950/20">
                             <div>
                                 <p className="text-[11px] text-dim mb-0.5">Monthly basic</p>
                                 <p className="text-sm font-semibold text-text">₱ {fmt(monthlyBasic)}</p>
@@ -288,11 +292,11 @@ export default function EmployeeShow({ employee, govIds }) {
                             </div>
                             <div>
                                 <p className="text-[11px] text-dim mb-0.5">Total deductions</p>
-                                <p className="text-sm font-semibold text-red">₱ {fmt(totalDed)}</p>
+                                <p className="text-sm font-semibold text-rose-600 dark:text-rose-400">₱ {fmt(totalDed)}</p>
                             </div>
                             <div>
                                 <p className="text-[11px] text-dim mb-0.5">Est. net / month</p>
-                                <p className="text-sm font-semibold text-teal">₱ {fmt(netMonthly)}</p>
+                                <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">₱ {fmt(netMonthly)}</p>
                             </div>
                         </div>
 
@@ -372,12 +376,11 @@ export default function EmployeeShow({ employee, govIds }) {
                         </section>
 
                         <div className="pt-2 flex items-center gap-3">
-                            <button type="submit" disabled={compForm.processing}
-                                className="px-5 py-2.5 text-sm font-medium rounded-lg shadow-sm hover:shadow-md hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition-all bg-violet text-bg">
-                                {compForm.processing ? 'Saving…' : 'Save compensation'}
-                            </button>
+                            <Button type="submit" variant="primary" size="md" loading={compForm.processing}>
+                                Save compensation
+                            </Button>
                             {compForm.recentlySuccessful && (
-                                <span className="text-xs text-teal font-medium">Saved</span>
+                                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Saved</span>
                             )}
                         </div>
                     </form>
@@ -404,14 +407,12 @@ export default function EmployeeShow({ employee, govIds }) {
                                 className={inputClass} required />
                         </Field>
                         <div className="pt-2">
-                            <button type="submit" disabled={passForm.processing}
-                                className="px-5 py-2.5 text-sm font-medium rounded-lg shadow-sm hover:shadow-md hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed transition-all bg-violet text-bg">
-                                {passForm.processing ? 'Updating…' : 'Reset password'}
-                            </button>
+                            <Button type="submit" variant="primary" size="md" loading={passForm.processing}>
+                                Reset password
+                            </Button>
                         </div>
                     </form>
                 )}
-            </div>
             </div>
         </AdminLayout>
     )

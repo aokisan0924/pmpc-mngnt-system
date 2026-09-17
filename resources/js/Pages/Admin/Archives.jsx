@@ -21,7 +21,7 @@ export default function Archives({ archives = [], last_month }) {
 
     return (
         <AdminLayout>
-            <div className="mx-auto min-h-screen max-w-6xl space-y-4 bg-bg px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6">
+            <div className="mx-auto max-w-6xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -53,7 +53,6 @@ export default function Archives({ archives = [], last_month }) {
                     </div>
                 </div>
 
-                {/* Quick Stats */}
                 {/* Manual generate card */}
                 <Card className="overflow-hidden">
                     <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center">
@@ -68,10 +67,11 @@ export default function Archives({ archives = [], last_month }) {
                     <CardContent className="p-5 sm:p-6">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
                         <div>
-                            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-sub">
+                            <label htmlFor="archive-target-month" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-sub">
                                 Target Month
                             </label>
                             <input
+                                id="archive-target-month"
                                 type="month"
                                 value={month}
                                 onChange={e => setMonth(e.target.value)}

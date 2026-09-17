@@ -66,11 +66,14 @@ export default function Employees({ employees = [] }) {
                     </Button>
                 </div>
 
-                {/* ── Metric Summary Tiles ─────────────────────────── */}
                 {/* ── Filters & Search Toolbar ──────────────────────── */}
                 <Card>
                     <CardHeader className="flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-                        <div className="flex items-center gap-1 bg-field p-1 rounded-lg border border-border/70 self-start">
+                        <div
+                            role="tablist"
+                            aria-label="Filter employees by status"
+                            className="flex items-center gap-1 bg-field p-1 rounded-lg border border-border/70 self-start"
+                        >
                             {[
                                 { key: 'active', label: 'Active' },
                                 { key: 'inactive', label: 'Inactive' },
@@ -78,6 +81,9 @@ export default function Employees({ employees = [] }) {
                             ].map(tab => (
                                 <button
                                     key={tab.key}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={filter === tab.key}
                                     onClick={() => setFilter(tab.key)}
                                     className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
                                         filter === tab.key

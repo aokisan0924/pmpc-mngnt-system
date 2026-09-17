@@ -54,10 +54,12 @@ export default function Payroll({ payrolls = [] }) {
                         </h1>
                     </div>
 
-                    <Link href="/admin/payroll/analytics">
-                        <Button variant="outline" size="sm">
-                            View Payroll Analytics ↗
-                        </Button>
+                    <Link
+                        href="/admin/payroll/analytics"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl border border-border/80 bg-panel text-text hover:bg-field shadow-2xs transition-colors"
+                    >
+                        <span>View Payroll Analytics</span>
+                        <span aria-hidden="true">↗</span>
                     </Link>
                 </div>
 

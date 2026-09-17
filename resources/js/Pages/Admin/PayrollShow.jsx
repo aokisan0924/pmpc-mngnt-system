@@ -170,11 +170,12 @@ export default function PayrollShow({ payroll, items = [] }) {
                             </thead>
                             <tbody className="divide-y divide-border/60 tnum">
                                 {items.map(item => {
-                                    const splitDed = item.loan_deduction
-                                        + item.capital_contribution_deduction
-                                        + item.cash_advance_deduction
-                                        + item.savings_deduction
-                                        + item.other_deductions
+                                    const splitDed = (parseFloat(item.loan_deduction) || 0)
+                                        + (parseFloat(item.capital_contribution_deduction) || 0)
+                                        + (parseFloat(item.cash_advance_deduction) || 0)
+                                        + (parseFloat(item.rental_deduction) || 0)
+                                        + (parseFloat(item.savings_deduction) || 0)
+                                        + (parseFloat(item.other_deductions) || 0)
 
                                     return (
                                         <tr key={item.id} className="hover:bg-field/40 transition-colors">

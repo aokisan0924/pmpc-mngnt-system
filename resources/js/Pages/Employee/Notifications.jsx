@@ -77,7 +77,7 @@ export default function Notifications({ notifications = [] }) {
 
     return (
         <EmployeeLayout title="Notifications">
-            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-4xl mx-auto">
+            <div className="mx-auto max-w-5xl space-y-4 p-3.5 sm:p-5 lg:p-6">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -117,12 +117,12 @@ export default function Notifications({ notifications = [] }) {
                 </div>
 
                 {/* Stat Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                     <StatCard
                         title="Unread Alerts"
                         value={unread.length}
-                        sub="Awaiting review"
-                        color="amber"
+                        subtitle="Awaiting review"
+                        accent="amber"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -132,8 +132,8 @@ export default function Notifications({ notifications = [] }) {
                     <StatCard
                         title="DTR Approved"
                         value={approved.length}
-                        sub="Timesheet edits accepted"
-                        color="emerald"
+                        subtitle="Edits accepted"
+                        accent="emerald"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -143,8 +143,8 @@ export default function Notifications({ notifications = [] }) {
                     <StatCard
                         title="DTR Declined"
                         value={declined.length}
-                        sub="Corrections rejected"
-                        color="rose"
+                        subtitle="Corrections rejected"
+                        accent="rose"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -154,8 +154,8 @@ export default function Notifications({ notifications = [] }) {
                     <StatCard
                         title="Total History"
                         value={notifications.length}
-                        sub="All received updates"
-                        color="slate"
+                        subtitle="All received updates"
+                        accent="slate"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -178,6 +178,7 @@ export default function Notifications({ notifications = [] }) {
                                 type="button"
                                 role="tab"
                                 aria-selected={filter === tab.key}
+                                aria-controls="notifications-list"
                                 onClick={() => setFilter(tab.key)}
                                 className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                     filter === tab.key
@@ -202,7 +203,7 @@ export default function Notifications({ notifications = [] }) {
                 </div>
 
                 {/* Notifications List */}
-                <div className="space-y-3">
+                <div id="notifications-list" className="space-y-3">
                     {filteredNotifications.map((notif) => {
                         const { badge, icon, bg } = getTypeDetails(notif.type)
                         const isRemoving = removingId === notif.id
