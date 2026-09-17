@@ -20,11 +20,13 @@ class Task extends Model
         'due_date' => 'date',
     ];
 
-    public function employee() {
+    public function employee()
+    {
         return $this->belongsTo(Employee::class);
     }
 
-    public function isDone(): bool {
+    public function isDone(): bool
+    {
         return $this->status === 'done';
     }
 }

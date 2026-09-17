@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class Employee extends Authenticatable
 {
@@ -50,65 +50,79 @@ class Employee extends Authenticatable
 
     protected $casts = [
         'date_hired' => 'date',
-        'password'   => 'hashed',
-        'is_staff'   => 'boolean',
+        'password' => 'hashed',
+        'is_staff' => 'boolean',
     ];
 
-    public function getFullNameAttribute(): string {
+    public function getFullNameAttribute(): string
+    {
         return "{$this->first_name} {$this->last_name}";
     }
 
-    public function getInitialsAttribute(): string {
-        return strtoupper(substr($this->first_name, 0, 1) . substr($this->last_name, 0, 1));
+    public function getInitialsAttribute(): string
+    {
+        return strtoupper(substr($this->first_name, 0, 1).substr($this->last_name, 0, 1));
     }
 
-    public function isSuperAdmin(): bool {
+    public function isSuperAdmin(): bool
+    {
         return $this->role === 'super_admin';
     }
 
-    public function isEmployee(): bool {
+    public function isEmployee(): bool
+    {
         return $this->role === 'employee';
     }
 
-    public function isActive(): bool {
+    public function isActive(): bool
+    {
         return $this->status === 'active';
     }
 
-    public function governmentIds() {
+    public function governmentIds()
+    {
         return $this->hasOne(EmployeeGovernmentId::class);
     }
 
-    public function dtrLogs() {
+    public function dtrLogs()
+    {
         return $this->hasMany(DtrLog::class);
     }
 
-    public function dtrEditRequests() {
+    public function dtrEditRequests()
+    {
         return $this->hasMany(DtrEditRequest::class);
     }
 
-    public static function generateEmployeeId(): string {
-        $latest = static::orderByDesc('id')->value('employee_id');
+    public static function generateEmployeeId(): string
+    {
+        $latestEmpId = static::where('employee_id', 'LIKE', 'EMP-%')
+            ->orderByDesc('employee_id')
+            ->value('employee_id');
 
-        if (! $latest) {
+        if (! $latestEmpId) {
             return 'EMP-0001';
         }
 
-        $number = (int) substr($latest, 4);
+        $number = (int) substr($latestEmpId, 4);
 
-        return 'EMP-' . str_pad($number + 1, 4, '0', STR_PAD_LEFT);
+        return 'EMP-'.str_pad((string) ($number + 1), 4, '0', STR_PAD_LEFT);
     }
 
-    public function getMonthlyBasicPayAttribute(): float {
+    public function getMonthlyBasicPayAttribute(): float
+    {
         return $this->daily_rate * 22;
     }
 
-    public function getTotalAllowancesAttribute(): float {
+    public function getTotalAllowancesAttribute(): float
+    {
         return $this->transpo_allowance
             + $this->rep_allowance
             + $this->quarterly_allowance;
     }
 
-    public function getTotalDeductionsAttribute(): float {
+    public function getTotalDeductionsAttribute(): float
+    {
         return $this->sss_deduction
             + $this->philhealth_deduction
             + $this->pagibig_deduction

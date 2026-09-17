@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { router, usePage } from '@inertiajs/react'
+import { router, usePage, usePoll } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import DtrEditRequestModal from '@/Components/DtrEditRequestModal'
 import Card, { CardContent, CardHeader, CardTitle } from '@/Components/UI/Card'
@@ -44,6 +44,13 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
     const [editTarget, setEditTarget] = useState(null)
     const [punching, setPunching]     = useState(false)
     const [loading, setLoading] = useState(false)
+
+    // Silent background poll every 4s so employee sees edit approval/status changes and punch updates live
+    usePoll(4000, {
+        only: ['logs', 'summary', 'today', 'next_punch', 'weeklyStrip'],
+        preserveScroll: true,
+        preserveState: true,
+    })
 
     useEffect(() => {
         const stop = router.on('start', () => setLoading(true))

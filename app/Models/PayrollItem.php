@@ -37,36 +37,38 @@ class PayrollItem extends Model
     ];
 
     protected $casts = [
-        'cutoff_basic'           => 'float',
-        'cutoff_transpo'         => 'float',
-        'cutoff_rep'             => 'float',
-        'cutoff_quarterly'       => 'float',
-        'cutoff_gross'           => 'float',
-        'weekday_ot_hours'       => 'float',
-        'weekday_ot_pay'         => 'float',
-        'weekend_ot_hours'       => 'float',
-        'weekend_ot_pay'         => 'float',
-        'total_ot_pay'           => 'float',
-        'gross_pay'              => 'float',
-        'sss_deduction'          => 'float',
-        'philhealth_deduction'   => 'float',
-        'pagibig_deduction'      => 'float',
-        'tax_deduction'          => 'float',
-        'loan_deduction'         => 'float',
-        'capital_contribution_deduction'           => 'float',
+        'cutoff_basic' => 'float',
+        'cutoff_transpo' => 'float',
+        'cutoff_rep' => 'float',
+        'cutoff_quarterly' => 'float',
+        'cutoff_gross' => 'float',
+        'weekday_ot_hours' => 'float',
+        'weekday_ot_pay' => 'float',
+        'weekend_ot_hours' => 'float',
+        'weekend_ot_pay' => 'float',
+        'total_ot_pay' => 'float',
+        'gross_pay' => 'float',
+        'sss_deduction' => 'float',
+        'philhealth_deduction' => 'float',
+        'pagibig_deduction' => 'float',
+        'tax_deduction' => 'float',
+        'loan_deduction' => 'float',
+        'capital_contribution_deduction' => 'float',
         'cash_advance_deduction' => 'float',
-        'rental_deduction'       => 'float',
-        'savings_deduction'      => 'float',
-        'other_deductions'       => 'float',
-        'total_deductions'       => 'float',
-        'net_pay'                => 'float',
+        'rental_deduction' => 'float',
+        'savings_deduction' => 'float',
+        'other_deductions' => 'float',
+        'total_deductions' => 'float',
+        'net_pay' => 'float',
     ];
 
-    public function payroll() {
+    public function payroll()
+    {
         return $this->belongsTo(Payroll::class);
     }
 
-    public function employee() {
+    public function employee()
+    {
         return $this->belongsTo(Employee::class);
     }
 
@@ -75,24 +77,25 @@ class PayrollItem extends Model
      * isFirst = true  → 1st cutoff (SSS/Phil/Pag-IBIG full, split deductions half)
      * isFirst = false → 2nd cutoff (govt deductions = 0, split deductions half)
      */
-    public function computeTotals(bool $isFirst): void {
+    public function computeTotals(bool $isFirst): void
+    {
         $emp = $this->employee;
 
         // OT pay
-        $hourlyRate          = $emp->daily_rate / 8;
+        $hourlyRate = $emp->daily_rate / 8;
         $this->weekday_ot_pay = round($hourlyRate * 1.25 * $this->weekday_ot_hours, 4);
         $this->weekend_ot_pay = round($hourlyRate * 1.30 * $this->weekend_ot_hours, 4);
-        $this->total_ot_pay   = $this->weekday_ot_pay + $this->weekend_ot_pay;
+        $this->total_ot_pay = $this->weekday_ot_pay + $this->weekend_ot_pay;
 
         // Cutoff gross = basic pay prorated by actual attendance for this
         // cutoff (days_present is set upstream in PayrollController before
         // computeTotals() runs; half_day already counts as 0.5 there)
         // + fixed allowances split evenly across the two cutoffs.
-        $this->cutoff_basic     = round($emp->daily_rate * $this->days_present, 4);
-        $this->cutoff_transpo   = round($emp->transpo_allowance / 2, 4);
-        $this->cutoff_rep       = round($emp->rep_allowance / 2, 4);
+        $this->cutoff_basic = round($emp->daily_rate * $this->days_present, 4);
+        $this->cutoff_transpo = round($emp->transpo_allowance / 2, 4);
+        $this->cutoff_rep = round($emp->rep_allowance / 2, 4);
         $this->cutoff_quarterly = round($emp->quarterly_allowance / 2, 4);
-        $this->cutoff_gross     = $this->cutoff_basic
+        $this->cutoff_gross = $this->cutoff_basic
             + $this->cutoff_transpo
             + $this->cutoff_rep
             + $this->cutoff_quarterly;
@@ -101,18 +104,18 @@ class PayrollItem extends Model
         $this->gross_pay = $this->cutoff_gross + $this->total_ot_pay;
 
         // Government deductions — full on 1st, zero on 2nd
-        $this->sss_deduction        = $isFirst ? $emp->sss_deduction        : 0;
+        $this->sss_deduction = $isFirst ? $emp->sss_deduction : 0;
         $this->philhealth_deduction = $isFirst ? $emp->philhealth_deduction : 0;
-        $this->pagibig_deduction    = $isFirst ? $emp->pagibig_deduction    : 0;
-        $this->tax_deduction        = $isFirst ? $emp->tax_deduction        : 0;
+        $this->pagibig_deduction = $isFirst ? $emp->pagibig_deduction : 0;
+        $this->tax_deduction = $isFirst ? $emp->tax_deduction : 0;
 
         // Split deductions — half each cutoff
-        $this->loan_deduction          = round($emp->loan_deduction          / 2, 4);
+        $this->loan_deduction = round($emp->loan_deduction / 2, 4);
         $this->capital_contribution_deduction = round($emp->capital_contribution_deduction / 2, 4);
-        $this->cash_advance_deduction  = round($emp->cash_advance_deduction  / 2, 4);
-        $this->rental_deduction     = round($emp->rental_deduction / 2, 4);
-        $this->savings_deduction       = round($emp->savings_deduction       / 2, 4);
-        $this->other_deductions        = round($emp->other_deductions        / 2, 4);
+        $this->cash_advance_deduction = round($emp->cash_advance_deduction / 2, 4);
+        $this->rental_deduction = round($emp->rental_deduction / 2, 4);
+        $this->savings_deduction = round($emp->savings_deduction / 2, 4);
+        $this->other_deductions = round($emp->other_deductions / 2, 4);
 
         $this->total_deductions =
             $this->sss_deduction

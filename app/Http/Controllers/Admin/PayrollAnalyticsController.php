@@ -13,7 +13,8 @@ use Inertia\Response;
 
 class PayrollAnalyticsController extends Controller
 {
-    public function index(): Response {
+    public function index(): Response
+    {
         $isSqlite = DB::getDriverName() === 'sqlite';
         $monthExpr = $isSqlite
             ? "strftime('%Y-%m', payrolls.period_from)"
@@ -33,13 +34,13 @@ class PayrollAnalyticsController extends Controller
             ->groupBy('month')
             ->orderBy('month')
             ->get()
-            ->map(fn($r) => [
-                'month'            => Carbon::parse($r->month . '-01')->format('M Y'),
-                'month_raw'        => $r->month,
-                'total_gross'      => round($r->total_gross, 2),
+            ->map(fn ($r) => [
+                'month' => Carbon::parse($r->month.'-01')->format('M Y'),
+                'month_raw' => $r->month,
+                'total_gross' => round($r->total_gross, 2),
                 'total_deductions' => round($r->total_deductions, 2),
-                'total_net'        => round($r->total_net, 2),
-                'headcount'        => $r->headcount,
+                'total_net' => round($r->total_net, 2),
+                'headcount' => $r->headcount,
             ]);
 
         // ── 2. Department payroll cost breakdown ───────────
@@ -56,11 +57,11 @@ class PayrollAnalyticsController extends Controller
             ->groupBy('department')
             ->orderByDesc('total_gross')
             ->get()
-            ->map(fn($r) => [
-                'department'  => $r->department,
+            ->map(fn ($r) => [
+                'department' => $r->department,
                 'total_gross' => round($r->total_gross, 2),
-                'total_net'   => round($r->total_net, 2),
-                'headcount'   => $r->headcount,
+                'total_net' => round($r->total_net, 2),
+                'headcount' => $r->headcount,
             ]);
 
         // ── 3. Deductions breakdown (latest finalized payroll) ──
@@ -91,39 +92,39 @@ class PayrollAnalyticsController extends Controller
                 ->groupBy('payroll_items.employee_id', 'employees.first_name', 'employees.last_name', 'employees.department')
                 ->orderByDesc('net_pay')
                 ->get()
-                ->map(fn($r) => [
-                    'name'                 => "{$r->first_name} {$r->last_name}",
-                    'department'           => $r->department ?? 'Unassigned',
-                    'sss'                  => round($r->sss, 2),
-                    'philhealth'           => round($r->philhealth, 2),
-                    'pagibig'              => round($r->pagibig, 2),
-                    'tax'                  => round($r->tax, 2),
-                    'loan'                 => round($r->loan, 2),
+                ->map(fn ($r) => [
+                    'name' => "{$r->first_name} {$r->last_name}",
+                    'department' => $r->department ?? 'Unassigned',
+                    'sss' => round($r->sss, 2),
+                    'philhealth' => round($r->philhealth, 2),
+                    'pagibig' => round($r->pagibig, 2),
+                    'tax' => round($r->tax, 2),
+                    'loan' => round($r->loan, 2),
                     'capital_contribution' => round($r->capital_contribution, 2),
-                    'cash_advance'         => round($r->cash_advance, 2),
-                    'rental'               => round($r->rental, 2),
-                    'savings'              => round($r->savings, 2),
-                    'other'                => round($r->other, 2),
-                    'net_pay'              => round($r->net_pay, 2),
+                    'cash_advance' => round($r->cash_advance, 2),
+                    'rental' => round($r->rental, 2),
+                    'savings' => round($r->savings, 2),
+                    'other' => round($r->other, 2),
+                    'net_pay' => round($r->net_pay, 2),
                 ]);
         }
 
         // ── 4. KPI summary cards ───────────────────────────
         $kpis = [
-            'total_payroll_cost'   => PayrollItem::join('payrolls', 'payroll_items.payroll_id', '=', 'payrolls.id')
+            'total_payroll_cost' => PayrollItem::join('payrolls', 'payroll_items.payroll_id', '=', 'payrolls.id')
                 ->where('payrolls.status', 'finalized')
                 ->sum('payroll_items.gross_pay'),
-            'total_net_paid'       => PayrollItem::join('payrolls', 'payroll_items.payroll_id', '=', 'payrolls.id')
+            'total_net_paid' => PayrollItem::join('payrolls', 'payroll_items.payroll_id', '=', 'payrolls.id')
                 ->where('payrolls.status', 'finalized')
                 ->sum('payroll_items.net_pay'),
-            'total_deductions'     => PayrollItem::join('payrolls', 'payroll_items.payroll_id', '=', 'payrolls.id')
+            'total_deductions' => PayrollItem::join('payrolls', 'payroll_items.payroll_id', '=', 'payrolls.id')
                 ->where('payrolls.status', 'finalized')
                 ->sum('payroll_items.total_deductions'),
-            'total_payrolls'       => Payroll::where('status', 'finalized')->count(),
-            'active_employees'     => Employee::where('is_staff', true)->where('status', 'active')->count(),
+            'total_payrolls' => Payroll::where('status', 'finalized')->count(),
+            'active_employees' => Employee::where('is_staff', true)->where('status', 'active')->count(),
             'avg_net_per_employee' => 0,
-            'latest_period'        => $latestPayroll?->period_label ?? '—',
-            'latest_net'           => $latestPayroll
+            'latest_period' => $latestPayroll?->period_label ?? '—',
+            'latest_net' => $latestPayroll
                 ? PayrollItem::where('payroll_id', $latestPayroll->id)->sum('net_pay')
                 : 0,
         ];
@@ -136,11 +137,11 @@ class PayrollAnalyticsController extends Controller
         // Already in monthlyTrend — headcount field included
 
         return Inertia::render('Admin/PayrollAnalytics', [
-            'kpis'                => $kpis,
-            'monthlyTrend'        => $monthlyTrend,
+            'kpis' => $kpis,
+            'monthlyTrend' => $monthlyTrend,
             'departmentBreakdown' => $departmentBreakdown,
             'deductionsBreakdown' => $deductionsBreakdown,
-            'latestPayroll'       => $latestPayroll ? [
+            'latestPayroll' => $latestPayroll ? [
                 'period_label' => $latestPayroll->period_label,
                 'cutoff_label' => $latestPayroll->cutoff === 'first' ? '1st cutoff' : '2nd cutoff',
             ] : null,

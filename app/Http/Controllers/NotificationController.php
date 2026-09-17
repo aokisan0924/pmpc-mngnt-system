@@ -10,19 +10,20 @@ use Inertia\Response;
 
 class NotificationController extends Controller
 {
-    public function index(Request $request): Response {
+    public function index(Request $request): Response
+    {
         $employee = $request->user();
 
         $notifications = EmployeeNotification::where('employee_id', $employee->id)
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(fn($n) => [
-                'id'         => $n->id,
-                'type'       => $n->type,
-                'title'      => $n->title,
-                'message'    => $n->message,
-                'link'       => $n->link,
-                'is_read'    => $n->isRead(),
+            ->map(fn ($n) => [
+                'id' => $n->id,
+                'type' => $n->type,
+                'title' => $n->title,
+                'message' => $n->message,
+                'link' => $n->link,
+                'is_read' => $n->isRead(),
                 'created_at' => $n->created_at->diffForHumans(),
             ]);
 
@@ -36,16 +37,19 @@ class NotificationController extends Controller
         ]);
     }
 
-    public function markRead(Request $request, EmployeeNotification $notification): RedirectResponse {
+    public function markRead(Request $request, EmployeeNotification $notification): RedirectResponse
+    {
         if ($notification->employee_id !== $request->user()->id) {
             abort(403);
         }
 
         $notification->update(['read_at' => now()]);
+
         return back();
     }
 
-    public function markAllRead(Request $request): RedirectResponse {
+    public function markAllRead(Request $request): RedirectResponse
+    {
         EmployeeNotification::where('employee_id', $request->user()->id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
@@ -53,12 +57,14 @@ class NotificationController extends Controller
         return back()->with('success', 'All notifications marked as read.');
     }
 
-    public function destroy(Request $request, EmployeeNotification $notification): RedirectResponse {
+    public function destroy(Request $request, EmployeeNotification $notification): RedirectResponse
+    {
         if ($notification->employee_id !== $request->user()->id) {
             abort(403);
         }
 
         $notification->delete();
+
         return back();
     }
 }

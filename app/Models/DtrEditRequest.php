@@ -28,19 +28,23 @@ class DtrEditRequest extends Model
         'reviewed_at' => 'datetime',
     ];
 
-    public function dtrLog() {
+    public function dtrLog()
+    {
         return $this->belongsTo(DtrLog::class);
     }
 
-    public function employee() {
+    public function employee()
+    {
         return $this->belongsTo(Employee::class);
     }
 
-    public function reviewer() {
+    public function reviewer()
+    {
         return $this->belongsTo(Employee::class, 'reviewed_by');
     }
 
-    public function isPending(): bool {
+    public function isPending(): bool
+    {
         return $this->status === 'pending';
     }
 }

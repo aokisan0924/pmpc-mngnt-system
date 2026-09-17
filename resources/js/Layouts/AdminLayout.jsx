@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, router, usePage } from '@inertiajs/react'
+import { Link, router, usePage, usePoll } from '@inertiajs/react'
 import ThemeToggle from '@/Components/ThemeToggle'
 import useTheme from '@/hooks/useTheme'
 
@@ -107,6 +107,13 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
     const currentUrl = new URL(page.url, 'http://localhost').pathname
     const adminNavItems = navItems
     const sections = [...new Set(adminNavItems.map(i => i.section))]
+
+    // Silent background poll every 6s to keep pending edit count badge fresh across the admin portal
+    usePoll(6000, {
+        only: ['pendingEditCount', 'pendingCount'],
+        preserveScroll: true,
+        preserveState: true,
+    })
 
     const activeItem = adminNavItems
         .filter(i => currentUrl === i.href || currentUrl.startsWith(i.href + '/'))

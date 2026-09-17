@@ -10,23 +10,24 @@ use Inertia\Response;
 
 class TaskController extends Controller
 {
-    public function index(Request $request): Response {
+    public function index(Request $request): Response
+    {
         $employee = $request->user();
 
         $tasks = Task::where('employee_id', $employee->id)
             ->orderBy('due_date')
             ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END")
             ->get()
-            ->map(fn($task) => [
-                'id'          => $task->id,
-                'title'       => $task->title,
+            ->map(fn ($task) => [
+                'id' => $task->id,
+                'title' => $task->title,
                 'description' => $task->description,
-                'due_date'    => $task->due_date->format('Y-m-d'),
-                'due_label'   => $task->due_date->format('M d, Y'),
-                'category'    => $task->category,
-                'priority'    => $task->priority,
-                'status'      => $task->status,
-                'is_overdue'  => $task->due_date->isPast() && $task->status === 'pending',
+                'due_date' => $task->due_date->format('Y-m-d'),
+                'due_label' => $task->due_date->format('M d, Y'),
+                'category' => $task->category,
+                'priority' => $task->priority,
+                'status' => $task->status,
+                'is_overdue' => $task->due_date->isPast() && $task->status === 'pending',
             ]);
 
         return Inertia::render('Employee/Planner', [
@@ -34,13 +35,14 @@ class TaskController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse {
+    public function store(Request $request): RedirectResponse
+    {
         $validated = $request->validate([
-            'title'       => ['required', 'string', 'max:200'],
+            'title' => ['required', 'string', 'max:200'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'due_date'    => ['required', 'date'],
-            'category'    => ['nullable', 'string', 'max:100'],
-            'priority'    => ['required', 'in:low,medium,high'],
+            'due_date' => ['required', 'date'],
+            'category' => ['nullable', 'string', 'max:100'],
+            'priority' => ['required', 'in:low,medium,high'],
         ]);
 
         Task::create([
@@ -51,15 +53,16 @@ class TaskController extends Controller
         return back()->with('success', 'Task added.');
     }
 
-    public function update(Request $request, Task $task): RedirectResponse {
+    public function update(Request $request, Task $task): RedirectResponse
+    {
         $this->authorizeTask($task, $request);
 
         $validated = $request->validate([
-            'title'       => ['required', 'string', 'max:200'],
+            'title' => ['required', 'string', 'max:200'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'due_date'    => ['required', 'date'],
-            'category'    => ['nullable', 'string', 'max:100'],
-            'priority'    => ['required', 'in:low,medium,high'],
+            'due_date' => ['required', 'date'],
+            'category' => ['nullable', 'string', 'max:100'],
+            'priority' => ['required', 'in:low,medium,high'],
         ]);
 
         $task->update($validated);
@@ -67,7 +70,8 @@ class TaskController extends Controller
         return back()->with('success', 'Task updated.');
     }
 
-    public function toggleDone(Request $request, Task $task): RedirectResponse {
+    public function toggleDone(Request $request, Task $task): RedirectResponse
+    {
         $this->authorizeTask($task, $request);
 
         $task->update([
@@ -77,13 +81,16 @@ class TaskController extends Controller
         return back();
     }
 
-    public function destroy(Request $request, Task $task): RedirectResponse {
+    public function destroy(Request $request, Task $task): RedirectResponse
+    {
         $this->authorizeTask($task, $request);
         $task->delete();
+
         return back()->with('success', 'Task deleted.');
     }
 
-    private function authorizeTask(Task $task, Request $request): void {
+    private function authorizeTask(Task $task, Request $request): void
+    {
         if ($task->employee_id !== $request->user()->id) {
             abort(403);
         }

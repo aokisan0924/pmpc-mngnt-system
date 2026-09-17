@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { router, usePage } from '@inertiajs/react'
+import { useState, useMemo, useEffect } from 'react'
+import { router, usePage, usePoll } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
@@ -18,6 +18,25 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
     const [activeId, setActiveId] = useState(null)
     const [adminNotes, setAdminNotes] = useState({})
     const [processing, setProcessing] = useState(false)
+
+    // Silent real-time background poll every 3s so admin sees incoming edit requests without manual refresh
+    usePoll(3000, {
+        only: ['requests', 'pendingCount'],
+        preserveScroll: true,
+        preserveState: true,
+    })
+
+    // Instant WebSocket listener if Echo / Pusher is connected
+    useEffect(() => {
+        if (!window.Echo) return
+        const channel = window.Echo.channel('dtr-edit-requests')
+        channel.listen('.dtr.edit_requested', () => {
+            router.reload({ only: ['requests', 'pendingCount'], preserveScroll: true, preserveState: true })
+        })
+        return () => {
+            window.Echo.leaveChannel('dtr-edit-requests')
+        }
+    }, [])
 
     const counts = useMemo(() => ({
         pending: requests.filter(r => r.status === 'pending').length,

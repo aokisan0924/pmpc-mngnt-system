@@ -15,17 +15,19 @@ use Inertia\Response;
 
 class NewPasswordController extends Controller
 {
-    public function create(Request $request): Response {
+    public function create(Request $request): Response
+    {
         return Inertia::render('Auth/ResetPassword', [
             'email' => $request->email,
             'token' => $request->route('token'),
         ]);
     }
 
-    public function store(Request $request): RedirectResponse {
+    public function store(Request $request): RedirectResponse
+    {
         $request->validate([
-            'token'    => ['required'],
-            'email'    => ['required', 'email'],
+            'token' => ['required'],
+            'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', 'min:8'],
         ]);
 

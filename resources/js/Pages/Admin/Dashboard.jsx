@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { Link, router } from '@inertiajs/react'
+import { Link, router, usePoll } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardContent, CardHeader, CardTitle } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
@@ -26,6 +26,13 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
     const [declineReason, setDeclineReason] = useState('')
     const [feedback, setFeedback] = useState(null)
     const processingRef = useRef(false)
+
+    // Silent background poll every 4s for real-time triage updates
+    usePoll(4000, {
+        only: ['stats', 'pending_edit_requests', 'today_snapshot'],
+        preserveScroll: true,
+        preserveState: true,
+    })
 
     const filteredSnapshot = useMemo(() => {
         const query = searchQuery.trim().toLowerCase()

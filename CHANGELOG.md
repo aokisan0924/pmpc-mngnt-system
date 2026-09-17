@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Non-Atomic Employee Account Creation**: Wrapped employee profile and government ID creation inside `DB::transaction(...)` in `EmployeeController.php`, ensuring accounts are not created in an inconsistent state if secondary government ID writes fail.
+- **Sequential Employee ID Arithmetic Corruption**: Refactored `Employee::generateEmployeeId()` to explicitly query the highest numeric ID matching the `EMP-%` prefix, preventing string slicing arithmetic errors (`-27`) and ID collisions caused by date-formatted IDs like `2026-00028` and `2023-00010`.
+- **Payroll Period Validation & Duplicate Batch Creation**: Enforced `after_or_equal:period_from` on payroll batch save and added duplicate validation in `StorePayrollRequest.php`, strictly rejecting duplicate batches for the same period and cutoff.
+- **Non-Atomic Multi-Record Mutations**: Wrapped DTR dispute resolutions (`dtr_logs`, `dtr_edit_requests`, `employee_notifications`) in `DtrEditRequestController.php` and 13th month batch employee loops in `ThirteenthMonthController.php` in `DB::transaction(...)` to guarantee all-or-nothing data consistency.
+- **N+1 Database Query Overhead**: Eager loaded `governmentIds` using `loadMissing('governmentIds')` in `EmployeeController.php` and `EmployeeProfileController.php`, and batch preloaded submitted employees in `PayrollController.php` (`whereIn('id', $employeeIds)->keyBy('id')`) to eliminate per-row database roundtrips.
 - **Payroll Batch Ledger Rental Deduction Calculation**: Added missing `item.rental_deduction` and safe numeric float casting to the itemized row deductions breakdown in `PayrollShow.jsx`, reconciling the display with `PayrollCreate.jsx` and preventing financial ledger discrepancies.
 - **Full-Page Browser Reloads on Admin Back Navigation**: Replaced raw `<a>` tags with Inertia `<Link>` components in `EmployeeShow.jsx`, `ThirteenthMonthCompute.jsx`, and `ThirteenthMonthShow.jsx`, ensuring smooth client-side SPA navigation without tearing down application state.
 - **Invalid HTML Interactive Element Nesting**: Removed `<Button>` nested inside `<Link>` in `Payroll.jsx` (which violated HTML specifications and generated hydration warnings) and replaced it with a styled Inertia `<Link>`.
@@ -37,6 +42,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Added
+
+- **Real-Time Auto-Refresh for DTR Edit Requests & Portals**: Integrated Inertia's native `usePoll` background polling across `Admin/DtrEditRequests.jsx`, `Admin/Dashboard.jsx`, `AdminLayout.jsx`, and `Employee/Dtr.jsx`. Administrators now see incoming attendance edit requests immediately without manual page refreshes, and employees see instant live updates when their requests are approved or declined.
+- **Real-Time DTR Edit Request Broadcast Event**: Created `DtrEditRequestCreated` event dispatched on employee edit request submissions, broadcasting on `dtr-edit-requests` channel with instant push notification integration.
+- **Dedicated Form Requests Layer**: Created `StoreEmployeeRequest`, `UpdateEmployeeRequest`, `UpdateCompensationRequest`, `CreatePayrollRequest`, `StorePayrollRequest`, `StoreThirteenthMonthRequest`, and `DtrEditRequestSubmissionRequest` to enforce strict validation rules and strict typing across all administrative and attendance endpoints.
 
 - **PMPC Navigation Loader** — replaced the generic Inertia/Laravel progress indicator with a branded, accessible PMPC WorkForce loading overlay that appears for meaningful page transitions.
 

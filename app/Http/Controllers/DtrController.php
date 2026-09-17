@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\DtrEditRequestCreated;
+use App\Http\Requests\DtrEditRequestSubmissionRequest;
 use App\Models\DtrEditRequest;
 use App\Models\DtrLog;
+use App\Models\Employee;
+use App\Models\EmployeeNotification;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -141,15 +146,9 @@ class DtrController extends Controller
 
     // ── Edit request ───────────────────────────────────────
 
-    public function requestEdit(Request $request, DtrLog $dtrLog): RedirectResponse
+    public function requestEdit(DtrEditRequestSubmissionRequest $request, DtrLog $dtrLog): RedirectResponse
     {
-        $request->validate([
-            'requested_am_time_in' => ['nullable', 'date_format:H:i'],
-            'requested_am_time_out' => ['nullable', 'date_format:H:i'],
-            'requested_pm_time_in' => ['nullable', 'date_format:H:i'],
-            'requested_pm_time_out' => ['nullable', 'date_format:H:i'],
-            'reason' => ['required', 'string', 'max:500'],
-        ]);
+        $validated = $request->validated();
 
         // Block if there's already a pending request for this log
         if ($dtrLog->pendingEditRequest()->exists()) {
@@ -166,19 +165,37 @@ class DtrController extends Controller
             )]);
         }
 
-        DtrEditRequest::create([
-            'dtr_log_id' => $dtrLog->id,
-            'employee_id' => $request->user()->id,
-            'original_am_time_in' => $dtrLog->am_time_in,
-            'original_am_time_out' => $dtrLog->am_time_out,
-            'original_pm_time_in' => $dtrLog->pm_time_in,
-            'original_pm_time_out' => $dtrLog->pm_time_out,
-            'requested_am_time_in' => $request->requested_am_time_in,
-            'requested_am_time_out' => $request->requested_am_time_out,
-            'requested_pm_time_in' => $request->requested_pm_time_in,
-            'requested_pm_time_out' => $request->requested_pm_time_out,
-            'reason' => $request->reason,
-        ]);
+        $user = $request->user();
+
+        DB::transaction(function () use ($dtrLog, $user, $validated) {
+            $editRequest = DtrEditRequest::create([
+                'dtr_log_id' => $dtrLog->id,
+                'employee_id' => $user->id,
+                'original_am_time_in' => $dtrLog->am_time_in,
+                'original_am_time_out' => $dtrLog->am_time_out,
+                'original_pm_time_in' => $dtrLog->pm_time_in,
+                'original_pm_time_out' => $dtrLog->pm_time_out,
+                'requested_am_time_in' => $validated['requested_am_time_in'] ?? null,
+                'requested_am_time_out' => $validated['requested_am_time_out'] ?? null,
+                'requested_pm_time_in' => $validated['requested_pm_time_in'] ?? null,
+                'requested_pm_time_out' => $validated['requested_pm_time_out'] ?? null,
+                'reason' => $validated['reason'],
+            ]);
+
+            // Notify super admins
+            $admins = Employee::where('role', 'super_admin')->get();
+            foreach ($admins as $admin) {
+                EmployeeNotification::send(
+                    employeeId: $admin->id,
+                    type: 'dtr_edit_requested',
+                    title: 'New DTR edit request',
+                    message: "{$user->full_name} requested a DTR edit for {$dtrLog->date->format('M d, Y')}.",
+                    link: '/admin/edit-requests',
+                );
+            }
+
+            DtrEditRequestCreated::dispatch($editRequest);
+        });
 
         return back()->with('success', 'Edit request submitted successfully.');
     }

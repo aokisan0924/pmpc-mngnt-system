@@ -13,41 +13,44 @@ class EmployeeProfileController extends Controller
 {
     // ── Profile page ───────────────────────────────────────
 
-    public function index(Request $request): Response {
+    public function index(Request $request): Response
+    {
         $employee = $request->user();
+        $employee->loadMissing('governmentIds');
 
         return Inertia::render('Employee/Profile', [
             'employee' => [
-                'id'         => $employee->id,
-                'employee_id'=> $employee->employee_id,
+                'id' => $employee->id,
+                'employee_id' => $employee->employee_id,
                 'first_name' => $employee->first_name,
-                'last_name'  => $employee->last_name,
-                'email'      => $employee->email,
-                'phone'      => $employee->phone,
-                'address'    => $employee->address,
+                'last_name' => $employee->last_name,
+                'email' => $employee->email,
+                'phone' => $employee->phone,
+                'address' => $employee->address,
                 'department' => $employee->department,
-                'position'   => $employee->position,
+                'position' => $employee->position,
                 'date_hired' => $employee->date_hired?->format('Y-m-d'),
             ],
             'govIds' => $employee->governmentIds ? [
-                'sss_no'        => $employee->governmentIds->sss_no,
+                'sss_no' => $employee->governmentIds->sss_no,
                 'philhealth_no' => $employee->governmentIds->philhealth_no,
-                'tin_no'        => $employee->governmentIds->tin_no,
-                'pagibig_no'    => $employee->governmentIds->pagibig_no,
+                'tin_no' => $employee->governmentIds->tin_no,
+                'pagibig_no' => $employee->governmentIds->pagibig_no,
             ] : null,
         ]);
     }
 
     // ── Update personal info ───────────────────────────────
 
-    public function updateInfo(Request $request): RedirectResponse {
+    public function updateInfo(Request $request): RedirectResponse
+    {
         $employee = $request->user();
 
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:100'],
-            'last_name'  => ['required', 'string', 'max:100'],
-            'phone'      => ['nullable', 'string', 'max:20'],
-            'address'    => ['nullable', 'string', 'max:500'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'address' => ['nullable', 'string', 'max:500'],
         ]);
 
         $employee->update($validated);
@@ -57,14 +60,15 @@ class EmployeeProfileController extends Controller
 
     // ── Update government IDs ──────────────────────────────
 
-    public function updateGovIds(Request $request): RedirectResponse {
+    public function updateGovIds(Request $request): RedirectResponse
+    {
         $employee = $request->user();
 
         $validated = $request->validate([
-            'sss_no'        => ['nullable', 'string', 'max:50'],
+            'sss_no' => ['nullable', 'string', 'max:50'],
             'philhealth_no' => ['nullable', 'string', 'max:50'],
-            'tin_no'        => ['nullable', 'string', 'max:50'],
-            'pagibig_no'    => ['nullable', 'string', 'max:50'],
+            'tin_no' => ['nullable', 'string', 'max:50'],
+            'pagibig_no' => ['nullable', 'string', 'max:50'],
         ]);
 
         $employee->governmentIds()->updateOrCreate(
@@ -77,10 +81,11 @@ class EmployeeProfileController extends Controller
 
     // ── Change password ────────────────────────────────────
 
-    public function updatePassword(Request $request): RedirectResponse {
+    public function updatePassword(Request $request): RedirectResponse
+    {
         $request->validate([
             'current_password' => ['required', 'string'],
-            'password'         => ['required', 'confirmed', Password::min(8)],
+            'password' => ['required', 'confirmed', Password::min(8)],
         ]);
 
         $employee = $request->user();
@@ -98,7 +103,8 @@ class EmployeeProfileController extends Controller
         return back()->with('success', 'Password changed successfully.');
     }
 
-    public function updateCompensation(Request $request): RedirectResponse {
+    public function updateCompensation(Request $request): RedirectResponse
+    {
         $employee = $request->user();
 
         // Employees cannot update their own compensation

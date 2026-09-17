@@ -22,28 +22,32 @@ class ThirteenthMonthPay extends Model
     ];
 
     protected $casts = [
-        'period_from'          => 'date',
-        'period_to'            => 'date',
-        'days_present'         => 'float',
-        'total_basic_pay'      => 'float',
+        'period_from' => 'date',
+        'period_to' => 'date',
+        'days_present' => 'float',
+        'total_basic_pay' => 'float',
         'thirteenth_month_pay' => 'float',
-        'daily_rate'           => 'float',
-        'finalized_at'         => 'datetime',
+        'daily_rate' => 'float',
+        'finalized_at' => 'datetime',
     ];
 
-    public function employee() {
+    public function employee()
+    {
         return $this->belongsTo(Employee::class);
     }
 
-    public function processor() {
+    public function processor()
+    {
         return $this->belongsTo(Employee::class, 'processed_by');
     }
 
-    public function isFinalized(): bool {
+    public function isFinalized(): bool
+    {
         return $this->status === 'finalized';
     }
 
-    public function trancheLabel(): string {
+    public function trancheLabel(): string
+    {
         return $this->tranche === 'mid_year'
             ? 'Mid-year (Jan – Jun)'
             : 'Year-end (Jul – Dec)';

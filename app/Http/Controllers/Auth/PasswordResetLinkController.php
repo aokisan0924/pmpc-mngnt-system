@@ -12,11 +12,13 @@ use Inertia\Response;
 
 class PasswordResetLinkController extends Controller
 {
-    public function create(): Response {
+    public function create(): Response
+    {
         return Inertia::render('Auth/ForgotPassword');
     }
 
-    public function store(Request $request): RedirectResponse {
+    public function store(Request $request): RedirectResponse
+    {
         $request->validate(['email' => ['required', 'email']]);
 
         // Uses the 'employees' broker defined in config/auth.php
