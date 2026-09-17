@@ -43,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Admin Personal Navigation**: Added **My DTR** and **My Task Planner** links to the Admin Portal sidebar, giving super administrators direct desktop access to their own attendance record, punch controls, and task planner.
+
 - **Real-Time Auto-Refresh for DTR Edit Requests & Portals**: Integrated Inertia's native `usePoll` background polling across `Admin/DtrEditRequests.jsx`, `Admin/Dashboard.jsx`, `AdminLayout.jsx`, and `Employee/Dtr.jsx`. Administrators now see incoming attendance edit requests immediately without manual page refreshes, and employees see instant live updates when their requests are approved or declined.
 - **Real-Time DTR Edit Request Broadcast Event**: Created `DtrEditRequestCreated` event dispatched on employee edit request submissions, broadcasting on `dtr-edit-requests` channel with instant push notification integration.
 - **Dedicated Form Requests Layer**: Created `StoreEmployeeRequest`, `UpdateEmployeeRequest`, `UpdateCompensationRequest`, `CreatePayrollRequest`, `StorePayrollRequest`, `StoreThirteenthMonthRequest`, and `DtrEditRequestSubmissionRequest` to enforce strict validation rules and strict typing across all administrative and attendance endpoints.
