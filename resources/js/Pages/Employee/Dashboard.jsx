@@ -100,6 +100,7 @@ export default function Dashboard({
     recentNotifications = [],
     recentTasks = [],
     latestPayslip,
+    weeklyStrip = [],
 }) {
     const [now, setNow] = useState(() => new Date())
     const [punching, setPunching] = useState(false)
@@ -399,6 +400,117 @@ export default function Dashboard({
                                 )}
                             </div>
                         </div>
+
+                        {/* ── 5-Day Weekly Attendance Strip (Mon-Fri) ── */}
+                        {weeklyStrip && weeklyStrip.length > 0 && (
+                            <div className="pt-3 border-t border-border/60">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-semibold text-text">Weekly Attendance Strip</span>
+                                        <span className="text-[11px] text-sub hidden sm:inline">• Monday to Friday sanity check</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[10px] text-sub">
+                                        <span className="inline-flex items-center gap-1">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Complete
+                                        </span>
+                                        <span className="inline-flex items-center gap-1">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Partial/Late
+                                        </span>
+                                        <span className="inline-flex items-center gap-1">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" /> Off/Upcoming
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                                    {weeklyStrip.map((day) => {
+                                        const isComplete = day.punches_count === 4
+                                        const isPartial = day.punches_count > 0 && day.punches_count < 4
+                                        const isAbsent = day.is_past && day.punches_count === 0
+
+                                        return (
+                                            <div
+                                                key={day.date}
+                                                className={`p-2 sm:p-2.5 rounded-lg border transition-all text-center flex flex-col justify-between select-none ${
+                                                    day.is_today
+                                                        ? 'bg-emerald-50/70 dark:bg-emerald-950/25 border-emerald-500/80 shadow-xs ring-1 ring-emerald-500/30'
+                                                        : day.is_future
+                                                        ? 'bg-field/20 border-border/40 opacity-70'
+                                                        : isComplete
+                                                        ? 'bg-panel border-emerald-300 dark:border-emerald-800/60'
+                                                        : isPartial
+                                                        ? 'bg-panel border-amber-300 dark:border-amber-800/60'
+                                                        : 'bg-field/30 border-border/60'
+                                                }`}
+                                            >
+                                                {/* Day Header */}
+                                                <div className="flex items-center justify-between text-[10px] leading-tight mb-1">
+                                                    <span className={`font-bold uppercase tracking-wider ${
+                                                        day.is_today ? 'text-emerald-700 dark:text-emerald-300' : 'text-sub'
+                                                    }`}>
+                                                        {day.day_name}
+                                                    </span>
+                                                    {day.is_today ? (
+                                                        <span className="px-1 py-0.25 rounded text-[8px] font-extrabold bg-emerald-500 text-white leading-none">
+                                                            TODAY
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[10px] text-dim">{day.day_number}</span>
+                                                    )}
+                                                </div>
+
+                                                {/* Status Badge / Punch Count */}
+                                                <div className="py-1">
+                                                    {day.is_future ? (
+                                                        <span className="text-[10px] text-dim font-medium">Scheduled</span>
+                                                    ) : isComplete ? (
+                                                        <div className="flex flex-col items-center">
+                                                            <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                                                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                </svg>
+                                                                4/4
+                                                            </span>
+                                                            <span className="text-[9px] text-sub">{day.hours_rendered}h</span>
+                                                        </div>
+                                                    ) : isPartial ? (
+                                                        <div className="flex flex-col items-center">
+                                                            <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                                                {day.punches_count}/4
+                                                            </span>
+                                                            <span className="text-[9px] text-amber-700 dark:text-amber-300 font-medium">
+                                                                {day.is_today ? 'In progress' : 'Incomplete'}
+                                                            </span>
+                                                        </div>
+                                                    ) : isAbsent ? (
+                                                        <div className="flex flex-col items-center">
+                                                            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
+                                                                0/4
+                                                            </span>
+                                                            <span className="text-[9px] text-dim">Absent / Off</span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-[10px] text-sub">--</span>
+                                                    )}
+                                                </div>
+
+                                                {/* Punch Time snippet */}
+                                                <div className="text-[9px] text-dim truncate border-t border-border/40 pt-1 mt-0.5">
+                                                    {day.am_time_in ? (
+                                                        <span>In: {day.am_time_in.slice(0, 5)}</span>
+                                                    ) : day.is_future ? (
+                                                        <span>Upcoming</span>
+                                                    ) : (
+                                                        <span>No log</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 

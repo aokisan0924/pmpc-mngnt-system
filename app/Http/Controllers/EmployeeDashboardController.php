@@ -158,6 +158,58 @@ class EmployeeDashboardController extends Controller
             ];
         }
 
+        // 5-Day Weekly Attendance Strip (Monday - Friday of current week)
+        $weekStart = $now->copy()->startOfWeek(Carbon::MONDAY);
+        $weekDates = [];
+        for ($i = 0; $i < 5; $i++) {
+            $weekDates[] = $weekStart->copy()->addDays($i)->toDateString();
+        }
+
+        $weekLogs = DtrLog::where('employee_id', $employee->id)
+            ->whereIn('date', $weekDates)
+            ->get()
+            ->keyBy(fn ($log) => Carbon::parse($log->date)->toDateString());
+
+        $weeklyStrip = collect($weekDates)->map(function ($dateStr) use ($weekLogs, $now) {
+            $cDate = Carbon::parse($dateStr);
+            $log = $weekLogs->get($dateStr);
+            $isToday = $cDate->isToday();
+            $isPast = $cDate->lt($now->copy()->startOfDay());
+            $isFuture = $cDate->gt($now->copy()->startOfDay());
+
+            $punchesCount = 0;
+            if ($log) {
+                if ($log->am_time_in) {
+                    $punchesCount++;
+                }
+                if ($log->am_time_out) {
+                    $punchesCount++;
+                }
+                if ($log->pm_time_in) {
+                    $punchesCount++;
+                }
+                if ($log->pm_time_out) {
+                    $punchesCount++;
+                }
+            }
+
+            return [
+                'date' => $dateStr,
+                'day_name' => $cDate->format('D'),
+                'day_short' => $cDate->format('M d'),
+                'day_number' => $cDate->format('j'),
+                'is_today' => $isToday,
+                'is_past' => $isPast,
+                'is_future' => $isFuture,
+                'status' => $log ? $log->status : ($isFuture ? 'scheduled' : 'absent'),
+                'punches_count' => $punchesCount,
+                'hours_rendered' => $log ? (float) $log->hours_rendered : 0.0,
+                'has_log' => (bool) $log,
+                'am_time_in' => $log?->am_time_in,
+                'pm_time_out' => $log?->pm_time_out,
+            ];
+        })->values()->all();
+
         return Inertia::render('Employee/Dashboard', [
             'employee' => [
                 'id' => $employee->id,
@@ -183,6 +235,7 @@ class EmployeeDashboardController extends Controller
             'recentNotifications' => $recentNotifications,
             'recentTasks' => $recentTasks,
             'latestPayslip' => $latestPayslip,
+            'weeklyStrip' => $weeklyStrip,
         ]);
     }
 }
