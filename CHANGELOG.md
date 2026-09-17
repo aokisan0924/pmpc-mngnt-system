@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Frontend Visual Review Tooling** — added the local `@playwright/cli` development dependency and Chromium browser support for repeatable localhost snapshots and screenshot-based UI validation.
+
 #### Admin Dashboard & Executive Operations (`Dashboard.jsx`)
 - **Executive Command Banner & Cutoff Milestone Tracker**:
   - Designed in signature Admin Portal deep indigo theme (`#26215C` via `#1E1B4B` to `indigo-950`).
@@ -96,6 +98,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `frontend-developer`, `ui-ux-designer`, `tailwind-design-system`, `react-modernization`, `react-state-management`, `frontend-mobile-development-component-scaffold`, `accessibility-compliance-accessibility-audit`, `ui-visual-validator`, `frontend-security-coder`, `e2e-testing-patterns`, and `playwright-component-testing`.
 
 ### Changed
+
+- **Employee Payslip Layout Organization** — regrouped pay-period browsing into a labeled, sticky desktop selector; reduced repeated card copy and excess spacing; and tightened the selected-period header, cutoff cards, and monthly breakdown for clearer scanning at every viewport.
+
+- **Employee Payslips Frontend Refinement** — aligned archive spacing, typography, summary cards, cutoff indicators, and download action with the employee portal design system; corrected summary-card API usage and made year filtering consistently select a visible payslip.
 
 - **Employee DTR Interface Refinement** — clarified each punch action, locked the live display to Manila time, simplified the weekly attendance strip and mobile records, removed the redundant pending-edits stat from the visible summary, and aligned all employee DTR states with the teal/amber/rose portal palette.
 - **DTR Edit Request Modal Simplification** — removed unused multi-date selection logic so each row opens a concise, single-entry adjustment form.

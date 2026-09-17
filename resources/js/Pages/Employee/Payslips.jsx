@@ -4,7 +4,6 @@ import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import Card from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
-import Button from '@/Components/UI/Button'
 
 function fmt(num) {
     return Number(num || 0).toLocaleString('en-PH', {
@@ -27,12 +26,12 @@ function StatusBadge({ status }) {
 function CutoffCard({ label, period, days, basic, transpo, ot, gross, deductions, net, status }) {
     const finalized = status === 'finalized'
     return (
-        <div className={`rounded-xl border p-4 transition-all ${
+        <div className={`rounded-xl border p-3.5 transition-all ${
             finalized
                 ? 'border-border bg-panel shadow-xs'
                 : 'border-dashed border-border/80 bg-field/40'
         }`}>
-            <div className="flex items-center justify-between mb-3 pb-2 border-b border-border/60">
+            <div className="mb-3 flex items-center justify-between border-b border-border/60 pb-2">
                 <div>
                     <p className="text-xs font-bold font-display uppercase tracking-wider text-text">{label}</p>
                     {period && <p className="text-[11px] font-mono text-dim mt-0.5">{period}</p>}
@@ -46,7 +45,7 @@ function CutoffCard({ label, period, days, basic, transpo, ot, gross, deductions
 
             {days > 0 ? (
                 <>
-                    <div className="space-y-2 mb-3 font-mono text-xs">
+                    <div className="mb-3 space-y-2 font-mono text-xs">
                         <div className="flex justify-between">
                             <span className="font-sans text-sub">Days Present:</span>
                             <span className="font-bold text-text">{days} days</span>
@@ -78,7 +77,7 @@ function CutoffCard({ label, period, days, basic, transpo, ot, gross, deductions
                             </div>
                         </div>
                     </div>
-                    <div className="flex justify-between items-center bg-field/80 rounded-lg px-3.5 py-2.5 border border-border">
+                    <div className="flex items-center justify-between rounded-lg border border-border bg-field/80 px-3 py-2">
                         <span className="text-xs font-bold font-sans text-sub">Cutoff Net Pay</span>
                         <span className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400">₱ {fmt(net)}</span>
                     </div>
@@ -103,11 +102,20 @@ export default function Payslips({ payslips = [], summary = {} }) {
         ? payslips
         : payslips.filter(p => p.year === parseInt(yearFilter))
 
-    const active = payslips.find(p => p.month === selected)
+    const active = filtered.find(p => p.month === selected) ?? filtered[0]
+
+    function selectYear(year) {
+        const matchingPayslips = year === 'all'
+            ? payslips
+            : payslips.filter(payslip => payslip.year === year)
+
+        setYearFilter(year)
+        setSelected(matchingPayslips[0]?.month ?? null)
+    }
 
     return (
         <EmployeeLayout title="My Payslips">
-            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-6xl mx-auto">
+            <div className="mx-auto max-w-6xl space-y-4 bg-bg px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -123,22 +131,19 @@ export default function Payslips({ payslips = [], summary = {} }) {
                     <div>
                         <div className="flex items-center gap-2">
                             <h1 className="text-2xl font-bold font-display text-text tracking-tight">My Payslips</h1>
-                            <Badge variant="emerald" size="sm">Earnings Archive</Badge>
+                            <Badge variant="emerald" size="sm">Payslip Archive</Badge>
                         </div>
-                        <p className="text-sm text-sub mt-1">
-                            Inspect your semi-monthly compensation vouchers, statutory contributions, and net payouts
-                        </p>
+                        <p className="mt-1 text-xs text-sub">Review finalized payroll periods and download your official record.</p>
                     </div>
                 </div>
 
                 {/* Career summary stats */}
                 {payslips.length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:gap-4">
                         <StatCard
                             title="Months on Record"
                             value={summary.total_months ?? 0}
-                            sub="Official payroll batches"
-                            color="indigo"
+                            accent="emerald"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -148,8 +153,7 @@ export default function Payslips({ payslips = [], summary = {} }) {
                         <StatCard
                             title="Total Days Rendered"
                             value={`${summary.total_days ?? 0} days`}
-                            sub="Cumulative present days"
-                            color="emerald"
+                            accent="emerald"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -159,8 +163,7 @@ export default function Payslips({ payslips = [], summary = {} }) {
                         <StatCard
                             title="Total Gross Earned"
                             value={`₱ ${fmt(summary.total_gross)}`}
-                            sub="Before statutory withholdings"
-                            color="amber"
+                            accent="amber"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -170,8 +173,7 @@ export default function Payslips({ payslips = [], summary = {} }) {
                         <StatCard
                             title="Total Net Received"
                             value={`₱ ${fmt(summary.total_earned)}`}
-                            sub="Total take-home disbursed"
-                            color="emerald"
+                            accent="emerald"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -194,15 +196,19 @@ export default function Payslips({ payslips = [], summary = {} }) {
                         </div>
                     </Card>
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-5 lg:gap-5">
 
                         {/* Left Column — Month Selector */}
-                        <div className="lg:col-span-2 space-y-3">
+                        <aside className="space-y-3 lg:col-span-2 lg:sticky lg:top-4 lg:self-start">
+                            <div className="flex items-center justify-between px-0.5">
+                                <h2 className="text-sm font-bold font-display text-text">Pay periods</h2>
+                                <span className="text-[11px] font-medium text-dim">{filtered.length} available</span>
+                            </div>
                             {/* Year filter */}
-                            <div className="flex gap-1.5 p-1 bg-field rounded-xl border border-border">
+                            <div className="flex gap-1.5 overflow-x-auto rounded-xl border border-border bg-field p-1">
                                 <button
-                                    onClick={() => setYearFilter('all')}
-                                    className={`flex-1 text-xs py-2 rounded-lg font-semibold transition-all ${
+                                    onClick={() => selectYear('all')}
+                                    className={`min-w-14 flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
                                         yearFilter === 'all'
                                             ? 'bg-panel text-text shadow-xs border border-border'
                                             : 'text-sub hover:text-text'
@@ -213,8 +219,8 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                 {years.map(y => (
                                     <button
                                         key={y}
-                                        onClick={() => setYearFilter(y)}
-                                        className={`flex-1 text-xs py-2 rounded-lg font-semibold transition-all ${
+                                    onClick={() => selectYear(y)}
+                                        className={`min-w-14 flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
                                             yearFilter === y
                                                 ? 'bg-panel text-text shadow-xs border border-border'
                                                 : 'text-sub hover:text-text'
@@ -226,14 +232,14 @@ export default function Payslips({ payslips = [], summary = {} }) {
                             </div>
 
                             {/* Month list */}
-                            <div className="space-y-2">
+                            <div className="space-y-2" aria-label="Available payslip periods">
                                 {filtered.map(p => {
                                     const isCurrent = selected === p.month
                                     return (
                                         <button
                                             key={p.month}
                                             onClick={() => setSelected(p.month)}
-                                            className={`w-full text-left rounded-xl border p-4 transition-all ${
+                                            className={`w-full rounded-xl border p-3.5 text-left transition-all ${
                                                 isCurrent
                                                     ? 'border-emerald-500/50 bg-emerald-500/5 ring-2 ring-emerald-500/10 shadow-xs'
                                                     : 'border-border bg-panel hover:border-emerald-500/30'
@@ -251,7 +257,7 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                                         1st Cutoff
                                                     </span>
                                                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                                                        p.has_second ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400' : 'bg-field text-dim'
+                                                        p.has_second ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-field text-dim'
                                                     }`}>
                                                         2nd Cutoff
                                                     </span>
@@ -264,15 +270,15 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                     )
                                 })}
                             </div>
-                        </div>
+                        </aside>
 
                         {/* Right Column — Details & Cutoffs */}
-                        <div className="lg:col-span-3">
+                        <section className="min-w-0 lg:col-span-3" aria-label="Selected payslip details">
                             {active ? (
-                                <div className="space-y-4">
+                                <div className="space-y-3.5">
                                     {/* Detail Top Header Card */}
                                     <Card>
-                                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                             <div>
                                                 <div className="flex items-center gap-2">
                                                     <h2 className="text-xl font-bold font-display text-text">{active.month_label}</h2>
@@ -286,7 +292,8 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                             <a
                                                 href={`/employee/payslips/${active.month}`}
                                                 target="_blank"
-                                                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition-all"
+                                                rel="noreferrer"
+                                                className="inline-flex min-h-9 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-emerald-700"
                                             >
                                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -296,11 +303,11 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                         </div>
 
                                         {/* Net Pay Highlight Banner */}
-                                        <div className="mt-5 p-5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-md">
+                                        <div className="mt-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white shadow-md">
                                             <p className="text-xs uppercase tracking-wider font-semibold opacity-80">
                                                 Net Compensation Disbursed
                                             </p>
-                                            <p className="text-3xl sm:text-4xl font-mono font-bold tracking-tight mt-1">
+                                            <p className="mt-1 text-3xl font-mono font-bold tracking-tight sm:text-4xl">
                                                 ₱ {fmt(active.total_net)}
                                             </p>
                                             <p className="text-xs font-mono opacity-80 mt-1">
@@ -310,7 +317,7 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                     </Card>
 
                                     {/* Cutoffs Grid */}
-                                    <div className={`grid gap-4 ${active.has_first && active.has_second ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+                                    <div className={`grid gap-3.5 ${active.has_first && active.has_second ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
                                         {active.has_first && (
                                             <CutoffCard
                                                 label="1st Cutoff Period"
@@ -343,7 +350,7 @@ export default function Payslips({ payslips = [], summary = {} }) {
 
                                     {/* Financial Breakdown Card */}
                                     {active.total_gross > 0 && (
-                                        <Card title="Monthly Retention Summary">
+                                        <Card title="Monthly pay breakdown">
                                             <div className="space-y-3 pt-1">
                                                 {[
                                                     { label: 'Gross Total', value: active.total_gross, color: '#0F6E56', pct: 100 },
@@ -351,7 +358,7 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                                     { label: 'Final Take-Home Net', value: active.total_net, color: '#0C5946', pct: active.total_gross > 0 ? (active.total_net / active.total_gross * 100) : 0 },
                                                 ].map(row => (
                                                     <div key={row.label}>
-                                                        <div className="flex justify-between text-xs mb-1 font-mono">
+                                                        <div className="mb-1 flex justify-between gap-4 text-xs font-mono">
                                                             <span className="font-sans text-sub">{row.label}</span>
                                                             <span className="font-bold text-text">₱ {fmt(row.value)}</span>
                                                         </div>
@@ -374,7 +381,7 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                     </div>
                                 </Card>
                             )}
-                        </div>
+                        </section>
                     </div>
                 )}
 
