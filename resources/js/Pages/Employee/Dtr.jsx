@@ -22,8 +22,9 @@ function DtrLiveClock() {
         return () => clearInterval(id)
     }, [])
 
-    const timeStr = now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    const dateStr = now.toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
+    const formatOptions = { timeZone: 'Asia/Manila' }
+    const timeStr = now.toLocaleTimeString('en-PH', { ...formatOptions, hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    const dateStr = now.toLocaleDateString('en-PH', { ...formatOptions, weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
 
     return (
         <div>
@@ -38,7 +39,7 @@ function DtrLiveClock() {
 }
 
 export default function Dtr({ logs = [], today = {}, summary = {}, month, next_punch, weeklyStrip = [] }) {
-    const { flash } = usePage().props
+    const { flash, errors } = usePage().props
     const [editTarget, setEditTarget] = useState(null)
     const [punching, setPunching]     = useState(false)
     const [loading, setLoading] = useState(false)
@@ -61,14 +62,14 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
         const d = new Date(month + '-01')
         d.setMonth(d.getMonth() + dir)
         const newMonth = d.toISOString().slice(0, 7)
-        router.get('/employee/dtr', { month: newMonth }, { preserveState: true })
+        router.get('/employee/dtr', { month: newMonth }, { preserveState: true, preserveScroll: true })
     }
 
     const nextLabel = next_punch ? PUNCH_LABELS[next_punch] : null
 
     function getStatusBadge(log) {
         if (log.has_pending_edit) {
-            return <Badge variant="purple" size="sm">Pending Edit</Badge>
+            return <Badge variant="amber" size="sm">Pending Edit</Badge>
         }
         switch (log.status) {
             case 'in_progress':
@@ -78,9 +79,9 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
             case 'late':
                 return <Badge variant="amber" size="sm">Late</Badge>
             case 'undertime':
-                return <Badge variant="indigo" size="sm">Undertime</Badge>
+                return <Badge variant="amber" size="sm">Undertime</Badge>
             case 'half_day':
-                return <Badge variant="purple" size="sm">Half Day</Badge>
+                return <Badge variant="amber" size="sm">Half Day</Badge>
             case 'absent':
                 return <Badge variant="rose" size="sm">Absent</Badge>
             default:
@@ -98,6 +99,15 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         <span>{flash.success}</span>
+                    </div>
+                )}
+
+                {errors?.punch && (
+                    <div className="flex items-center gap-2.5 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3.5 py-2.5 text-xs font-medium text-rose-700 dark:text-rose-400" role="alert">
+                        <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3Z" />
+                        </svg>
+                        <span>{errors.punch}</span>
                     </div>
                 )}
 
@@ -130,11 +140,11 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                     type="button"
                                     onClick={handlePunch}
                                     disabled={punching}
-                                    aria-label={punching ? 'Recording punch...' : `Clock in ${nextLabel}`}
+                                    aria-label={punching ? 'Recording punch...' : `Record ${nextLabel}`}
                                     className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                                 >
                                     <div className="w-2 h-2 rounded-full bg-white animate-ping" aria-hidden="true" />
-                                    <span>{punching ? 'Recording Punch...' : `Clock In: ${nextLabel}`}</span>
+                                    <span>{punching ? 'Recording Punch...' : `Record ${nextLabel}`}</span>
                                 </button>
                             ) : (
                                 <Badge variant="emerald" dot size="sm">Day Complete</Badge>
@@ -257,7 +267,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                             </div>
 
                                             {/* Punch Time snippet */}
-                                            <div className="text-[9px] text-dim truncate border-t border-border/40 pt-1 mt-0.5 font-mono">
+                                            <div className="hidden">
                                                 {day.am_time_in ? (
                                                     <span>In: {day.am_time_in.slice(0, 5)}</span>
                                                 ) : day.is_future ? (
@@ -275,7 +285,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 </Card>
 
                 {/* Monthly Summary Stats */}
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+                <div className="grid gap-3 sm:grid-cols-3 lg:gap-4">
                     <StatCard
                         title="Days Present"
                         value={summary.days_present ?? 0}
@@ -302,7 +312,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                         title="Rendered Hours"
                         value={`${summary.hours_rendered ?? 0}h`}
 
-                        accent="indigo"
+                        accent="emerald"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -311,6 +321,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     />
                     <StatCard
                         title="Pending Edits"
+                        className="hidden"
                         value={summary.pending_edits ?? 0}
 
                         accent="indigo"
@@ -406,11 +417,14 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                                         aria-label={`Request edit for ${log.date_label}`}
                                                         className="inline-flex h-7 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
                                                     >
-                                                        Request Edit
+                                                        <svg className="mr-1 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m16.86 3.49 3.65 3.65M4 20l4.25-.85L19.49 7.91a2.58 2.58 0 0 0-3.65-3.65L4.6 15.5 4 20Z" />
+                                                        </svg>
+                                                        Edit
                                                     </button>
                                                 ) : (
-                                                    <span className="inline-flex h-7 cursor-not-allowed items-center rounded-lg border border-border bg-field px-2.5 text-[11px] text-dim" title="Edits permitted only within 7 days of occurrence">
-                                                        Locked
+                                                    <span className="text-[11px] text-dim" title="Edits permitted only within 7 days of occurrence">
+                                                        Unavailable
                                                     </span>
                                                 )
                                             )}
@@ -436,7 +450,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                     <p className="text-sm font-semibold text-text">{log.date_label}</p>
                                     {getStatusBadge(log)}
                                 </div>
-                                <div className="grid grid-cols-4 gap-2 text-center bg-panel p-2.5 rounded-lg border border-border/60 font-mono text-xs">
+                                <div className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-border/60 bg-panel p-2.5 font-mono text-xs">
                                     <div>
                                         <span className="text-[10px] text-dim block">AM In</span>
                                         <strong className="text-text">{log.am_time_in ? log.am_time_in.slice(0, 5) : '—'}</strong>

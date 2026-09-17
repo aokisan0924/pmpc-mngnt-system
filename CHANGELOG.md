@@ -97,6 +97,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Employee DTR Interface Refinement** — clarified each punch action, locked the live display to Manila time, simplified the weekly attendance strip and mobile records, removed the redundant pending-edits stat from the visible summary, and aligned all employee DTR states with the teal/amber/rose portal palette.
+- **DTR Edit Request Modal Simplification** — removed unused multi-date selection logic so each row opens a concise, single-entry adjustment form.
+
+- **Employee Dashboard Action Clarity**: Added a shared soft-emerald button treatment for task-detail, DTR, task-planner, notification, and payslip actions for consistent hierarchy and interactive states.
+- **Employee Portal Visual System**: Standardized the Latest Payslip card on the employee teal palette, strengthened employee warning/error color tokens, and refined body and heading line heights. Increased dashboard greeting and payslip-value typography to reinforce the intended hierarchy.
+- **Project-Wide Typography and Employee Color System**: Applied the Inter/Plus Jakarta Sans typography rules to native form controls and tabular values, added complete employee warning/error token scales, and replaced remaining direct employee indigo/chart accents with the teal, amber, and rose system.
+- **Employee Dashboard Simplification**: Removed duplicate payday countdown and attendance-status messaging, the redundant days-present metric, duplicate Action Hub navigation links, and separate payslip PDF/archive actions. Renamed accrued pay to **Estimated Cutoff Pay** and consolidated the payslip action into a single archive link. Removed unused weekly-strip, monthly-summary, and duplicate notification payload generation from `EmployeeDashboardController.php`.
+
 - **Global Pro-SaaS Scale Compaction**: Set root html font-size to 14px (`resources/css/app.css`), proportionally reducing font sizing, padding, card geometry, and layout scale by ~12.5% across both Employee and Admin portals. This resolves visual overwhelming and brings extensive tables and dashboards into standard laptop viewport visibility without distortion.
 - **Layout Sidebars & Top Headers Compaction**: Reduced desktop navigation sidebar width from `w-64` to `w-56 lg:w-60`, mobile top bar from `h-16` to `h-13`, desktop sticky header from `h-16` to `h-13`, and brand crest emblem container from `w-10 h-10` to `w-8 h-8` across `EmployeeLayout.jsx` and `AdminLayout.jsx`.
 - **DTR Page Density & Visual Hierarchy Polish**: Scaled down container padding, live clock font size (`text-2xl sm:text-3xl`), punch button padding, 4-punch step circle sizes (`w-8.5 h-8.5`), and monthly attendance table cell padding (`py-2 sm:py-2.5 font-mono text-xs`) and action button sizing in `Employee/Dtr.jsx`.
@@ -115,6 +123,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **Dashboard Punch-Adjustment Shortcut**: Removed the dashboard correction button, modal wiring, and editable-DTR payload; employees now use the dedicated DTR page for all attendance adjustments.
+
 - **Redundant Quick Navigation Shortcuts**: Removed redundant Quick Shortcuts cards and action grids from both the Employee Dashboard (`Employee/Dashboard.jsx`) and Admin Executive Dashboard (`Admin/Dashboard.jsx`), eliminating visual clutter since all actions and pages are already directly accessible from the persistent sidebar navigation.
 - **Employee Dashboard Declutter Pass**: Removed 12 redundant or unnecessary elements from the Employee Dashboard (`Employee/Dashboard.jsx`): "Asia/Manila Time" badge (redundant with live clock), Employee ID label (visible in sidebar), filler subtitle ("Here is your live attendance sequence..."), duplicate "Open Full DTR →" header button (sidebar has DTR link), punch step period labels ("Morning Shift Start", etc.), "All 4 attendance punches recorded" confirmation text (already conveyed by green checkmarks and "Day Complete" badge), all 4 StatCard subtitle strings (progress bars communicate the same info), and verbose empty-state helper paragraphs across Tasks, Alerts, and Latest Payslip cards.
 - **Employee DTR Page Declutter Pass**: Removed 10 redundant elements from the Employee DTR page (`Employee/Dtr.jsx`): "Attendance Portal" badge, filler subtitle, verbose "All 4 Punches Completed Today" banner (replaced with compact "Day Complete" badge), "Monday to Friday punch check" helper text, 3-dot color legend on weekly strip, "Upcoming" text on future days (replaced with em-dash), all 4 StatCard subtitles, "Itemized chronological punches…" card description, and simplified "Calendar Date" column header to "Date" and empty-state text. Cleaned up unused `CardDescription` import.
@@ -122,6 +132,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Login Badges**: Removed redundant portal badges (`Employee Portal`, `HR & Admin Console`) and system status pill (`System Active • Asia/Manila (GMT+8)`) from the login page for a cleaner presentation.
 
 ### Fixed
+
+- **Employee Dashboard Empty Payslip Alignment**: Matched the empty Latest Payslip card height and centered its empty-state message and archive link for consistent alignment with the adjacent Action Hub (`Employee/Dashboard.jsx`).
 
 - **DTR Weekly Strip & Date Query Compatibility**: Replaced exact date match `whereIn('date', ...)` with `whereBetween('date', [$startOfDay, $endOfDay])` in `DtrController.php` and `EmployeeDashboardController.php`, resolving MySQL `datetime` storage (`YYYY-MM-DD 00:00:00`) query mismatches so Monday–Friday attendance entries render accurately.
 - **DTR DomPDF Export Log Lookup**: Fixed broken `$logs->firstWhere('date', $current->toDateString())` in `DtrPrintController.php` where Carbon date instances caused strict inequality against date strings, restoring full timesheet printing on official Form 48 DTR PDFs.

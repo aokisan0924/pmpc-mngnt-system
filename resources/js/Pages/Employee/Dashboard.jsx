@@ -5,7 +5,6 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
-import DtrEditRequestModal from '@/Components/DtrEditRequestModal'
 
 function formatPunchTime(timeString) {
     if (!timeString) return '--:--'
@@ -23,7 +22,6 @@ const PUNCH_SLOTS = [
         key: 'am_time_in',
         stepNum: 1,
         label: 'AM In',
-        period: 'Morning Shift Start',
         icon: (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
@@ -34,7 +32,6 @@ const PUNCH_SLOTS = [
         key: 'am_time_out',
         stepNum: 2,
         label: 'AM Out',
-        period: 'Lunch Break Start',
         icon: (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -45,7 +42,6 @@ const PUNCH_SLOTS = [
         key: 'pm_time_in',
         stepNum: 3,
         label: 'PM In',
-        period: 'Lunch Break End',
         icon: (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v1.069m7.5 0c1.472.085 2.923.23 4.35.434m-11.85 0c-1.472.085-2.923.23-4.35.434" />
@@ -56,7 +52,6 @@ const PUNCH_SLOTS = [
         key: 'pm_time_out',
         stepNum: 4,
         label: 'PM Out',
-        period: 'Evening Shift End',
         icon: (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
@@ -64,6 +59,8 @@ const PUNCH_SLOTS = [
         ),
     },
 ]
+
+const SOFT_EMERALD_ACTION_CLASS = 'inline-flex h-8 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 shadow-xs transition-all duration-150 hover:border-emerald-300 hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60'
 
 function LiveClock() {
     const [time, setTime] = useState(() => new Date())
@@ -81,7 +78,7 @@ function LiveClock() {
             aria-live="off"
             className="relative z-10 flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-3.5 py-2.5 rounded-lg border border-white/15 w-fit self-start md:self-auto shrink-0 shadow-xs"
         >
-            <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" aria-hidden="true" />
+            <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#42AA8B] animate-pulse" aria-hidden="true" />
             <div>
                 <p className="font-heading font-bold text-lg sm:text-xl tracking-tight text-white tnum leading-none">
                     {timeStr}
@@ -97,27 +94,17 @@ export default function Dashboard({
     summary,
     cutoff,
     today,
-    notifications = [],
     recentNotifications = [],
     recentTasks = [],
     latestPayslip,
-    recentEditableLogs = [],
 }) {
-    const [now, setNow] = useState(() => new Date())
     const [punching, setPunching] = useState(false)
     const [togglingTaskId, setTogglingTaskId] = useState(null)
     const [punchFeedback, setPunchFeedback] = useState(null)
     const [activeTab, setActiveTab] = useState('tasks') // 'tasks' | 'alerts'
-    const [editModalOpen, setEditModalOpen] = useState(false)
     const actionTabRefs = useRef({})
 
-    // Low-frequency interval (30s) for non-second UI updates (greeting, elapsed shifts)
-    useEffect(() => {
-        const timer = setInterval(() => setNow(new Date()), 30000)
-        return () => clearInterval(timer)
-    }, [])
-
-    const hour = now.getHours()
+    const hour = new Date().getHours()
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
     const firstName = employee?.first_name ? employee.first_name.trim() : 'Employee'
 
@@ -125,24 +112,6 @@ export default function Dashboard({
     const completedPunches = PUNCH_SLOTS.filter(s => Boolean(today?.[s.key])).length
     const nextPunchIndex = completedPunches < 4 ? completedPunches : -1
     const nextSlot = nextPunchIndex !== -1 ? PUNCH_SLOTS[nextPunchIndex] : null
-
-    // Compute active shift elapsed time
-    const activeShift = (!today?.am_time_out && today?.am_time_in)
-        ? { time: today.am_time_in, name: 'Morning Shift' }
-        : (!today?.pm_time_out && today?.pm_time_in)
-        ? { time: today.pm_time_in, name: 'Afternoon Shift' }
-        : null
-
-    let elapsedDisplay = null
-    if (activeShift) {
-        const [shH, shM] = activeShift.time.split(':').map(Number)
-        const startTotalMin = shH * 60 + shM
-        const curTotalMin = now.getHours() * 60 + now.getMinutes()
-        const diffMin = Math.max(0, curTotalMin - startTotalMin)
-        const h = Math.floor(diffMin / 60)
-        const m = diffMin % 60
-        elapsedDisplay = `${h}h ${m}m elapsed`
-    }
 
     // Direct 1-Tap Quick Punch Handler
     function handleQuickPunch() {
@@ -211,7 +180,7 @@ export default function Dashboard({
         actionTabRefs.current[nextTab]?.focus()
     }
 
-    const alertsList = notifications.length > 0 ? notifications : recentNotifications
+    const alertsList = recentNotifications
     const pendingTasksCount = recentTasks.filter(t => t.status !== 'done').length
 
     return (
@@ -236,13 +205,11 @@ export default function Dashboard({
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                     <span>Next Payday: <strong className="text-white">{cutoff.payday_label}</strong></span>
-                                    <span className="text-emerald-200 font-normal">
-                                        ({cutoff.is_payday_today ? 'Today!' : `${cutoff.days_to_payday}d left`})
-                                    </span>
+                                    {cutoff.is_payday_today && <span className="text-emerald-200 font-normal">(Today!)</span>}
                                 </span>
                             </div>
                         )}
-                        <h1 className="font-heading font-bold text-lg sm:text-xl text-white tracking-tight">
+                        <h1 className="font-heading font-bold text-xl sm:text-2xl text-white tracking-tight">
                             {greeting}, {firstName}!
                         </h1>
 
@@ -257,17 +224,6 @@ export default function Dashboard({
                     <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-border/60 bg-field/30 px-4 py-3">
                         <div className="flex flex-wrap items-center gap-2">
                             <CardTitle className="text-sm sm:text-base">Today's 4-Punch Attendance Flow</CardTitle>
-                            {completedPunches === 4 ? (
-                                <Badge variant="on_time" dot size="sm">Day Complete</Badge>
-                            ) : activeShift ? (
-                                <Badge variant="emerald" dot pulse size="sm">
-                                    {activeShift.name} Active {elapsedDisplay ? `• ${elapsedDisplay}` : ''}
-                                </Badge>
-                            ) : completedPunches > 0 ? (
-                                <Badge variant="amber" dot size="sm">Break / In Transition</Badge>
-                            ) : (
-                                <Badge variant="draft" size="sm">Awaiting Morning In</Badge>
-                            )}
                             {summary?.pending_edits > 0 && (
                                 <Badge variant="amber" size="sm">
                                     {summary.pending_edits} edit request{summary.pending_edits > 1 ? 's' : ''} pending
@@ -351,30 +307,18 @@ export default function Dashboard({
 
                         {/* Interactive Punch Action & Feedback Banner */}
                         <div className="p-3 rounded-lg bg-field/60 dark:bg-slate-900/50 border border-border/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                                {punchFeedback ? (
+                            {punchFeedback && (
+                                <div className="min-w-0">
                                     <p className={`text-xs font-semibold transition-opacity ${
                                         punchFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                                     }`}>
                                         {punchFeedback.message}
                                     </p>
-                                ) : null}
+                                </div>
+                            )}
 
-                                <button
-                                    type="button"
-                                    onClick={() => setEditModalOpen(true)}
-                                    className="inline-flex items-center gap-1.5 text-xs text-sub hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group cursor-pointer"
-                                    aria-label="Request attendance punch adjustment"
-                                >
-                                    <svg className="w-3.5 h-3.5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                    <span>Missed a punch? <span className="font-semibold underline underline-offset-2">Request adjustment</span></span>
-                                </button>
-                            </div>
-
-                            {/* 1-Tap Direct Punch Action Button */}
-                            <div className="shrink-0 flex items-center gap-2 sm:ml-auto">
+                            {/* Attendance action */}
+                            <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:flex-nowrap">
                                 {nextSlot ? (
                                     <Button
                                         variant="emerald"
@@ -382,7 +326,7 @@ export default function Dashboard({
                                         onClick={handleQuickPunch}
                                         disabled={punching}
                                         aria-label={punching ? 'Recording punch...' : `Punch ${nextSlot.label}`}
-                                        className="shadow-xs font-semibold px-4 h-9 text-xs min-w-[140px]"
+                                        className="h-9 min-w-[140px] flex-1 px-4 text-xs font-semibold shadow-xs sm:flex-none"
                                     >
                                         {punching ? (
                                             <span className="inline-flex items-center gap-1.5">
@@ -402,8 +346,8 @@ export default function Dashboard({
                                         )}
                                     </Button>
                                 ) : (
-                                    <Link href="/employee/dtr">
-                                        <Button variant="outline" size="sm" className="h-9 text-xs">
+                                    <Link href="/employee/dtr" className="flex-1 sm:flex-none">
+                                        <Button variant="softEmerald" size="sm" className="h-9 w-full text-xs">
                                             View DTR History →
                                         </Button>
                                     </Link>
@@ -414,24 +358,7 @@ export default function Dashboard({
                 </Card>
 
                 {/* ── Metric Cards with Contextual Progress Bars ───── */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <StatCard
-                        title="Days Present"
-                        value={summary?.days_present ?? 0}
-
-                        accent="emerald"
-                        progress={{
-                            value: summary?.days_present ?? 0,
-                            max: summary?.cutoff_workdays || 11,
-                            label: 'Cutoff attendance',
-                            color: 'bg-emerald-500',
-                        }}
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                            </svg>
-                        }
-                    />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <StatCard
                         title="Late Arrivals"
                         value={summary?.days_late ?? 0}
@@ -460,7 +387,7 @@ export default function Dashboard({
                             value: summary?.hours_rendered ?? 0,
                             max: summary?.cutoff_target_hours || 88,
                             label: 'Period rendered',
-                            color: 'bg-indigo-500',
+                            color: 'bg-emerald-500',
                         }}
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
@@ -469,7 +396,7 @@ export default function Dashboard({
                         }
                     />
                     <StatCard
-                        title="Accrued Cutoff Pay"
+                        title="Estimated Cutoff Pay"
                         value={summary?.daily_rate > 0
                             ? `₱${Number(summary?.accrued_basic || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                             : '₱0.00'
@@ -541,15 +468,6 @@ export default function Dashboard({
                                             </button>
                                         </div>
 
-                                        {activeTab === 'tasks' ? (
-                                            <Link href="/employee/planner" className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
-                                                Open Planner →
-                                            </Link>
-                                        ) : (
-                                            <Link href="/employee/notifications" className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">
-                                                All Notifications →
-                                            </Link>
-                                        )}
                                     </div>
                                 </CardHeader>
 
@@ -609,9 +527,9 @@ export default function Dashboard({
 
                                                             <Link
                                                                 href="/employee/planner"
-                                                                className="text-[11px] text-sub hover:text-text shrink-0"
+                                                                className={`${SOFT_EMERALD_ACTION_CLASS} shrink-0 text-[11px]`}
                                                             >
-                                                                View
+                                                                View task
                                                             </Link>
                                                         </div>
                                                     )
@@ -626,7 +544,7 @@ export default function Dashboard({
                                                 </div>
                                                 <p className="text-xs font-medium text-text">No pending tasks</p>
                                                 <Link href="/employee/planner" className="inline-block mt-2">
-                                                    <Button variant="outline" size="sm" className="h-7 text-xs">
+                                                    <Button variant="softEmerald" size="sm" className="h-8 text-xs">
                                                         Add a task in Planner →
                                                     </Button>
                                                 </Link>
@@ -644,7 +562,7 @@ export default function Dashboard({
                                                     {n.link && (
                                                         <Link
                                                             href={n.link}
-                                                            className="inline-flex h-7 flex-shrink-0 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+                                                            className={`${SOFT_EMERALD_ACTION_CLASS} flex-shrink-0`}
                                                         >
                                                             Open →
                                                         </Link>
@@ -670,11 +588,11 @@ export default function Dashboard({
                     {/* Right Column: Latest Payslip Voucher */}
                     <div className="space-y-3.5">
                         {/* Latest Payslip Voucher Card */}
-                        <Card className="border border-indigo-200/80 dark:border-indigo-900/60 bg-gradient-to-br from-indigo-50/40 via-panel to-panel dark:from-indigo-950/20 shadow-xs">
+                        <Card className="h-full border border-emerald-200/80 dark:border-emerald-900/60 bg-gradient-to-br from-emerald-50/40 via-panel to-panel dark:from-emerald-950/20 shadow-xs">
                             <CardHeader className="px-4 py-2.5 pb-2">
                                 <div className="flex items-center justify-between w-full">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 flex items-center justify-center">
+                                        <div className="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
                                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
                                             </svg>
@@ -682,43 +600,32 @@ export default function Dashboard({
                                         <CardTitle className="text-xs sm:text-sm">Latest Payslip</CardTitle>
                                     </div>
                                     {latestPayslip && (
-                                        <span className="text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                                        <span className="text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
                                             {latestPayslip.cutoff}
                                         </span>
                                     )}
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-3.5 pt-0 space-y-2.5">
+                            <CardContent className="p-3.5 pt-0 space-y-2.5 flex flex-col">
                                 {latestPayslip ? (
                                     <>
                                         <div>
                                             <p className="text-[11px] text-sub">{latestPayslip.month_label}</p>
-                                            <p className="text-lg sm:text-xl font-bold font-heading text-text tracking-tight tnum mt-0.5">
+                                            <p className="text-xl sm:text-2xl font-bold font-heading text-text tracking-tight tnum mt-0.5">
                                                 ₱{latestPayslip.net_pay.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </p>
                                             <p className="text-[10px] text-dim mt-0.5">{latestPayslip.period_label}</p>
                                         </div>
-                                        <div className="pt-2 flex items-center justify-between gap-2 border-t border-border/60">
-                                            <a
-                                                href={`/employee/payslips/${latestPayslip.month}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
-                                            >
-                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                                                </svg>
-                                                PDF Voucher
-                                            </a>
-                                            <Link href="/employee/payslips" className="text-xs text-sub hover:text-text">
-                                                All →
+                                        <div className="pt-2 border-t border-border/60">
+                                            <Link href="/employee/payslips" className={SOFT_EMERALD_ACTION_CLASS}>
+                                                View payslip →
                                             </Link>
                                         </div>
                                     </>
                                 ) : (
-                                    <div>
+                                    <div className="flex flex-1 flex-col items-center justify-center text-center py-4">
                                         <p className="text-xs text-sub">No finalized payslip yet.</p>
-                                        <Link href="/employee/payslips" className="inline-block mt-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                                        <Link href="/employee/payslips" className={`mt-3 ${SOFT_EMERALD_ACTION_CLASS}`}>
                                             Open Payslip Archive →
                                         </Link>
                                     </div>
@@ -729,13 +636,6 @@ export default function Dashboard({
                 </div>
             </div>
 
-            {editModalOpen && (
-                <DtrEditRequestModal
-                    log={today}
-                    availableLogs={recentEditableLogs}
-                    onClose={() => setEditModalOpen(false)}
-                />
-            )}
         </EmployeeLayout>
     )
 }

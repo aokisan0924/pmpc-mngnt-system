@@ -246,7 +246,7 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                             <div className="flex items-center justify-between font-mono text-xs">
                                                 <div className="flex gap-1">
                                                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                                                        p.has_first ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' : 'bg-field text-dim'
+                                                        p.has_first ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-field text-dim'
                                                     }`}>
                                                         1st Cutoff
                                                     </span>
@@ -346,9 +346,9 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                         <Card title="Monthly Retention Summary">
                                             <div className="space-y-3 pt-1">
                                                 {[
-                                                    { label: 'Gross Total', value: active.total_gross, color: '#10B981', pct: 100 },
-                                                    { label: 'Statutory & Other Deductions', value: active.total_ded, color: '#F43F5E', pct: active.total_gross > 0 ? (active.total_ded / active.total_gross * 100) : 0 },
-                                                    { label: 'Final Take-Home Net', value: active.total_net, color: '#059669', pct: active.total_gross > 0 ? (active.total_net / active.total_gross * 100) : 0 },
+                                                    { label: 'Gross Total', value: active.total_gross, color: '#0F6E56', pct: 100 },
+                                                    { label: 'Statutory & Other Deductions', value: active.total_ded, color: '#BE123C', pct: active.total_gross > 0 ? (active.total_ded / active.total_gross * 100) : 0 },
+                                                    { label: 'Final Take-Home Net', value: active.total_net, color: '#0C5946', pct: active.total_gross > 0 ? (active.total_net / active.total_gross * 100) : 0 },
                                                 ].map(row => (
                                                     <div key={row.label}>
                                                         <div className="flex justify-between text-xs mb-1 font-mono">

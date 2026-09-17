@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useForm } from '@inertiajs/react'
 
 const PUNCH_LABELS = {
@@ -8,11 +8,8 @@ const PUNCH_LABELS = {
     pm_time_out: 'PM Out',
 }
 
-export default function DtrEditRequestModal({ log, availableLogs = [], onClose }) {
-    const [selectedLogId, setSelectedLogId] = useState(log?.id)
-    const currentLog = (availableLogs && availableLogs.length > 0)
-        ? (availableLogs.find((l) => l.id === Number(selectedLogId)) || log)
-        : log
+export default function DtrEditRequestModal({ log, onClose }) {
+    const currentLog = log
 
     const { data, setData, post, processing, errors, reset } = useForm({
         requested_am_time_in:  currentLog?.am_time_in?.slice(0, 5)  ?? '',
@@ -21,20 +18,6 @@ export default function DtrEditRequestModal({ log, availableLogs = [], onClose }
         requested_pm_time_out: currentLog?.pm_time_out?.slice(0, 5) ?? '',
         reason: '',
     })
-
-    function handleSelectDate(newId) {
-        setSelectedLogId(newId)
-        const target = availableLogs.find((l) => l.id === Number(newId))
-        if (target) {
-            setData((prev) => ({
-                ...prev,
-                requested_am_time_in:  target.am_time_in?.slice(0, 5)  ?? '',
-                requested_am_time_out: target.am_time_out?.slice(0, 5) ?? '',
-                requested_pm_time_in:  target.pm_time_in?.slice(0, 5)  ?? '',
-                requested_pm_time_out: target.pm_time_out?.slice(0, 5) ?? '',
-            }))
-        }
-    }
 
     useEffect(() => {
         function handleKeyDown(e) {
@@ -69,9 +52,7 @@ export default function DtrEditRequestModal({ log, availableLogs = [], onClose }
                         <h2 id="dtr-edit-modal-title" className="text-base font-semibold font-display text-text">
                             Request Time Edit
                         </h2>
-                        {(!availableLogs || availableLogs.length <= 1) && (
-                            <p className="text-xs text-sub mt-0.5">{currentLog?.date_label}</p>
-                        )}
+                        <p className="mt-0.5 text-xs text-sub">{currentLog?.date_label}</p>
                     </div>
                     <button
                         type="button"
@@ -84,27 +65,6 @@ export default function DtrEditRequestModal({ log, availableLogs = [], onClose }
                         </svg>
                     </button>
                 </div>
-
-                {/* Optional Date Picker (when multiple recent logs available) */}
-                {availableLogs && availableLogs.length > 1 && (
-                    <div className="space-y-1.5">
-                        <label htmlFor="edit-date-select" className="block text-[11px] font-semibold text-sub uppercase tracking-wider">
-                            Attendance Date
-                        </label>
-                        <select
-                            id="edit-date-select"
-                            value={selectedLogId}
-                            onChange={(e) => handleSelectDate(e.target.value)}
-                            className="w-full px-3 py-2 text-xs rounded-xl border border-border bg-field/60 text-text font-medium outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors cursor-pointer"
-                        >
-                            {availableLogs.map((item) => (
-                                <option key={item.id} value={item.id}>
-                                    {item.date_label} {item.has_pending_edit ? '(Pending Review)' : ''}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
 
                 {/* Pending Edit Warning */}
                 {currentLog?.has_pending_edit && (

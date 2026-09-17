@@ -21,6 +21,7 @@ export function Button({
     const variantClasses = {
         primary: 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white shadow-xs focus-visible:outline-indigo-600 dark:bg-indigo-500 dark:hover:bg-indigo-600',
         emerald: 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-xs focus-visible:outline-emerald-600 dark:bg-emerald-500 dark:hover:bg-emerald-600',
+        softEmerald: 'border border-emerald-200 bg-emerald-50 text-emerald-700 shadow-xs hover:border-emerald-300 hover:bg-emerald-100 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60',
         secondary: 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200/80 shadow-xs focus-visible:outline-slate-500 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-100 dark:border-slate-700',
         outline: 'border border-border text-text hover:bg-field hover:border-slate-300 dark:hover:border-slate-600 focus-visible:outline-indigo-600',
         ghost: 'text-sub hover:text-text hover:bg-field focus-visible:outline-indigo-600',

@@ -335,7 +335,7 @@ export default function Planner({ tasks = [] }) {
                                                                     ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
                                                                     : t.priority === 'medium'
                                                                         ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                                                                        : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                                                                        : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
                                                         }`}
                                                     >
                                                         {t.title}

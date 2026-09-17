@@ -138,7 +138,7 @@ export default function EmployeeLayout({ children, title }) {
                         <div className="pt-2">
                             <Link
                                 href="/admin/dashboard"
-                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-800/50 hover:bg-indigo-100 transition-colors"
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/50 hover:bg-emerald-100 transition-colors"
                             >
                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
