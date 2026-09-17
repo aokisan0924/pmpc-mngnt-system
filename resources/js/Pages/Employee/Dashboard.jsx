@@ -23,7 +23,6 @@ const PUNCH_SLOTS = [
         stepNum: 1,
         label: 'AM In',
         period: 'Morning Shift Start',
-        target: 'Target: 08:00 AM',
         icon: (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
@@ -35,7 +34,6 @@ const PUNCH_SLOTS = [
         stepNum: 2,
         label: 'AM Out',
         period: 'Lunch Break Start',
-        target: 'Target: 12:00 PM',
         icon: (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -47,7 +45,6 @@ const PUNCH_SLOTS = [
         stepNum: 3,
         label: 'PM In',
         period: 'Lunch Break End',
-        target: 'Target: 01:00 PM',
         icon: (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v1.069m7.5 0c1.472.085 2.923.23 4.35.434m-11.85 0c-1.472.085-2.923.23-4.35.434" />
@@ -59,7 +56,6 @@ const PUNCH_SLOTS = [
         stepNum: 4,
         label: 'PM Out',
         period: 'Evening Shift End',
-        target: 'Target: 05:00 PM',
         icon: (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
@@ -254,24 +250,19 @@ export default function Dashboard({
                 {/* ── Today's Attendance Punch State Machine & 1-Tap Punch (Top Priority) ── */}
                 <Card className="overflow-hidden border border-border/80 shadow-xs">
                     <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-border/60 bg-field/30 px-4 py-3">
-                        <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                                <CardTitle className="text-sm sm:text-base">Today's 4-Punch Attendance Flow</CardTitle>
-                                {completedPunches === 4 ? (
-                                    <Badge variant="on_time" dot size="sm">Day Complete</Badge>
-                                ) : activeShift ? (
-                                    <Badge variant="emerald" dot pulse size="sm">
-                                        {activeShift.name} Active {elapsedDisplay ? `• ${elapsedDisplay}` : ''}
-                                    </Badge>
-                                ) : completedPunches > 0 ? (
-                                    <Badge variant="amber" dot size="sm">Break / In Transition</Badge>
-                                ) : (
-                                    <Badge variant="draft" size="sm">Awaiting Morning In</Badge>
-                                )}
-                            </div>
-                            <p className="text-[11px] text-sub mt-0.5">
-                                Strict sequential locking: punches must follow AM In → AM Out → PM In → PM Out order.
-                            </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <CardTitle className="text-sm sm:text-base">Today's 4-Punch Attendance Flow</CardTitle>
+                            {completedPunches === 4 ? (
+                                <Badge variant="on_time" dot size="sm">Day Complete</Badge>
+                            ) : activeShift ? (
+                                <Badge variant="emerald" dot pulse size="sm">
+                                    {activeShift.name} Active {elapsedDisplay ? `• ${elapsedDisplay}` : ''}
+                                </Badge>
+                            ) : completedPunches > 0 ? (
+                                <Badge variant="amber" dot size="sm">Break / In Transition</Badge>
+                            ) : (
+                                <Badge variant="draft" size="sm">Awaiting Morning In</Badge>
+                            )}
                         </div>
                         <Link href="/employee/dtr" className="shrink-0">
                             <Button variant="outline" size="sm" className="h-8 text-xs">
@@ -340,18 +331,12 @@ export default function Dashboard({
                                             )}
                                         </div>
 
-                                        {/* Recorded Punch Time or Target */}
+                                        {/* Recorded Punch Time */}
                                         <div className="my-0.5">
                                             <p className="font-heading font-bold text-lg lg:text-xl text-text tnum tracking-tight">
                                                 {isDone ? formatPunchTime(rawVal) : '--:--'}
                                             </p>
                                             <p className="text-[10px] text-sub mt-0.5 truncate">{slot.period}</p>
-                                        </div>
-
-                                        {/* Slot Footer Details */}
-                                        <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between text-[10px] text-dim">
-                                            <span>{slot.target}</span>
-                                            {isDone && <span className="text-emerald-600 dark:text-emerald-400 font-medium">Recorded</span>}
                                         </div>
                                     </div>
                                 )
@@ -360,36 +345,25 @@ export default function Dashboard({
 
                         {/* Interactive Punch Action & Feedback Banner */}
                         <div className="p-3 rounded-lg bg-field/60 dark:bg-slate-900/50 border border-border/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div className="space-y-0.5">
-                                {nextSlot ? (
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                        <p className="text-xs font-semibold text-text">
-                                            Next action: <span className="text-emerald-600 dark:text-emerald-400 font-bold">{nextSlot.label}</span> ({nextSlot.period})
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                                        <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                        </svg>
-                                        <p className="text-xs font-semibold">All 4 attendance punches recorded for today. Great work!</p>
-                                    </div>
-                                )}
-                                <p className="text-[11px] text-sub">
-                                    Punches are officially timestamped to Asia/Manila server time.
-                                </p>
-                                {punchFeedback && (
-                                    <p className={`text-xs font-semibold mt-1 transition-opacity ${
+                            <div>
+                                {punchFeedback ? (
+                                    <p className={`text-xs font-semibold transition-opacity ${
                                         punchFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                                     }`}>
                                         {punchFeedback.message}
                                     </p>
-                                )}
+                                ) : !nextSlot ? (
+                                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                                        <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                        </svg>
+                                        <p className="text-xs font-semibold">All 4 attendance punches recorded for today.</p>
+                                    </div>
+                                ) : null}
                             </div>
 
                             {/* 1-Tap Direct Punch Action Button */}
-                            <div className="shrink-0 flex items-center gap-2">
+                            <div className="shrink-0 flex items-center gap-2 sm:ml-auto">
                                 {nextSlot ? (
                                     <Button
                                         variant="emerald"

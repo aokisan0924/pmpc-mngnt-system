@@ -105,6 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **Employee DTR Card Explanatory & Target Text**: Removed redundant sequential locking subtitle ("Strict sequential locking: punches must follow AM In → AM Out → PM In → PM Out order."), target times ("Target: 08:00 AM", etc.), and bottom action helper text ("Next action: ... Punches are officially timestamped to Asia/Manila server time.") from the attendance card on the Employee Dashboard for a cleaner, decluttered presentation (`Employee/Dashboard.jsx`).
 - **Login Subtitle Text**: Removed the explanatory subtitle ("Use your employee ID or email. We'll open the correct portal for your account.") below the sign-in header for a cleaner, more concise form layout (`Login.jsx`).
 - **Login Badges**: Removed redundant portal badges (`Employee Portal`, `HR & Admin Console`) and system status pill (`System Active • Asia/Manila (GMT+8)`) from the login page for a cleaner presentation.
 
