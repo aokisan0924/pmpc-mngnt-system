@@ -47,20 +47,20 @@ export function StatCard({
         <Card
             hover={Boolean(onClick)}
             onClick={onClick}
-            className={`p-5 flex flex-col justify-between ${onClick ? 'cursor-pointer' : ''} ${className}`}
+            className={`p-3.5 sm:p-4 flex flex-col justify-between ${onClick ? 'cursor-pointer' : ''} ${className}`}
             {...props}
         >
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-2.5">
                 <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] leading-tight text-sub min-h-7 line-clamp-2 select-none">
+                    <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.08em] leading-tight text-sub min-h-4 truncate select-none">
                         {title}
                     </p>
-                    <div className="mt-2 flex items-baseline gap-2">
-                        <span className="font-heading font-bold text-2xl lg:text-3xl text-text tracking-tight tnum">
+                    <div className="mt-1 flex items-baseline gap-2">
+                        <span className="font-heading font-bold text-xl sm:text-2xl text-text tracking-tight tnum">
                             {value}
                         </span>
                         {trend && (
-                            <span className={`inline-flex items-center gap-0.5 text-xs font-medium px-2 py-0.5 rounded-full border select-none ${trendColor}`}>
+                            <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium px-1.5 py-0.2 rounded-full border select-none ${trendColor}`}>
                                 {trendDirection === 'up' && '↑'}
                                 {trendDirection === 'down' && '↓'}
                                 {trend}
@@ -69,13 +69,13 @@ export function StatCard({
                     </div>
                 </div>
                 {icon && (
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 select-none ${accentStyles}`}>
+                    <div className={`w-9 h-9 sm:w-9.5 sm:h-9.5 rounded-lg flex items-center justify-center flex-shrink-0 select-none [&>svg]:w-4.5 [&>svg]:h-4.5 ${accentStyles}`}>
                         {icon}
                     </div>
                 )}
             </div>
             {progressPercent !== null && (
-                <div className="mt-3 space-y-1 select-none">
+                <div className="mt-2.5 space-y-1 select-none">
                     <div className="flex items-center justify-between text-[10px] text-sub font-medium">
                         <span className="truncate">{typeof progress === 'object' && progress?.label ? progress.label : 'Period progress'}</span>
                         <span className="font-semibold text-text tnum">{progressPercent}%</span>
@@ -89,7 +89,7 @@ export function StatCard({
                 </div>
             )}
             {subtitle && (
-                <div className="mt-3 pt-3 border-t border-border/60 text-xs text-sub flex items-center gap-1.5 select-none">
+                <div className="mt-2.5 pt-2.5 border-t border-border/60 text-[11px] text-sub flex items-center gap-1.5 select-none truncate">
                     {subtitle}
                 </div>
             )}

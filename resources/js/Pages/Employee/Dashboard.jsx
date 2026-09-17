@@ -82,14 +82,14 @@ function LiveClock() {
     return (
         <div
             aria-live="off"
-            className="relative z-10 flex items-center gap-3 bg-white/10 backdrop-blur-md px-5 py-3.5 rounded-xl border border-white/15 w-fit self-start md:self-auto shrink-0 shadow-xs"
+            className="relative z-10 flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-3.5 py-2.5 rounded-lg border border-white/15 w-fit self-start md:self-auto shrink-0 shadow-xs"
         >
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" aria-hidden="true" />
+            <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse" aria-hidden="true" />
             <div>
-                <p className="font-heading font-bold text-2xl sm:text-3xl tracking-tight text-white tnum leading-none">
+                <p className="font-heading font-bold text-lg sm:text-xl tracking-tight text-white tnum leading-none">
                     {timeStr}
                 </p>
-                <p className="text-xs text-emerald-200/90 mt-1 leading-none">{dateStr}</p>
+                <p className="text-[11px] text-emerald-200/90 mt-0.5 leading-none">{dateStr}</p>
             </div>
         </div>
     )
@@ -217,42 +217,219 @@ export default function Dashboard({
 
     return (
         <EmployeeLayout title="Dashboard">
-            <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 page-enter">
+            <div className="p-3.5 sm:p-5 lg:p-6 max-w-7xl mx-auto space-y-4 page-enter">
                 {/* ── Welcome Banner & Live Clock ─────────────────── */}
                 <div
                     role="region"
                     aria-label="Shift overview"
-                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 p-6 sm:p-7 rounded-2xl bg-gradient-to-r from-[#0A4739] via-[#0F6E56] to-[#07372C] text-white shadow-sm relative overflow-hidden select-none"
+                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 sm:p-5 rounded-xl bg-gradient-to-r from-[#0A4739] via-[#0F6E56] to-[#07372C] text-white shadow-xs relative overflow-hidden select-none"
                 >
                     <div className="absolute -right-12 -bottom-12 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
                     <div className="relative z-10 max-w-2xl">
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/25 text-emerald-100 border border-emerald-400/30">
+                        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/25 text-emerald-100 border border-emerald-400/30">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                                 Asia/Manila Time
                             </span>
                             {cutoff && (
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white/15 text-white border border-white/20">
+                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/15 text-white border border-white/20">
                                     <span className="font-semibold">{cutoff.label}</span>
                                     <span className="text-emerald-200">• {cutoff.days_remaining} {cutoff.days_remaining === 1 ? 'day' : 'days'} left</span>
                                 </span>
                             )}
-                            <span className="text-xs text-emerald-200/90 font-mono">ID: {employee?.employee_id}</span>
+                            <span className="text-[11px] text-emerald-200/90 font-mono">ID: {employee?.employee_id}</span>
                         </div>
-                        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight">
+                        <h1 className="font-heading font-bold text-lg sm:text-xl text-white tracking-tight">
                             {greeting}, {firstName}!
                         </h1>
-                        <p className="text-sm text-emerald-100/90 mt-1 leading-relaxed">
+                        <p className="text-xs text-emerald-100/90 mt-0.5 leading-relaxed">
                             Here is your live attendance sequence, cutoff targets, and priority tasks for today.
                         </p>
                     </div>
 
-                    {/* Live Ticking Clock (Self-contained LiveClock component) */}
+                    {/* Live Ticking Clock */}
                     <LiveClock />
                 </div>
 
+                {/* ── Today's Attendance Punch State Machine & 1-Tap Punch (Top Priority) ── */}
+                <Card className="overflow-hidden border border-border/80 shadow-xs">
+                    <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-border/60 bg-field/30 px-4 py-3">
+                        <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <CardTitle className="text-sm sm:text-base">Today's 4-Punch Attendance Flow</CardTitle>
+                                {completedPunches === 4 ? (
+                                    <Badge variant="on_time" dot size="sm">Day Complete</Badge>
+                                ) : activeShift ? (
+                                    <Badge variant="emerald" dot pulse size="sm">
+                                        {activeShift.name} Active {elapsedDisplay ? `• ${elapsedDisplay}` : ''}
+                                    </Badge>
+                                ) : completedPunches > 0 ? (
+                                    <Badge variant="amber" dot size="sm">Break / In Transition</Badge>
+                                ) : (
+                                    <Badge variant="draft" size="sm">Awaiting Morning In</Badge>
+                                )}
+                            </div>
+                            <p className="text-[11px] text-sub mt-0.5">
+                                Strict sequential locking: punches must follow AM In → AM Out → PM In → PM Out order.
+                            </p>
+                        </div>
+                        <Link href="/employee/dtr" className="shrink-0">
+                            <Button variant="outline" size="sm" className="h-8 text-xs">
+                                Open Full DTR →
+                            </Button>
+                        </Link>
+                    </CardHeader>
+
+                    <CardContent className="p-3.5 sm:p-4 space-y-3.5">
+                        {/* Connected 4-step Timeline */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 relative select-none">
+                            {PUNCH_SLOTS.map((slot, index) => {
+                                const rawVal = today?.[slot.key]
+                                const isDone = Boolean(rawVal)
+                                const isNext = index === nextPunchIndex
+                                const isLocked = !isDone && !isNext
+
+                                return (
+                                    <div
+                                        key={slot.key}
+                                        role="status"
+                                        aria-label={`${slot.label}: ${isDone ? `Punched at ${rawVal}` : isNext ? 'Ready to punch' : 'Locked'}`}
+                                        className={`p-3 rounded-lg border transition-all duration-200 relative flex flex-col justify-between ${
+                                            isDone
+                                                ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/60'
+                                                : isNext
+                                                ? 'bg-panel border-emerald-500 shadow-sm ring-1.5 ring-emerald-500/25'
+                                                : 'bg-field/40 border-border/60 opacity-60'
+                                        }`}
+                                    >
+                                        {/* Step Header */}
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-bold ${
+                                                    isDone
+                                                        ? 'bg-emerald-600 text-white'
+                                                        : isNext
+                                                        ? 'bg-emerald-500 text-white animate-pulse'
+                                                        : 'bg-slate-200 dark:bg-slate-700 text-sub'
+                                                }`}>
+                                                    {slot.stepNum}
+                                                </span>
+                                                <span className="text-[11px] font-semibold text-sub uppercase tracking-wider">
+                                                    {slot.label}
+                                                </span>
+                                            </div>
+
+                                            {isDone ? (
+                                                <span className="inline-flex items-center justify-center w-4.5 h-4.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
+                                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                    </svg>
+                                                </span>
+                                            ) : isNext ? (
+                                                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100/90 dark:bg-emerald-950 px-1.5 py-0.25 rounded-full border border-emerald-200 dark:border-emerald-800">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                                                    Next
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 text-[9px] text-dim">
+                                                    <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                                    </svg>
+                                                    Locked
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Recorded Punch Time or Target */}
+                                        <div className="my-0.5">
+                                            <p className="font-heading font-bold text-lg lg:text-xl text-text tnum tracking-tight">
+                                                {isDone ? formatPunchTime(rawVal) : '--:--'}
+                                            </p>
+                                            <p className="text-[10px] text-sub mt-0.5 truncate">{slot.period}</p>
+                                        </div>
+
+                                        {/* Slot Footer Details */}
+                                        <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between text-[10px] text-dim">
+                                            <span>{slot.target}</span>
+                                            {isDone && <span className="text-emerald-600 dark:text-emerald-400 font-medium">Recorded</span>}
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </div>
+
+                        {/* Interactive Punch Action & Feedback Banner */}
+                        <div className="p-3 rounded-lg bg-field/60 dark:bg-slate-900/50 border border-border/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                            <div className="space-y-0.5">
+                                {nextSlot ? (
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                        <p className="text-xs font-semibold text-text">
+                                            Next action: <span className="text-emerald-600 dark:text-emerald-400 font-bold">{nextSlot.label}</span> ({nextSlot.period})
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                                        <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                        </svg>
+                                        <p className="text-xs font-semibold">All 4 attendance punches recorded for today. Great work!</p>
+                                    </div>
+                                )}
+                                <p className="text-[11px] text-sub">
+                                    Punches are officially timestamped to Asia/Manila server time.
+                                </p>
+                                {punchFeedback && (
+                                    <p className={`text-xs font-semibold mt-1 transition-opacity ${
+                                        punchFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                                    }`}>
+                                        {punchFeedback.message}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* 1-Tap Direct Punch Action Button */}
+                            <div className="shrink-0 flex items-center gap-2">
+                                {nextSlot ? (
+                                    <Button
+                                        variant="emerald"
+                                        size="md"
+                                        onClick={handleQuickPunch}
+                                        disabled={punching}
+                                        aria-label={punching ? 'Recording punch...' : `Punch ${nextSlot.label}`}
+                                        className="shadow-xs font-semibold px-4 h-9 text-xs min-w-[140px]"
+                                    >
+                                        {punching ? (
+                                            <span className="inline-flex items-center gap-1.5">
+                                                <svg className="animate-spin h-3.5 w-3.5 text-white" aria-hidden="true" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                </svg>
+                                                Recording...
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1.5">
+                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                Punch {nextSlot.label}
+                                            </span>
+                                        )}
+                                    </Button>
+                                ) : (
+                                    <Link href="/employee/dtr">
+                                        <Button variant="outline" size="sm" className="h-9 text-xs">
+                                            View DTR History →
+                                        </Button>
+                                    </Link>
+                                )}
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 {/* ── Metric Cards with Contextual Progress Bars ───── */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <StatCard
                         title="Days Present"
                         value={summary?.days_present ?? 0}
@@ -321,193 +498,16 @@ export default function Dashboard({
                     />
                 </div>
 
-                {/* ── Today's Attendance Punch State Machine & 1-Tap Punch ── */}
-                <Card className="overflow-hidden border border-border/80 shadow-xs">
-                    <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/60 bg-field/30 px-5 py-4">
-                        <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                                <CardTitle className="text-base sm:text-lg">Today's 4-Punch Attendance Flow</CardTitle>
-                                {completedPunches === 4 ? (
-                                    <Badge variant="on_time" dot>Day Complete</Badge>
-                                ) : activeShift ? (
-                                    <Badge variant="emerald" dot pulse>
-                                        {activeShift.name} Active {elapsedDisplay ? `• ${elapsedDisplay}` : ''}
-                                    </Badge>
-                                ) : completedPunches > 0 ? (
-                                    <Badge variant="amber" dot>Break / In Transition</Badge>
-                                ) : (
-                                    <Badge variant="draft">Awaiting Morning In</Badge>
-                                )}
-                            </div>
-                            <p className="text-xs text-sub mt-0.5">
-                                Strict sequential locking: punches must follow AM In → AM Out → PM In → PM Out order.
-                            </p>
-                        </div>
-                        <Link href="/employee/dtr" className="shrink-0">
-                            <Button variant="outline" size="sm">
-                                Open Full DTR →
-                            </Button>
-                        </Link>
-                    </CardHeader>
-
-                    <CardContent className="p-5 sm:p-6 space-y-6">
-                        {/* Connected 4-step Timeline */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative select-none">
-                            {PUNCH_SLOTS.map((slot, index) => {
-                                const rawVal = today?.[slot.key]
-                                const isDone = Boolean(rawVal)
-                                const isNext = index === nextPunchIndex
-                                const isLocked = !isDone && !isNext
-
-                                return (
-                                    <div
-                                        key={slot.key}
-                                        role="status"
-                                        aria-label={`${slot.label}: ${isDone ? `Punched at ${rawVal}` : isNext ? 'Ready to punch' : 'Locked'}`}
-                                        className={`p-4 rounded-xl border transition-all duration-200 relative flex flex-col justify-between ${
-                                            isDone
-                                                ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/60'
-                                                : isNext
-                                                ? 'bg-panel border-emerald-500 shadow-md ring-2 ring-emerald-500/25'
-                                                : 'bg-field/40 border-border/60 opacity-60'
-                                        }`}
-                                    >
-                                        {/* Step Header */}
-                                        <div className="flex items-center justify-between mb-3">
-                                            <div className="flex items-center gap-1.5">
-                                                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                                                    isDone
-                                                        ? 'bg-emerald-600 text-white'
-                                                        : isNext
-                                                        ? 'bg-emerald-500 text-white animate-pulse'
-                                                        : 'bg-slate-200 dark:bg-slate-700 text-sub'
-                                                }`}>
-                                                    {slot.stepNum}
-                                                </span>
-                                                <span className="text-xs font-semibold text-sub uppercase tracking-wider">
-                                                    {slot.label}
-                                                </span>
-                                            </div>
-
-                                            {isDone ? (
-                                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
-                                                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                    </svg>
-                                                </span>
-                                            ) : isNext ? (
-                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100/90 dark:bg-emerald-950 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                                                    Next
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1 text-[10px] text-dim">
-                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                                                    </svg>
-                                                    Locked
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {/* Recorded Punch Time or Target */}
-                                        <div className="my-1">
-                                            <p className="font-heading font-bold text-2xl lg:text-3xl text-text tnum tracking-tight">
-                                                {isDone ? formatPunchTime(rawVal) : '--:--'}
-                                            </p>
-                                            <p className="text-[11px] text-sub mt-0.5 truncate">{slot.period}</p>
-                                        </div>
-
-                                        {/* Slot Footer Details */}
-                                        <div className="mt-3 pt-2.5 border-t border-border/50 flex items-center justify-between text-[11px] text-dim">
-                                            <span>{slot.target}</span>
-                                            {isDone && <span className="text-emerald-600 dark:text-emerald-400 font-medium">Recorded</span>}
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-
-                        {/* Interactive Punch Action & Feedback Banner */}
-                        <div className="p-4 rounded-xl bg-field/60 dark:bg-slate-900/50 border border-border/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                            <div className="space-y-1">
-                                {nextSlot ? (
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                        <p className="text-sm font-semibold text-text">
-                                            Next action: <span className="text-emerald-600 dark:text-emerald-400 font-bold">{nextSlot.label}</span> ({nextSlot.period})
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-                                        <svg className="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                        </svg>
-                                        <p className="text-sm font-semibold">All 4 attendance punches recorded for today. Great work!</p>
-                                    </div>
-                                )}
-                                <p className="text-xs text-sub">
-                                    Punches are officially timestamped to Asia/Manila server time.
-                                </p>
-                                {punchFeedback && (
-                                    <p className={`text-xs font-semibold mt-1 transition-opacity ${
-                                        punchFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                                    }`}>
-                                        {punchFeedback.message}
-                                    </p>
-                                )}
-                            </div>
-
-                            {/* 1-Tap Direct Punch Action Button */}
-                            <div className="shrink-0 flex items-center gap-2">
-                                {nextSlot ? (
-                                    <Button
-                                        variant="emerald"
-                                        size="lg"
-                                        onClick={handleQuickPunch}
-                                        disabled={punching}
-                                        aria-label={punching ? 'Recording punch...' : `Punch ${nextSlot.label}`}
-                                        className="shadow-sm font-semibold px-6 min-w-[160px]"
-                                    >
-                                        {punching ? (
-                                            <span className="inline-flex items-center gap-2">
-                                                <svg className="animate-spin h-4 w-4 text-white" aria-hidden="true" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                                </svg>
-                                                Recording...
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-2">
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                Punch {nextSlot.label}
-                                            </span>
-                                        )}
-                                    </Button>
-                                ) : (
-                                    <Link href="/employee/dtr">
-                                        <Button variant="outline" size="md">
-                                            View DTR History →
-                                        </Button>
-                                    </Link>
-                                )}
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
                 {/* ── Lower Split: Action Hub & Shortcuts ───────────── */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
                     {/* Action Hub (Tasks & Notifications Tabs) */}
                     <div className="lg:col-span-2">
                         <Card className="h-full flex flex-col justify-between">
                             <div>
-                                <CardHeader className="border-b border-border/60 pb-3">
+                                <CardHeader className="border-b border-border/60 px-4 py-2.5">
                                     <div className="flex items-center justify-between w-full">
                                         <div
-                                            className="flex items-center gap-2 select-none"
+                                            className="flex items-center gap-1.5 select-none"
                                             role="tablist"
                                             aria-label="Action Hub"
                                         >
@@ -521,7 +521,7 @@ export default function Dashboard({
                                                 tabIndex={activeTab === 'tasks' ? 0 : -1}
                                                 onClick={() => setActiveTab('tasks')}
                                                 onKeyDown={event => handleActionTabKeyDown(event, 'tasks')}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
                                                     activeTab === 'tasks'
                                                         ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 shadow-2xs border border-emerald-200 dark:border-emerald-800'
                                                         : 'text-sub hover:text-text hover:bg-field'
@@ -539,7 +539,7 @@ export default function Dashboard({
                                                 tabIndex={activeTab === 'alerts' ? 0 : -1}
                                                 onClick={() => setActiveTab('alerts')}
                                                 onKeyDown={event => handleActionTabKeyDown(event, 'alerts')}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${
                                                     activeTab === 'alerts'
                                                         ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 shadow-2xs border border-emerald-200 dark:border-emerald-800'
                                                         : 'text-sub hover:text-text hover:bg-field'
@@ -562,7 +562,7 @@ export default function Dashboard({
                                 </CardHeader>
 
                                 <CardContent
-                                    className="p-5"
+                                    className="p-3.5 sm:p-4"
                                     id="action-hub-panel"
                                     role="tabpanel"
                                     aria-labelledby={`action-hub-tab-${activeTab}`}
@@ -573,13 +573,13 @@ export default function Dashboard({
                                                 {recentTasks.map(task => {
                                                     const isDone = task.status === 'done'
                                                     return (
-                                                        <div key={task.id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
-                                                            <div className="flex items-start gap-3 min-w-0">
+                                                        <div key={task.id} className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
+                                                            <div className="flex items-start gap-2.5 min-w-0">
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handleToggleTask(task.id)}
                                                                     disabled={togglingTaskId === task.id}
-                                                                    className={`mt-0.5 w-5 h-5 rounded border flex items-center justify-center transition-colors shrink-0 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 focus:outline-none ${
+                                                                    className={`mt-0.5 w-4.5 h-4.5 rounded border flex items-center justify-center transition-colors shrink-0 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 focus:outline-none ${
                                                                         isDone
                                                                             ? 'bg-emerald-600 border-emerald-600 text-white'
                                                                             : 'border-border/90 hover:border-emerald-500 bg-field'
@@ -587,7 +587,7 @@ export default function Dashboard({
                                                                     aria-label={`Mark task ${task.title} as ${isDone ? 'incomplete' : 'done'}`}
                                                                 >
                                                                     {isDone && (
-                                                                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                                         </svg>
                                                                     )}
@@ -596,12 +596,12 @@ export default function Dashboard({
                                                                     <p className={`text-xs font-medium text-text truncate ${isDone ? 'line-through text-sub' : ''}`}>
                                                                         {task.title}
                                                                     </p>
-                                                                    <div className="flex items-center gap-2 text-[11px] text-dim">
+                                                                    <div className="flex items-center gap-2 text-[10px] text-dim">
                                                                         <span className={`font-medium ${task.is_overdue ? 'text-rose-600 dark:text-rose-400 font-semibold' : ''}`}>
                                                                             Due: {task.due_label}
                                                                         </span>
                                                                         {task.priority && (
-                                                                            <span className={`px-1.5 py-0.25 rounded text-[10px] uppercase font-semibold ${
+                                                                            <span className={`px-1.5 py-0.25 rounded text-[9px] uppercase font-semibold ${
                                                                                 task.priority === 'high'
                                                                                     ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
                                                                                     : task.priority === 'medium'
@@ -626,16 +626,16 @@ export default function Dashboard({
                                                 })}
                                             </div>
                                         ) : (
-                                            <div className="text-center py-8">
-                                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-sub flex items-center justify-center mx-auto mb-2">
-                                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                            <div className="text-center py-6">
+                                                <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-sub flex items-center justify-center mx-auto mb-1.5">
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                     </svg>
                                                 </div>
-                                                <p className="text-sm font-medium text-text">No pending tasks</p>
-                                                <p className="text-xs text-sub mt-0.5">Organize daily responsibilities in your task planner.</p>
-                                                <Link href="/employee/planner" className="inline-block mt-3">
-                                                    <Button variant="outline" size="sm">
+                                                <p className="text-xs font-medium text-text">No pending tasks</p>
+                                                <p className="text-[11px] text-sub mt-0.5">Organize daily responsibilities in your task planner.</p>
+                                                <Link href="/employee/planner" className="inline-block mt-2">
+                                                    <Button variant="outline" size="sm" className="h-7 text-xs">
                                                         Add a task in Planner →
                                                     </Button>
                                                 </Link>
@@ -644,16 +644,16 @@ export default function Dashboard({
                                     ) : alertsList.length > 0 ? (
                                         <div className="divide-y divide-border/60">
                                             {alertsList.slice(0, 4).map(n => (
-                                                <div key={n.id} className="py-3 first:pt-0 last:pb-0 flex items-start justify-between gap-3">
+                                                <div key={n.id} className="py-2.5 first:pt-0 last:pb-0 flex items-start justify-between gap-3">
                                                     <div className="space-y-0.5">
                                                         <p className="text-xs font-semibold text-text">{n.title}</p>
                                                         <p className="text-xs text-sub leading-relaxed">{n.message}</p>
-                                                        <p className="text-[11px] text-dim">{n.created_at}</p>
+                                                        <p className="text-[10px] text-dim">{n.created_at}</p>
                                                     </div>
                                                     {n.link && (
                                                         <Link
                                                             href={n.link}
-                                                            className="inline-flex h-8 flex-shrink-0 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+                                                            className="inline-flex h-7 flex-shrink-0 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
                                                         >
                                                             Open →
                                                         </Link>
@@ -662,14 +662,14 @@ export default function Dashboard({
                                             ))}
                                         </div>
                                     ) : (
-                                        <div className="text-center py-8">
-                                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-sub flex items-center justify-center mx-auto mb-2">
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                        <div className="text-center py-6">
+                                            <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-sub flex items-center justify-center mx-auto mb-1.5">
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                                                 </svg>
                                             </div>
-                                            <p className="text-sm font-medium text-text">No pending alerts</p>
-                                            <p className="text-xs text-sub mt-0.5">When HR approves your edit requests or sends an update, it will appear here.</p>
+                                            <p className="text-xs font-medium text-text">No pending alerts</p>
+                                            <p className="text-[11px] text-sub mt-0.5">When HR approves your edit requests or sends an update, it will appear here.</p>
                                         </div>
                                     )}
                                 </CardContent>
@@ -678,47 +678,47 @@ export default function Dashboard({
                     </div>
 
                     {/* Right Column: Latest Payslip Voucher & Shortcuts */}
-                    <div className="space-y-4">
+                    <div className="space-y-3.5">
                         {/* Latest Payslip Voucher Card */}
                         <Card className="border border-indigo-200/80 dark:border-indigo-900/60 bg-gradient-to-br from-indigo-50/40 via-panel to-panel dark:from-indigo-950/20 shadow-xs">
-                            <CardHeader className="pb-2">
+                            <CardHeader className="px-4 py-2.5 pb-2">
                                 <div className="flex items-center justify-between w-full">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-7 h-7 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 flex items-center justify-center">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <div className="w-6 h-6 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 flex items-center justify-center">
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
                                             </svg>
                                         </div>
-                                        <CardTitle className="text-sm">Latest Payslip</CardTitle>
+                                        <CardTitle className="text-xs sm:text-sm">Latest Payslip</CardTitle>
                                     </div>
                                     {latestPayslip && (
-                                        <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
+                                        <span className="text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
                                             {latestPayslip.cutoff}
                                         </span>
                                     )}
                                 </div>
                             </CardHeader>
-                            <CardContent className="space-y-3">
+                            <CardContent className="p-3.5 pt-0 space-y-2.5">
                                 {latestPayslip ? (
                                     <>
                                         <div>
-                                            <p className="text-xs text-sub">{latestPayslip.month_label}</p>
-                                            <p className="text-2xl font-bold font-heading text-text tracking-tight tnum mt-0.5">
+                                            <p className="text-[11px] text-sub">{latestPayslip.month_label}</p>
+                                            <p className="text-lg sm:text-xl font-bold font-heading text-text tracking-tight tnum mt-0.5">
                                                 ₱{latestPayslip.net_pay.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </p>
-                                            <p className="text-[11px] text-dim mt-0.5">{latestPayslip.period_label}</p>
+                                            <p className="text-[10px] text-dim mt-0.5">{latestPayslip.period_label}</p>
                                         </div>
                                         <div className="pt-2 flex items-center justify-between gap-2 border-t border-border/60">
                                             <a
                                                 href={`/employee/payslips/${latestPayslip.month}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                                                className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
                                             >
                                                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                                                 </svg>
-                                                Download PDF Voucher
+                                                PDF Voucher
                                             </a>
                                             <Link href="/employee/payslips" className="text-xs text-sub hover:text-text">
                                                 All →
@@ -730,7 +730,7 @@ export default function Dashboard({
                                         <p className="text-xs text-sub leading-relaxed">
                                             Payslips are generated on the 15th and end-of-month cutoffs once finalized by HR.
                                         </p>
-                                        <Link href="/employee/payslips" className="inline-block mt-2.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                                        <Link href="/employee/payslips" className="inline-block mt-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
                                             Open Payslip Archive →
                                         </Link>
                                     </div>
@@ -740,23 +740,23 @@ export default function Dashboard({
 
                         {/* Quick Shortcuts */}
                         <Card>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-xs uppercase tracking-wider text-dim">Quick Shortcuts</CardTitle>
+                            <CardHeader className="px-4 py-2 pb-1">
+                                <CardTitle className="text-[10px] uppercase tracking-wider text-dim">Quick Shortcuts</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-2 select-none">
+                            <CardContent className="p-3 pt-1 space-y-1.5 select-none">
                                 <Link
                                     href="/employee/dtr"
-                                    className="flex items-center justify-between p-2.5 rounded-xl border border-border/70 hover:bg-field transition-colors"
+                                    className="flex items-center justify-between p-2 rounded-lg border border-border/70 hover:bg-field transition-colors"
                                 >
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-md bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                         </div>
                                         <div>
                                             <p className="text-xs font-semibold text-text">Daily Time Record</p>
-                                            <p className="text-[10px] text-sub">View logs & request edits</p>
+                                            <p className="text-[9px] text-sub">View logs & request edits</p>
                                         </div>
                                     </div>
                                     <span className="text-dim text-xs" aria-hidden="true">→</span>
@@ -764,17 +764,17 @@ export default function Dashboard({
 
                                 <Link
                                     href="/employee/planner"
-                                    className="flex items-center justify-between p-2.5 rounded-xl border border-border/70 hover:bg-field transition-colors"
+                                    className="flex items-center justify-between p-2 rounded-lg border border-border/70 hover:bg-field transition-colors"
                                 >
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-md bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                         </div>
                                         <div>
                                             <p className="text-xs font-semibold text-text">Task Planner</p>
-                                            <p className="text-[10px] text-sub">Manage tasks & deadlines</p>
+                                            <p className="text-[9px] text-sub">Manage tasks & deadlines</p>
                                         </div>
                                     </div>
                                     <span className="text-dim text-xs" aria-hidden="true">→</span>
@@ -782,17 +782,17 @@ export default function Dashboard({
 
                                 <Link
                                     href="/employee/profile"
-                                    className="flex items-center justify-between p-2.5 rounded-xl border border-border/70 hover:bg-field transition-colors"
+                                    className="flex items-center justify-between p-2 rounded-lg border border-border/70 hover:bg-field transition-colors"
                                 >
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center">
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                             </svg>
                                         </div>
                                         <div>
                                             <p className="text-xs font-semibold text-text">My Profile</p>
-                                            <p className="text-[10px] text-sub">Government IDs & records</p>
+                                            <p className="text-[9px] text-sub">Government IDs & records</p>
                                         </div>
                                     </div>
                                     <span className="text-dim text-xs" aria-hidden="true">→</span>

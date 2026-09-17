@@ -91,6 +91,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Employee Dashboard DTR Flow Hierarchy**: Reordered the Employee Dashboard (`Employee/Dashboard.jsx`) layout to position "Today's 4-Punch Attendance Flow" directly beneath the Welcome Banner and above the KPI summary cards, bringing the immediate daily clock-in/out state machine directly into primary operational view.
+- **Compact UI Scaling Across Portals**: Scaled down visual density across both Employee and Admin Dashboards (`Employee/Dashboard.jsx`, `Admin/Dashboard.jsx`, `StatCard.jsx`):
+  - Reduced outer container padding from `p-6`–`p-8` to `p-3.5 sm:p-5 lg:p-6` with tighter `space-y-4` vertical rhythm.
+  - Compacted Welcome and Executive Command banners, live Manila clocks, shift phase indicators, and Action Hub cards.
+  - Reduced `StatCard` padding from `p-5` to `p-3.5 sm:p-4`, icon boxes to `w-9 h-9`, and numeric values from `text-3xl` to `text-xl sm:text-2xl`.
+  - Scaled Admin Recharts container heights down (performance trends to 190px, department and payroll financial charts to 135px–140px) to eliminate vertical scrolling fatigue and keep critical metrics within standard laptop viewport view.
 - **Mouse Hold Highlight Suppression**: Disabled accidental text selection and ghost dragging (`user-select: none; -webkit-user-drag: none;`) across non-content UI chrome (buttons, navigation links, sidebars, headers, table headers, status badges, StatCard metadata, punch timeline steps, and quick action cards) while strictly preserving full text selection (`user-select: text`) for table data, form inputs, and copyable text.
 - **Portal Branding Uniformity**: Replaced abstract 3-circle vector icon with official high-resolution PMPC crest emblem (`/pmpc_ems.png`) across `EmployeeLayout.jsx`, `AdminLayout.jsx` desktop sidebar, and `MobileHeader.jsx`.
 - **Palette Standardization**: Standardized login portal on authentic cooperative deep teal/emerald (`#0F6E56`) across both light and dark themes.
