@@ -123,6 +123,30 @@ class EmployeeDashboardController extends Controller
             ['status' => 'absent']
         );
 
+        // Recent editable DTR logs (past 7 days) for 1-click adjustment requests
+        $recentEditableLogs = DtrLog::where('employee_id', $employee->id)
+            ->whereBetween('date', [$now->copy()->subDays(7)->toDateString(), $now->toDateString()])
+            ->with('pendingEditRequest')
+            ->orderBy('date', 'desc')
+            ->get()
+            ->map(function ($log) {
+                return [
+                    'id' => $log->id,
+                    'date' => $log->date->format('Y-m-d'),
+                    'date_label' => $log->date->isToday()
+                        ? 'Today ('.$log->date->format('M d').')'
+                        : ($log->date->isYesterday() ? 'Yesterday ('.$log->date->format('M d').')' : $log->date->format('D, M d')),
+                    'am_time_in' => $log->am_time_in,
+                    'am_time_out' => $log->am_time_out,
+                    'pm_time_in' => $log->pm_time_in,
+                    'pm_time_out' => $log->pm_time_out,
+                    'status' => $log->status,
+                    'hours_rendered' => (float) $log->hours_rendered,
+                    'has_pending_edit' => $log->pendingEditRequest !== null,
+                    'edit_window_open' => true,
+                ];
+            })->values()->all();
+
         // Recent notifications (last 5)
         $recentNotifications = EmployeeNotification::where('employee_id', $employee->id)
             ->whereNull('read_at')
@@ -241,6 +265,9 @@ class EmployeeDashboardController extends Controller
             'summary' => $summary,
             'cutoff' => $cutoffInfo,
             'today' => [
+                'id' => $today->id,
+                'date' => $today->date->toDateString(),
+                'date_label' => 'Today ('.$today->date->format('M d').')',
                 'am_time_in' => $today->am_time_in,
                 'am_time_out' => $today->am_time_out,
                 'pm_time_in' => $today->pm_time_in,
@@ -248,7 +275,10 @@ class EmployeeDashboardController extends Controller
                 'status' => $today->status,
                 'hours_rendered' => $today->hours_rendered,
                 'next_punch' => $today->getNextPunchSlot(),
+                'has_pending_edit' => DtrEditRequest::where('dtr_log_id', $today->id)->where('status', 'pending')->exists(),
+                'edit_window_open' => true,
             ],
+            'recentEditableLogs' => $recentEditableLogs,
             'notifications' => $recentNotifications,
             'recentNotifications' => $recentNotifications,
             'recentTasks' => $recentTasks,

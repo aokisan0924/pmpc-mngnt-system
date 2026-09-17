@@ -5,6 +5,7 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
+import DtrEditRequestModal from '@/Components/DtrEditRequestModal'
 
 function formatPunchTime(timeString) {
     if (!timeString) return '--:--'
@@ -100,12 +101,14 @@ export default function Dashboard({
     recentNotifications = [],
     recentTasks = [],
     latestPayslip,
+    recentEditableLogs = [],
 }) {
     const [now, setNow] = useState(() => new Date())
     const [punching, setPunching] = useState(false)
     const [togglingTaskId, setTogglingTaskId] = useState(null)
     const [punchFeedback, setPunchFeedback] = useState(null)
     const [activeTab, setActiveTab] = useState('tasks') // 'tasks' | 'alerts'
+    const [editModalOpen, setEditModalOpen] = useState(false)
     const actionTabRefs = useRef({})
 
     // Low-frequency interval (30s) for non-second UI updates (greeting, elapsed shifts)
@@ -361,7 +364,7 @@ export default function Dashboard({
 
                         {/* Interactive Punch Action & Feedback Banner */}
                         <div className="p-3 rounded-lg bg-field/60 dark:bg-slate-900/50 border border-border/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div>
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                                 {punchFeedback ? (
                                     <p className={`text-xs font-semibold transition-opacity ${
                                         punchFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
@@ -376,6 +379,18 @@ export default function Dashboard({
                                         <p className="text-xs font-semibold">All 4 attendance punches recorded for today.</p>
                                     </div>
                                 ) : null}
+
+                                <button
+                                    type="button"
+                                    onClick={() => setEditModalOpen(true)}
+                                    className="inline-flex items-center gap-1.5 text-xs text-sub hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group cursor-pointer"
+                                    aria-label="Request attendance punch adjustment"
+                                >
+                                    <svg className="w-3.5 h-3.5 text-amber-500 group-hover:scale-110 transition-transform shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    <span>Missed a punch? <span className="font-semibold underline underline-offset-2">Request adjustment</span></span>
+                                </button>
                             </div>
 
                             {/* 1-Tap Direct Punch Action Button */}
@@ -802,6 +817,14 @@ export default function Dashboard({
                     </div>
                 </div>
             </div>
+
+            {editModalOpen && (
+                <DtrEditRequestModal
+                    log={today}
+                    availableLogs={recentEditableLogs}
+                    onClose={() => setEditModalOpen(false)}
+                />
+            )}
         </EmployeeLayout>
     )
 }
