@@ -3,164 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; font-size: 10px; color: #111; padding: 24px; }
+        @page { margin: 20px 24px 18px; }
 
-        .header { text-align: center; margin-bottom: 16px; }
-        .header .coop-name { font-size: 13px; font-weight: bold; color: #0F6E56; }
-        .header .address   { font-size: 9px; color: #555; margin-top: 2px; }
-        .header .doc-title { font-size: 15px; font-weight: bold; margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 1px; }
-        .header .period    { font-size: 10px; color: #444; }
+        * { box-sizing: border-box; }
+        body { color: #16221f; font-family: DejaVu Sans, sans-serif; font-size: 9px; line-height: 1.35; }
+        table { border-collapse: collapse; width: 100%; }
 
-        .employee-info { display: flex; justify-content: space-between; margin-bottom: 14px; padding: 10px 14px; background: #f5f9f7; border: 0.5px solid #c5ddd7; border-radius: 6px; }
-        .employee-info .field { display: flex; flex-direction: column; gap: 2px; }
-        .employee-info .label { font-size: 8px; text-transform: uppercase; color: #777; letter-spacing: .5px; }
-        .employee-info .value { font-size: 11px; font-weight: bold; color: #111; }
+        .document-header { border-bottom: 1px solid #b7d8cf; margin-bottom: 14px; padding: 0 0 11px; }
+        .header-bar { background: #0f6e56; height: 5px; margin-bottom: 10px; }
+        .brand-name { color: #0f6e56; font-size: 12px; font-weight: bold; letter-spacing: .2px; }
+        .brand-address { color: #5b6c66; font-size: 8px; margin-top: 2px; }
+        .document-title { color: #15231f; font-size: 17px; font-weight: bold; letter-spacing: 1.4px; text-align: right; }
+        .document-subtitle { color: #62736d; font-size: 8px; letter-spacing: .7px; text-align: right; text-transform: uppercase; }
 
-        table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-        thead tr { background: #0F6E56; color: #fff; }
-        thead th { padding: 6px 8px; text-align: center; font-size: 9px; text-transform: uppercase; letter-spacing: .4px; }
-        thead th.left { text-align: left; }
-        tbody tr { border-bottom: 0.5px solid #e8eeed; }
-        tbody tr:nth-child(even) { background: #f9fbfb; }
-        tbody tr.weekend { background: #f0f5f4; color: #888; }
-        tbody tr.absent td { color: #cc4444; }
-        tbody tr.late td.status-cell { color: #d97706; font-weight: bold; }
-        tbody tr.on_time td.status-cell { color: #0F6E56; font-weight: bold; }
-        tbody td { padding: 5px 8px; text-align: center; font-size: 9.5px; }
-        tbody td.left { text-align: left; }
-        tbody td.mono { font-family: 'Courier New', monospace; }
+        .section-label { color: #60736c; font-size: 7.5px; font-weight: bold; letter-spacing: .9px; margin: 0 0 5px; text-transform: uppercase; }
+        .employee-card { background: #f3f8f6; border: 1px solid #c9e1da; margin-bottom: 12px; }
+        .employee-card td { border-right: 1px solid #d8e9e3; padding: 8px 10px; vertical-align: top; }
+        .employee-card td:last-child { border-right: 0; }
+        .field-label { color: #6f807a; font-size: 7px; font-weight: bold; letter-spacing: .65px; text-transform: uppercase; }
+        .field-value { color: #17241f; font-size: 10px; font-weight: bold; margin-top: 3px; }
 
-        .status-badge { display: inline-block; padding: 1px 6px; border-radius: 10px; font-size: 8.5px; font-weight: bold; }
-        .badge-on_time  { background: #e6f7f1; color: #0F6E56; }
-        .badge-late     { background: #fef3cd; color: #b45309; }
-        .badge-undertime{ background: #e0eeff; color: #1d4ed8; }
-        .badge-half_day { background: #ede9fe; color: #5b21b6; }
-        .badge-absent   { background: #fee2e2; color: #b91c1c; }
-        .badge-rest_day { background: #f3f4f6; color: #6b7280; }
+        .summary { border: 1px solid #d4e5df; margin-bottom: 14px; }
+        .summary td { border-right: 1px solid #dcebe6; padding: 8px 6px; text-align: center; width: 20%; }
+        .summary td:last-child { border-right: 0; }
+        .summary-value { color: #0f6e56; font-size: 15px; font-weight: bold; }
+        .summary-label { color: #687a74; font-size: 7.5px; margin-top: 2px; text-transform: uppercase; }
+        .summary-late { color: #b45309; }
+        .summary-absent { color: #b91c1c; }
+        .summary-half { color: #8b5a17; }
 
-        .summary { display: flex; gap: 10px; margin-bottom: 18px; }
-        .summary-card { flex: 1; padding: 8px 10px; border: 0.5px solid #c5ddd7; border-radius: 6px; text-align: center; background: #f5f9f7; }
-        .summary-card .s-val { font-size: 16px; font-weight: bold; color: #0F6E56; }
-        .summary-card .s-label { font-size: 8px; color: #666; margin-top: 1px; }
+        .dtr-table { border: 1px solid #b8d2ca; margin-bottom: 15px; }
+        .dtr-table thead { display: table-header-group; }
+        .dtr-table thead tr { background: #0f6e56; color: #ffffff; }
+        .dtr-table th { border-right: 1px solid rgba(255,255,255,.22); font-size: 7.5px; font-weight: bold; letter-spacing: .45px; padding: 7px 5px; text-align: center; text-transform: uppercase; }
+        .dtr-table th:last-child { border-right: 0; }
+        .dtr-table td { border-right: 1px solid #e1ece8; border-top: 1px solid #e1ece8; font-size: 8.5px; padding: 5px; text-align: center; vertical-align: middle; }
+        .dtr-table td:last-child { border-right: 0; }
+        .dtr-table tbody tr:nth-child(even) { background: #f8fbfa; }
+        .dtr-table tbody tr.weekend { background: #f1f5f3; color: #7b8984; }
+        .date-cell { font-weight: bold; text-align: left !important; }
+        .time-cell { color: #263a34; font-family: DejaVu Sans Mono, monospace; }
+        .hours-cell { font-family: DejaVu Sans Mono, monospace; font-weight: bold; }
+        .status-badge { border-radius: 10px; display: inline-block; font-size: 7.5px; font-weight: bold; line-height: 1; padding: 3px 5px; white-space: nowrap; }
+        .badge-on_time { background: #e4f5ee; color: #0a684e; }
+        .badge-late, .badge-undertime, .badge-half_day, .badge-in_progress { background: #fff2d6; color: #9a5808; }
+        .badge-absent { background: #fde8e8; color: #a82e2e; }
+        .badge-rest_day { background: #e8edeb; color: #66756f; }
 
-        .signatures { display: flex; justify-content: space-between; margin-top: 24px; }
-        .sig-block { text-align: center; width: 28%; }
-        .sig-line { border-top: 0.5px solid #333; margin-top: 28px; margin-bottom: 3px; }
-        .sig-name { font-weight: bold; font-size: 10px; }
-        .sig-role { font-size: 8.5px; color: #666; }
-
-        .footer { margin-top: 18px; text-align: center; font-size: 8px; color: #aaa; border-top: 0.5px solid #ddd; padding-top: 8px; }
+        .signature-section { margin-top: 4px; page-break-inside: avoid; }
+        .signature-table td { padding: 0 9px; text-align: center; vertical-align: bottom; width: 33.33%; }
+        .signature-space { height: 28px; }
+        .signature-line { border-top: 1px solid #556760; padding-top: 4px; }
+        .signature-name { color: #1e302a; font-size: 9px; font-weight: bold; }
+        .signature-role { color: #6d7d77; font-size: 7.5px; margin-top: 2px; }
+        .footer { border-top: 1px solid #d9e5e1; color: #7a8984; font-size: 7px; margin-top: 15px; padding-top: 7px; text-align: center; }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <div class="coop-name">{{ $settings['coop_name'] }}</div>
-        <div class="address">{{ $settings['coop_address'] }}</div>
-        <div class="doc-title">Daily Time Record</div>
-        <div class="period">{{ $month }}</div>
+    <div class="document-header">
+        <div class="header-bar"></div>
+        <table>
+            <tr>
+                <td style="width:60%; vertical-align:top;">
+                    <div class="brand-name">{{ $settings['coop_name'] }}</div>
+                    <div class="brand-address">{{ $settings['coop_address'] }}</div>
+                </td>
+                <td style="width:40%; vertical-align:bottom;">
+                    <div class="document-title">DAILY TIME RECORD</div>
+                    <div class="document-subtitle">Attendance record for {{ $month }}</div>
+                </td>
+            </tr>
+        </table>
     </div>
 
-    <div class="employee-info">
-        <div class="field">
-            <span class="label">Employee name</span>
-            <span class="value">{{ $employee->full_name }}</span>
-        </div>
-        <div class="field">
-            <span class="label">Employee ID</span>
-            <span class="value">{{ $employee->employee_id }}</span>
-        </div>
-        <div class="field">
-            <span class="label">Department</span>
-            <span class="value">{{ $employee->department ?? '—' }}</span>
-        </div>
-        <div class="field">
-            <span class="label">Position</span>
-            <span class="value">{{ $employee->position ?? '—' }}</span>
-        </div>
-    </div>
+    <p class="section-label">Employee information</p>
+    <table class="employee-card">
+        <tr>
+            <td style="width:34%;">
+                <div class="field-label">Employee name</div>
+                <div class="field-value">{{ $employee->full_name }}</div>
+            </td>
+            <td style="width:18%;">
+                <div class="field-label">Employee ID</div>
+                <div class="field-value">{{ $employee->employee_id }}</div>
+            </td>
+            <td style="width:24%;">
+                <div class="field-label">Department</div>
+                <div class="field-value">{{ $employee->department ?: '-' }}</div>
+            </td>
+            <td style="width:24%;">
+                <div class="field-label">Position</div>
+                <div class="field-value">{{ $employee->position ?: '-' }}</div>
+            </td>
+        </tr>
+    </table>
 
-    {{-- Summary cards --}}
-    <div class="summary">
-        <div class="summary-card">
-            <div class="s-val">{{ $summary['days_present'] }}</div>
-            <div class="s-label">Days present</div>
-        </div>
-        <div class="summary-card">
-            <div class="s-val" style="color:#b45309">{{ $summary['days_late'] }}</div>
-            <div class="s-label">Days late</div>
-        </div>
-        <div class="summary-card">
-            <div class="s-val" style="color:#b91c1c">{{ $summary['days_absent'] }}</div>
-            <div class="s-label">Days absent</div>
-        </div>
-        <div class="summary-card">
-            <div class="s-val" style="color:#5b21b6">{{ $summary['half_days'] }}</div>
-            <div class="s-label">Half days</div>
-        </div>
-        <div class="summary-card">
-            <div class="s-val">{{ $summary['hours_rendered'] }}h</div>
-            <div class="s-label">Hours rendered</div>
-        </div>
-    </div>
+    <p class="section-label">Monthly attendance summary</p>
+    <table class="summary">
+        <tr>
+            <td><div class="summary-value">{{ $summary['days_present'] }}</div><div class="summary-label">Days present</div></td>
+            <td><div class="summary-value summary-late">{{ $summary['days_late'] }}</div><div class="summary-label">Late arrivals</div></td>
+            <td><div class="summary-value summary-absent">{{ $summary['days_absent'] }}</div><div class="summary-label">Absences</div></td>
+            <td><div class="summary-value summary-half">{{ $summary['half_days'] }}</div><div class="summary-label">Half days</div></td>
+            <td><div class="summary-value">{{ number_format($summary['hours_rendered'], 2) }}<span style="font-size:9px;">h</span></div><div class="summary-label">Hours rendered</div></td>
+        </tr>
+    </table>
 
-    {{-- DTR table --}}
-    <table>
+    <p class="section-label">Daily attendance details</p>
+    <table class="dtr-table">
         <thead>
             <tr>
-                <th class="left" style="width:60px">Date</th>
-                <th style="width:30px">Day</th>
-                <th style="width:65px">AM In</th>
-                <th style="width:65px">AM Out</th>
-                <th style="width:65px">PM In</th>
-                <th style="width:65px">PM Out</th>
-                <th style="width:45px">Hours</th>
-                <th style="width:70px">Status</th>
+                <th style="text-align:left; width:17%;">Date</th>
+                <th style="width:7%;">Day</th>
+                <th style="width:13%;">AM In</th>
+                <th style="width:13%;">AM Out</th>
+                <th style="width:13%;">PM In</th>
+                <th style="width:13%;">PM Out</th>
+                <th style="width:10%;">Hours</th>
+                <th style="width:14%;">Status</th>
             </tr>
         </thead>
         <tbody>
             @foreach($calendar as $row)
-            <tr class="{{ $row['is_weekend'] ? 'weekend' : $row['status'] }}">
-                <td class="left mono">{{ $row['date']->format('M d, Y') }}</td>
-                <td>{{ $row['day_name'] }}</td>
-                <td class="mono">{{ $row['am_time_in']  ? substr($row['am_time_in'],  0, 5) : '—' }}</td>
-                <td class="mono">{{ $row['am_time_out'] ? substr($row['am_time_out'], 0, 5) : '—' }}</td>
-                <td class="mono">{{ $row['pm_time_in']  ? substr($row['pm_time_in'],  0, 5) : '—' }}</td>
-                <td class="mono">{{ $row['pm_time_out'] ? substr($row['pm_time_out'], 0, 5) : '—' }}</td>
-                <td class="mono">{{ $row['hours'] ? number_format($row['hours'], 2) : '—' }}</td>
-                <td class="status-cell">
-                    <span class="status-badge badge-{{ $row['status'] }}">
-                        {{ ucfirst(str_replace('_', ' ', $row['status'])) }}
-                    </span>
-                </td>
-            </tr>
+                <tr class="{{ $row['is_weekend'] ? 'weekend' : '' }}">
+                    <td class="date-cell">{{ $row['date']->format('M d, Y') }}</td>
+                    <td>{{ $row['day_name'] }}</td>
+                    <td class="time-cell">{{ $row['am_time_in'] ? substr($row['am_time_in'], 0, 5) : '-' }}</td>
+                    <td class="time-cell">{{ $row['am_time_out'] ? substr($row['am_time_out'], 0, 5) : '-' }}</td>
+                    <td class="time-cell">{{ $row['pm_time_in'] ? substr($row['pm_time_in'], 0, 5) : '-' }}</td>
+                    <td class="time-cell">{{ $row['pm_time_out'] ? substr($row['pm_time_out'], 0, 5) : '-' }}</td>
+                    <td class="hours-cell">{{ $row['hours'] ? number_format($row['hours'], 2) : '-' }}</td>
+                    <td><span class="status-badge badge-{{ $row['status'] }}">{{ ucfirst(str_replace('_', ' ', $row['status'])) }}</span></td>
+                </tr>
             @endforeach
         </tbody>
     </table>
 
-    {{-- Signatures --}}
-    <div class="signatures">
-        <div class="sig-block">
-            <div class="sig-line"></div>
-            <div class="sig-name">{{ $employee->full_name }}</div>
-            <div class="sig-role">Employee</div>
-        </div>
-        <div class="sig-block">
-            <div class="sig-line"></div>
-            <div class="sig-name">{{ $settings['signatory_1_name'] }}</div>
-            <div class="sig-role">{{ $settings['signatory_1_role'] }}</div>
-        </div>
-        <div class="sig-block">
-            <div class="sig-line"></div>
-            <div class="sig-name">{{ $settings['signatory_2_name'] }}</div>
-            <div class="sig-role">{{ $settings['signatory_2_role'] }}</div>
-        </div>
+    <div class="signature-section">
+        <p class="section-label">Certification and approval</p>
+        <table class="signature-table">
+            <tr><td colspan="3" class="signature-space"></td></tr>
+            <tr>
+                <td><div class="signature-line"><div class="signature-name">{{ $employee->full_name }}</div><div class="signature-role">Employee</div></div></td>
+                <td><div class="signature-line"><div class="signature-name">{{ $settings['signatory_1_name'] ?: '____________________' }}</div><div class="signature-role">{{ $settings['signatory_1_role'] ?: 'Verified by' }}</div></div></td>
+                <td><div class="signature-line"><div class="signature-name">{{ $settings['signatory_2_name'] ?: '____________________' }}</div><div class="signature-role">{{ $settings['signatory_2_role'] ?: 'Approved by' }}</div></div></td>
+            </tr>
+        </table>
     </div>
 
-    <div class="footer">
-        Generated by PMPC WorkForce · {{ now()->format('F d, Y h:i A') }}
-    </div>
-
+    <div class="footer">Generated by PMPC WorkForce on {{ now('Asia/Manila')->format('F d, Y h:i A') }} | Official attendance record</div>
 </body>
 </html>

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **PMPC Navigation Loader** — replaced the generic Inertia/Laravel progress indicator with a branded, accessible PMPC WorkForce loading overlay that appears for meaningful page transitions.
+
 - **Frontend Visual Review Tooling** — added the local `@playwright/cli` development dependency and Chromium browser support for repeatable localhost snapshots and screenshot-based UI validation.
 
 #### Admin Dashboard & Executive Operations (`Dashboard.jsx`)
@@ -98,6 +100,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `frontend-developer`, `ui-ux-designer`, `tailwind-design-system`, `react-modernization`, `react-state-management`, `frontend-mobile-development-component-scaffold`, `accessibility-compliance-accessibility-audit`, `ui-visual-validator`, `frontend-security-coder`, `e2e-testing-patterns`, and `playwright-component-testing`.
 
 ### Changed
+
+- **DTR PDF Presentation** — redesigned the DomPDF Daily Time Record with a formal document header, structured employee and summary panels, readable attendance table, and organized certification section for clearer A4 print output.
 
 - **Employee Payslip Detail Readability** — expanded the selected-period header, projected-net panel, cutoff cards, and empty cutoff state to improve dark-theme contrast, spacing, and legibility.
 

@@ -1,6 +1,7 @@
 import '../css/app.css'
 import { createInertiaApp } from '@inertiajs/react'
 import { createRoot } from 'react-dom/client'
+import NavigationLoader from './Components/NavigationLoader'
 import './echo'
 
 createInertiaApp({
@@ -9,9 +10,12 @@ createInertiaApp({
         return pages[`./Pages/${name}.jsx`]
     },
     setup({ el, App, props }) {
-        createRoot(el).render(<App {...props} />)
+        createRoot(el).render(
+            <>
+                <App {...props} />
+                <NavigationLoader />
+            </>
+        )
     },
-    progress: {
-        color: '#0F6E56',
-    },
+    progress: false,
 })
