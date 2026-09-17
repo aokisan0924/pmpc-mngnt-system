@@ -95,6 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Weekly Attendance Strip Relocation**: Relocated the 5-Day Monday–Friday attendance sanity check strip from the Employee Dashboard (`Employee/Dashboard.jsx`) into the dedicated Daily Time Record page (`Employee/Dtr.jsx`) directly inside the Hero Punch Card. This keeps the primary employee dashboard minimal and hyper-focused on the 4-punch state machine while placing the weekly Mon–Fri audit grid where attendance logs are managed and inspected.
 - **Employee Dashboard DTR Flow Hierarchy**: Reordered the Employee Dashboard (`Employee/Dashboard.jsx`) layout to position "Today's 4-Punch Attendance Flow" directly beneath the Welcome Banner and above the KPI summary cards, bringing the immediate daily clock-in/out state machine directly into primary operational view.
 - **Compact UI Scaling Across Portals**: Scaled down visual density across both Employee and Admin Dashboards (`Employee/Dashboard.jsx`, `Admin/Dashboard.jsx`, `StatCard.jsx`):
   - Reduced outer container padding from `p-6`–`p-8` to `p-3.5 sm:p-5 lg:p-6` with tighter `space-y-4` vertical rhythm.
