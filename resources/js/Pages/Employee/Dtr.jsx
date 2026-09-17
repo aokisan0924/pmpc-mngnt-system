@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import DtrEditRequestModal from '@/Components/DtrEditRequestModal'
-import Card, { CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/UI/Card'
+import Card, { CardContent, CardHeader, CardTitle } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 
@@ -104,13 +104,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 {/* Header */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <h1 className="text-xl sm:text-2xl font-bold font-display text-text tracking-tight">Daily Time Record</h1>
-                            <Badge variant="emerald" size="sm">Attendance Portal</Badge>
-                        </div>
-                        <p className="text-xs text-sub mt-0.5">
-                            Punch attendance timestamps, inspect monthly hour totals, and file corrections
-                        </p>
+                        <h1 className="text-xl sm:text-2xl font-bold font-display text-text tracking-tight">Daily Time Record</h1>
                     </div>
 
                     <a
@@ -143,12 +137,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                     <span>{punching ? 'Recording Punch...' : `Clock In: ${nextLabel}`}</span>
                                 </button>
                             ) : (
-                                <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
-                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    <span>All 4 Punches Completed Today</span>
-                                </div>
+                                <Badge variant="emerald" dot size="sm">Day Complete</Badge>
                             )}
                         </div>
                     </div>
@@ -192,23 +181,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     {/* ── 5-Day Weekly Attendance Strip (Mon-Fri Sanity Check) ── */}
                     {weeklyStrip && weeklyStrip.length > 0 && (
                         <div className="pt-5 mt-5 border-t border-border">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 mb-3">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-semibold text-text">This Week's Attendance</span>
-                                    <span className="text-[11px] text-sub hidden sm:inline">• Monday to Friday punch check</span>
-                                </div>
-                                <div className="flex items-center gap-2.5 text-[10px] text-sub">
-                                    <span className="inline-flex items-center gap-1">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Complete
-                                    </span>
-                                    <span className="inline-flex items-center gap-1">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Partial/Late
-                                    </span>
-                                    <span className="inline-flex items-center gap-1">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" /> Scheduled/Off
-                                    </span>
-                                </div>
-                            </div>
+                            <p className="text-xs font-semibold text-text mb-3">This Week's Attendance</p>
 
                             <div className="grid grid-cols-5 gap-2 sm:gap-3">
                                 {weeklyStrip.map((day) => {
@@ -288,7 +261,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                                 {day.am_time_in ? (
                                                     <span>In: {day.am_time_in.slice(0, 5)}</span>
                                                 ) : day.is_future ? (
-                                                    <span>Upcoming</span>
+                                                    <span>—</span>
                                                 ) : (
                                                     <span>No log</span>
                                                 )}
@@ -306,7 +279,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <StatCard
                         title="Days Present"
                         value={summary.days_present ?? 0}
-                        subtitle="Verified attendance logs"
+
                         accent="emerald"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -317,7 +290,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <StatCard
                         title="Late Days"
                         value={summary.days_late ?? 0}
-                        subtitle="Beyond shift grace period"
+
                         accent="amber"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -328,7 +301,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <StatCard
                         title="Rendered Hours"
                         value={`${summary.hours_rendered ?? 0}h`}
-                        subtitle="Cumulative working hours"
+
                         accent="indigo"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -339,7 +312,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <StatCard
                         title="Pending Edits"
                         value={summary.pending_edits ?? 0}
-                        subtitle="Awaiting admin review"
+
                         accent="indigo"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -354,9 +327,6 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center">
                         <div className="min-w-0">
                             <CardTitle>Monthly Attendance Log</CardTitle>
-                            <CardDescription>
-                                Itemized chronological punches and calculated rendered hours
-                            </CardDescription>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
                             <button
@@ -393,7 +363,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                         <table className="w-full text-xs">
                             <thead>
                                 <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold text-[10px]">
-                                    <th scope="col" className="text-left px-4 py-2.5">Calendar Date</th>
+                                    <th scope="col" className="text-left px-4 py-2.5">Date</th>
                                     <th scope="col" className="text-center px-2.5 py-2.5">AM In</th>
                                     <th scope="col" className="text-center px-2.5 py-2.5 border-r border-border">AM Out</th>
                                     <th scope="col" className="text-center px-2.5 py-2.5">PM In</th>
@@ -450,7 +420,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                 {(!logs || logs.length === 0) && (
                                     <tr>
                                         <td colSpan={8} className="px-6 py-12 text-center text-dim font-sans">
-                                            No daily time record entries found for this month.
+                                            No records for this month.
                                         </td>
                                     </tr>
                                 )}
