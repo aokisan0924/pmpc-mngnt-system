@@ -1,0 +1,112 @@
+- generic [ref=f5e3]:
+  - link "Skip to main content" [ref=f5e4] [cursor=pointer]:
+    - /url: "#main-content"
+  - complementary [ref=f5e5]:
+    - generic [ref=f5e6]:
+      - img "PMPC" [ref=f5e8]
+      - generic [ref=f5e9]:
+        - paragraph [ref=f5e10]: PMPC WorkForce
+        - paragraph [ref=f5e13]: Employee Portal
+    - navigation "Employee navigation" [ref=f5e14]:
+      - generic [ref=f5e15]:
+        - paragraph [ref=f5e16]: Main Menu
+        - generic [ref=f5e17]:
+          - link "Dashboard" [ref=f5e18] [cursor=pointer]:
+            - /url: /employee/dashboard
+          - link "My DTR" [ref=f5e23] [cursor=pointer]:
+            - /url: /employee/dtr
+          - link "Task planner" [ref=f5e28] [cursor=pointer]:
+            - /url: /employee/planner
+          - link "My payslips" [ref=f5e33] [cursor=pointer]:
+            - /url: /employee/payslips
+          - link "Notifications" [ref=f5e38] [cursor=pointer]:
+            - /url: /employee/notifications
+      - generic [ref=f5e43]:
+        - paragraph [ref=f5e44]: Account
+        - link "My profile" [ref=f5e46] [cursor=pointer]:
+          - /url: /employee/profile
+    - generic [ref=f5e52]:
+      - generic [ref=f5e53]:
+        - generic [ref=f5e54]: DP
+        - generic [ref=f5e55]:
+          - paragraph [ref=f5e56]: Diana Pasco
+          - paragraph [ref=f5e57]: 2026-00028
+      - button "Sign out" [ref=f5e58]
+  - generic [ref=f5e61]:
+    - banner [ref=f5e62]:
+      - navigation [ref=f5e63]:
+        - generic [ref=f5e64]: PMPC WorkForce
+        - generic [ref=f5e65]: /
+        - generic [ref=f5e66]: My Payslips
+      - generic [ref=f5e67]:
+        - button "Switch to dark theme" [ref=f5e68]
+        - generic [ref=f5e72]:
+          - generic [ref=f5e73]: DP
+          - generic [ref=f5e74]:
+            - paragraph [ref=f5e75]: Diana Pasco
+            - paragraph [ref=f5e76]: Loan Processor
+    - main [ref=f5e77]:
+      - generic [ref=f5e78]:
+        - generic [ref=f5e80]:
+          - generic [ref=f5e81]:
+            - heading "My Payslips" [level=1] [ref=f5e82]
+            - generic [ref=f5e83]: Payroll in progress
+          - paragraph [ref=f5e84]: Review finalized payroll periods and download your official record.
+        - generic [ref=f5e85]:
+          - generic [ref=f5e88]:
+            - paragraph [ref=f5e89]: Finalized Months
+            - generic [ref=f5e90]: "0"
+          - generic [ref=f5e97]:
+            - paragraph [ref=f5e98]: In Progress
+            - generic [ref=f5e99]: "1"
+          - generic [ref=f5e106]:
+            - paragraph [ref=f5e107]: Total Gross Paid
+            - generic [ref=f5e108]: ₱ 0.00
+          - generic [ref=f5e115]:
+            - paragraph [ref=f5e116]: Net Pay Received
+            - generic [ref=f5e117]: ₱ 0.00
+        - status [ref=f5e122]:
+          - paragraph [ref=f5e125]:
+            - generic [ref=f5e126]: 1 payroll period is still in progress.
+            - text: Draft values are for reference and become an official payslip after HR finalizes payroll.
+        - generic [ref=f5e127]:
+          - complementary [ref=f5e128]:
+            - generic [ref=f5e129]:
+              - heading "Pay periods" [level=2] [ref=f5e130]
+              - generic [ref=f5e131]: 1 period
+            - generic [ref=f5e132]:
+              - button "All" [pressed] [ref=f5e133]
+              - button "2026" [ref=f5e134]
+            - generic "Available payslip periods" [ref=f5e135]:
+              - button "September 2026 Partial Cutoff 1st Cutoff 2nd Cutoff ₱ 0.00" [ref=f5e136]:
+                - generic [ref=f5e137]:
+                  - paragraph [ref=f5e138]: September 2026
+                  - generic [ref=f5e139]: Partial Cutoff
+                - generic [ref=f5e140]:
+                  - generic [ref=f5e141]:
+                    - generic [ref=f5e142]: 1st Cutoff
+                    - generic [ref=f5e143]: 2nd Cutoff
+                  - generic [ref=f5e144]: ₱ 0.00
+          - region "Selected payslip details" [ref=f5e145]:
+            - generic [ref=f5e146]:
+              - generic [ref=f5e147]:
+                - generic [ref=f5e148]:
+                  - generic [ref=f5e149]:
+                    - generic [ref=f5e150]:
+                      - heading "September 2026" [level=2] [ref=f5e151]
+                      - generic [ref=f5e152]: Partial Cutoff
+                    - paragraph [ref=f5e153]: 0 days present · ₱ 0.00 gross earnings
+                  - generic [ref=f5e154]: Awaiting finalization
+                - generic [ref=f5e155]:
+                  - paragraph [ref=f5e156]: Projected net compensation
+                  - paragraph [ref=f5e157]: ₱ 0.00
+                  - paragraph [ref=f5e158]: ₱ 0.00 Gross Earnings − ₱ 0.00 Deductions
+              - generic [ref=f5e160]:
+                - generic [ref=f5e161]:
+                  - generic [ref=f5e162]:
+                    - paragraph [ref=f5e163]: 1st Cutoff Period
+                    - paragraph [ref=f5e164]: Sep 01 – Sep 15
+                  - generic [ref=f5e165]: Draft
+                - generic [ref=f5e166]:
+                  - paragraph [ref=f5e170]: No payroll results yet
+                  - paragraph [ref=f5e171]: This cutoff will show its attendance and pay details after HR completes processing.

@@ -1,0 +1,91 @@
+- generic [ref=f3e3]:
+  - link "Skip to main content" [ref=f3e4] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f3e5]:
+    - banner [ref=f3e6]:
+      - generic [ref=f3e7]:
+        - generic [ref=f3e8]:
+          - img "PMPC" [ref=f3e10]
+          - generic [ref=f3e11]:
+            - paragraph [ref=f3e12]: PMPC WorkForce
+            - paragraph [ref=f3e13]: My Payslips
+        - generic [ref=f3e14]:
+          - button "Switch to dark theme" [ref=f3e15]
+          - link [ref=f3e18] [cursor=pointer]:
+            - /url: /employee/notifications
+          - button "Open account menu" [ref=f3e21]: DP
+    - main [ref=f3e22]:
+      - generic [ref=f3e23]:
+        - generic [ref=f3e25]:
+          - generic [ref=f3e26]:
+            - heading "My Payslips" [level=1] [ref=f3e27]
+            - generic [ref=f3e28]: Payroll in progress
+          - paragraph [ref=f3e29]: Review finalized payroll periods and download your official record.
+        - generic [ref=f3e30]:
+          - generic [ref=f3e33]:
+            - paragraph [ref=f3e34]: Finalized Months
+            - generic [ref=f3e35]: "0"
+          - generic [ref=f3e42]:
+            - paragraph [ref=f3e43]: In Progress
+            - generic [ref=f3e44]: "1"
+          - generic [ref=f3e51]:
+            - paragraph [ref=f3e52]: Total Gross Paid
+            - generic [ref=f3e53]: ₱ 0.00
+          - generic [ref=f3e60]:
+            - paragraph [ref=f3e61]: Net Pay Received
+            - generic [ref=f3e62]: ₱ 0.00
+        - status [ref=f3e67]:
+          - paragraph [ref=f3e70]:
+            - generic [ref=f3e71]: 1 payroll period is still in progress.
+            - text: Draft values are for reference and become an official payslip after HR finalizes payroll.
+        - generic [ref=f3e72]:
+          - complementary [ref=f3e73]:
+            - generic [ref=f3e74]:
+              - heading "Pay periods" [level=2] [ref=f3e75]
+              - generic [ref=f3e76]: 1 period
+            - generic [ref=f3e77]:
+              - button "All" [pressed] [ref=f3e78]
+              - button "2026" [ref=f3e79]
+            - generic "Available payslip periods" [ref=f3e80]:
+              - button "September 2026 Partial Cutoff 1st Cutoff 2nd Cutoff ₱ 0.00" [ref=f3e81]:
+                - generic [ref=f3e82]:
+                  - paragraph [ref=f3e83]: September 2026
+                  - generic [ref=f3e84]: Partial Cutoff
+                - generic [ref=f3e85]:
+                  - generic [ref=f3e86]:
+                    - generic [ref=f3e87]: 1st Cutoff
+                    - generic [ref=f3e88]: 2nd Cutoff
+                  - generic [ref=f3e89]: ₱ 0.00
+          - region "Selected payslip details" [ref=f3e90]:
+            - generic [ref=f3e91]:
+              - generic [ref=f3e92]:
+                - generic [ref=f3e93]:
+                  - generic [ref=f3e94]:
+                    - generic [ref=f3e95]:
+                      - heading "September 2026" [level=2] [ref=f3e96]
+                      - generic [ref=f3e97]: Partial Cutoff
+                    - paragraph [ref=f3e98]: 0 days present · ₱ 0.00 gross earnings
+                  - generic [ref=f3e99]: Awaiting finalization
+                - generic [ref=f3e100]:
+                  - paragraph [ref=f3e101]: Projected net compensation
+                  - paragraph [ref=f3e102]: ₱ 0.00
+                  - paragraph [ref=f3e103]: ₱ 0.00 Gross Earnings − ₱ 0.00 Deductions
+              - generic [ref=f3e105]:
+                - generic [ref=f3e106]:
+                  - generic [ref=f3e107]:
+                    - paragraph [ref=f3e108]: 1st Cutoff Period
+                    - paragraph [ref=f3e109]: Sep 01 – Sep 15
+                  - generic [ref=f3e110]: Draft
+                - paragraph [ref=f3e112]: No records registered for this cutoff period.
+  - navigation "Mobile navigation" [ref=f3e113]:
+    - generic [ref=f3e114]:
+      - link "Home" [ref=f3e115] [cursor=pointer]:
+        - /url: /employee/dashboard
+      - link "DTR" [ref=f3e120] [cursor=pointer]:
+        - /url: /employee/dtr
+      - link "Tasks" [ref=f3e125] [cursor=pointer]:
+        - /url: /employee/planner
+      - link "Payslips" [ref=f3e130] [cursor=pointer]:
+        - /url: /employee/payslips
+      - link "Alerts" [ref=f3e136] [cursor=pointer]:
+        - /url: /employee/notifications

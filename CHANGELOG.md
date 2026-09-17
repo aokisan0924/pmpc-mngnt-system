@@ -99,6 +99,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Employee Payslip Detail Readability** — expanded the selected-period header, projected-net panel, cutoff cards, and empty cutoff state to improve dark-theme contrast, spacing, and legibility.
+
+- **Employee Payslip State Clarity** — separated finalized compensation from in-progress payroll in the employee archive: summary values now count only official payslips, draft periods receive clear guidance and projected labels, and PDF download is offered only after monthly finalization.
+
 - **Employee Payslip Layout Organization** — regrouped pay-period browsing into a labeled, sticky desktop selector; reduced repeated card copy and excess spacing; and tightened the selected-period header, cutoff cards, and monthly breakdown for clearer scanning at every viewport.
 
 - **Employee Payslips Frontend Refinement** — aligned archive spacing, typography, summary cards, cutoff indicators, and download action with the employee portal design system; corrected summary-card API usage and made year filtering consistently select a visible payslip.

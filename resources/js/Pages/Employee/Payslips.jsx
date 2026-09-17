@@ -26,15 +26,15 @@ function StatusBadge({ status }) {
 function CutoffCard({ label, period, days, basic, transpo, ot, gross, deductions, net, status }) {
     const finalized = status === 'finalized'
     return (
-        <div className={`rounded-xl border p-3.5 transition-all ${
+        <div className={`rounded-2xl border p-5 transition-all sm:p-6 ${
             finalized
                 ? 'border-border bg-panel shadow-xs'
                 : 'border-dashed border-border/80 bg-field/40'
         }`}>
-            <div className="mb-3 flex items-center justify-between border-b border-border/60 pb-2">
+            <div className="mb-5 flex items-start justify-between gap-4 border-b border-border/60 pb-4">
                 <div>
-                    <p className="text-xs font-bold font-display uppercase tracking-wider text-text">{label}</p>
-                    {period && <p className="text-[11px] font-mono text-dim mt-0.5">{period}</p>}
+                    <p className="text-sm font-bold font-display text-text">{label}</p>
+                    {period && <p className="mt-1 text-xs font-mono text-dim">{period}</p>}
                 </div>
                 {status && (
                     <Badge variant={finalized ? 'emerald' : 'amber'} size="sm">
@@ -45,7 +45,7 @@ function CutoffCard({ label, period, days, basic, transpo, ot, gross, deductions
 
             {days > 0 ? (
                 <>
-                    <div className="mb-3 space-y-2 font-mono text-xs">
+                    <div className="mb-5 space-y-3 font-mono text-sm">
                         <div className="flex justify-between">
                             <span className="font-sans text-sub">Days Present:</span>
                             <span className="font-bold text-text">{days} days</span>
@@ -77,21 +77,27 @@ function CutoffCard({ label, period, days, basic, transpo, ot, gross, deductions
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center justify-between rounded-lg border border-border bg-field/80 px-3 py-2">
-                        <span className="text-xs font-bold font-sans text-sub">Cutoff Net Pay</span>
-                        <span className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-400">₱ {fmt(net)}</span>
+                    <div className="flex items-center justify-between rounded-xl border border-border bg-field/80 px-4 py-3">
+                        <span className="text-sm font-bold font-sans text-sub">Cutoff Net Pay</span>
+                        <span className="text-lg font-mono font-bold text-emerald-600 dark:text-emerald-400">₱ {fmt(net)}</span>
                     </div>
                 </>
             ) : (
-                <div className="py-6 text-center">
-                    <p className="text-xs text-dim">No records registered for this cutoff period.</p>
+                <div className="flex min-h-40 flex-col items-center justify-center rounded-xl border border-dashed border-border/70 bg-field/30 px-5 text-center">
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-panel text-dim shadow-2xs">
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <p className="text-sm font-semibold text-text">No payroll results yet</p>
+                    <p className="mt-1 max-w-xs text-xs leading-relaxed text-dim">This cutoff will show its attendance and pay details after HR completes processing.</p>
                 </div>
             )}
         </div>
     )
 }
 
-export default function Payslips({ payslips = [], summary = {} }) {
+export default function Payslips({ payslips = [] }) {
     const { flash } = usePage().props
     const [selected, setSelected] = useState(payslips[0]?.month ?? null)
     const [yearFilter, setYearFilter] = useState('all')
@@ -103,6 +109,10 @@ export default function Payslips({ payslips = [], summary = {} }) {
         : payslips.filter(p => p.year === parseInt(yearFilter))
 
     const active = filtered.find(p => p.month === selected) ?? filtered[0]
+    const finalizedPayslips = payslips.filter(payslip => payslip.status === 'complete')
+    const finalizedGross = finalizedPayslips.reduce((total, payslip) => total + Number(payslip.total_gross || 0), 0)
+    const finalizedNet = finalizedPayslips.reduce((total, payslip) => total + Number(payslip.total_net || 0), 0)
+    const pendingPeriods = payslips.length - finalizedPayslips.length
 
     function selectYear(year) {
         const matchingPayslips = year === 'all'
@@ -131,7 +141,9 @@ export default function Payslips({ payslips = [], summary = {} }) {
                     <div>
                         <div className="flex items-center gap-2">
                             <h1 className="text-2xl font-bold font-display text-text tracking-tight">My Payslips</h1>
-                            <Badge variant="emerald" size="sm">Payslip Archive</Badge>
+                            <Badge variant={finalizedPayslips.length > 0 ? 'emerald' : 'amber'} size="sm">
+                                {finalizedPayslips.length > 0 ? 'Payslip Archive' : 'Payroll in progress'}
+                            </Badge>
                         </div>
                         <p className="mt-1 text-xs text-sub">Review finalized payroll periods and download your official record.</p>
                     </div>
@@ -141,8 +153,8 @@ export default function Payslips({ payslips = [], summary = {} }) {
                 {payslips.length > 0 && (
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:gap-4">
                         <StatCard
-                            title="Months on Record"
-                            value={summary.total_months ?? 0}
+                            title="Finalized Months"
+                            value={finalizedPayslips.length}
                             accent="emerald"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -151,9 +163,9 @@ export default function Payslips({ payslips = [], summary = {} }) {
                             }
                         />
                         <StatCard
-                            title="Total Days Rendered"
-                            value={`${summary.total_days ?? 0} days`}
-                            accent="emerald"
+                            title="In Progress"
+                            value={pendingPeriods}
+                            accent="amber"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -161,8 +173,8 @@ export default function Payslips({ payslips = [], summary = {} }) {
                             }
                         />
                         <StatCard
-                            title="Total Gross Earned"
-                            value={`₱ ${fmt(summary.total_gross)}`}
+                            title="Total Gross Paid"
+                            value={`₱ ${fmt(finalizedGross)}`}
                             accent="amber"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -171,8 +183,8 @@ export default function Payslips({ payslips = [], summary = {} }) {
                             }
                         />
                         <StatCard
-                            title="Total Net Received"
-                            value={`₱ ${fmt(summary.total_earned)}`}
+                            title="Net Pay Received"
+                            value={`₱ ${fmt(finalizedNet)}`}
                             accent="emerald"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -180,6 +192,15 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                 </svg>
                             }
                         />
+                    </div>
+                )}
+
+                {pendingPeriods > 0 && (
+                    <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/25 bg-amber-500/10 px-3.5 py-3 text-xs text-amber-800 dark:text-amber-200" role="status">
+                        <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3Z" />
+                        </svg>
+                        <p><span className="font-semibold">{pendingPeriods} payroll {pendingPeriods === 1 ? 'period is' : 'periods are'} still in progress.</span> Draft values are for reference and become an official payslip after HR finalizes payroll.</p>
                     </div>
                 )}
 
@@ -202,12 +223,14 @@ export default function Payslips({ payslips = [], summary = {} }) {
                         <aside className="space-y-3 lg:col-span-2 lg:sticky lg:top-4 lg:self-start">
                             <div className="flex items-center justify-between px-0.5">
                                 <h2 className="text-sm font-bold font-display text-text">Pay periods</h2>
-                                <span className="text-[11px] font-medium text-dim">{filtered.length} available</span>
+                                <span className="text-[11px] font-medium text-dim">{filtered.length} {filtered.length === 1 ? 'period' : 'periods'}</span>
                             </div>
                             {/* Year filter */}
                             <div className="flex gap-1.5 overflow-x-auto rounded-xl border border-border bg-field p-1">
                                 <button
+                                    type="button"
                                     onClick={() => selectYear('all')}
+                                    aria-pressed={yearFilter === 'all'}
                                     className={`min-w-14 flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
                                         yearFilter === 'all'
                                             ? 'bg-panel text-text shadow-xs border border-border'
@@ -219,7 +242,9 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                 {years.map(y => (
                                     <button
                                         key={y}
-                                    onClick={() => selectYear(y)}
+                                        type="button"
+                                        onClick={() => selectYear(y)}
+                                        aria-pressed={yearFilter === y}
                                         className={`min-w-14 flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
                                             yearFilter === y
                                                 ? 'bg-panel text-text shadow-xs border border-border'
@@ -238,7 +263,9 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                     return (
                                         <button
                                             key={p.month}
+                                            type="button"
                                             onClick={() => setSelected(p.month)}
+                                            aria-current={isCurrent ? 'true' : undefined}
                                             className={`w-full rounded-xl border p-3.5 text-left transition-all ${
                                                 isCurrent
                                                     ? 'border-emerald-500/50 bg-emerald-500/5 ring-2 ring-emerald-500/10 shadow-xs'
@@ -262,7 +289,7 @@ export default function Payslips({ payslips = [], summary = {} }) {
                                                         2nd Cutoff
                                                     </span>
                                                 </div>
-                                                <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                                                <span className={`font-bold ${p.status === 'complete' ? 'text-emerald-600 dark:text-emerald-400' : 'text-dim'}`}>
                                                     ₱ {fmt(p.total_net)}
                                                 </span>
                                             </div>
@@ -275,49 +302,55 @@ export default function Payslips({ payslips = [], summary = {} }) {
                         {/* Right Column — Details & Cutoffs */}
                         <section className="min-w-0 lg:col-span-3" aria-label="Selected payslip details">
                             {active ? (
-                                <div className="space-y-3.5">
+                                <div className="space-y-5">
                                     {/* Detail Top Header Card */}
-                                    <Card>
-                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <Card className="p-5 sm:p-6">
+                                        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                                             <div>
                                                 <div className="flex items-center gap-2">
-                                                    <h2 className="text-xl font-bold font-display text-text">{active.month_label}</h2>
+                                                    <h2 className="text-2xl font-bold font-display text-text sm:text-3xl">{active.month_label}</h2>
                                                     <StatusBadge status={active.status} />
                                                 </div>
-                                                <p className="text-xs font-mono text-dim mt-1">
+                                                <p className="mt-2 text-sm font-mono text-dim">
                                                     {active.total_days} days present · ₱ {fmt(active.total_gross)} gross earnings
                                                 </p>
                                             </div>
 
-                                            <a
-                                                href={`/employee/payslips/${active.month}`}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="inline-flex min-h-9 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-emerald-700"
-                                            >
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                                </svg>
-                                                <span>Download Official PDF</span>
-                                            </a>
+                                            {active.status === 'complete' ? (
+                                                <a
+                                                    href={`/employee/payslips/${active.month}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-flex min-h-9 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-emerald-700"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                    </svg>
+                                                    <span>Download official PDF</span>
+                                                </a>
+                                            ) : (
+                                                <span className="inline-flex min-h-10 items-center rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 text-sm font-semibold text-amber-700 dark:text-amber-300">
+                                                    Awaiting finalization
+                                                </span>
+                                            )}
                                         </div>
 
                                         {/* Net Pay Highlight Banner */}
-                                        <div className="mt-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white shadow-md">
-                                            <p className="text-xs uppercase tracking-wider font-semibold opacity-80">
-                                                Net Compensation Disbursed
+                                        <div className="mt-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 p-5 text-white shadow-md sm:p-6">
+                                            <p className="text-[11px] uppercase tracking-[0.12em] font-semibold opacity-80">
+                                                {active.status === 'complete' ? 'Net compensation received' : 'Projected net compensation'}
                                             </p>
-                                            <p className="mt-1 text-3xl font-mono font-bold tracking-tight sm:text-4xl">
+                                            <p className="mt-2 text-4xl font-mono font-bold tracking-tight sm:text-5xl">
                                                 ₱ {fmt(active.total_net)}
                                             </p>
-                                            <p className="text-xs font-mono opacity-80 mt-1">
+                                            <p className="mt-2 text-sm font-mono opacity-80">
                                                 ₱ {fmt(active.total_gross)} Gross Earnings − ₱ {fmt(active.total_ded)} Deductions
                                             </p>
                                         </div>
                                     </Card>
 
                                     {/* Cutoffs Grid */}
-                                    <div className={`grid gap-3.5 ${active.has_first && active.has_second ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
+                                    <div className={`grid gap-5 ${active.has_first && active.has_second ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
                                         {active.has_first && (
                                             <CutoffCard
                                                 label="1st Cutoff Period"
