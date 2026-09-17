@@ -39,7 +39,7 @@ export default function ThirteenthMonthCompute({
     return (
         <AdminLayout>
             <div className="min-h-screen bg-bg">
-            <div className="p-4 sm:p-6">
+            <div className="mx-auto max-w-6xl px-3.5 py-3.5 sm:px-5 sm:py-4 lg:px-6">
 
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-5">
@@ -51,14 +51,14 @@ export default function ThirteenthMonthCompute({
                             <span>/</span>
                             <span className="text-sub">Compute</span>
                         </div>
-                        <h1 className="text-lg font-medium text-text">
+                        <h1 className="font-display text-xl font-bold tracking-tight text-text sm:text-2xl">
                             13th month pay — {year}
                         </h1>
                         <div className="flex items-center gap-2 mt-1">
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                 tranche === 'mid_year'
-                                    ? 'bg-blue/10 text-blue'
-                                    : 'bg-purple/10 text-purple'
+                                    ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
+                                    : 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
                             }`}>
                                 {tranche_label}
                             </span>
@@ -71,10 +71,10 @@ export default function ThirteenthMonthCompute({
                     <div className="flex items-center gap-4 flex-wrap">
                         <div className="text-right">
                             <p className="text-xs text-dim">Total 13th month payout</p>
-                            <p className="text-lg font-medium text-teal">₱ {fmt(total13th)}</p>
+                            <p className="text-lg font-semibold text-emerald-600">₱ {fmt(total13th)}</p>
                         </div>
                         <button onClick={save} disabled={processing}
-                            className="px-5 py-2.5 text-sm font-medium rounded-lg disabled:opacity-60 bg-violet text-bg hover:brightness-110 transition-all">
+                            className="rounded-xl bg-indigo-700 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-all hover:bg-indigo-800 disabled:cursor-not-allowed disabled:opacity-60">
                             {processing ? 'Saving…' : 'Save computation'}
                         </button>
                     </div>

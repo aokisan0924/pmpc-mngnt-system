@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { Link, usePage } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
-import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 import EmployeeFormModal from '@/Components/EmployeeFormModal'
@@ -34,7 +33,7 @@ export default function Employees({ employees = [] }) {
 
     return (
         <AdminLayout>
-            <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 page-enter">
+            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
@@ -52,9 +51,6 @@ export default function Employees({ employees = [] }) {
                         <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
                             Employee Management
                         </h1>
-                        <p className="text-xs sm:text-sm text-sub mt-0.5">
-                            Manage staff profiles, departmental assignments, and compensation profiles.
-                        </p>
                     </div>
 
                     <Button
@@ -71,42 +67,6 @@ export default function Employees({ employees = [] }) {
                 </div>
 
                 {/* ── Metric Summary Tiles ─────────────────────────── */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <StatCard
-                        title="Total Roster"
-                        value={counts.all}
-                        subtitle="Registered employee records"
-                        accent="indigo"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="Active Staff"
-                        value={counts.active}
-                        subtitle="Eligible for DTR & payroll"
-                        accent="emerald"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="Inactive / On Leave"
-                        value={counts.inactive}
-                        subtitle="Archived or suspended records"
-                        accent={counts.inactive > 0 ? 'amber' : 'slate'}
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                            </svg>
-                        }
-                    />
-                </div>
-
                 {/* ── Filters & Search Toolbar ──────────────────────── */}
                 <Card>
                     <CardHeader className="flex-col sm:flex-row gap-3 items-stretch sm:items-center">

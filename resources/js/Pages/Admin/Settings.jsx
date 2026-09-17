@@ -61,7 +61,7 @@ export default function Settings({ settings }) {
 
     return (
         <AdminLayout>
-            <div className="mx-auto min-h-screen max-w-4xl space-y-6 bg-bg px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+            <div className="mx-auto min-h-screen max-w-4xl space-y-4 bg-bg px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">

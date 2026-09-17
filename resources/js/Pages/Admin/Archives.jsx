@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/UI/Card'
-import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 
@@ -22,7 +21,7 @@ export default function Archives({ archives = [], last_month }) {
 
     return (
         <AdminLayout>
-            <div className="mx-auto min-h-screen max-w-6xl space-y-6 bg-bg px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+            <div className="mx-auto min-h-screen max-w-6xl space-y-4 bg-bg px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -55,42 +54,6 @@ export default function Archives({ archives = [], last_month }) {
                 </div>
 
                 {/* Quick Stats */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <StatCard
-                        title="Archived Packages"
-                        value={archives.length}
-                        subtitle="Monthly ZIP bundles stored"
-                        accent="indigo"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="Auto-Generation"
-                        value="1st of Month"
-                        subtitle="Automated scheduled task"
-                        accent="emerald"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="Package Format"
-                        value=".ZIP / .PDF"
-                        subtitle="Compressed PDF documents"
-                        accent="slate"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
-                        }
-                    />
-                </div>
-
                 {/* Manual generate card */}
                 <Card className="overflow-hidden">
                     <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center">

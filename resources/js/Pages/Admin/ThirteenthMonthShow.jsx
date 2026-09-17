@@ -34,10 +34,10 @@ export default function ThirteenthMonthShow({
     return (
         <AdminLayout>
             <div className="min-h-screen bg-bg">
-                <div className="p-4 sm:p-6 max-w-6xl mx-auto">
+                <div className="mx-auto max-w-6xl px-3.5 py-3.5 sm:px-5 sm:py-4 lg:px-6">
 
                     {flash?.success && (
-                        <div className="mb-4 px-4 py-3 rounded-lg bg-teal/10 border border-teal/25 text-teal text-sm">
+                        <div className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-300">
                             {flash.success}
                         </div>
                     )}
@@ -52,14 +52,14 @@ export default function ThirteenthMonthShow({
                                 <span>/</span>
                                 <span className="text-sub">{year} · {tranche_label}</span>
                             </div>
-                            <h1 className="text-lg font-medium text-text">
+                            <h1 className="font-display text-xl font-bold tracking-tight text-text sm:text-2xl">
                                 13th month pay — {year}
                             </h1>
                             <div className="flex items-center gap-2 mt-1">
                                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                     tranche === 'mid_year'
-                                        ? 'bg-blue/10 text-blue'
-                                        : 'bg-purple/10 text-purple'
+                                        ? 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
+                                        : 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300'
                                 }`}>
                                     {tranche_label}
                                 </span>
@@ -78,7 +78,7 @@ export default function ThirteenthMonthShow({
 
                         {status === 'draft' && (
                             <button onClick={finalize}
-                                className="px-4 py-2 text-sm font-medium rounded-lg bg-violet text-bg hover:brightness-110 transition-all">
+                                className="rounded-xl bg-indigo-700 px-4 py-2 text-sm font-semibold text-white shadow-xs transition-all hover:bg-indigo-800">
                                 Finalize
                             </button>
                         )}
@@ -98,7 +98,7 @@ export default function ThirteenthMonthShow({
                         </div>
                         <div className="bg-panel rounded-xl border border-border p-4">
                             <p className="text-xs text-dim mb-1">Total 13th month payout</p>
-                            <p className="text-xl font-medium text-teal">₱ {fmt(total_payout)}</p>
+                            <p className="text-xl font-semibold text-emerald-600">₱ {fmt(total_payout)}</p>
                         </div>
                     </div>
 

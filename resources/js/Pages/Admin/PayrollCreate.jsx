@@ -63,7 +63,7 @@ export default function PayrollCreate({ employees = [], period_from, period_to, 
 
     return (
         <AdminLayout>
-            <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 page-enter">
+            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
                 {/* ── Top Header ────────────────────────────────────── */}
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-border/80">
                     <div>

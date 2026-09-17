@@ -34,7 +34,7 @@ export default function Payroll({ payrolls = [] }) {
 
     return (
         <AdminLayout>
-            <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 page-enter">
+            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
@@ -52,9 +52,6 @@ export default function Payroll({ payrolls = [] }) {
                         <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
                             Payroll Management
                         </h1>
-                        <p className="text-xs sm:text-sm text-sub mt-0.5">
-                            Calculate base earnings, overtime hours, statutory government contributions, and generate payslips.
-                        </p>
                     </div>
 
                     <Link href="/admin/payroll/analytics">

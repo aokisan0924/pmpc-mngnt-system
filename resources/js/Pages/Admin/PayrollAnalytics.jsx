@@ -105,7 +105,7 @@ export default function PayrollAnalytics({
 
     return (
         <AdminLayout>
-            <div className="min-h-screen bg-bg p-4 sm:p-6 lg:p-8 space-y-8 max-w-7xl mx-auto">
+            <div className="mx-auto min-h-screen max-w-7xl space-y-5 bg-bg px-3.5 py-3.5 sm:px-5 sm:py-4 lg:px-6">
 
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

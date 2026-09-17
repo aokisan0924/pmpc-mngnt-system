@@ -1,0 +1,201 @@
+- generic [ref=e69]:
+  - link "Skip to main content" [ref=e70] [cursor=pointer]:
+    - /url: "#main-content"
+  - complementary [ref=e71]:
+    - generic [ref=e72]:
+      - generic [ref=e73]:
+        - img "PMPC" [ref=e75]
+        - generic [ref=e76]:
+          - paragraph [ref=e77]: PMPC WorkForce
+          - paragraph [ref=e80]: Admin Portal
+      - navigation "Admin navigation" [ref=e81]:
+        - generic [ref=e82]:
+          - paragraph [ref=e83]: Overview
+          - link "Dashboard" [ref=e85] [cursor=pointer]:
+            - /url: /admin/dashboard
+        - generic [ref=e91]:
+          - paragraph [ref=e92]: Workforce
+          - generic [ref=e93]:
+            - link "Employees" [ref=e94] [cursor=pointer]:
+              - /url: /admin/employees
+            - link "DTR records" [ref=e100] [cursor=pointer]:
+              - /url: /admin/dtr
+            - link "Edit requests" [ref=e106] [cursor=pointer]:
+              - /url: /admin/edit-requests
+        - generic [ref=e112]:
+          - paragraph [ref=e113]: Payroll
+          - generic [ref=e114]:
+            - link "Process payroll" [ref=e115] [cursor=pointer]:
+              - /url: /admin/payroll
+            - link "Payroll analytics" [ref=e121] [cursor=pointer]:
+              - /url: /admin/payroll/analytics
+            - link "13th month pay" [ref=e127] [cursor=pointer]:
+              - /url: /admin/thirteenth-month
+            - link "DTR archives" [ref=e133] [cursor=pointer]:
+              - /url: /admin/archives
+        - generic [ref=e139]:
+          - paragraph [ref=e140]: System
+          - link "Settings" [ref=e142] [cursor=pointer]:
+            - /url: /admin/settings
+      - generic [ref=e150]:
+        - generic [ref=e151]:
+          - generic [ref=e152]: JS
+          - generic [ref=e153]:
+            - paragraph [ref=e154]: Jeffrae Sapla
+            - paragraph [ref=e155]: 2023-00010
+        - button "Sign out" [ref=e156]
+  - generic [ref=e159]:
+    - banner [ref=e160]:
+      - navigation [ref=e161]:
+        - link "Admin" [ref=e162] [cursor=pointer]:
+          - /url: /admin/dashboard
+        - generic [ref=e163]: /
+        - generic [ref=e164]: Workforce
+        - generic [ref=e165]: /
+        - generic [ref=e166]: Employees
+      - generic [ref=e167]:
+        - button "Switch to dark theme" [ref=e168]
+        - generic [ref=e172]:
+          - generic [ref=e173]: JS
+          - generic [ref=e174]:
+            - paragraph [ref=e175]: Jeffrae Sapla
+            - paragraph [ref=e176]: IT Specialist
+    - main [ref=e177]:
+      - generic [ref=e178]:
+        - generic [ref=e179]:
+          - generic [ref=e180]:
+            - generic [ref=e181]:
+              - generic [ref=e182]: Workforce Directory
+              - generic [ref=e185]: • 8 active cooperative staff
+            - heading "Employee Management" [level=1] [ref=e186]
+          - button "New Employee" [ref=e187]
+        - generic [ref=e191]:
+          - generic [ref=e192]:
+            - generic [ref=e193]:
+              - button "Active (8)" [ref=e194]
+              - button "Inactive (0)" [ref=e195]
+              - button "All Staff (8)" [ref=e196]
+            - textbox "Search employees by name, ID, or department…" [ref=e200]
+          - table [ref=e203]:
+            - rowgroup [ref=e204]:
+              - row [ref=e205]:
+                - columnheader "Employee" [ref=e206]
+                - columnheader "ID" [ref=e207]
+                - columnheader "Department" [ref=e208]
+                - columnheader "Position" [ref=e209]
+                - columnheader "Date Hired" [ref=e210]
+                - columnheader "Status" [ref=e211]
+                - columnheader "Action" [ref=e212]
+            - rowgroup [ref=e213]:
+              - row [ref=e214]:
+                - cell [ref=e215]:
+                  - link "AF Alexander A. Feria Jr." [ref=e216] [cursor=pointer]:
+                    - /url: /admin/employees/4
+                    - generic [ref=e217]: AF
+                    - generic [ref=e218]: Alexander A. Feria Jr.
+                - cell "2022-00003" [ref=e219]
+                - cell "Operations" [ref=e220]
+                - cell "Operations" [ref=e221]
+                - cell "—" [ref=e222]
+                - cell "active" [ref=e223]
+                - cell [ref=e227]:
+                  - link "View Profile →" [ref=e228] [cursor=pointer]:
+                    - /url: /admin/employees/4
+              - row [ref=e229]:
+                - cell [ref=e230]:
+                  - link "AF Alexander L. Feria" [ref=e231] [cursor=pointer]:
+                    - /url: /admin/employees/3
+                    - generic [ref=e232]: AF
+                    - generic [ref=e233]: Alexander L. Feria
+                - cell "2003-00001" [ref=e234]
+                - cell "Executive" [ref=e235]
+                - cell "President" [ref=e236]
+                - cell "—" [ref=e237]
+                - cell "active" [ref=e238]
+                - cell [ref=e242]:
+                  - link "View Profile →" [ref=e243] [cursor=pointer]:
+                    - /url: /admin/employees/3
+              - row [ref=e244]:
+                - cell [ref=e245]:
+                  - link "DP Diana Pasco" [ref=e246] [cursor=pointer]:
+                    - /url: /admin/employees/2
+                    - generic [ref=e247]: DP
+                    - generic [ref=e248]: Diana Pasco
+                - cell "2026-00028" [ref=e249]
+                - cell "Operations" [ref=e250]
+                - cell "Loan Processor" [ref=e251]
+                - cell "Jun 01, 2026" [ref=e252]
+                - cell "active" [ref=e253]
+                - cell [ref=e257]:
+                  - link "View Profile →" [ref=e258] [cursor=pointer]:
+                    - /url: /admin/employees/2
+              - row [ref=e259]:
+                - cell [ref=e260]:
+                  - link "JS Jeffrae Sapla" [ref=e261] [cursor=pointer]:
+                    - /url: /admin/employees/1
+                    - generic [ref=e262]: JS
+                    - generic [ref=e263]: Jeffrae Sapla
+                - cell "2023-00010" [ref=e264]
+                - cell "IT Department" [ref=e265]
+                - cell "IT Specialist" [ref=e266]
+                - cell "—" [ref=e267]
+                - cell "active" [ref=e268]
+                - cell [ref=e272]:
+                  - link "View Profile →" [ref=e273] [cursor=pointer]:
+                    - /url: /admin/employees/1
+              - row [ref=e274]:
+                - cell [ref=e275]:
+                  - link "JS Jerome A. Santos" [ref=e276] [cursor=pointer]:
+                    - /url: /admin/employees/7
+                    - generic [ref=e277]: JS
+                    - generic [ref=e278]: Jerome A. Santos
+                - cell "2026-00026" [ref=e279]
+                - cell "Accounting" [ref=e280]
+                - cell "Bookkeeper" [ref=e281]
+                - cell "—" [ref=e282]
+                - cell "active" [ref=e283]
+                - cell [ref=e287]:
+                  - link "View Profile →" [ref=e288] [cursor=pointer]:
+                    - /url: /admin/employees/7
+              - row [ref=e289]:
+                - cell [ref=e290]:
+                  - link "ML Mariel S. Lucero" [ref=e291] [cursor=pointer]:
+                    - /url: /admin/employees/8
+                    - generic [ref=e292]: ML
+                    - generic [ref=e293]: Mariel S. Lucero
+                - cell "2026-00027" [ref=e294]
+                - cell "Accounting" [ref=e295]
+                - cell "Bookkeeper" [ref=e296]
+                - cell "—" [ref=e297]
+                - cell "active" [ref=e298]
+                - cell [ref=e302]:
+                  - link "View Profile →" [ref=e303] [cursor=pointer]:
+                    - /url: /admin/employees/8
+              - row [ref=e304]:
+                - cell [ref=e305]:
+                  - link "MM Michaela Mauanay" [ref=e306] [cursor=pointer]:
+                    - /url: /admin/employees/5
+                    - generic [ref=e307]: MM
+                    - generic [ref=e308]: Michaela Mauanay
+                - cell "2025-00023" [ref=e309]
+                - cell "Accounting" [ref=e310]
+                - cell "Accounting Clerk" [ref=e311]
+                - cell "—" [ref=e312]
+                - cell "active" [ref=e313]
+                - cell [ref=e317]:
+                  - link "View Profile →" [ref=e318] [cursor=pointer]:
+                    - /url: /admin/employees/5
+              - row [ref=e319]:
+                - cell [ref=e320]:
+                  - link "YC Yvonne N. Condo" [ref=e321] [cursor=pointer]:
+                    - /url: /admin/employees/6
+                    - generic [ref=e322]: YC
+                    - generic [ref=e323]: Yvonne N. Condo
+                - cell "2026-00025" [ref=e324]
+                - cell "Finance" [ref=e325]
+                - cell "Loan Processor/Cashier" [ref=e326]
+                - cell "—" [ref=e327]
+                - cell "active" [ref=e328]
+                - cell [ref=e332]:
+                  - link "View Profile →" [ref=e333] [cursor=pointer]:
+                    - /url: /admin/employees/6

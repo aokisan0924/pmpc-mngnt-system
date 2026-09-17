@@ -32,7 +32,7 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
 
     return (
         <AdminLayout>
-            <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 page-enter">
+            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
                 {/* ── Top Header ────────────────────────────────────── */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/80">
                     <div>
@@ -43,9 +43,6 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                         <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
                             Daily Time Records
                         </h1>
-                        <p className="text-xs sm:text-sm text-sub mt-0.5">
-                            Audit staff attendance logs, hours rendered, and generate official cooperative DTR PDFs.
-                        </p>
                     </div>
 
                     {/* Month Navigator */}

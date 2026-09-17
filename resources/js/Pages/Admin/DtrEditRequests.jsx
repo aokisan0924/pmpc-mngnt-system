@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import { router, usePage } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
-import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 
@@ -47,7 +46,7 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
 
     return (
         <AdminLayout pendingEditCount={pendingCount}>
-            <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 page-enter">
+            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
@@ -65,9 +64,6 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                         <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
                             DTR Edit Requests
                         </h1>
-                        <p className="text-xs sm:text-sm text-sub mt-0.5">
-                            Verify and approve employee punch correction requests submitted within the 7-day dispute window.
-                        </p>
                     </div>
 
                     {/* Filter Pills */}
@@ -101,42 +97,6 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                 </div>
 
                 {/* ── Metric Summary Tiles ─────────────────────────── */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <StatCard
-                        title="Pending Review"
-                        value={counts.pending}
-                        subtitle="Awaiting your approval"
-                        accent={counts.pending > 0 ? 'amber' : 'slate'}
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="Approved Corrections"
-                        value={counts.approved}
-                        subtitle="Punches updated & verified"
-                        accent="emerald"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="Declined Requests"
-                        value={counts.declined}
-                        subtitle="Rejected with supervisor notes"
-                        accent="rose"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        }
-                    />
-                </div>
-
                 {/* ── Requests List ─────────────────────────────────── */}
                 <div className="space-y-3">
                     {filtered.map(req => {

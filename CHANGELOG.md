@@ -101,6 +101,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Admin Portal Consistency Pass** — standardized compact page canvases, spacing, and header hierarchy across workforce, DTR, payroll, archive, settings, employee-detail, and 13th-month workflows. The legacy 13th-month drill-down pages now use the same Admin indigo controls and typography as the rest of the portal.
+
+- **Admin Dashboard Simplification** — refocused the executive dashboard on cutoff action, operational KPIs, priority DTR triage, and today’s attendance. Removed redundant turnout visualizations, historical charts, department reporting, payroll forecasting, and duplicated dashboard-only detail already available in dedicated admin modules.
+
 - **DTR PDF Presentation** — redesigned the DomPDF Daily Time Record with a formal document header, structured employee and summary panels, readable attendance table, and organized certification section for clearer A4 print output.
 
 - **Employee Payslip Detail Readability** — expanded the selected-period header, projected-net panel, cutoff cards, and empty cutoff state to improve dark-theme contrast, spacing, and legibility.
@@ -136,6 +140,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Hero Vignette**: Enhanced login brand hero section with an ambient radial gradient vignette behind the institutional crest.
 
 ### Removed
+
+- **Duplicate Admin Page Summaries** — removed repeated dashboard-style metric tiles from Employee Management, DTR Edit Requests, DTR Archives, and 13th Month Pay. Their status counts remain available in the page filters, records, and dedicated analytics where they are actionable.
+
+- **Admin Portal Personal Navigation** — removed employee-only personal DTR and task-planner links from the shared Admin Portal sidebar, keeping administrative navigation focused on workforce and payroll operations.
 
 - **Dashboard Punch-Adjustment Shortcut**: Removed the dashboard correction button, modal wiring, and editable-DTR payload; employees now use the dedicated DTR page for all attendance adjustments.
 

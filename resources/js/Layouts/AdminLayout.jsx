@@ -125,9 +125,10 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
     const { isDark, toggleTheme } = useTheme()
     const [drawerOpen, setDrawerOpen] = useState(false)
     const currentUrl = new URL(page.url, 'http://localhost').pathname
-    const sections = [...new Set(navItems.map(i => i.section))]
+    const adminNavItems = navItems.filter(item => item.section !== 'Personal')
+    const sections = [...new Set(adminNavItems.map(i => i.section))]
 
-    const activeItem = navItems
+    const activeItem = adminNavItems
         .filter(i => currentUrl === i.href || currentUrl.startsWith(i.href + '/'))
         .reduce((best, i) => (!best || i.href.length > best.href.length ? i : best), null) ?? navItems[0]
 
@@ -162,7 +163,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
                 <div className="md:hidden fixed inset-0 z-40 flex" role="dialog" aria-modal="true" aria-label="Admin navigation">
                     <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onClick={() => setDrawerOpen(false)} />
                     <SidebarContent
-                        navItems={navItems}
+                        navItems={adminNavItems}
                         sections={sections}
                         activeHref={activeItem?.href}
                         pendingEditCount={pendingEditCount}
@@ -177,7 +178,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
             {/* ── Desktop Sidebar ───────────────────────────────── */}
             <aside className="hidden md:flex w-56 lg:w-60 flex-shrink-0 flex-col sticky top-0 h-screen select-none">
                 <SidebarContent
-                    navItems={navItems}
+                    navItems={adminNavItems}
                     sections={sections}
                     activeHref={activeItem?.href}
                     pendingEditCount={pendingEditCount}

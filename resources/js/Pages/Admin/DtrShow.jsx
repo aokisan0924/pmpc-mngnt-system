@@ -28,7 +28,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
 
     return (
         <AdminLayout>
-            <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6 page-enter">
+            <div className="mx-auto max-w-6xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
                 {/* ── Top Header ────────────────────────────────────── */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/80">
                     <div>

@@ -128,7 +128,7 @@ export default function EmployeeShow({ employee, govIds }) {
     return (
         <AdminLayout>
             <div className="min-h-screen bg-bg">
-            <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
+            <div className="mx-auto max-w-3xl px-3.5 py-3.5 sm:px-5 sm:py-4 lg:px-6">
 
                 {flash?.success && (
                     <div className="mb-5 flex items-start gap-2.5 px-4 py-3 rounded-xl bg-teal/10 border border-teal/25 text-teal text-sm">
