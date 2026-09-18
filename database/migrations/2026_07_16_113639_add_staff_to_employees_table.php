@@ -24,7 +24,7 @@ return new class extends Migration
             $table->boolean('is_staff')->default(true)->after('role');
         });
     }
-    
+
     public function down(): void
     {
         Schema::table('employees', function (Blueprint $table) {

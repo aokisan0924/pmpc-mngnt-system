@@ -25,7 +25,7 @@ return new class extends Migration
                 'late',
                 'undertime',
                 'half_day',
-                'absent'
+                'absent',
             ])->default('absent');
             $table->string('ip_address')->nullable();
             $table->timestamps();

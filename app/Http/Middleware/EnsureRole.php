@@ -10,15 +10,16 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureRole
 {
-    public function handle(Request $request, Closure $next, string $roles): Response {
-        $employee     = $request->user();
+    public function handle(Request $request, Closure $next, string $roles): Response
+    {
+        $employee = $request->user();
         $allowedRoles = explode(',', $roles);
 
         Log::info('EnsureRole check', [
-            'url'      => $request->fullUrl(),
+            'url' => $request->fullUrl(),
             'employee_id' => $employee?->id,
-            'role_seen'   => $employee?->role,
-            'allowed'     => $allowedRoles,
+            'role_seen' => $employee?->role,
+            'allowed' => $allowedRoles,
         ]);
 
         if (! $employee || ! in_array($employee->role, $allowedRoles, true)) {

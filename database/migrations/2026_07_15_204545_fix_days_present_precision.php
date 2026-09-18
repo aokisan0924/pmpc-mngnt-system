@@ -11,7 +11,8 @@ return new class extends Migration
      * rounds half-day attendance (e.g. 10.5 -> 11) on save. This widens
      * them to DECIMAL(5,2) so half days are stored and displayed correctly.
      */
-    public function up(): void {
+    public function up(): void
+    {
         if (DB::getDriverName() === 'mysql') {
             if (Schema::hasColumn('payroll_items', 'days_present')) {
                 DB::statement('ALTER TABLE payroll_items MODIFY days_present DECIMAL(5,2) NOT NULL DEFAULT 0');
@@ -23,7 +24,8 @@ return new class extends Migration
         }
     }
 
-    public function down(): void {
+    public function down(): void
+    {
         if (DB::getDriverName() === 'mysql') {
             if (Schema::hasColumn('payroll_items', 'days_present')) {
                 DB::statement('ALTER TABLE payroll_items MODIFY days_present INT NOT NULL DEFAULT 0');

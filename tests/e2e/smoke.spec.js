@@ -17,7 +17,7 @@ test.describe('PMPC WorkForce Smoke & Design Verification', () => {
 
         // 1. Dashboard
         await page.waitForURL('**/admin/dashboard', { timeout: 10000 })
-        await expect(page.locator('h1')).toContainText('Workforce & Operations')
+        await expect(page.locator('h1')).toContainText('Operations overview')
         await page.screenshot({ path: 'output/admin-dashboard.png', fullPage: true })
 
         // 2. Employees directory

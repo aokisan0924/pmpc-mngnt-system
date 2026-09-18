@@ -35,66 +35,66 @@ class PmpcEmployeeDataSeeder extends Seeder
         $employees = [
             [
                 'employee_id' => '2003-00001',
-                'first_name'  => 'Alexander L.',
-                'last_name'   => 'Feria',
-                'email'       => 'alferia67@gmail.com',
-                'phone'       => '09054567475',
-                'position'    => 'President',
-                'department'  => 'Executive',
+                'first_name' => 'Alexander L.',
+                'last_name' => 'Feria',
+                'email' => 'alferia67@gmail.com',
+                'phone' => '09054567475',
+                'position' => 'President',
+                'department' => 'Executive',
             ],
             [
                 'employee_id' => '2022-00003',
-                'first_name'  => 'Alexander A.',
-                'last_name'   => 'Feria Jr.',
-                'email'       => 'xanderferia018@gmail.com',
-                'phone'       => '09552853668',
-                'position'    => 'Operations',
-                'department'  => 'Operations',
+                'first_name' => 'Alexander A.',
+                'last_name' => 'Feria Jr.',
+                'email' => 'xanderferia018@gmail.com',
+                'phone' => '09552853668',
+                'position' => 'Operations',
+                'department' => 'Operations',
             ],
             [
                 'employee_id' => '2025-00023',
-                'first_name'  => 'Michaela',
-                'last_name'   => 'Mauanay',
-                'email'       => 'mauanay2003@gmail.com',
-                'phone'       => null,
-                'position'    => 'Accounting Clerk',
-                'department'  => 'Accounting',
+                'first_name' => 'Michaela',
+                'last_name' => 'Mauanay',
+                'email' => 'mauanay2003@gmail.com',
+                'phone' => null,
+                'position' => 'Accounting Clerk',
+                'department' => 'Accounting',
             ],
             [
                 'employee_id' => '2026-00025',
-                'first_name'  => 'Yvonne N.',
-                'last_name'   => 'Condo',
-                'email'       => 'yvonnecondo1@gmail.com',
-                'phone'       => null,
-                'position'    => 'Loan Processor/Cashier',
-                'department'  => 'Finance',
+                'first_name' => 'Yvonne N.',
+                'last_name' => 'Condo',
+                'email' => 'yvonnecondo1@gmail.com',
+                'phone' => null,
+                'position' => 'Loan Processor/Cashier',
+                'department' => 'Finance',
             ],
             [
                 'employee_id' => '2026-00026',
-                'first_name'  => 'Jerome A.',
-                'last_name'   => 'Santos',
-                'email'       => 'jeromesantos1923@gmail.com',
-                'phone'       => null,
-                'position'    => 'Bookkeeper',
-                'department'  => 'Accounting',
+                'first_name' => 'Jerome A.',
+                'last_name' => 'Santos',
+                'email' => 'jeromesantos1923@gmail.com',
+                'phone' => null,
+                'position' => 'Bookkeeper',
+                'department' => 'Accounting',
             ],
             [
                 'employee_id' => '2026-00027',
-                'first_name'  => 'Mariel S.',
-                'last_name'   => 'Lucero',
-                'email'       => 'marielluceros21@gmail.com',
-                'phone'       => null,
-                'position'    => 'Bookkeeper',
-                'department'  => 'Accounting',
+                'first_name' => 'Mariel S.',
+                'last_name' => 'Lucero',
+                'email' => 'marielluceros21@gmail.com',
+                'phone' => null,
+                'position' => 'Bookkeeper',
+                'department' => 'Accounting',
             ],
             [
                 'employee_id' => '2026-00028',
-                'first_name'  => 'Diana B.',
-                'last_name'   => 'Pasco',
-                'email'       => 'dianabpasco@gmail.com',
-                'phone'       => null,
-                'position'    => 'Loan Processor/Cashier',
-                'department'  => 'Finance',
+                'first_name' => 'Diana B.',
+                'last_name' => 'Pasco',
+                'email' => 'dianabpasco@gmail.com',
+                'phone' => null,
+                'position' => 'Loan Processor/Cashier',
+                'department' => 'Finance',
             ],
         ];
 
@@ -105,14 +105,14 @@ class PmpcEmployeeDataSeeder extends Seeder
                 ['employee_id' => $data['employee_id']],
                 [
                     'first_name' => $data['first_name'],
-                    'last_name'  => $data['last_name'],
-                    'email'      => $data['email'],
-                    'phone'      => $data['phone'],
-                    'position'   => $data['position'],
+                    'last_name' => $data['last_name'],
+                    'email' => $data['email'],
+                    'phone' => $data['phone'],
+                    'position' => $data['position'],
                     'department' => $data['department'],
-                    'role'       => 'employee', // adjust manually for admin accounts
-                    'status'     => 'active',
-                    'password'   => $hashedPassword,
+                    'role' => 'employee', // adjust manually for admin accounts
+                    'status' => 'active',
+                    'password' => $hashedPassword,
                     'daily_rate' => 0, // set real rate before running payroll
                 ]
             );
@@ -124,7 +124,7 @@ class PmpcEmployeeDataSeeder extends Seeder
     private function seedDtrRecords(array $employees): void
     {
         $start = Carbon::parse('2026-07-01');
-        $end   = Carbon::parse('2026-07-15');
+        $end = Carbon::parse('2026-07-15');
 
         // No exceptions — every employee gets full, on-time attendance
         // for the whole period (payroll testing).
@@ -136,19 +136,19 @@ class PmpcEmployeeDataSeeder extends Seeder
                     continue;
                 }
 
-                $dateKey  = $date->format('Y-m-d');
+                $dateKey = $date->format('Y-m-d');
                 $scenario = $exceptions[$dateKey][$employeeCode] ?? 'full';
 
                 $log = DtrLog::firstOrNew([
                     'employee_id' => $employee->id,
-                    'date'        => $dateKey,
+                    'date' => $dateKey,
                 ]);
 
                 match ($scenario) {
                     'absent' => $this->applyPunches($log, null, null, null, null),
                     'half_am_absent' => $this->applyPunches($log, null, null, '13:00:00', '17:00:00'),
                     'half_pm_absent' => $this->applyPunches($log, '08:00:00', '12:00:00', null, null),
-                    default  => $this->applyPunches($log, '08:00:00', '12:00:00', '13:00:00', '17:00:00'),
+                    default => $this->applyPunches($log, '08:00:00', '12:00:00', '13:00:00', '17:00:00'),
                 };
 
                 $log->computeHoursAndStatus();
@@ -159,9 +159,9 @@ class PmpcEmployeeDataSeeder extends Seeder
 
     private function applyPunches(DtrLog $log, ?string $amIn, ?string $amOut, ?string $pmIn, ?string $pmOut): void
     {
-        $log->am_time_in  = $amIn;
+        $log->am_time_in = $amIn;
         $log->am_time_out = $amOut;
-        $log->pm_time_in  = $pmIn;
+        $log->pm_time_in = $pmIn;
         $log->pm_time_out = $pmOut;
     }
 }
