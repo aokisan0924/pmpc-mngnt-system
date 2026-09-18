@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Deployment Artifacts Cleanup**: Untracked local Playwright test traces, scratch CLI files, and UI screenshot outputs from the Git index and added `output/`, `test-results/`, `.playwright-cli/`, and `database/*.sqlite*` to `.gitignore` to ensure test artifacts and local SQLite files are never uploaded to production.
 - **Deployment Smoke Assertion & Codebase Styling**: Reconciled the Admin Dashboard heading assertion in `smoke.spec.js` with the current "Operations overview" UI header and applied Laravel Pint PSR-12 formatting across middleware, commands, seeders, and migrations.
 - **Non-Atomic Employee Account Creation**: Wrapped employee profile and government ID creation inside `DB::transaction(...)` in `EmployeeController.php`, ensuring accounts are not created in an inconsistent state if secondary government ID writes fail.
 - **Sequential Employee ID Arithmetic Corruption**: Refactored `Employee::generateEmployeeId()` to explicitly query the highest numeric ID matching the `EMP-%` prefix, preventing string slicing arithmetic errors (`-27`) and ID collisions caused by date-formatted IDs like `2026-00028` and `2023-00010`.
