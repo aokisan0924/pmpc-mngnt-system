@@ -27,8 +27,8 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
     const [feedback, setFeedback] = useState(null)
     const processingRef = useRef(false)
 
-    // Silent background poll every 4s for real-time triage updates
-    usePoll(4000, {
+    // Silent background poll every 12s for real-time triage updates
+    usePoll(12000, {
         only: ['stats', 'pending_edit_requests', 'today_snapshot'],
         preserveScroll: true,
         preserveState: true,

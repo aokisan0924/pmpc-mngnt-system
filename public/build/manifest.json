@@ -8,13 +8,20 @@
     "src": "resources/css/app.css",
     "isEntry": true
   },
+  "resources/images/pmpc_ems.png": {
+    "file": "assets/pmpc_ems-KvZCSiQ0.png",
+    "src": "resources/images/pmpc_ems.png"
+  },
   "resources/js/app.jsx": {
-    "file": "assets/app-lD6fDu5L.js",
+    "file": "assets/app-BIQN04lC.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
     "css": [
       "assets/app-sosZVkek.css"
+    ],
+    "assets": [
+      "assets/pmpc_ems-KvZCSiQ0.png"
     ]
   }
 }

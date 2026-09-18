@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
 import ThemeToggle from '@/Components/ThemeToggle'
 import useTheme from '@/hooks/useTheme'
+import pmpcLogo from '@images/pmpc_ems.png'
 
 function EyeIcon({ off }) {
     return off ? (
@@ -67,16 +68,30 @@ export default function Login() {
                     aria-hidden="true"
                 >
                     <img
-                        src="/pmpc_ems.png"
+                        src={pmpcLogo}
                         alt=""
                         className="w-full h-full object-contain filter grayscale brightness-200 contrast-125"
+                        onError={(e) => {
+                            if (e.currentTarget.src !== window.location.origin + '/pmpc_ems.png') {
+                                e.currentTarget.src = '/pmpc_ems.png'
+                            }
+                        }}
                     />
                 </div>
 
                 {/* Top Brand Identity with Authentic Emblem */}
                 <div className="relative flex items-center gap-3.5 border-b border-white/20 pb-6">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white p-1.5 shadow-sm border border-white/30 shrink-0">
-                        <img src="/pmpc_ems.png" alt="People's Multi-Purpose Cooperative" className="w-full h-full object-contain" />
+                        <img
+                            src={pmpcLogo}
+                            alt="People's Multi-Purpose Cooperative"
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                                if (e.currentTarget.src !== window.location.origin + '/pmpc_ems.png') {
+                                    e.currentTarget.src = '/pmpc_ems.png'
+                                }
+                            }}
+                        />
                     </div>
                     <div>
                         <p className="text-base font-semibold tracking-tight leading-snug">PMPC WorkForce</p>
@@ -118,7 +133,16 @@ export default function Login() {
                         {/* Compact Mobile Brand Header */}
                         <div className="lg:hidden flex items-center gap-3 pb-6 border-b border-border/60 mb-6">
                             <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white p-1 border border-border/60 shadow-2xs shrink-0">
-                                <img src="/pmpc_ems.png" alt="PMPC" className="w-full h-full object-contain" />
+                                <img
+                                    src={pmpcLogo}
+                                    alt="PMPC"
+                                    className="w-full h-full object-contain"
+                                    onError={(e) => {
+                                        if (e.currentTarget.src !== window.location.origin + '/pmpc_ems.png') {
+                                            e.currentTarget.src = '/pmpc_ems.png'
+                                        }
+                                    }}
+                                />
                             </div>
                             <div>
                                 <h2 className="text-sm font-semibold text-text tracking-tight">PMPC WorkForce</h2>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
 import ThemeToggle from '@/Components/ThemeToggle'
+import pmpcLogo from '@images/pmpc_ems.png'
 
 const allNav = [
     { label: 'Dashboard',      href: '/employee/dashboard'      },
@@ -33,7 +34,16 @@ export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleT
                     {/* Brand */}
                     <div className="flex items-center gap-2 min-w-0">
                         <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-white dark:bg-slate-900 p-1 border border-border/80 shadow-2xs">
-                            <img src="/pmpc_ems.png" alt="PMPC" className="w-full h-full object-contain" />
+                            <img
+                                src={pmpcLogo}
+                                alt="PMPC"
+                                className="w-full h-full object-contain"
+                                onError={(e) => {
+                                    if (e.currentTarget.src !== window.location.origin + '/pmpc_ems.png') {
+                                        e.currentTarget.src = '/pmpc_ems.png'
+                                    }
+                                }}
+                            />
                         </div>
                         <div className="min-w-0">
                             <p className="text-xs font-bold leading-tight text-text truncate">PMPC WorkForce</p>

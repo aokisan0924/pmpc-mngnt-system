@@ -45,17 +45,25 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
     const [punching, setPunching]     = useState(false)
     const [loading, setLoading] = useState(false)
 
-    // Silent background poll every 4s so employee sees edit approval/status changes and punch updates live
-    usePoll(4000, {
+    // Silent background poll every 15s so employee sees edit approval/status changes and punch updates live
+    usePoll(15000, {
         only: ['logs', 'summary', 'today', 'next_punch', 'weeklyStrip'],
         preserveScroll: true,
         preserveState: true,
     })
 
     useEffect(() => {
-        const stop = router.on('start', () => setLoading(true))
+        const stop = router.on('start', (event) => {
+            const visit = event?.detail?.visit
+            if (visit?.poll || (Array.isArray(visit?.only) && visit.only.length > 0) || visit?.showProgress === false) {
+                return
+            }
+            setLoading(true)
+        })
         const finish = router.on('finish', () => setLoading(false))
-        return () => { stop(); finish() }
+        const cancel = router.on('cancel', () => setLoading(false))
+        const error = router.on('error', () => setLoading(false))
+        return () => { stop(); finish(); cancel(); error() }
     }, [])
 
     function handlePunch() {

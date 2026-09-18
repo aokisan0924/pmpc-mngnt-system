@@ -19,8 +19,8 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
     const [adminNotes, setAdminNotes] = useState({})
     const [processing, setProcessing] = useState(false)
 
-    // Silent real-time background poll every 3s so admin sees incoming edit requests without manual refresh
-    usePoll(3000, {
+    // Silent real-time background poll every 12s so admin sees incoming edit requests without manual refresh
+    usePoll(12000, {
         only: ['requests', 'pendingCount'],
         preserveScroll: true,
         preserveState: true,

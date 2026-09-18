@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, router, usePage, usePoll } from '@inertiajs/react'
 import ThemeToggle from '@/Components/ThemeToggle'
 import useTheme from '@/hooks/useTheme'
+import pmpcLogo from '@images/pmpc_ems.png'
 
 const navItems = [
     {
@@ -128,8 +129,8 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
     const adminNavItems = navItems
     const sections = [...new Set(adminNavItems.map(i => i.section))]
 
-    // Silent background poll every 6s to keep pending edit count badge fresh across the admin portal
-    usePoll(6000, {
+    // Silent background poll every 15s to keep pending edit count badge fresh across the admin portal
+    usePoll(15000, {
         only: ['pendingEditCount', 'pendingCount'],
         preserveScroll: true,
         preserveState: true,
@@ -252,7 +253,16 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
             {/* Brand Header */}
             <div className="flex items-center gap-2.5 h-13 px-4 border-b border-border/80">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-white dark:bg-slate-900 p-0.5 border border-border/80 shadow-2xs">
-                    <img src="/pmpc_ems.png" alt="PMPC" className="w-full h-full object-contain" />
+                    <img
+                        src={pmpcLogo}
+                        alt="PMPC"
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                            if (e.currentTarget.src !== window.location.origin + '/pmpc_ems.png') {
+                                e.currentTarget.src = '/pmpc_ems.png'
+                            }
+                        }}
+                    />
                 </div>
                 <div className="min-w-0">
                     <p className="font-heading font-bold text-xs text-text tracking-tight truncate">PMPC WorkForce</p>
