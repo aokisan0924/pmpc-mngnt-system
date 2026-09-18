@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Deployment Smoke Assertion & Codebase Styling**: Reconciled the Admin Dashboard heading assertion in `smoke.spec.js` with the current "Operations overview" UI header and applied Laravel Pint PSR-12 formatting across middleware, commands, seeders, and migrations.
 - **Non-Atomic Employee Account Creation**: Wrapped employee profile and government ID creation inside `DB::transaction(...)` in `EmployeeController.php`, ensuring accounts are not created in an inconsistent state if secondary government ID writes fail.
 - **Sequential Employee ID Arithmetic Corruption**: Refactored `Employee::generateEmployeeId()` to explicitly query the highest numeric ID matching the `EMP-%` prefix, preventing string slicing arithmetic errors (`-27`) and ID collisions caused by date-formatted IDs like `2026-00028` and `2023-00010`.
 - **Payroll Period Validation & Duplicate Batch Creation**: Enforced `after_or_equal:period_from` on payroll batch save and added duplicate validation in `StorePayrollRequest.php`, strictly rejecting duplicate batches for the same period and cutoff.
