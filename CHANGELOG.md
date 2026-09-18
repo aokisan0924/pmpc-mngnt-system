@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Track Production Bundles for Seamless Git Deployment**: Unignored and tracked `public/build` in version control, allowing direct 1-click deployment from GitHub to Hostinger shared hosting without needing separate Node.js build steps or manual FTP asset transfers.
 - **Admin Personal Navigation**: Added **My DTR** and **My Task Planner** links to the Admin Portal sidebar, giving super administrators direct desktop access to their own attendance record, punch controls, and task planner.
 
 - **Real-Time Auto-Refresh for DTR Edit Requests & Portals**: Integrated Inertia's native `usePoll` background polling across `Admin/DtrEditRequests.jsx`, `Admin/Dashboard.jsx`, `AdminLayout.jsx`, and `Employee/Dtr.jsx`. Administrators now see incoming attendance edit requests immediately without manual page refreshes, and employees see instant live updates when their requests are approved or declined.
