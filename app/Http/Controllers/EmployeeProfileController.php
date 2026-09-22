@@ -29,6 +29,7 @@ class EmployeeProfileController extends Controller
                 'address' => $employee->address,
                 'department' => $employee->department,
                 'position' => $employee->position,
+                'daily_rate' => $employee->daily_rate,
                 'date_hired' => $employee->date_hired?->format('Y-m-d'),
             ],
             'govIds' => $employee->governmentIds ? [

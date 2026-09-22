@@ -1,5 +1,5 @@
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
-import { Link, router } from '@inertiajs/react'
+import { Link, router, usePoll } from '@inertiajs/react'
 import { useEffect, useRef, useState } from 'react'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
@@ -97,6 +97,8 @@ export default function Dashboard({
     summary,
     cutoff,
     today,
+    schedule = {},
+    pendingEditRequests = [],
     recentNotifications = [],
     recentTasks = [],
     latestPayslip,
@@ -107,6 +109,12 @@ export default function Dashboard({
     const [activeTab, setActiveTab] = useState('tasks') // 'tasks' | 'alerts'
     const actionTabRefs = useRef({})
 
+    usePoll(30000, {
+        only: ['summary', 'today', 'pendingEditRequests', 'recentNotifications', 'recentTasks'],
+        preserveScroll: true,
+        preserveState: true,
+    })
+
     const hour = new Date().getHours()
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
     const firstName = employee?.first_name ? employee.first_name.trim() : 'Employee'
@@ -115,12 +123,17 @@ export default function Dashboard({
     const completedPunches = PUNCH_SLOTS.filter(s => Boolean(today?.[s.key])).length
     const nextPunchIndex = completedPunches < 4 ? completedPunches : -1
     const nextSlot = nextPunchIndex !== -1 ? PUNCH_SLOTS[nextPunchIndex] : null
+    const nextScheduledTime = nextSlot ? schedule?.[nextSlot.key] : null
 
     // Direct 1-Tap Quick Punch Handler
     function handleQuickPunch() {
         if (punching || nextPunchIndex === -1 || !nextSlot) return
         const slotLabel = nextSlot.label
-        const punchTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        const punchTime = new Date().toLocaleTimeString('en-PH', {
+            timeZone: 'Asia/Manila',
+            hour: '2-digit',
+            minute: '2-digit',
+        })
         setPunching(true)
         setPunchFeedback(null)
 
@@ -188,7 +201,7 @@ export default function Dashboard({
 
     return (
         <EmployeeLayout title="DTR Dashboard">
-            <div className="attendance-workstation p-3.5 sm:p-5 lg:p-6 max-w-7xl mx-auto space-y-4 page-enter">
+            <div className="attendance-workstation p-3.5 sm:p-5 lg:p-6 max-w-[90rem] mx-auto space-y-5 page-enter">
                 {/* ── Welcome Banner & Live Clock ─────────────────── */}
                 <div
                     role="region"
@@ -224,9 +237,9 @@ export default function Dashboard({
 
                 {/* ── Today's Attendance Punch State Machine & 1-Tap Punch (Top Priority) ── */}
                 <Card className="attendance-console overflow-hidden border-0 shadow-none">
-                    <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-border/60 bg-field/30 px-4 py-3">
+                    <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/60 bg-field/30 px-5 py-4 sm:px-6">
                         <div className="flex flex-wrap items-center gap-2">
-                            <CardTitle className="text-sm sm:text-base">Today's DTR: 4-Punch Attendance Flow</CardTitle>
+                            <CardTitle className="text-base sm:text-lg">Today's DTR: 4-Punch Attendance Flow</CardTitle>
                             {summary?.pending_edits > 0 && (
                                 <Badge variant="amber" size="sm">
                                     {summary.pending_edits} edit request{summary.pending_edits > 1 ? 's' : ''} pending
@@ -238,9 +251,34 @@ export default function Dashboard({
                         </Link>
                     </CardHeader>
 
-                    <CardContent className="p-3.5 sm:p-4 space-y-3.5">
+                    <CardContent className="flex flex-col gap-5 p-5 sm:p-6 lg:p-7">
+                        <section
+                            aria-labelledby="next-dtr-action"
+                            className={`order-1 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
+                                nextSlot
+                                    ? 'border-emerald-300 bg-emerald-50/80 dark:border-emerald-800 dark:bg-emerald-950/30'
+                                    : 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900 dark:bg-emerald-950/20'
+                            }`}
+                        >
+                            <div>
+                                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">
+                                    {nextSlot ? 'Next required action' : 'Today’s attendance'}
+                                </p>
+                                <h2 id="next-dtr-action" className="mt-1 font-heading text-xl font-bold text-text sm:text-2xl">
+                                    {nextSlot ? `Punch ${nextSlot.label}` : 'All four punches completed'}
+                                </h2>
+                                <p className="mt-1 text-sm text-sub">
+                                    {completedPunches} of 4 punches recorded
+                                    {nextScheduledTime ? ` · Scheduled ${formatPunchTime(nextScheduledTime)}` : ''}
+                                </p>
+                            </div>
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-lg font-bold text-white shadow-sm" aria-hidden="true">
+                                {completedPunches}/4
+                            </div>
+                        </section>
+
                         {/* Connected 4-step Timeline */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 relative select-none">
+                        <div className="order-3 grid grid-cols-1 gap-3.5 sm:grid-cols-2 sm:gap-4 lg:order-2 lg:grid-cols-4 relative select-none">
                             {PUNCH_SLOTS.map((slot, index) => {
                                 const rawVal = today?.[slot.key]
                                 const isDone = Boolean(rawVal)
@@ -250,20 +288,20 @@ export default function Dashboard({
                                 return (
                                     <div
                                         key={slot.key}
-                                        role="status"
+                                        role="group"
                                         aria-label={`${slot.label}: ${isDone ? `Punched at ${rawVal}` : isNext ? 'Ready to punch' : 'Locked'}`}
-                                        className={`p-3 rounded-lg border transition-all duration-200 relative flex flex-col justify-between ${
+                                        className={`p-4 sm:p-5 rounded-xl border transition-all duration-200 relative flex flex-col justify-between ${
                                             isDone
-                                                ? 'bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/60'
+                                                ? 'min-h-[124px] bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/60'
                                                 : isNext
-                                                ? 'bg-panel border-emerald-500 shadow-sm ring-1.5 ring-emerald-500/25'
-                                                : 'bg-field/40 border-border/60 opacity-60'
+                                                ? 'min-h-[172px] bg-panel border-emerald-500 shadow-md ring-2 ring-emerald-500/25 lg:-translate-y-1 lg:scale-[1.03] lg:z-10'
+                                                : 'min-h-[124px] bg-field/40 border-border/60 opacity-45'
                                         }`}
                                     >
                                         {/* Step Header */}
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="flex items-center gap-1.5">
-                                                <span className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-bold ${
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
                                                     isDone
                                                         ? 'bg-emerald-600 text-white'
                                                         : isNext
@@ -272,7 +310,7 @@ export default function Dashboard({
                                                 }`}>
                                                     {slot.stepNum}
                                                 </span>
-                                                <span className="text-[11px] font-semibold text-sub uppercase tracking-wider">
+                                                <span className="text-xs font-semibold text-sub uppercase tracking-wider">
                                                     {slot.label}
                                                 </span>
                                             </div>
@@ -300,99 +338,124 @@ export default function Dashboard({
 
                                         {/* Recorded Punch Time */}
                                         <div className="my-0.5">
-                                            <p className="font-heading font-bold text-lg lg:text-xl text-text tnum tracking-tight">
-                                                {isDone ? formatPunchTime(rawVal) : '--:--'}
+                                            <p className="font-heading font-bold text-2xl lg:text-3xl text-text tnum tracking-tight">
+                                                {isDone ? formatPunchTime(rawVal) : isNext ? 'Ready' : '--:--'}
                                             </p>
-
+                                            {!isDone && schedule?.[slot.key] && (
+                                                <p className="mt-1 text-xs text-sub">Scheduled {formatPunchTime(schedule[slot.key])}</p>
+                                            )}
                                         </div>
                                     </div>
                                 )
                             })}
                         </div>
 
-                        {/* Interactive Punch Action & Feedback Banner */}
-                        <div className="p-3 rounded-lg bg-field/60 dark:bg-slate-900/50 border border-border/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            {punchFeedback && (
+                        {/* Interactive Punch Action, feedback, and factual exceptions */}
+                        <div className={`order-2 grid gap-4 lg:order-3 ${pendingEditRequests.length > 0 ? 'lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.7fr)]' : ''}`}>
+                            <div data-testid="dtr-primary-action" className="sticky bottom-20 z-20 flex flex-col gap-4 rounded-xl border border-border/80 bg-panel/95 p-4 shadow-lg backdrop-blur-md sm:static sm:flex-row sm:items-center sm:justify-between sm:bg-field/60 sm:p-5 sm:shadow-none sm:backdrop-blur-none dark:bg-slate-900/95 dark:sm:bg-slate-900/50">
                                 <div className="min-w-0">
-                                    <p className={`text-xs font-semibold transition-opacity ${
-                                        punchFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                                    }`}>
-                                        {punchFeedback.message}
+                                    <p className="text-xs font-bold uppercase tracking-wider text-sub">
+                                        {nextSlot ? `Ready for ${nextSlot.label}` : 'Attendance complete'}
                                     </p>
-                                </div>
-                            )}
-
-                            {/* Attendance action */}
-                            <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:flex-nowrap">
-                                {nextSlot ? (
-                                    <Button
-                                        variant="emerald"
-                                        size="md"
-                                        onClick={handleQuickPunch}
-                                        disabled={punching}
-                                        aria-label={punching ? 'Recording punch...' : `Punch ${nextSlot.label}`}
-                                        className="h-9 min-w-[140px] flex-1 px-4 text-xs font-semibold shadow-xs sm:flex-none"
-                                    >
-                                        {punching ? (
-                                            <span className="inline-flex items-center gap-1.5">
-                                                <svg className="animate-spin h-3.5 w-3.5 text-white" aria-hidden="true" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                                </svg>
-                                                Recording...
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1.5">
-                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                Punch {nextSlot.label}
-                                            </span>
+                                    <p className="mt-1 text-sm text-text">
+                                        {nextSlot
+                                            ? `${completedPunches} of 4 recorded${nextScheduledTime ? ` · ${formatPunchTime(nextScheduledTime)} schedule` : ''}`
+                                            : 'Your four-punch sequence is complete for today.'}
+                                    </p>
+                                    <div aria-live="polite" aria-atomic="true">
+                                        {punchFeedback && (
+                                            <p className={`mt-2 text-xs font-semibold transition-opacity ${
+                                                punchFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
+                                            }`}>
+                                                {punchFeedback.message}
+                                            </p>
                                         )}
-                                    </Button>
-                                ) : (
-                                    <Link href="/employee/dtr" className="flex-1 sm:flex-none">
-                                        <Button variant="softEmerald" size="sm" className="h-9 w-full text-xs">
-                                            View DTR History →
+                                    </div>
+                                </div>
+
+                                <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:flex-nowrap">
+                                    {nextSlot ? (
+                                        <Button
+                                            variant="emerald"
+                                            size="lg"
+                                            onClick={handleQuickPunch}
+                                            disabled={punching}
+                                            aria-label={punching ? 'Recording punch...' : `Punch ${nextSlot.label}`}
+                                            className="h-12 min-w-[180px] flex-1 px-5 text-sm font-semibold shadow-xs sm:flex-none"
+                                        >
+                                            {punching ? (
+                                                <span className="inline-flex items-center gap-1.5">
+                                                    <svg className="animate-spin h-3.5 w-3.5 text-white" aria-hidden="true" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                    </svg>
+                                                    Recording...
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1.5">
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Punch {nextSlot.label}
+                                                </span>
+                                            )}
                                         </Button>
-                                    </Link>
-                                )}
+                                    ) : (
+                                        <Link href="/employee/dtr" className="flex-1 sm:flex-none">
+                                            <Button variant="softEmerald" size="md" className="w-full">
+                                                View DTR History →
+                                            </Button>
+                                        </Link>
+                                    )}
+                                </div>
                             </div>
+
+                            {pendingEditRequests.length > 0 && (
+                                <aside className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-900/70 dark:bg-amber-950/25" aria-labelledby="dtr-attention-heading">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div>
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">DTR attention</p>
+                                            <h3 id="dtr-attention-heading" className="mt-0.5 text-sm font-bold text-text">Pending corrections</h3>
+                                        </div>
+                                        <Badge variant="amber" size="sm">{summary?.pending_edits ?? pendingEditRequests.length}</Badge>
+                                    </div>
+                                    <div className="mt-3 space-y-2">
+                                        {pendingEditRequests.map(request => (
+                                            <div key={request.id} className="rounded-lg border border-amber-200/80 bg-white/70 px-3 py-2 dark:border-amber-900/60 dark:bg-slate-950/30">
+                                                <p className="text-xs font-semibold text-text">{request.date_label}</p>
+                                                <p className="mt-0.5 truncate text-[11px] text-sub">Submitted {request.submitted_at}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Link href="/employee/dtr" className="mt-3 inline-flex rounded text-xs font-semibold text-amber-800 hover:text-amber-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 dark:text-amber-200">
+                                        Review DTR requests →
+                                    </Link>
+                                </aside>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* ── Metric Cards with Contextual Progress Bars ───── */}
-                <div className="attendance-metrics grid grid-cols-1 sm:grid-cols-3 gap-px overflow-hidden bg-border sm:rounded-2xl">
+                {/* ── Today at a glance ────────────────────────────── */}
+                <section aria-labelledby="today-glance-heading" className="space-y-2">
+                    <div className="flex items-center justify-between px-1">
+                        <h2 id="today-glance-heading" className="text-xs font-bold uppercase tracking-[0.14em] text-sub">Today at a glance</h2>
+                        <span className="text-xs text-dim">Refreshes automatically</span>
+                    </div>
+                <div className="attendance-metrics grid grid-cols-1 gap-px overflow-hidden bg-border sm:grid-cols-2 sm:rounded-2xl lg:grid-cols-4">
                     <StatCard
-                        title="Days Present"
-                        value={summary?.days_present ?? 0}
+                        title="Hours Today"
+                        value={`${Number(today?.hours_rendered || 0).toFixed(1)}h`}
                         accent="emerald"
                         progress={{
-                            value: summary?.days_present ?? 0,
-                            max: summary?.cutoff_target_days || 11,
-                            label: 'This payroll period',
+                            value: today?.hours_rendered ?? 0,
+                            max: 8,
+                            label: 'Recorded today',
                             color: 'bg-emerald-500',
                         }}
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2m15-10a4 4 0 11-8 0 4 4 0 018 0z" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="Hours Rendered"
-                        value={summary?.hours_rendered ? `${summary.hours_rendered}h` : '0h'}
-                        accent="indigo"
-                        progress={{
-                            value: summary?.hours_rendered ?? 0,
-                            max: summary?.cutoff_target_hours || 88,
-                            label: 'Period rendered',
-                            color: 'bg-emerald-500',
-                        }}
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         }
                     />
@@ -408,11 +471,34 @@ export default function Dashboard({
                         }}
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        }
+                    />
+                    <StatCard
+                        title="Pending Tasks"
+                        value={pendingTasksCount}
+                        subtitle={pendingTasksCount === 0 ? 'No pending tasks' : pendingTasksCount === 1 ? 'Task needs attention' : 'Tasks need attention'}
+                        accent={pendingTasksCount > 0 ? 'amber' : 'emerald'}
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                        }
+                    />
+                    <StatCard
+                        title="DTR Edits"
+                        value={summary?.pending_edits ?? 0}
+                        subtitle={(summary?.pending_edits ?? 0) > 0 ? 'Awaiting HR review' : 'No pending requests'}
+                        accent={(summary?.pending_edits ?? 0) > 0 ? 'amber' : 'emerald'}
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
                             </svg>
                         }
                     />
                 </div>
+                </section>
 
                 {/* ── Lower Split: Action Hub & Latest Payslip ───────── */}
                 <div className="attendance-secondary grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">

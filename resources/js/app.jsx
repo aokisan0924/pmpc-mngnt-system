@@ -4,10 +4,17 @@ import { createRoot } from 'react-dom/client'
 import NavigationLoader from './Components/NavigationLoader'
 import './echo'
 
+const pages = import.meta.glob('./Pages/**/*.jsx')
+
 createInertiaApp({
-    resolve: name => {
-        const pages = import.meta.glob('./Pages/**/*.jsx', { eager: true })
-        return pages[`./Pages/${name}.jsx`]
+    resolve: async name => {
+        const loadPage = pages[`./Pages/${name}.jsx`]
+
+        if (!loadPage) {
+            throw new Error(`Unknown Inertia page: ${name}`)
+        }
+
+        return loadPage()
     },
     setup({ el, App, props }) {
         createRoot(el).render(

@@ -6,7 +6,9 @@ use App\Models\DtrEditRequest;
 use App\Models\DtrLog;
 use App\Models\EmployeeNotification;
 use App\Models\PayrollItem;
+use App\Models\Setting;
 use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -63,6 +65,9 @@ class EmployeeDashboardController extends Controller
         $dailyRate = (float) $employee->daily_rate;
         $accruedBasic = round($dailyRate * $cutoffDaysPresent, 2);
         $projectedBasic = round($dailyRate * $workdaysInCutoff, 2);
+        $pendingEditRequestsQuery = DtrEditRequest::where('employee_id', $employee->id)
+            ->where('status', 'pending');
+
         // Monthly & Cutoff summary
         $summary = [
             'days_present' => $cutoffDaysPresent,
@@ -75,16 +80,33 @@ class EmployeeDashboardController extends Controller
             'daily_rate' => $dailyRate,
             'accrued_basic' => $accruedBasic,
             'projected_basic' => $projectedBasic,
-            'pending_edits' => DtrEditRequest::where('employee_id', $employee->id)
-                ->where('status', 'pending')
-                ->count(),
+            'pending_edits' => (clone $pendingEditRequestsQuery)->count(),
         ];
+
+        $pendingEditRequests = (clone $pendingEditRequestsQuery)
+            ->with('dtrLog:id,date')
+            ->latest()
+            ->limit(3)
+            ->get()
+            ->map(fn ($editRequest) => [
+                'id' => $editRequest->id,
+                'date_label' => $editRequest->dtrLog?->date?->format('M d, Y') ?? 'Attendance record',
+                'reason' => $editRequest->reason,
+                'submitted_at' => $editRequest->created_at->diffForHumans(),
+            ]);
 
         $cutoffInfo = [
             'label' => $cutoffLabel,
             'days_remaining' => $daysRemaining,
             'payday_label' => $paydayDate->format('M d'),
             'is_payday_today' => $now->isSameDay($paydayDate),
+        ];
+
+        $schedule = [
+            'am_time_in' => Setting::get('shift_start', '08:00'),
+            'am_time_out' => Setting::get('lunch_start', '12:00'),
+            'pm_time_in' => Setting::get('lunch_end', '13:00'),
+            'pm_time_out' => Setting::get('shift_end', '17:00'),
         ];
 
         // Today's DTR log
@@ -170,6 +192,8 @@ class EmployeeDashboardController extends Controller
                 'hours_rendered' => $today->hours_rendered,
                 'next_punch' => $today->getNextPunchSlot(),
             ],
+            'schedule' => $schedule,
+            'pendingEditRequests' => $pendingEditRequests,
             'recentNotifications' => $recentNotifications,
             'recentTasks' => $recentTasks,
             'latestPayslip' => $latestPayslip,

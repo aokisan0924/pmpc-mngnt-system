@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Employee Dashboard Data and Bundle Reliability**: Added the missing Carbon import used by finalized payslip summaries and switched Inertia page resolution from eager loading to route-level lazy loading, reducing the initial JavaScript payload while retaining explicit unknown-page errors.
+- **Employee Profile Reliability and Form Layout**: Restored the employee daily-rate value in the profile payload, correctly formatted it as Philippine currency, repaired card-content and action-footer spacing, linked all profile labels to their controls, and surfaced password-confirmation errors.
 - **Navigation Loader Background Polling Flicker & Missing Logo**: Filtered silent background polling (`usePoll`) and partial reloads from triggering the full-screen `NavigationLoader` overlay, relaxed aggressive 3-6s polling intervals to 12-15s, and bundled `pmpc_ems.png` directly into Vite's production assets with safe image fallback so the brand logo resolves reliably across all server environments and subdirectories.
 - **Deployment Artifacts Cleanup**: Untracked local Playwright test traces, scratch CLI files, and UI screenshot outputs from the Git index and added `output/`, `test-results/`, `.playwright-cli/`, and `database/*.sqlite*` to `.gitignore` to ensure test artifacts and local SQLite files are never uploaded to production.
 - **Deployment Smoke Assertion & Codebase Styling**: Reconciled the Admin Dashboard heading assertion in `smoke.spec.js` with the current "Operations overview" UI header and applied Laravel Pint PSR-12 formatting across middleware, commands, seeders, and migrations.
@@ -34,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Employee DTR Action Center**: Added factual next-punch and configured schedule guidance, emphasized the single active punch state, introduced a mobile-sticky punch control, accessible completion feedback, automatically refreshed attendance data, conditional pending-correction details, and a four-item today-at-a-glance status strip.
+- **Prominent DTR Workstation**: Enlarged the employee dashboard attendance workspace, punch-state timeline, live punch times, and primary punch action so daily time recording is the unmistakable focal point of the page.
 - **Role-specific Control Rails**: Replaced the desktop white utility sidebars with high-contrast employee-green and administrator-purple control rails, making the two portals visually distinct at every route while retaining their existing navigation and permissions.
 - **DTR Workstation and Operations Console**: Replaced the employee and administrator dashboard compositions with purpose-built attendance and command-board surfaces. The employee DTR flow now forms one visual workstation with contiguous attendance metrics; the administrator dashboard now leads with a command surface, contiguous operational metrics, and focused queue/roster panels.
 - **Operational Frontend System**: Reworked the shared PMPC WorkForce visual foundation with calmer operational surfaces, consistent form and table styling, role-aware navigation groups, refined controls and cards, responsive portal headers, and durable product/design documentation. Existing routes and workflows remain unchanged.

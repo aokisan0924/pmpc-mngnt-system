@@ -1,13 +1,18 @@
 import { useState } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
-import Card from '@/Components/UI/Card'
+import Card, { CardContent, CardFooter } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 
 function initials(first, last) {
     return `${(first || '?')[0] ?? ''}${(last || '')[0] ?? ''}`.toUpperCase()
 }
+
+const formatCurrency = new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+})
 
 const TABS = [
     {
@@ -113,9 +118,9 @@ export default function Profile({ employee, govIds }) {
                     </div>
 
                     <div className="flex sm:flex-col items-end justify-between text-right">
-                        <span className="text-[11px] font-semibold text-dim uppercase tracking-wider">Employment Rate</span>
+                        <span className="text-[11px] font-semibold text-dim uppercase tracking-wider">Daily rate</span>
                         <span className="font-mono text-base font-bold text-emerald-600 dark:text-emerald-400">
-                            ₱ {Number(employee.daily_rate || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })} / day
+                            {formatCurrency.format(Number(employee.daily_rate || 0))} / day
                         </span>
                     </div>
                 </div>
@@ -150,13 +155,15 @@ export default function Profile({ employee, govIds }) {
                             title="Personal Information"
                             description="Update your contact number, physical address, and basic directory details"
                         >
-                            <form onSubmit={submitInfo} className="space-y-5 pt-2">
+                            <form onSubmit={submitInfo}>
+                                <CardContent className="space-y-5">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        <label htmlFor="profile-first-name" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                             First Name <span className="text-rose-500">*</span>
                                         </label>
                                         <input
+                                            id="profile-first-name"
                                             type="text"
                                             value={infoForm.data.first_name}
                                             onChange={e => infoForm.setData('first_name', e.target.value)}
@@ -166,10 +173,11 @@ export default function Profile({ employee, govIds }) {
                                         {infoForm.errors.first_name && <p className="mt-1.5 text-xs text-rose-500">{infoForm.errors.first_name}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        <label htmlFor="profile-last-name" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                             Last Name <span className="text-rose-500">*</span>
                                         </label>
                                         <input
+                                            id="profile-last-name"
                                             type="text"
                                             value={infoForm.data.last_name}
                                             onChange={e => infoForm.setData('last_name', e.target.value)}
@@ -181,11 +189,12 @@ export default function Profile({ employee, govIds }) {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    <label htmlFor="profile-email" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                         Official Email Address
                                     </label>
                                     <div className="relative">
                                         <input
+                                            id="profile-email"
                                             type="email"
                                             value={employee.email}
                                             disabled
@@ -199,10 +208,11 @@ export default function Profile({ employee, govIds }) {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    <label htmlFor="profile-phone" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                         Mobile Phone Number
                                     </label>
                                     <input
+                                        id="profile-phone"
                                         type="text"
                                         value={infoForm.data.phone}
                                         onChange={e => infoForm.setData('phone', e.target.value)}
@@ -212,10 +222,11 @@ export default function Profile({ employee, govIds }) {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    <label htmlFor="profile-address" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                         Residential Address
                                     </label>
                                     <textarea
+                                        id="profile-address"
                                         value={infoForm.data.address}
                                         onChange={e => infoForm.setData('address', e.target.value)}
                                         rows={3}
@@ -224,11 +235,12 @@ export default function Profile({ employee, govIds }) {
                                     />
                                 </div>
 
-                                <div className="pt-4 border-t border-border flex justify-end">
+                                </CardContent>
+                                <CardFooter className="justify-end">
                                     <Button variant="emerald" size="md" type="submit" loading={infoForm.processing}>
                                         Save Profile Changes
                                     </Button>
-                                </div>
+                                </CardFooter>
                             </form>
                         </Card>
                     </div>
@@ -241,7 +253,8 @@ export default function Profile({ employee, govIds }) {
                             title="Government Statutory Numbers"
                             description="Mandatory Philippine statutory registration identifiers used for monthly Remittance returns"
                         >
-                            <form onSubmit={submitGov} className="space-y-5 pt-2">
+                            <form onSubmit={submitGov}>
+                                <CardContent className="space-y-5">
                                 <div className="p-3.5 rounded-xl bg-field border border-border flex items-center gap-3 text-xs text-sub">
                                     <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -251,10 +264,11 @@ export default function Profile({ employee, govIds }) {
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        <label htmlFor="profile-sss" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                             SSS Identification Number
                                         </label>
                                         <input
+                                            id="profile-sss"
                                             type="text"
                                             value={govForm.data.sss_no}
                                             onChange={e => govForm.setData('sss_no', e.target.value)}
@@ -264,10 +278,11 @@ export default function Profile({ employee, govIds }) {
                                         {govForm.errors.sss_no && <p className="mt-1 text-xs text-rose-500">{govForm.errors.sss_no}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        <label htmlFor="profile-philhealth" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                             PhilHealth Pin
                                         </label>
                                         <input
+                                            id="profile-philhealth"
                                             type="text"
                                             value={govForm.data.philhealth_no}
                                             onChange={e => govForm.setData('philhealth_no', e.target.value)}
@@ -277,10 +292,11 @@ export default function Profile({ employee, govIds }) {
                                         {govForm.errors.philhealth_no && <p className="mt-1 text-xs text-rose-500">{govForm.errors.philhealth_no}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        <label htmlFor="profile-tin" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                             Tax Identification Number (TIN)
                                         </label>
                                         <input
+                                            id="profile-tin"
                                             type="text"
                                             value={govForm.data.tin_no}
                                             onChange={e => govForm.setData('tin_no', e.target.value)}
@@ -290,10 +306,11 @@ export default function Profile({ employee, govIds }) {
                                         {govForm.errors.tin_no && <p className="mt-1 text-xs text-rose-500">{govForm.errors.tin_no}</p>}
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                        <label htmlFor="profile-pagibig" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                             Pag-IBIG / HDMF MID
                                         </label>
                                         <input
+                                            id="profile-pagibig"
                                             type="text"
                                             value={govForm.data.pagibig_no}
                                             onChange={e => govForm.setData('pagibig_no', e.target.value)}
@@ -304,11 +321,12 @@ export default function Profile({ employee, govIds }) {
                                     </div>
                                 </div>
 
-                                <div className="pt-4 border-t border-border flex justify-end">
+                                </CardContent>
+                                <CardFooter className="justify-end">
                                     <Button variant="emerald" size="md" type="submit" loading={govForm.processing}>
                                         Save Statutory Identifiers
                                     </Button>
-                                </div>
+                                </CardFooter>
                             </form>
                         </Card>
                     </div>
@@ -321,12 +339,14 @@ export default function Profile({ employee, govIds }) {
                             title="Account Security Credentials"
                             description="Ensure your portal credentials remain confidential with regular updates"
                         >
-                            <form onSubmit={submitPass} className="space-y-5 pt-2 max-w-lg">
+                            <form onSubmit={submitPass}>
+                                <CardContent className="max-w-lg space-y-5">
                                 <div>
-                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    <label htmlFor="profile-current-password" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                         Current Password <span className="text-rose-500">*</span>
                                     </label>
                                     <input
+                                        id="profile-current-password"
                                         type="password"
                                         value={passForm.data.current_password}
                                         onChange={e => passForm.setData('current_password', e.target.value)}
@@ -337,10 +357,11 @@ export default function Profile({ employee, govIds }) {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    <label htmlFor="profile-password" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                         New Password <span className="text-rose-500">*</span>
                                     </label>
                                     <input
+                                        id="profile-password"
                                         type="password"
                                         value={passForm.data.password}
                                         onChange={e => passForm.setData('password', e.target.value)}
@@ -351,23 +372,26 @@ export default function Profile({ employee, govIds }) {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
+                                    <label htmlFor="profile-password-confirmation" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-2">
                                         Confirm New Password <span className="text-rose-500">*</span>
                                     </label>
                                     <input
+                                        id="profile-password-confirmation"
                                         type="password"
                                         value={passForm.data.password_confirmation}
                                         onChange={e => passForm.setData('password_confirmation', e.target.value)}
                                         className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono"
                                         required
                                     />
+                                    {passForm.errors.password_confirmation && <p className="mt-1.5 text-xs text-rose-500">{passForm.errors.password_confirmation}</p>}
                                 </div>
 
-                                <div className="pt-4 border-t border-border flex justify-end">
+                                </CardContent>
+                                <CardFooter className="justify-end">
                                     <Button variant="emerald" size="md" type="submit" loading={passForm.processing}>
                                         Update Portal Password
                                     </Button>
-                                </div>
+                                </CardFooter>
                             </form>
                         </Card>
                     </div>

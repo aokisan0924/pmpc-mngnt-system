@@ -72,6 +72,8 @@ test.describe('PMPC WorkForce Smoke & Design Verification', () => {
         // 1. Dashboard
         await page.waitForURL('**/employee/dashboard', { timeout: 10000 })
         await expect(page.locator('text=4-Punch Attendance Flow')).toBeVisible()
+        await expect(page.getByText(/Next required action|Today’s attendance/)).toBeVisible()
+        await expect(page.getByRole('heading', { name: 'Today at a glance' })).toBeVisible()
         await page.screenshot({ path: 'output/employee-dashboard.png', fullPage: true })
 
         // 2. Daily Time Record
@@ -98,5 +100,20 @@ test.describe('PMPC WorkForce Smoke & Design Verification', () => {
         await page.goto('/employee/notifications')
         await expect(page.locator('h1')).toContainText('Notification Center')
         await page.screenshot({ path: 'output/employee-notifications.png', fullPage: true })
+    })
+
+    test('4. Employee Dashboard - Mobile DTR Priority', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 })
+        await page.goto('/login')
+        await page.locator('input[type="text"], input[name="identifier"], input[type="email"]').first().fill('dianabpasco@gmail.com')
+        await page.locator('input[type="password"]').first().fill('employee28')
+        await page.locator('button[type="submit"]').click()
+
+        await page.waitForURL('**/employee/dashboard', { timeout: 10000 })
+        await expect(page.getByText(/Next required action|Today’s attendance/)).toBeVisible()
+
+        await expect(page.getByTestId('dtr-primary-action')).toHaveCSS('position', 'sticky')
+
+        await page.screenshot({ path: 'output/employee-dashboard-mobile.png', fullPage: true })
     })
 })
