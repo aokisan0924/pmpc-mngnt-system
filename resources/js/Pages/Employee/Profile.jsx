@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
+import EmployeePageHeader from '@/Components/EmployeePageHeader'
 import Card, { CardContent, CardFooter } from '@/Components/UI/Card'
-import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 
 function initials(first, last) {
@@ -87,7 +87,7 @@ export default function Profile({ employee, govIds }) {
 
     return (
         <EmployeeLayout title="My Profile">
-            <div className="mx-auto max-w-4xl space-y-4 p-3.5 sm:p-5 lg:p-6">
+            <div className="employee-page-shell max-w-5xl space-y-4">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -98,35 +98,26 @@ export default function Profile({ employee, govIds }) {
                     </div>
                 )}
 
-                {/* Profile Banner Card */}
-                <div className="p-6 rounded-2xl bg-panel border border-border shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                    <div className="flex items-center gap-5">
-                        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-display text-2xl font-bold flex items-center justify-center shrink-0 shadow-xs">
+                <EmployeePageHeader
+                    eyebrow={`Employee ID ${employee.employee_id}`}
+                    title={`${employee.first_name} ${employee.last_name}`}
+                    description={`${employee.department || 'Department not assigned'} · ${employee.position || 'Position not assigned'}`}
+                    badge="Active staff"
+                    leading={(
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/25 bg-white/15 font-heading text-2xl font-bold text-white shadow-sm">
                             {initials(employee.first_name, employee.last_name)}
                         </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-2xl font-bold font-display text-text">
-                                    {employee.first_name} {employee.last_name}
-                                </h1>
-                                <Badge variant="emerald" size="sm">Active Staff</Badge>
-                            </div>
-                            <p className="text-xs font-mono text-sub mt-1">
-                                ID: <span className="font-bold text-text">{employee.employee_id}</span> · {employee.department} · {employee.position}
-                            </p>
+                    )}
+                    action={(
+                        <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left sm:text-right">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-200">Daily rate</p>
+                            <p className="mt-0.5 font-mono text-base font-bold text-white">{formatCurrency.format(Number(employee.daily_rate || 0))} / day</p>
                         </div>
-                    </div>
-
-                    <div className="flex sm:flex-col items-end justify-between text-right">
-                        <span className="text-[11px] font-semibold text-dim uppercase tracking-wider">Daily rate</span>
-                        <span className="font-mono text-base font-bold text-emerald-600 dark:text-emerald-400">
-                            {formatCurrency.format(Number(employee.daily_rate || 0))} / day
-                        </span>
-                    </div>
-                </div>
+                    )}
+                />
 
                 {/* Tab Navigation */}
-                <div className="flex gap-2 p-1.5 bg-field rounded-2xl border border-border" role="tablist" aria-label="Profile navigation">
+                <div className="employee-toolbar flex gap-2 overflow-x-auto p-1.5 rounded-2xl border border-border" role="tablist" aria-label="Profile navigation">
                     {TABS.map(tab => (
                         <button
                             key={tab.key}
@@ -136,7 +127,7 @@ export default function Profile({ employee, govIds }) {
                             aria-controls={`profile-panel-${tab.key}`}
                             aria-selected={activeTab === tab.key}
                             onClick={() => setActiveTab(tab.key)}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
+                            className={`min-w-[10rem] flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                 activeTab === tab.key
                                     ? 'bg-panel text-emerald-700 dark:text-emerald-300 shadow-xs border border-border font-bold'
                                     : 'text-sub hover:text-text hover:bg-panel/40'
@@ -152,6 +143,7 @@ export default function Profile({ employee, govIds }) {
                 {activeTab === 'info' && (
                     <div id="profile-panel-info" role="tabpanel" aria-labelledby="profile-tab-info">
                         <Card
+                            className="employee-workspace-card"
                             title="Personal Information"
                             description="Update your contact number, physical address, and basic directory details"
                         >
@@ -250,6 +242,7 @@ export default function Profile({ employee, govIds }) {
                 {activeTab === 'gov' && (
                     <div id="profile-panel-gov" role="tabpanel" aria-labelledby="profile-tab-gov">
                         <Card
+                            className="employee-workspace-card"
                             title="Government Statutory Numbers"
                             description="Mandatory Philippine statutory registration identifiers used for monthly Remittance returns"
                         >
@@ -336,6 +329,7 @@ export default function Profile({ employee, govIds }) {
                 {activeTab === 'password' && (
                     <div id="profile-panel-password" role="tabpanel" aria-labelledby="profile-tab-password">
                         <Card
+                            className="employee-workspace-card"
                             title="Account Security Credentials"
                             description="Ensure your portal credentials remain confidential with regular updates"
                         >

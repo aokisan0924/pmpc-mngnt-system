@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { router, useForm, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
+import EmployeePageHeader from '@/Components/EmployeePageHeader'
 import Card from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
@@ -173,7 +174,7 @@ export default function Planner({ tasks = [] }) {
 
     return (
         <EmployeeLayout title="Task Planner">
-            <div className="mx-auto max-w-7xl space-y-4 p-3.5 sm:p-5 lg:p-6">
+            <div className="employee-page-shell space-y-4">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -184,33 +185,25 @@ export default function Planner({ tasks = [] }) {
                     </div>
                 )}
 
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-2xl font-bold font-display text-text tracking-tight">Work Planner</h1>
-                            <Badge variant="emerald" size="sm">Schedule & Deliverables</Badge>
-                        </div>
-                        <p className="text-sm text-sub mt-1">
-                            Organize daily milestones, cooperative department tasks, and work priorities
-                        </p>
-                    </div>
-
-                    <Button
-                        variant="emerald"
-                        size="md"
+                <EmployeePageHeader
+                    eyebrow="Personal workspace"
+                    title="Work Planner"
+                    description="Organize daily milestones, cooperative department tasks, and work priorities."
+                    badge={`${tasks.filter(task => task.status !== 'done').length} pending`}
+                    action={<button
+                        type="button"
                         onClick={() => openNewTaskForm()}
-                        className="shadow-xs w-fit"
+                        className="inline-flex min-h-10 w-fit items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-bold text-emerald-800 shadow-sm transition-all hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                     >
-                        <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                         </svg>
                         <span>New Task</span>
-                    </Button>
-                </div>
+                    </button>}
+                />
 
                 {/* Controls Bar */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2 bg-panel rounded-2xl border border-border shadow-xs">
+                <div className="employee-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2 rounded-2xl border border-border">
                     <div className="flex items-center gap-2">
                         <button
                             type="button"
@@ -247,13 +240,12 @@ export default function Planner({ tasks = [] }) {
                         </button>
                     </div>
 
-                    <div className="flex gap-1 p-1 bg-field rounded-xl border border-border" role="tablist" aria-label="Filter tasks">
+                    <div className="flex gap-1 p-1 bg-field rounded-xl border border-border" role="group" aria-label="Filter tasks">
                         {['all', 'pending', 'done'].map(f => (
                             <button
                                 key={f}
                                 type="button"
-                                role="tab"
-                                aria-selected={filter === f}
+                                aria-pressed={filter === f}
                                 onClick={() => setFilter(f)}
                                 className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                     filter === f
@@ -271,7 +263,7 @@ export default function Planner({ tasks = [] }) {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
                     {/* Month Grid Card (2 Cols) */}
-                    <Card className="lg:col-span-2 overflow-hidden">
+                    <Card className="employee-workspace-card lg:col-span-2 overflow-hidden p-3 sm:p-4">
                         <div className="grid grid-cols-7 mb-2 border-b border-border/60 pb-2">
                             {WEEKDAYS.map(w => (
                                 <div key={w} className="text-center text-[11px] font-bold text-dim uppercase tracking-wider">
@@ -351,6 +343,7 @@ export default function Planner({ tasks = [] }) {
 
                     {/* Day Agenda Panel (1 Col) */}
                     <Card
+                        className="employee-workspace-card"
                         title={selectedDate === todayKey ? "Today's Agenda" : "Day Agenda"}
                         description={selectedLabel}
                         action={

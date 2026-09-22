@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
+import EmployeePageHeader from '@/Components/EmployeePageHeader'
 import Card from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
@@ -125,7 +126,7 @@ export default function Payslips({ payslips = [] }) {
 
     return (
         <EmployeeLayout title="My Payslips">
-            <div className="mx-auto max-w-6xl space-y-4 p-3.5 sm:p-5 lg:p-6">
+            <div className="employee-page-shell space-y-4">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -136,18 +137,12 @@ export default function Payslips({ payslips = [] }) {
                     </div>
                 )}
 
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-2xl font-bold font-display text-text tracking-tight">My Payslips</h1>
-                            <Badge variant={finalizedPayslips.length > 0 ? 'emerald' : 'amber'} size="sm">
-                                {finalizedPayslips.length > 0 ? 'Payslip Archive' : 'Payroll in progress'}
-                            </Badge>
-                        </div>
-                        <p className="mt-1 text-xs text-sub">Review finalized payroll periods and download your official record.</p>
-                    </div>
-                </div>
+                <EmployeePageHeader
+                    eyebrow="Compensation records"
+                    title="My Payslips"
+                    description="Review finalized payroll periods and download your official payroll records."
+                    badge={finalizedPayslips.length > 0 ? `${finalizedPayslips.length} finalized` : 'Payroll in progress'}
+                />
 
                 {/* Career summary stats */}
                 {payslips.length > 0 && (
@@ -205,15 +200,25 @@ export default function Payslips({ payslips = [] }) {
                 )}
 
                 {payslips.length === 0 ? (
-                    <Card>
-                        <div className="py-14 text-center">
-                            <div className="w-12 h-12 rounded-2xl bg-field flex items-center justify-center mx-auto mb-3 text-sub">
+                    <Card className="employee-workspace-card overflow-hidden">
+                        <div className="grid gap-0 md:grid-cols-[1fr_0.72fr]">
+                        <div className="px-6 py-12 text-center md:px-10 md:text-left">
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-4 text-emerald-700 md:mx-0 dark:bg-emerald-950/40 dark:border-emerald-900 dark:text-emerald-300">
                                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                             </div>
                             <p className="text-base font-semibold text-text">No Payslips Generated Yet</p>
-                            <p className="text-xs text-dim mt-1">Your itemized vouchers will be listed here once payroll is finalized by HR.</p>
+                            <p className="text-sm text-sub mt-1 max-w-md">Your itemized vouchers will appear here after HR finalizes a payroll period.</p>
+                        </div>
+                        <div className="border-t border-border bg-field/70 px-6 py-8 md:border-l md:border-t-0 md:px-8">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">What happens next</p>
+                            <ol className="mt-3 space-y-3 text-xs text-sub">
+                                <li className="flex gap-2"><span className="font-bold text-emerald-700 dark:text-emerald-300">1.</span><span>HR completes and finalizes the payroll period.</span></li>
+                                <li className="flex gap-2"><span className="font-bold text-emerald-700 dark:text-emerald-300">2.</span><span>Your official payslip becomes available here.</span></li>
+                                <li className="flex gap-2"><span className="font-bold text-emerald-700 dark:text-emerald-300">3.</span><span>You can review and download the finalized record.</span></li>
+                            </ol>
+                        </div>
                         </div>
                     </Card>
                 ) : (

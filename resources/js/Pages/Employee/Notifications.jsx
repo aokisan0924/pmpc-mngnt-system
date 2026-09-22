@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { router, usePage, Link } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
+import EmployeePageHeader from '@/Components/EmployeePageHeader'
 import Card from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
-import Button from '@/Components/UI/Button'
 
 export default function Notifications({ notifications = [] }) {
     const { flash } = usePage().props
@@ -77,7 +77,7 @@ export default function Notifications({ notifications = [] }) {
 
     return (
         <EmployeeLayout title="Notifications">
-            <div className="mx-auto max-w-5xl space-y-4 p-3.5 sm:p-5 lg:p-6">
+            <div className="employee-page-shell space-y-4">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -88,36 +88,28 @@ export default function Notifications({ notifications = [] }) {
                     </div>
                 )}
 
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-2xl font-bold font-display text-text tracking-tight">Notification Center</h1>
-                            <Badge variant="emerald" size="sm">System Alerts</Badge>
-                        </div>
-                        <p className="text-sm text-sub mt-1">
-                            Review administrative updates, DTR edit request approvals, and organizational announcements
-                        </p>
-                    </div>
-
-                    {unread.length > 0 && (
-                        <Button
-                            variant="secondary"
-                            size="md"
+                <EmployeePageHeader
+                    eyebrow="Updates and decisions"
+                    title="Notification Center"
+                    description="Review DTR correction decisions, administrative updates, and organizational announcements."
+                    badge={`${unread.length} unread`}
+                    action={unread.length > 0 ? (
+                        <button
+                            type="button"
                             onClick={markAllRead}
                             disabled={loading}
-                            loading={loading}
+                            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-bold text-emerald-800 shadow-sm transition-all hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                            <svg className="w-4 h-4 mr-2 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7m-4 5l4 4L23 8" />
                             </svg>
-                            <span>Mark All Read</span>
-                        </Button>
-                    )}
-                </div>
+                            <span>{loading ? 'Updating…' : 'Mark All Read'}</span>
+                        </button>
+                    ) : null}
+                />
 
                 {/* Stat Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div className="attendance-metrics grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-border lg:grid-cols-4">
                     <StatCard
                         title="Unread Alerts"
                         value={unread.length}
@@ -165,8 +157,8 @@ export default function Notifications({ notifications = [] }) {
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2 bg-panel rounded-2xl border border-border shadow-xs">
-                    <div className="flex gap-1 p-1 bg-field rounded-xl border border-border overflow-x-auto" role="tablist" aria-label="Filter notifications">
+                <div className="employee-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2 rounded-2xl border border-border">
+                    <div className="flex gap-1 p-1 bg-field rounded-xl border border-border overflow-x-auto" role="group" aria-label="Filter notifications">
                         {[
                             { key: 'all', label: 'All', count: notifications.length },
                             { key: 'unread', label: 'Unread', count: unread.length },
@@ -176,9 +168,7 @@ export default function Notifications({ notifications = [] }) {
                             <button
                                 key={tab.key}
                                 type="button"
-                                role="tab"
-                                aria-selected={filter === tab.key}
-                                aria-controls="notifications-list"
+                                aria-pressed={filter === tab.key}
                                 onClick={() => setFilter(tab.key)}
                                 className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                     filter === tab.key
@@ -270,7 +260,7 @@ export default function Notifications({ notifications = [] }) {
                     })}
 
                     {filteredNotifications.length === 0 && (
-                        <Card>
+                        <Card className="employee-workspace-card">
                             <div className="py-14 text-center">
                                 <div className="w-12 h-12 rounded-2xl bg-field flex items-center justify-center mx-auto mb-3 text-sub">
                                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

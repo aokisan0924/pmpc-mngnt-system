@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Employee Self-Service Workspaces**: Reframed Attendance, Work Planner, Payslips, Profile, and Notifications with a shared employee-green page header, clearer page purpose and status context, stronger workspace cards and toolbars, a guided payslip empty state, mobile-scrollable profile navigation, and accessible pressed-button filters.
 - **Employee DTR Action Center**: Added factual next-punch and configured schedule guidance, emphasized the single active punch state, introduced a mobile-sticky punch control, accessible completion feedback, automatically refreshed attendance data, conditional pending-correction details, and a four-item today-at-a-glance status strip.
 - **Prominent DTR Workstation**: Enlarged the employee dashboard attendance workspace, punch-state timeline, live punch times, and primary punch action so daily time recording is the unmistakable focal point of the page.
 - **Role-specific Control Rails**: Replaced the desktop white utility sidebars with high-contrast employee-green and administrator-purple control rails, making the two portals visually distinct at every route while retaining their existing navigation and permissions.

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { router, usePage, usePoll } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
+import EmployeePageHeader from '@/Components/EmployeePageHeader'
 import DtrEditRequestModal from '@/Components/DtrEditRequestModal'
 import Card, { CardContent, CardHeader, CardTitle } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
@@ -107,7 +108,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
 
     return (
         <EmployeeLayout title="Daily Time Record">
-            <div className="mx-auto max-w-6xl space-y-3.5 sm:space-y-4 bg-bg px-3.5 sm:px-5 lg:px-6 py-3.5 sm:py-4">
+            <div className="employee-page-shell space-y-4 bg-bg">
 
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium">
@@ -127,26 +128,26 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     </div>
                 )}
 
-                {/* Header */}
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div className="min-w-0">
-                        <h1 className="text-xl sm:text-2xl font-bold font-display text-text tracking-tight">Daily Time Record</h1>
-                    </div>
-
-                    <a
+                <EmployeePageHeader
+                    eyebrow="Attendance workspace"
+                    title="Daily Time Record"
+                    description="Record today’s four-punch sequence, review weekly attendance, and manage official corrections."
+                    badge={nextLabel ? `Next: ${nextLabel}` : 'Day complete'}
+                    action={<a
                         href={`/employee/dtr/print?month=${month}`}
                         target="_blank"
-                        className="inline-flex min-h-8 w-fit items-center gap-2 rounded-xl border border-border bg-panel px-3.5 py-1.5 text-xs font-semibold text-text shadow-2xs transition-all hover:border-emerald-500/30 hover:bg-hover"
+                        rel="noreferrer"
+                        className="inline-flex min-h-10 w-fit items-center gap-2 rounded-xl border border-white/20 bg-white px-4 py-2 text-xs font-bold text-emerald-800 shadow-sm transition-all hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                     >
-                        <svg className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                         </svg>
                         <span>Print Official DTR</span>
-                    </a>
-                </div>
+                    </a>}
+                />
 
                 {/* Hero Punch Stepper Card */}
-                <Card className="relative overflow-hidden p-3.5 sm:p-4">
+                <Card className="employee-workspace-card relative overflow-hidden p-4 sm:p-5">
                     <div className="flex flex-col gap-3.5 border-b border-border pb-3.5 sm:flex-row sm:items-center sm:justify-between sm:pb-4">
                         <DtrLiveClock />
 
@@ -325,7 +326,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 </div>
 
                 {/* Monthly DTR Log Card */}
-                <Card className="overflow-hidden">
+                <Card className="employee-workspace-card overflow-hidden">
                     <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center">
                         <div className="min-w-0">
                             <CardTitle>Monthly Attendance Log</CardTitle>

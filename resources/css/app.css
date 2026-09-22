@@ -387,6 +387,31 @@
     .employee-sidebar { background: linear-gradient(170deg, #06463A 0%, #0B5D4B 48%, #04382E 100%) !important; }
     .admin-sidebar { background: linear-gradient(170deg, #1B1749 0%, #26215C 48%, #17123F 100%) !important; }
 
+    .employee-page-shell {
+        width: min(100%, 90rem);
+        margin-inline: auto;
+        padding: 1rem;
+    }
+
+    .employee-page-header {
+        background: linear-gradient(118deg, #06463A 0%, #0F6E56 58%, #168169 100%);
+        box-shadow: 0 18px 38px rgba(8, 74, 59, 0.16);
+    }
+
+    .employee-workspace-card {
+        border-color: color-mix(in srgb, var(--color-brand) 18%, var(--color-border));
+        box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
+    }
+
+    .employee-toolbar {
+        background: color-mix(in srgb, var(--color-panel) 88%, var(--color-brand) 3%);
+        box-shadow: var(--shadow-card);
+    }
+
+    @media (min-width: 640px) {
+        .employee-page-shell { padding: 1.5rem; }
+    }
+
     .employee-sidebar .border-border,
     .admin-sidebar .border-border,
     .employee-sidebar .border-border\/80,
