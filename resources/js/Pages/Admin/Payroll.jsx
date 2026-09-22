@@ -4,6 +4,7 @@ import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 
 export default function Payroll({ payrolls = [] }) {
     const { flash } = usePage().props
@@ -34,7 +35,7 @@ export default function Payroll({ payrolls = [] }) {
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
+            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
@@ -42,29 +43,24 @@ export default function Payroll({ payrolls = [] }) {
                     </div>
                 )}
 
-                {/* ── Top Header ────────────────────────────────────── */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/80">
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="indigo" dot>Financial Operations</Badge>
-                            <span className="text-xs text-sub">• Semi-Monthly Cutoff Processing</span>
-                        </div>
-                        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
-                            Payroll Management
-                        </h1>
-                    </div>
-
+                <AdminPageHeader
+                    eyebrow="Compensation operations"
+                    title="Payroll Management"
+                    description="Prepare semi-monthly payroll batches, review cutoff totals, and control finalization from one ledger."
+                    badge="Semi-monthly processing"
+                    action={
                     <Link
                         href="/admin/payroll/analytics"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-xl border border-border/80 bg-panel text-text hover:bg-field shadow-2xs transition-colors"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3.5 py-2 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-white/20"
                     >
                         <span>View Payroll Analytics</span>
                         <span aria-hidden="true">↗</span>
                     </Link>
-                </div>
+                    }
+                />
 
                 {/* ── Process New Payroll Card ──────────────────────── */}
-                <Card>
+                <Card className="admin-workspace-card">
                     <CardHeader>
                         <div>
                             <CardTitle>Initiate New Payroll Batch</CardTitle>

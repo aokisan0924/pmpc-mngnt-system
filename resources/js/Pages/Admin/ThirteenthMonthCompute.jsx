@@ -4,6 +4,7 @@ import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 
 function fmt(num) {
     return Number(num || 0).toLocaleString('en-PH', {
@@ -41,46 +42,32 @@ export default function ThirteenthMonthCompute({
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-6xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
+            <div className="admin-page-shell max-w-6xl space-y-4 sm:space-y-5 page-enter">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-2 border-b border-border/80">
-                    <div>
-                        <div className="flex items-center gap-2 mb-1.5 text-xs text-sub">
-                            <Link href="/admin/thirteenth-month" className="hover:text-text font-medium transition-colors">
-                                ← Back to 13th Month Ledger
-                            </Link>
-                            <span>/</span>
-                            <span className="text-text font-semibold">Computation Batch</span>
-                        </div>
-                        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
-                            13th Month Pay — {year}
-                        </h1>
-                        <div className="flex items-center gap-2 mt-1.5">
-                            <Badge variant={tranche === 'mid_year' ? 'indigo' : 'purple'} dot size="sm">
-                                {tranche_label}
-                            </Badge>
-                            <span className="text-xs text-sub font-mono">
-                                ({period_from} – {period_to})
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 flex-wrap self-start sm:self-auto">
-                        <div className="bg-panel px-4 py-2 rounded-xl border border-border/80 shadow-xs text-right">
-                            <p className="text-[10px] font-semibold text-sub uppercase tracking-wider">Total 13th Month Payout</p>
-                            <p className="text-lg font-heading font-bold text-emerald-600 dark:text-emerald-400 tnum">₱ {fmt(total13th)}</p>
+                <AdminPageHeader
+                    eyebrow="Computation preview"
+                    title={`13th Month Pay — ${year}`}
+                    description={`${period_from} to ${period_to} · Verify attendance-derived statutory payouts before saving.`}
+                    badge={tranche_label}
+                    meta={<Link href="/admin/thirteenth-month" className="font-medium text-indigo-100 hover:text-white">← Back to 13th Month Ledger</Link>}
+                    action={
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-right shadow-xs">
+                            <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-200">Total 13th Month Payout</p>
+                            <p className="font-heading text-lg font-bold text-emerald-100 tnum">₱ {fmt(total13th)}</p>
                         </div>
                         <Button
                             variant="primary"
                             size="md"
                             loading={processing}
                             onClick={save}
-                            className="shadow-xs"
+                            className="admin-header-primary shadow-xs"
                         >
                             Save Computation Batch →
                         </Button>
                     </div>
-                </div>
+                    }
+                />
 
                 {/* Formula reminder */}
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-2.5 rounded-xl bg-field/60 border border-border/80 text-xs text-sub">
@@ -102,7 +89,7 @@ export default function ThirteenthMonthCompute({
                 )}
 
                 {/* Table Card */}
-                <Card className="overflow-hidden">
+                <Card className="admin-workspace-card overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-xs min-w-[820px]">
                             <thead>

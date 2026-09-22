@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 
 
 export default function DtrShow({ employee, logs = [], summary = {}, month }) {
@@ -21,52 +22,33 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-6xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
+            <div className="admin-page-shell max-w-6xl space-y-4 sm:space-y-5 page-enter">
                 {/* ── Top Header ────────────────────────────────────── */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/80">
-                    <div>
-                        <div className="flex items-center gap-2 mb-2 text-xs text-sub">
-                            <Link href="/admin/dtr" className="hover:text-text flex items-center gap-1 font-medium transition-colors">
-                                ← Back to DTR Ledger
-                            </Link>
-                            <span>/</span>
-                            <span className="text-text font-semibold">{employee.full_name}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 flex items-center justify-center font-heading font-bold text-sm shadow-xs flex-shrink-0">
-                                {employee.initials}
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <h1 className="font-heading font-bold text-xl sm:text-2xl text-text tracking-tight">
-                                        {employee.full_name}
-                                    </h1>
-                                    <Badge variant="indigo">{employee.position}</Badge>
-                                </div>
-                                <p className="text-xs text-sub mt-0.5 font-mono">
-                                    {employee.employee_id} • {employee.department}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 self-start sm:self-auto">
+                <AdminPageHeader
+                    eyebrow="Individual attendance ledger"
+                    title={employee.full_name}
+                    description={`${employee.employee_id} · ${employee.department} · ${employee.position}`}
+                    badge={monthLabel}
+                    leading={<div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-white/10 font-heading text-sm font-bold text-white">{employee.initials}</div>}
+                    meta={<Link href="/admin/dtr" className="font-medium text-indigo-100 hover:text-white">← Back to DTR Ledger</Link>}
+                    action={
+                    <div className="flex flex-wrap items-center gap-3">
                         {/* Month Navigator */}
-                        <div className="flex items-center gap-2 bg-panel p-1 rounded-xl border border-border/80 shadow-xs">
+                        <div className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 p-1 shadow-xs">
                             <button
                                 type="button"
                                 onClick={() => handleMonthChange(-1)}
-                                className="p-1.5 rounded-lg text-sub hover:text-text hover:bg-field transition-colors"
+                                className="rounded-lg p-1.5 text-indigo-100 transition-colors hover:bg-white/10 hover:text-white"
                                 title="Previous Month"
                                 aria-label="View previous month"
                             >
                                 ←
                             </button>
-                            <span className="text-xs font-semibold px-2 text-text font-heading">{monthLabel}</span>
+                            <span className="px-2 font-heading text-xs font-semibold text-white">{monthLabel}</span>
                             <button
                                 type="button"
                                 onClick={() => handleMonthChange(1)}
-                                className="p-1.5 rounded-lg text-sub hover:text-text hover:bg-field transition-colors"
+                                className="rounded-lg p-1.5 text-indigo-100 transition-colors hover:bg-white/10 hover:text-white"
                                 title="Next Month"
                                 aria-label="View next month"
                             >
@@ -79,13 +61,14 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label={`Print DTR PDF for ${employee.full_name}`}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition-colors"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white px-4 py-2 text-xs font-semibold text-indigo-950 shadow-xs transition-colors hover:bg-indigo-50 sm:text-sm"
                         >
                             <span>Print DTR</span>
                             <span aria-hidden="true">↓</span>
                         </a>
                     </div>
-                </div>
+                    }
+                />
 
                 {/* ── Summary Stats ──────────────────────────────────── */}
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">

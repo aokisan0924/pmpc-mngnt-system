@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Admin Filter Control Semantics**: Replaced misleading ARIA tab roles on employee status, DTR request, employee record, and settings switches with pressed-button groups because these controls do not expose persistent tab panels.
 - **Employee Dashboard Data and Bundle Reliability**: Added the missing Carbon import used by finalized payslip summaries and switched Inertia page resolution from eager loading to route-level lazy loading, reducing the initial JavaScript payload while retaining explicit unknown-page errors.
 - **Employee Profile Reliability and Form Layout**: Restored the employee daily-rate value in the profile payload, correctly formatted it as Philippine currency, repaired card-content and action-footer spacing, linked all profile labels to their controls, and surfaced password-confirmation errors.
 - **Navigation Loader Background Polling Flicker & Missing Logo**: Filtered silent background polling (`usePoll`) and partial reloads from triggering the full-screen `NavigationLoader` overlay, relaxed aggressive 3-6s polling intervals to 12-15s, and bundled `pmpc_ems.png` directly into Vite's production assets with safe image fallback so the brand logo resolves reliably across all server environments and subdirectories.
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Admin Operations Workspaces**: Unified the dashboard, employee records, DTR review, payroll, analytics, 13th-month, archives, and settings routes around a responsive deep-purple command header, clearer operational context, stronger workspace cards, and mobile-safe controls without changing routes, permissions, or backend workflows.
 - **Employee Self-Service Workspaces**: Reframed Attendance, Work Planner, Payslips, Profile, and Notifications with a shared employee-green page header, clearer page purpose and status context, stronger workspace cards and toolbars, a guided payslip empty state, mobile-scrollable profile navigation, and accessible pressed-button filters.
 - **Employee DTR Action Center**: Added factual next-punch and configured schedule guidance, emphasized the single active punch state, introduced a mobile-sticky punch control, accessible completion feedback, automatically refreshed attendance data, conditional pending-correction details, and a four-item today-at-a-glance status strip.
 - **Prominent DTR Workstation**: Enlarged the employee dashboard attendance workspace, punch-state timeline, live punch times, and primary punch action so daily time recording is the unmistakable focal point of the page.

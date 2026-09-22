@@ -5,6 +5,7 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 import EmployeeFormModal from '@/Components/EmployeeFormModal'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 
 export default function Employees({ employees = [] }) {
     const { flash } = usePage().props
@@ -33,7 +34,7 @@ export default function Employees({ employees = [] }) {
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
+            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
@@ -41,21 +42,16 @@ export default function Employees({ employees = [] }) {
                     </div>
                 )}
 
-                {/* ── Header ────────────────────────────────────────── */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/80">
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="indigo" dot>Workforce Directory</Badge>
-                            <span className="text-xs text-sub">• {counts.active} active cooperative staff</span>
-                        </div>
-                        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
-                            Employee Management
-                        </h1>
-                    </div>
-
+                <AdminPageHeader
+                    eyebrow="People operations"
+                    title="Employee Management"
+                    description="Maintain employee records, employment status, compensation details, and access to individual workforce files."
+                    badge={`${counts.active} active staff`}
+                    action={
                     <Button
                         variant="primary"
                         onClick={() => setShowForm(true)}
+                        className="admin-header-primary"
                         icon={
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -64,13 +60,14 @@ export default function Employees({ employees = [] }) {
                     >
                         New Employee
                     </Button>
-                </div>
+                    }
+                />
 
                 {/* ── Filters & Search Toolbar ──────────────────────── */}
-                <Card>
+                <Card className="admin-workspace-card">
                     <CardHeader className="flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                         <div
-                            role="tablist"
+                            role="group"
                             aria-label="Filter employees by status"
                             className="flex items-center gap-1 bg-field p-1 rounded-lg border border-border/70 self-start"
                         >
@@ -82,8 +79,7 @@ export default function Employees({ employees = [] }) {
                                 <button
                                     key={tab.key}
                                     type="button"
-                                    role="tab"
-                                    aria-selected={filter === tab.key}
+                                    aria-pressed={filter === tab.key}
                                     onClick={() => setFilter(tab.key)}
                                     className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
                                         filter === tab.key

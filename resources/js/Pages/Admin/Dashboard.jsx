@@ -5,6 +5,7 @@ import Card, { CardContent, CardHeader, CardTitle } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 
 function changeLabels(request) {
     return [
@@ -88,13 +89,12 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
     return (
         <AdminLayout pendingEditCount={stats.pending_edits ?? 0}>
             <div className="operations-console mx-auto max-w-7xl space-y-5 px-3.5 py-3.5 sm:space-y-6 sm:px-5 sm:py-5 lg:px-6">
-                <section className="operations-hero flex flex-col gap-4 p-5 text-white sm:flex-row sm:items-center sm:justify-between sm:p-7">
-                    <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo-200">Admin portal</p>
-                        <h1 className="mt-1 font-display text-2xl font-bold tracking-tight">Operations overview</h1>
-                        <p className="mt-1 text-sm text-indigo-100">Review today&apos;s workforce status and resolve priority work.</p>
-                    </div>
-
+                <AdminPageHeader
+                    eyebrow="Admin portal"
+                    title="Operations overview"
+                    description="Review today’s workforce status, resolve attendance exceptions, and keep payroll moving."
+                    badge="Live operations"
+                    action={
                     <div className="flex min-w-56 items-center justify-between gap-4 rounded-xl border border-white/15 bg-white/10 px-4 py-3">
                         <div>
                             <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-200">Current payroll cycle</p>
@@ -107,7 +107,8 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
                             </Button>
                         </Link>
                     </div>
-                </section>
+                    }
+                />
 
                 <section className="operations-metrics grid grid-cols-2 gap-px overflow-hidden bg-border lg:grid-cols-4" aria-label="Operational summary">
                     <StatCard title="Total Workforce" value={stats.total_employees ?? 0} accent="indigo" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20a5 5 0 0 0-10 0m5-5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm7 5a4 4 0 0 0-4-4m0-1a3 3 0 1 0-1.2-5.75" /></svg>} />

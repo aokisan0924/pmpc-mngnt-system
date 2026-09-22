@@ -4,6 +4,7 @@ import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 
 const PUNCH_ROWS = [
     ['AM In', 'am_time_in'],
@@ -69,7 +70,7 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
 
     return (
         <AdminLayout pendingEditCount={pendingCount}>
-            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
+            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
@@ -77,23 +78,16 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                     </div>
                 )}
 
-                {/* ── Top Header ────────────────────────────────────── */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/80">
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="amber" dot pulse={pendingCount > 0}>Attendance Dispute Hub</Badge>
-                            <span className="text-xs text-sub">• {pendingCount} awaiting supervisor review</span>
-                        </div>
-                        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
-                            DTR Edit Requests
-                        </h1>
-                    </div>
-
-                    {/* Filter Pills */}
+                <AdminPageHeader
+                    eyebrow="Attendance review"
+                    title="DTR Edit Requests"
+                    description="Compare requested punch changes with original records and resolve employee attendance corrections."
+                    badge={`${pendingCount} pending review`}
+                    action={
                     <div
-                        role="tablist"
+                        role="group"
                         aria-label="Filter edit requests by status"
-                        className="flex items-center gap-1 bg-field p-1 rounded-lg border border-border/70 self-start sm:self-auto"
+                        className="flex max-w-full items-center gap-1 overflow-x-auto rounded-lg border border-white/20 bg-white/10 p-1"
                     >
                         {[
                             { key: 'pending', label: 'Pending' },
@@ -104,20 +98,20 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                             <button
                                 key={tab.key}
                                 type="button"
-                                role="tab"
-                                aria-selected={filter === tab.key}
+                                aria-pressed={filter === tab.key}
                                 onClick={() => setFilter(tab.key)}
                                 className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
                                     filter === tab.key
-                                        ? 'bg-panel text-text shadow-2xs font-semibold'
-                                        : 'text-sub hover:text-text'
+                                            ? 'bg-white text-indigo-950 shadow-2xs font-semibold'
+                                            : 'text-indigo-100 hover:bg-white/10 hover:text-white'
                                 }`}
                             >
                                 {tab.label} ({counts[tab.key]})
                             </button>
                         ))}
                     </div>
-                </div>
+                    }
+                />
 
                 {/* ── Requests List ─────────────────────────────────── */}
                 <div className="space-y-3">

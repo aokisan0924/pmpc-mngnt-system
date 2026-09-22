@@ -2,8 +2,8 @@ import { router, Link } from '@inertiajs/react'
 import { useState, useMemo } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
-import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 
 export default function Dtr({ employees = [], dtrSummary = [], month, employeeId }) {
     const [selectedEmployee, setSelectedEmployee] = useState(employeeId ?? '')
@@ -32,20 +32,13 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
-                {/* ── Top Header ────────────────────────────────────── */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/80">
-                    <div>
-                        <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="indigo" dot>Attendance Ledger</Badge>
-                            <span className="text-xs text-sub">• Monthly Records for {monthLabel}</span>
-                        </div>
-                        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
-                            Daily Time Records
-                        </h1>
-                    </div>
-
-                    {/* Month Navigator */}
+            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
+                <AdminPageHeader
+                    eyebrow="Attendance operations"
+                    title="Daily Time Records"
+                    description={`Review attendance completeness, rendered hours, lateness, and undertime for ${monthLabel}.`}
+                    badge="Attendance ledger"
+                    action={
                     <div className="flex items-center gap-2 bg-panel p-1 rounded-xl border border-border/80 shadow-xs self-start sm:self-auto">
                         <button
                             type="button"
@@ -67,7 +60,8 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                             →
                         </button>
                     </div>
-                </div>
+                    }
+                />
 
                 {/* ── Filters Card ──────────────────────────────────── */}
                 <Card>

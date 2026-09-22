@@ -4,6 +4,7 @@ import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 
 export default function ThirteenthMonth({ records = [] }) {
     const { flash } = usePage().props
@@ -22,7 +23,7 @@ export default function ThirteenthMonth({ records = [] }) {
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-6xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
+            <div className="admin-page-shell max-w-6xl space-y-4 sm:space-y-5 page-enter">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -33,21 +34,15 @@ export default function ThirteenthMonth({ records = [] }) {
                     </div>
                 )}
 
-                {/* Header */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <h1 className="text-2xl font-bold font-display text-text tracking-tight">13th Month Pay</h1>
-                            <Badge variant="indigo" size="sm">Statutory (PD 851)</Badge>
-                        </div>
-                        <p className="text-sm text-sub mt-1">
-                            Compute and disburse semi-annual mandatory 13th month pay based on actual DTR days rendered
-                        </p>
-                    </div>
-                </div>
+                <AdminPageHeader
+                    eyebrow="Statutory compensation"
+                    title="13th Month Pay"
+                    description="Compute and manage mandatory 13th month pay using verified DTR days and current employee rates."
+                    badge="PD 851"
+                />
 
                 {/* Compute Action Card */}
-                <Card className="overflow-hidden">
+                <Card className="admin-workspace-card overflow-hidden">
                     <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center">
                         <div>
                             <CardTitle>Run a New Computation</CardTitle>

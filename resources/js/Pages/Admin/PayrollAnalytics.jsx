@@ -2,7 +2,7 @@ import { useState } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
-import Badge from '@/Components/UI/Badge'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 import {
     LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
     Tooltip, Legend, ResponsiveContainer, ComposedChart, Area,
@@ -104,31 +104,24 @@ export default function PayrollAnalytics({
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
+            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
 
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-2xl font-bold font-display text-text tracking-tight">Payroll Analytics</h1>
-                            <Badge variant="indigo" size="sm">Executive View</Badge>
-                        </div>
-                        <p className="text-sm text-sub mt-1">
-                            All-time organizational expenditure, statutory deductions, and compensation trend analysis
-                        </p>
-                    </div>
-
-                    {latestPayroll && (
-                        <div className="flex items-center gap-3 bg-panel border border-border px-4 py-2 rounded-xl shadow-xs">
+                <AdminPageHeader
+                    eyebrow="Financial intelligence"
+                    title="Payroll Analytics"
+                    description="Track organizational payroll cost, statutory deductions, and compensation movement across finalized periods."
+                    badge="Executive view"
+                    action={latestPayroll && (
+                        <div className="flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-4 py-2 shadow-xs">
                             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                             <div className="text-xs">
-                                <span className="text-sub font-medium">Latest Run: </span>
-                                <span className="text-text font-semibold">{latestPayroll.period_label}</span>
-                                <span className="text-dim ml-1.5 font-mono">({latestPayroll.cutoff_label})</span>
+                                <span className="font-medium text-indigo-200">Latest run: </span>
+                                <span className="font-semibold text-white">{latestPayroll.period_label}</span>
+                                <span className="ml-1.5 font-mono text-indigo-200">({latestPayroll.cutoff_label})</span>
                             </div>
                         </div>
                     )}
-                </div>
+                />
 
                 {/* KPI cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -305,14 +298,13 @@ export default function PayrollAnalytics({
                     description="Itemized statutory and company deduction allocations from the latest payroll"
                     action={
                         <div
-                            role="tablist"
+                            role="group"
                             aria-label="Deductions view mode"
                             className="flex gap-1 p-1 bg-field rounded-lg border border-border"
                         >
                             <button
                                 type="button"
-                                role="tab"
-                                aria-selected={dedView === 'chart'}
+                                aria-pressed={dedView === 'chart'}
                                 onClick={() => setDedView('chart')}
                                 className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
                                     dedView === 'chart'
@@ -324,8 +316,7 @@ export default function PayrollAnalytics({
                             </button>
                             <button
                                 type="button"
-                                role="tab"
-                                aria-selected={dedView === 'table'}
+                                aria-pressed={dedView === 'table'}
                                 onClick={() => setDedView('table')}
                                 className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${
                                     dedView === 'table'

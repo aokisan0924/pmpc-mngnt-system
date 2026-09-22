@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { router, usePage, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
-import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 import ConfirmModal from '@/Components/ConfirmModal'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 
 function fmt(num) {
     return Number(num || 0).toLocaleString('en-PH', {
@@ -36,7 +36,7 @@ export default function ThirteenthMonthShow({
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-6xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
+            <div className="admin-page-shell max-w-6xl space-y-4 sm:space-y-5 page-enter">
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
@@ -45,42 +45,23 @@ export default function ThirteenthMonthShow({
                 )}
 
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-2 border-b border-border/80">
-                    <div>
-                        <div className="flex items-center gap-2 mb-1.5 text-xs text-sub">
-                            <Link href="/admin/thirteenth-month" className="hover:text-text font-medium transition-colors">
-                                ← Back to 13th Month Ledger
-                            </Link>
-                            <span>/</span>
-                            <span className="text-text font-semibold">{year} · {tranche_label}</span>
-                        </div>
-                        <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
-                            13th Month Pay — {year}
-                        </h1>
-                        <div className="flex items-center gap-2 mt-1.5">
-                            <Badge variant={tranche === 'mid_year' ? 'indigo' : 'purple'} dot size="sm">
-                                {tranche_label}
-                            </Badge>
-                            <span className="text-xs text-sub font-mono">
-                                ({period_from} – {period_to})
-                            </span>
-                            <Badge variant={status === 'finalized' ? 'emerald' : 'amber'} size="sm">
-                                {status}
-                            </Badge>
-                        </div>
-                    </div>
-
-                    {status === 'draft' && (
+                <AdminPageHeader
+                    eyebrow="Statutory batch ledger"
+                    title={`13th Month Pay — ${year}`}
+                    description={`${period_from} to ${period_to} · ${records.length} employee records`}
+                    badge={`${tranche_label} · ${status}`}
+                    meta={<Link href="/admin/thirteenth-month" className="font-medium text-indigo-100 hover:text-white">← Back to 13th Month Ledger</Link>}
+                    action={status === 'draft' && (
                         <Button
                             variant="primary"
                             size="md"
                             onClick={finalize}
-                            className="shadow-xs self-start sm:self-auto"
+                            className="admin-header-primary shadow-xs"
                         >
                             Finalize Batch
                         </Button>
                     )}
-                </div>
+                />
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -114,7 +95,7 @@ export default function ThirteenthMonthShow({
                 </div>
 
                 {/* Table Card */}
-                <Card className="overflow-hidden">
+                <Card className="admin-workspace-card overflow-hidden">
                     <CardHeader>
                         <CardTitle>Batch Personnel Breakdown</CardTitle>
                         <span className="text-xs text-sub">{records.length} records in batch</span>

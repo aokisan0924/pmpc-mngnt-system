@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm, usePage, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Button from '@/Components/UI/Button'
-import Badge from '@/Components/UI/Badge'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 
 const inputClass = "w-full px-3 py-2.5 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors placeholder:text-dim"
 
@@ -129,7 +129,7 @@ export default function EmployeeShow({ employee, govIds }) {
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-3xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
+            <div className="admin-page-shell max-w-4xl space-y-4 sm:space-y-5 page-enter">
 
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
@@ -138,32 +138,31 @@ export default function EmployeeShow({ employee, govIds }) {
                     </div>
                 )}
 
-                {/* Breadcrumb */}
-                <Link href="/admin/employees" className="inline-flex items-center gap-1.5 text-xs text-sub hover:text-text font-medium transition-colors">
-                    <IconArrowLeft className="w-3.5 h-3.5" /> Back to Employees
-                </Link>
-
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4 pb-2 border-b border-border/80">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold font-heading flex-shrink-0 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 shadow-xs">
+                <AdminPageHeader
+                    eyebrow="Employee record"
+                    title={employee.full_name}
+                    description={`${employee.employee_id}${employee.department ? ` · ${employee.department}` : ''}`}
+                    badge={employee.status}
+                    leading={
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/20 bg-white/10 font-heading text-sm font-bold text-white shadow-xs">
                             {employee.initials ?? initials(employee.first_name, employee.last_name)}
                         </div>
-                        <div className="min-w-0">
-                            <p className="text-lg font-bold font-heading text-text truncate">{employee.full_name}</p>
-                            <p className="text-xs text-sub font-mono truncate">
-                                {employee.employee_id} {employee.department && `· ${employee.department}`}
-                            </p>
-                        </div>
-                    </div>
-                    <Badge variant={employee.status} dot size="sm">
-                        {employee.status}
-                    </Badge>
-                </div>
+                    }
+                    meta={
+                        <Link href="/admin/employees" className="inline-flex items-center gap-1.5 font-medium text-indigo-100 transition-colors hover:text-white">
+                            <IconArrowLeft className="h-3.5 w-3.5" /> Back to Employees
+                        </Link>
+                    }
+                    action={
+                        <a href={`/admin/employees/${employee.id}/dtr/print`} target="_blank" rel="noopener noreferrer" className="inline-flex h-10 items-center rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-semibold text-white transition-colors hover:bg-white/20">
+                            Print DTR
+                        </a>
+                    }
+                />
 
                 {/* Tabs */}
                 <div
-                    role="tablist"
+                    role="group"
                     aria-label="Employee profile sections"
                     className="flex gap-1 p-1 bg-field rounded-xl overflow-x-auto border border-border/70"
                 >
@@ -171,8 +170,7 @@ export default function EmployeeShow({ employee, govIds }) {
                         <button
                             key={tab.key}
                             type="button"
-                            role="tab"
-                            aria-selected={activeTab === tab.key}
+                            aria-pressed={activeTab === tab.key}
                             onClick={() => setActiveTab(tab.key)}
                             className={`flex-1 inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm py-2 px-3 rounded-lg transition-all font-medium whitespace-nowrap ${
                                 activeTab === tab.key
@@ -184,14 +182,6 @@ export default function EmployeeShow({ employee, govIds }) {
                             {tab.label}
                         </button>
                     ))}
-                </div>
-
-                <div className="flex justify-end mb-4">
-                    <a href={`/admin/employees/${employee.id}/dtr/print`}
-                        target="_blank"
-                        className="text-xs px-3 py-1.5 rounded-lg border border-border text-sub hover:bg-hover transition-colors">
-                        Print DTR ↓
-                    </a>
                 </div>
 
                 {/* Profile tab */}

@@ -130,4 +130,49 @@ test.describe('PMPC WorkForce Smoke & Design Verification', () => {
             await page.screenshot({ path: `output/${employeePage.screenshot}`, fullPage: true })
         }
     })
+
+    test('5. Admin Portal - Mobile Operations Pages', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 844 })
+        await page.goto('/login')
+        await page.locator('input[type="text"], input[name="identifier"], input[type="email"]').first().fill('jeffraesapla24@gmail.com')
+        await page.locator('input[type="password"]').first().fill('admin123')
+        await page.locator('button[type="submit"]').click()
+        await page.waitForURL('**/admin/dashboard', { timeout: 10000 })
+
+        const adminPages = [
+            { path: '/admin/dashboard', heading: 'Operations overview', screenshot: 'admin-dashboard-mobile.png' },
+            { path: '/admin/employees', heading: 'Employee Management', screenshot: 'admin-employees-mobile.png' },
+            { path: '/admin/dtr', heading: 'Daily Time Records', screenshot: 'admin-dtr-mobile.png' },
+            { path: '/admin/edit-requests', heading: 'DTR Edit Requests', screenshot: 'admin-edit-requests-mobile.png' },
+            { path: '/admin/payroll', heading: 'Payroll Management', screenshot: 'admin-payroll-mobile.png' },
+            { path: '/admin/payroll/analytics', heading: 'Payroll Analytics', screenshot: 'admin-payroll-analytics-mobile.png' },
+            { path: '/admin/thirteenth-month', heading: '13th Month Pay', screenshot: 'admin-thirteenth-month-mobile.png' },
+            { path: '/admin/archives', heading: 'DTR Archives', screenshot: 'admin-archives-mobile.png' },
+            { path: '/admin/settings', heading: 'System Settings', screenshot: 'admin-settings-mobile.png' },
+        ]
+
+        for (const adminPage of adminPages) {
+            await page.goto(adminPage.path)
+            await expect(page.getByRole('heading', { name: adminPage.heading, exact: true })).toBeVisible()
+            await expect(page.locator('body')).not.toHaveCSS('overflow-x', 'scroll')
+            await page.screenshot({ path: `output/${adminPage.screenshot}`, fullPage: true })
+        }
+    })
+
+    test('6. Admin Portal - Dark Theme Core Workspaces', async ({ page }) => {
+        await page.addInitScript(() => window.localStorage.setItem('pmpc-theme', 'dark'))
+        await page.goto('/login')
+        await page.locator('input[type="text"], input[name="identifier"], input[type="email"]').first().fill('jeffraesapla24@gmail.com')
+        await page.locator('input[type="password"]').first().fill('admin123')
+        await page.locator('button[type="submit"]').click()
+        await page.waitForURL('**/admin/dashboard', { timeout: 10000 })
+        await expect(page.locator('html')).toHaveClass(/dark/)
+        await page.waitForTimeout(400)
+        await page.screenshot({ path: 'output/admin-dashboard-dark.png', fullPage: true })
+
+        await page.goto('/admin/settings')
+        await expect(page.getByRole('heading', { name: 'System Settings', exact: true })).toBeVisible()
+        await page.waitForTimeout(400)
+        await page.screenshot({ path: 'output/admin-settings-dark.png', fullPage: true })
+    })
 })

@@ -2,8 +2,8 @@ import { useState, useMemo } from 'react'
 import { router, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
-import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 
 function fmt(num) {
     return Number(num || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -63,46 +63,30 @@ export default function PayrollCreate({ employees = [], period_from, period_to, 
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
+            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
                 {/* ── Top Header ────────────────────────────────────── */}
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-border/80">
-                    <div>
-                        <div className="flex items-center gap-2 mb-2 text-xs text-sub">
-                            <Link href="/admin/payroll" className="hover:text-text flex items-center gap-1 font-medium transition-colors">
-                                ← Back to Payroll Ledger
-                            </Link>
-                            <span>/</span>
-                            <span className="text-text font-semibold">New Batch Preview</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
-                                {period_label}
-                            </h1>
-                            <Badge variant={is_first ? 'indigo' : 'purple'} dot>
-                                {is_first ? '1st Cutoff (1st–15th: Full Deductions)' : '2nd Cutoff (16th–EOM: Deductions Waived)'}
-                            </Badge>
-                        </div>
-                        <p className="text-xs sm:text-sm text-sub mt-0.5">
-                            Verify DTR attendance days, enter overtime adjustments, and inspect statutory government splits.
-                        </p>
-                    </div>
-
-                    {/* Totals + Save action */}
-                    <div className="flex items-center gap-4 self-start lg:self-auto flex-wrap">
-                        <div className="flex items-center gap-4 bg-panel px-4 py-2 rounded-xl border border-border/80 shadow-xs text-xs">
+                <AdminPageHeader
+                    eyebrow="Payroll batch preparation"
+                    title={period_label}
+                    description="Verify DTR days, enter overtime adjustments, and inspect deduction splits before saving this batch."
+                    badge={is_first ? '1st cutoff · full deductions' : '2nd cutoff · deductions waived'}
+                    meta={<Link href="/admin/payroll" className="font-medium text-indigo-100 hover:text-white">← Back to Payroll Ledger</Link>}
+                    action={
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-4 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs shadow-xs">
                             <div>
-                                <span className="text-sub block text-[10px] uppercase font-semibold">Gross Pay</span>
-                                <strong className="text-text font-heading font-bold text-sm tnum">₱ {fmt(totalGross)}</strong>
+                                <span className="block text-[10px] font-semibold uppercase text-indigo-200">Gross Pay</span>
+                                <strong className="font-heading text-sm font-bold text-white tnum">₱ {fmt(totalGross)}</strong>
                             </div>
-                            <div className="w-px h-7 bg-border/80" />
+                            <div className="h-7 w-px bg-white/20" />
                             <div>
-                                <span className="text-rose-600 block text-[10px] uppercase font-semibold">Deductions</span>
-                                <strong className="text-rose-600 font-heading font-bold text-sm tnum">-₱ {fmt(totalDed)}</strong>
+                                <span className="block text-[10px] font-semibold uppercase text-rose-200">Deductions</span>
+                                <strong className="font-heading text-sm font-bold text-rose-100 tnum">-₱ {fmt(totalDed)}</strong>
                             </div>
-                            <div className="w-px h-7 bg-border/80" />
+                            <div className="h-7 w-px bg-white/20" />
                             <div>
-                                <span className="text-emerald-600 block text-[10px] uppercase font-semibold">Net Payout</span>
-                                <strong className="text-emerald-600 font-heading font-bold text-sm tnum">₱ {fmt(totalNet)}</strong>
+                                <span className="block text-[10px] font-semibold uppercase text-emerald-200">Net Payout</span>
+                                <strong className="font-heading text-sm font-bold text-emerald-100 tnum">₱ {fmt(totalNet)}</strong>
                             </div>
                         </div>
 
@@ -111,12 +95,13 @@ export default function PayrollCreate({ employees = [], period_from, period_to, 
                             size="md"
                             loading={processing}
                             onClick={submit}
-                            className="shadow-xs"
+                            className="admin-header-primary shadow-xs"
                         >
                             Save Payroll Batch →
                         </Button>
                     </div>
-                </div>
+                    }
+                />
 
                 {/* ── Formula Reminder ──────────────────────────────── */}
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-2.5 rounded-xl bg-field/60 border border-border/80 text-xs text-sub">
@@ -131,7 +116,7 @@ export default function PayrollCreate({ employees = [], period_from, period_to, 
                 </div>
 
                 {/* ── Table Card ────────────────────────────────────── */}
-                <Card className="overflow-hidden">
+                <Card className="admin-workspace-card overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="text-xs w-full min-w-[1200px]">
                             <thead>

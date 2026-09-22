@@ -4,6 +4,7 @@ import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 
 const TABS = [
     {
@@ -61,7 +62,7 @@ export default function Settings({ settings }) {
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-4xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
+            <div className="admin-page-shell max-w-5xl space-y-4 sm:space-y-5 page-enter">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -72,33 +73,24 @@ export default function Settings({ settings }) {
                     </div>
                 )}
 
-                {/* Header */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                    <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <h1 className="text-2xl font-bold font-display text-text tracking-tight">System Settings</h1>
-                            <Badge variant="indigo" size="sm">Admin Configuration</Badge>
-                        </div>
-                        <p className="text-sm text-sub mt-1">
-                            Configure cooperative enterprise identity, official work schedules, and payroll computation rules
-                        </p>
-                    </div>
-                </div>
+                <AdminPageHeader
+                    eyebrow="System administration"
+                    title="System Settings"
+                    description="Configure cooperative identity, work schedules, payroll parameters, and official DTR signatories."
+                    badge="Admin configuration"
+                />
 
                 {/* Tabs */}
                 <div
-                    role="tablist"
+                    role="group"
                     aria-label="Settings categories"
-                    className="grid grid-cols-2 gap-1.5 rounded-2xl border border-border bg-field p-1.5 sm:grid-cols-4"
+                    className="admin-toolbar grid grid-cols-2 gap-1.5 p-1.5 sm:grid-cols-4"
                 >
                     {TABS.map(tab => (
                         <button
                             key={tab.key}
                             type="button"
-                            role="tab"
-                            id={`tab-${tab.key}`}
-                            aria-selected={activeTab === tab.key}
-                            aria-controls={`panel-${tab.key}`}
+                            aria-pressed={activeTab === tab.key}
                             onClick={() => setActiveTab(tab.key)}
                             className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all ${
                                 activeTab === tab.key

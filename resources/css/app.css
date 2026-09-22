@@ -524,6 +524,54 @@
         box-shadow: 0 18px 34px rgba(15, 23, 42, 0.06);
     }
 
+    .admin-page-shell {
+        width: min(100%, 90rem);
+        margin-inline: auto;
+        padding: 0.875rem;
+    }
+
+    .admin-page-header {
+        background: linear-gradient(122deg, #17123F 0%, #26215C 56%, #493D8C 100%);
+        box-shadow: 0 20px 44px rgba(38, 33, 92, 0.2);
+    }
+
+    .admin-page-header-grid {
+        opacity: 0.15;
+        background-image:
+            linear-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px);
+        background-size: 32px 32px;
+        mask-image: linear-gradient(90deg, transparent 18%, #000 100%);
+    }
+
+    .admin-page-actions > a,
+    .admin-page-actions > button {
+        min-height: 2.5rem;
+    }
+
+    .admin-page-actions .admin-header-primary {
+        border-color: rgba(255, 255, 255, 0.24) !important;
+        background: #FFFFFF !important;
+        color: #26215C !important;
+    }
+
+    .admin-page-actions .admin-header-primary:hover {
+        background: #EEF2FF !important;
+        color: #17123F !important;
+    }
+
+    .admin-workspace-card {
+        border-color: color-mix(in srgb, #4f46e5 18%, var(--color-border));
+        box-shadow: 0 15px 34px rgba(15, 23, 42, 0.06);
+    }
+
+    .admin-toolbar {
+        border: 1px solid color-mix(in srgb, #4f46e5 16%, var(--color-border));
+        border-radius: 1rem;
+        background: color-mix(in srgb, var(--color-panel) 92%, #eef2ff);
+        box-shadow: 0 8px 24px rgba(38, 33, 92, 0.05);
+    }
+
     @media (max-width: 639px) {
         .attendance-hero { border-radius: 1rem 1rem 0 0; }
         .attendance-console { border-radius: 0 0 1rem 1rem; }
@@ -537,10 +585,12 @@
 
     @media (min-width: 640px) {
         .page-shell { padding: 1.75rem; }
+        .admin-page-shell { padding: 1.25rem; }
     }
 
     @media (min-width: 1024px) {
         .page-shell { padding: 2rem; }
+        .admin-page-shell { padding: 1.5rem; }
     }
 
     .skip-link {

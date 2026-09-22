@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { router, usePage, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
-import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 import ConfirmModal from '@/Components/ConfirmModal'
+import AdminPageHeader from '@/Components/AdminPageHeader'
 
 function fmt(num) {
     return Number(num || 0).toLocaleString('en-PH', {
@@ -36,7 +36,7 @@ export default function PayrollShow({ payroll, items = [] }) {
 
     return (
         <AdminLayout>
-            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6 page-enter">
+            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
@@ -45,37 +45,19 @@ export default function PayrollShow({ payroll, items = [] }) {
                 )}
 
                 {/* ── Top Header ────────────────────────────────────── */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/80">
-                    <div>
-                        <div className="flex items-center gap-2 mb-2 text-xs text-sub">
-                            <Link href="/admin/payroll" className="hover:text-text flex items-center gap-1 font-medium transition-colors">
-                                ← Back to Payroll Ledger
-                            </Link>
-                            <span>/</span>
-                            <span className="text-text font-semibold">{payroll.period_label}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="font-heading font-bold text-2xl sm:text-3xl text-text tracking-tight">
-                                {payroll.period_label}
-                            </h1>
-                            <Badge variant={isFirst ? 'indigo' : 'purple'}>
-                                {payroll.cutoff_label}
-                            </Badge>
-                            <Badge variant={payroll.status} dot size="sm">
-                                {payroll.status}
-                            </Badge>
-                        </div>
-                        <p className="text-xs sm:text-sm text-sub mt-0.5">
-                            Period Bounds: <span className="font-mono text-text">{payroll.period_from}</span> to <span className="font-mono text-text">{payroll.period_to}</span> • Generated Batch Ledger
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-3 self-start sm:self-auto">
+                <AdminPageHeader
+                    eyebrow="Payroll batch ledger"
+                    title={payroll.period_label}
+                    description={`${payroll.period_from} to ${payroll.period_to} · Generated compensation ledger`}
+                    badge={`${payroll.cutoff_label} · ${payroll.status}`}
+                    meta={<Link href="/admin/payroll" className="font-medium text-indigo-100 hover:text-white">← Back to Payroll Ledger</Link>}
+                    action={
+                    <div className="flex flex-wrap items-center gap-3">
                         <a
                             href={`/admin/payslips/download-all?month=${payroll.period_from?.slice(0, 7)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-border/80 bg-panel text-text hover:bg-field shadow-xs transition-colors"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-white/20 sm:text-sm"
                         >
                             <span>Download All Payslips</span>
                             <span aria-hidden="true">↓</span>
@@ -86,13 +68,14 @@ export default function PayrollShow({ payroll, items = [] }) {
                                 variant="primary"
                                 size="md"
                                 onClick={finalize}
-                                className="shadow-xs"
+                                className="admin-header-primary shadow-xs"
                             >
                                 Finalize Payroll Batch
                             </Button>
                         )}
                     </div>
-                </div>
+                    }
+                />
 
                 {/* ── Summary Cards ──────────────────────────────────── */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -122,7 +105,7 @@ export default function PayrollShow({ payroll, items = [] }) {
                 </div>
 
                 {/* ── Payroll Table Card ─────────────────────────────── */}
-                <Card className="overflow-hidden">
+                <Card className="admin-workspace-card overflow-hidden">
                     <CardHeader>
                         <CardTitle>Batch Itemized Breakdown</CardTitle>
                         <span className="text-xs text-sub">{items.length} employee compensation records</span>
