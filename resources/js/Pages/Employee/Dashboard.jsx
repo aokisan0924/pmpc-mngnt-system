@@ -187,7 +187,7 @@ export default function Dashboard({
     const pendingTasksCount = recentTasks.filter(t => t.status !== 'done').length
 
     return (
-        <EmployeeLayout title="Dashboard">
+        <EmployeeLayout title="DTR Dashboard">
             <div className="p-3.5 sm:p-5 lg:p-6 max-w-7xl mx-auto space-y-4 page-enter">
                 {/* ── Welcome Banner & Live Clock ─────────────────── */}
                 <div
@@ -213,7 +213,7 @@ export default function Dashboard({
                             </div>
                         )}
                         <h1 className="font-heading font-bold text-xl sm:text-2xl text-white tracking-tight">
-                            {greeting}, {firstName}!
+                            {greeting}, {firstName}. Your DTR is ready.
                         </h1>
 
                     </div>
@@ -226,14 +226,16 @@ export default function Dashboard({
                 <Card className="overflow-hidden border border-border/80 shadow-xs">
                     <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-border/60 bg-field/30 px-4 py-3">
                         <div className="flex flex-wrap items-center gap-2">
-                            <CardTitle className="text-sm sm:text-base">Today's 4-Punch Attendance Flow</CardTitle>
+                            <CardTitle className="text-sm sm:text-base">Today's DTR: 4-Punch Attendance Flow</CardTitle>
                             {summary?.pending_edits > 0 && (
                                 <Badge variant="amber" size="sm">
                                     {summary.pending_edits} edit request{summary.pending_edits > 1 ? 's' : ''} pending
                                 </Badge>
                             )}
                         </div>
-
+                        <Link href="/employee/dtr" className="rounded text-xs font-semibold text-emerald-700 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:text-emerald-300 dark:hover:text-emerald-200">
+                            View DTR history
+                        </Link>
                     </CardHeader>
 
                     <CardContent className="p-3.5 sm:p-4 space-y-3.5">
@@ -363,20 +365,18 @@ export default function Dashboard({
                 {/* ── Metric Cards with Contextual Progress Bars ───── */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <StatCard
-                        title="Late Arrivals"
-                        value={summary?.days_late ?? 0}
-                        accent={summary?.days_late > 0 ? 'amber' : 'slate'}
+                        title="Days Present"
+                        value={summary?.days_present ?? 0}
+                        accent="emerald"
                         progress={{
-                            value: Math.max(0, (summary?.days_present || 0) - (summary?.days_late || 0)),
-                            max: Math.max(1, summary?.days_present || 1),
-                            label: (summary?.days_present || 0) > 0
-                                ? `${Math.max(0, (summary?.days_present || 0) - (summary?.days_late || 0))} of ${summary?.days_present} on time`
-                                : 'On-time rate',
-                            color: summary?.days_late > 0 ? 'bg-amber-500' : 'bg-emerald-500',
+                            value: summary?.days_present ?? 0,
+                            max: summary?.cutoff_target_days || 11,
+                            label: 'This payroll period',
+                            color: 'bg-emerald-500',
                         }}
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2m15-10a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
                         }
                     />
@@ -397,21 +397,18 @@ export default function Dashboard({
                         }
                     />
                     <StatCard
-                        title="Estimated Cutoff Pay"
-                        value={summary?.daily_rate > 0
-                            ? `₱${Number(summary?.accrued_basic || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                            : '₱0.00'
-                        }
-                        accent="emerald"
-                        progress={summary?.daily_rate > 0 ? {
-                            value: summary?.accrued_basic ?? 0,
-                            max: Math.max(1, summary?.projected_basic || 1),
-                            label: 'Cutoff accrual',
-                            color: 'bg-emerald-500',
-                        } : undefined}
+                        title="DTR Completion"
+                        value={`${completedPunches}/4`}
+                        accent={completedPunches === 4 ? 'emerald' : 'amber'}
+                        progress={{
+                            value: completedPunches,
+                            max: 4,
+                            label: completedPunches === 4 ? 'Today is complete' : `Next: ${nextSlot?.label ?? 'complete'}`,
+                            color: completedPunches === 4 ? 'bg-emerald-500' : 'bg-amber-500',
+                        }}
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         }
                     />

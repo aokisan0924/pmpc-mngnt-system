@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('PMPC WorkForce Smoke & Design Verification', () => {
     test('1. Verify Login page renders correctly', async ({ page }) => {
         await page.goto('/')
-        await expect(page).toHaveTitle(/PMPC Employee Management System/i)
+        await expect(page).toHaveTitle(/PMPC WorkForce/i)
         await page.screenshot({ path: 'output/login-page.png', fullPage: true })
     })
 

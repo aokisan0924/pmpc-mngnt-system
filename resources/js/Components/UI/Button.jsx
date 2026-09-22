@@ -10,7 +10,7 @@ export function Button({
     type = 'button',
     ...props
 }) {
-    const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed select-none'
+    const baseClasses = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60 disabled:cursor-not-allowed select-none'
 
     const sizeClasses = {
         sm: 'text-xs px-3 py-1.5 gap-1.5 h-8',

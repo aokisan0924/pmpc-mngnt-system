@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Operational Frontend System**: Reworked the shared PMPC WorkForce visual foundation with calmer operational surfaces, consistent form and table styling, role-aware navigation groups, refined controls and cards, responsive portal headers, and durable product/design documentation. Existing routes and workflows remain unchanged.
+- **Employee Dashboard DTR Focus**: Prioritized the daily attendance workflow with a DTR-specific dashboard title, direct history access, days-present and completion metrics, and a clearer attendance-first greeting. Payroll remains available as secondary information.
+- **Default Theme Preference**: Changed the first-visit theme from the operating system color preference to light mode while continuing to preserve explicit user selections in local storage.
 - **Employee Form Modal Standard Tailwind Architecture**: Refactored `EmployeeFormModal.jsx` away from legacy ad-hoc JavaScript color dictionaries (`const C = { ... }`), runtime `<style>` injection, and inline styles into standard Tailwind CSS classes, modern modal layout, and shared `<Button>` components.
 - **Design Tokens & Status Badges Standardization**: Standardized status badges across `Dashboard.jsx` and `DtrShow.jsx` to use the centralized `<Badge>` component with built-in status mapping, replaced legacy arbitrary color utilities (`bg-violet`, `text-teal`, `bg-blue/10`, `text-emerald`, `text-rose`) in `EmployeeShow.jsx`, `PayrollAnalytics.jsx`, `ThirteenthMonthCompute.jsx`, and `ThirteenthMonthShow.jsx` with consistent semantic Tailwind tokens, and standardized buttons to shared UI `<Button>` variants.
 

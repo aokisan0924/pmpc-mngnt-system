@@ -5,15 +5,15 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-heading: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-display: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-heading: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
     /* ── Semantic Modern SaaS Tokens ───────────────────────── */
-    --color-bg:         #F8FAFC;
+    --color-bg:         #F5F7F6;
     --color-panel:      #FFFFFF;
     --color-field:      #F1F5F9;
-    --color-border:     #E2E8F0;
+    --color-border:     #DDE5E1;
     --color-text:       #0F172A;
     --color-sub:        #475569;
     --color-dim:        #94A3B8;
@@ -36,9 +36,9 @@
     --color-row-border: rgba(15, 23, 42, 0.05);
 
     /* Shadows */
-    --shadow-subtle:    0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-card:      0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
-    --shadow-card-hover:0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+    --shadow-subtle:    0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-card:      0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.045);
+    --shadow-card-hover:0 14px 32px rgba(15, 23, 42, 0.08);
 }
 
 :root {
@@ -50,10 +50,10 @@
     --color-hover:      rgba(255, 255, 255, 0.04);
     --color-grid:       rgba(255, 255, 255, 0.07);
     --color-row-border: rgba(255, 255, 255, 0.06);
-    --color-bg:         #0B0F19;
-    --color-panel:      #111827;
-    --color-field:      #1E293B;
-    --color-border:     #1F2937;
+    --color-bg:         #101817;
+    --color-panel:      #15201E;
+    --color-field:      #1D2A27;
+    --color-border:     #2C3A36;
     --color-text:       #F8FAFC;
     --color-sub:        #94A3B8;
     --color-dim:        #64748B;
@@ -205,6 +205,35 @@
         text-rendering: optimizeLegibility;
     }
 
+    input,
+    select,
+    textarea {
+        border-color: var(--color-border);
+        background-color: var(--color-field);
+        color: var(--color-text);
+        border-radius: 0.625rem;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    th {
+        background: color-mix(in srgb, var(--color-field) 78%, transparent);
+        color: var(--color-sub);
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    th,
+    td {
+        border-color: var(--color-border);
+    }
+
     h1, h2, h3, h4, h5, h6 {
         font-family: var(--font-heading);
         letter-spacing: -0.02em;
@@ -317,6 +346,46 @@
 
     .saas-card:hover {
         border-color: rgba(148, 163, 184, 0.4);
+    }
+
+    .portal-shell {
+        background:
+            radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--color-brand) 6%, transparent), transparent 26rem),
+            var(--color-bg);
+    }
+
+    .portal-sidebar {
+        background: color-mix(in srgb, var(--color-panel) 94%, var(--color-bg));
+        border-color: var(--color-border);
+    }
+
+    .portal-header {
+        background: color-mix(in srgb, var(--color-panel) 88%, transparent);
+        border-color: var(--color-border);
+        backdrop-filter: blur(14px);
+    }
+
+    .portal-nav-link {
+        border: 1px solid transparent;
+        border-radius: 0.625rem;
+    }
+
+    .portal-nav-link[aria-current='page'] {
+        border-color: color-mix(in srgb, var(--color-brand) 20%, transparent);
+    }
+
+    .page-shell {
+        width: min(100%, 84rem);
+        margin-inline: auto;
+        padding: 1.25rem;
+    }
+
+    @media (min-width: 640px) {
+        .page-shell { padding: 1.75rem; }
+    }
+
+    @media (min-width: 1024px) {
+        .page-shell { padding: 2rem; }
     }
 
     .skip-link {

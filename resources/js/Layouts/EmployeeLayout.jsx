@@ -9,7 +9,7 @@ import pmpcLogo from '@images/pmpc_ems.png'
 
 const navMain = [
     {
-        label: 'Dashboard',
+        label: 'Today',
         href: '/employee/dashboard',
         icon: (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
@@ -18,7 +18,7 @@ const navMain = [
         ),
     },
     {
-        label: 'My DTR',
+        label: 'Attendance',
         href: '/employee/dtr',
         icon: (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
@@ -27,7 +27,7 @@ const navMain = [
         ),
     },
     {
-        label: 'Task planner',
+        label: 'My tasks',
         href: '/employee/planner',
         icon: (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
@@ -36,7 +36,7 @@ const navMain = [
         ),
     },
     {
-        label: 'My payslips',
+        label: 'Payslips',
         href: '/employee/payslips',
         icon: (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
@@ -48,7 +48,7 @@ const navMain = [
 
 const navAccount = [
     {
-        label: 'My profile',
+        label: 'Profile',
         href: '/employee/profile',
         icon: (
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
@@ -80,11 +80,11 @@ export default function EmployeeLayout({ children, title }) {
     const currentItem = [...navMain, ...navAccount].find(i => currentUrl.startsWith(i.href))
 
     return (
-        <div className="employee-portal flex min-h-screen bg-bg">
+        <div className="employee-portal portal-shell flex min-h-screen bg-bg">
             <a href="#main-content" className="skip-link">Skip to main content</a>
 
             {/* ── Desktop Sidebar ───────────────────────────────── */}
-            <aside className="hidden md:flex w-56 lg:w-60 flex-shrink-0 flex-col sticky top-0 h-screen border-r border-border/80 bg-panel select-none">
+            <aside className="portal-sidebar hidden md:flex w-56 lg:w-60 flex-shrink-0 flex-col sticky top-0 h-screen border-r border-border/80 bg-panel select-none">
                 {/* Brand Header */}
                 <div className="flex items-center gap-2.5 h-13 px-4 border-b border-border/80">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-white dark:bg-slate-900 p-0.5 border border-border/80 shadow-2xs">
@@ -112,7 +112,7 @@ export default function EmployeeLayout({ children, title }) {
                 <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto" aria-label="Employee navigation">
                     <div>
                         <p className="text-[10px] font-bold text-dim px-3 mb-1.5 tracking-wider uppercase">
-                            {isSuperAdmin ? 'Personal' : 'Main Menu'}
+                            {isSuperAdmin ? 'Personal workspace' : 'My workday'}
                         </p>
                         <div className="space-y-0.5">
                             {visibleNavMain.map(item => (
@@ -198,7 +198,7 @@ export default function EmployeeLayout({ children, title }) {
             {/* ── Main Content Area ─────────────────────────────── */}
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Desktop Header */}
-                <header className="hidden md:flex h-13 items-center justify-between px-5 sm:px-6 border-b border-border/80 bg-panel/80 backdrop-blur-md sticky top-0 z-20 select-none">
+                <header className="portal-header hidden md:flex h-13 items-center justify-between px-5 sm:px-6 border-b border-border/80 bg-panel/80 backdrop-blur-md sticky top-0 z-20 select-none">
                     <nav className="flex items-center gap-2 text-xs font-medium text-sub">
                         <span>PMPC WorkForce</span>
                         <span className="text-dim">/</span>
@@ -245,7 +245,8 @@ function NavLink({ item, currentUrl }) {
     return (
         <Link
             href={item.href}
-            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 ${
+            aria-current={active ? 'page' : undefined}
+            className={`portal-nav-link flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 ${
                 active
                     ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 font-semibold shadow-2xs'
                     : 'text-sub hover:text-text hover:bg-field'

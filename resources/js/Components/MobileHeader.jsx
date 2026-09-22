@@ -4,12 +4,12 @@ import ThemeToggle from '@/Components/ThemeToggle'
 import pmpcLogo from '@images/pmpc_ems.png'
 
 const allNav = [
-    { label: 'Dashboard',      href: '/employee/dashboard'      },
-    { label: 'My DTR',         href: '/employee/dtr'            },
-    { label: 'Task planner',   href: '/employee/planner'        },
-    { label: 'My payslips',    href: '/employee/payslips'       },
+    { label: 'Today',          href: '/employee/dashboard'      },
+    { label: 'Attendance',     href: '/employee/dtr'            },
+    { label: 'My tasks',       href: '/employee/planner'        },
+    { label: 'Payslips',       href: '/employee/payslips'       },
     { label: 'Notifications',  href: '/employee/notifications'  },
-    { label: 'My profile',     href: '/employee/profile'        },
+    { label: 'Profile',        href: '/employee/profile'        },
 ]
 
 export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleTheme }) {
@@ -29,7 +29,7 @@ export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleT
 
     return (
         <>
-            <header className="md:hidden sticky top-0 z-30 border-b border-border bg-panel px-4 py-3 select-none">
+            <header className="portal-header md:hidden sticky top-0 z-30 border-b border-border bg-panel px-4 py-3 select-none">
                 <div className="flex items-center justify-between">
                     {/* Brand */}
                     <div className="flex items-center gap-2 min-w-0">

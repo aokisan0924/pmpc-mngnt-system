@@ -3,13 +3,13 @@ import { useCallback, useEffect, useState } from 'react'
 const STORAGE_KEY = 'pmpc-theme'
 
 function getInitialTheme() {
-    if (typeof window === 'undefined') return 'dark'
+    if (typeof window === 'undefined') return 'light'
 
     const stored = window.localStorage.getItem(STORAGE_KEY)
     if (stored === 'light' || stored === 'dark') return stored
 
-    // No saved preference yet — fall back to the OS/browser setting.
-    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
+    // New visitors start in light mode. Their explicit toggle choice is saved.
+    return 'light'
 }
 
 /**

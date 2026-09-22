@@ -11,8 +11,8 @@ export function Card({
 
     return (
         <div
-            className={`bg-panel border border-border rounded-xl shadow-xs transition-all duration-200 ${
-                hover ? 'hover:shadow-sm hover:border-slate-300 dark:hover:border-slate-700' : ''
+            className={`bg-panel border border-border rounded-2xl shadow-card transition-all duration-200 ${
+                hover ? 'hover:shadow-card-hover hover:-translate-y-0.5 hover:border-slate-300 dark:hover:border-slate-700' : ''
             } ${className}`}
             {...props}
         >
@@ -71,7 +71,7 @@ export function CardContent({ children, className = '', ...props }) {
 export function CardFooter({ children, className = '', ...props }) {
     return (
         <div
-            className={`px-5 py-3.5 border-t border-border/70 bg-field/40 rounded-b-xl flex items-center justify-between ${className}`}
+            className={`px-5 py-3.5 border-t border-border/70 bg-field/40 rounded-b-2xl flex items-center justify-between ${className}`}
             {...props}
         >
             {children}
