@@ -112,9 +112,10 @@ test.describe('PMPC WorkForce Smoke & Design Verification', () => {
         await page.waitForURL('**/employee/dashboard', { timeout: 10000 })
         await expect(page.getByText(/Next required action|Today’s attendance/)).toBeVisible()
 
-        await expect(page.getByTestId('dtr-primary-action')).toHaveCSS('position', 'sticky')
+        await expect(page.getByTestId('dtr-primary-action')).toBeVisible()
+        await expect(page.getByTestId('dtr-primary-action')).toHaveCSS('position', 'fixed')
 
-        await page.screenshot({ path: 'output/employee-dashboard-mobile.png', fullPage: true })
+        await page.screenshot({ path: 'output/employee-dashboard-mobile.png', fullPage: false })
 
         const employeePages = [
             { path: '/employee/dtr', heading: 'Daily Time Record', screenshot: 'employee-dtr-mobile.png' },

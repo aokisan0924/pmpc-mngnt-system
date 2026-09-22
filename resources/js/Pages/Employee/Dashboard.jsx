@@ -201,7 +201,7 @@ export default function Dashboard({
 
     return (
         <EmployeeLayout title="DTR Dashboard">
-            <div className="attendance-workstation p-3.5 sm:p-5 lg:p-6 max-w-[90rem] mx-auto space-y-5 page-enter">
+            <div className="attendance-workstation mx-auto max-w-[90rem] space-y-5 p-3.5 pb-44 sm:p-5 lg:p-6">
                 {/* ── Welcome Banner & Live Clock ─────────────────── */}
                 <div
                     role="region"
@@ -278,7 +278,7 @@ export default function Dashboard({
                         </section>
 
                         {/* Connected 4-step Timeline */}
-                        <div className="order-3 grid grid-cols-1 gap-3.5 sm:grid-cols-2 sm:gap-4 lg:order-2 lg:grid-cols-4 relative select-none">
+                        <div className="order-3 relative grid grid-cols-1 gap-3.5 select-none sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
                             {PUNCH_SLOTS.map((slot, index) => {
                                 const rawVal = today?.[slot.key]
                                 const isDone = Boolean(rawVal)
@@ -351,8 +351,8 @@ export default function Dashboard({
                         </div>
 
                         {/* Interactive Punch Action, feedback, and factual exceptions */}
-                        <div className={`order-2 grid gap-4 lg:order-3 ${pendingEditRequests.length > 0 ? 'lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.7fr)]' : ''}`}>
-                            <div data-testid="dtr-primary-action" className="sticky bottom-20 z-20 flex flex-col gap-4 rounded-xl border border-border/80 bg-panel/95 p-4 shadow-lg backdrop-blur-md sm:static sm:flex-row sm:items-center sm:justify-between sm:bg-field/60 sm:p-5 sm:shadow-none sm:backdrop-blur-none dark:bg-slate-900/95 dark:sm:bg-slate-900/50">
+                        <div className={`order-2 grid gap-4 ${pendingEditRequests.length > 0 ? 'lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.7fr)]' : ''}`}>
+                            <div data-testid="dtr-primary-action" className="fixed inset-x-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-panel/95 p-3 shadow-xl backdrop-blur-md sm:static sm:flex-row sm:border-border/80 sm:bg-field/60 sm:p-5 sm:shadow-none sm:backdrop-blur-none dark:border-emerald-900 dark:bg-slate-900/95 dark:sm:border-border/80 dark:sm:bg-slate-900/50">
                                 <div className="min-w-0">
                                     <p className="text-xs font-bold uppercase tracking-wider text-sub">
                                         {nextSlot ? `Ready for ${nextSlot.label}` : 'Attendance complete'}
@@ -373,7 +373,7 @@ export default function Dashboard({
                                     </div>
                                 </div>
 
-                                <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:flex-nowrap">
+                                <div className="flex shrink-0 flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:flex-nowrap">
                                     {nextSlot ? (
                                         <Button
                                             variant="emerald"
@@ -381,7 +381,7 @@ export default function Dashboard({
                                             onClick={handleQuickPunch}
                                             disabled={punching}
                                             aria-label={punching ? 'Recording punch...' : `Punch ${nextSlot.label}`}
-                                            className="h-12 min-w-[180px] flex-1 px-5 text-sm font-semibold shadow-xs sm:flex-none"
+                                            className="h-12 min-w-[132px] px-4 text-sm font-semibold shadow-xs sm:min-w-[180px] sm:px-5"
                                         >
                                             {punching ? (
                                                 <span className="inline-flex items-center gap-1.5">

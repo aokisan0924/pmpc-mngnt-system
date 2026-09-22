@@ -23,3 +23,9 @@ Cards have a restrained surface, 16px radius, and low elevation. Buttons are rou
 ## Content Hierarchy
 
 Employee pages lead with attendance and personal work. Administrator pages group operations into command center, personal workspace, people and attendance, compensation and reports, and administration.
+
+## Mobile Attendance Actions
+
+The next required DTR punch remains persistently available above the employee bottom navigation on narrow screens. On larger screens, the same single action appears before the punch timeline so the required task precedes supporting records without duplicating the mutation control.
+
+Last updated: 2026-09-22

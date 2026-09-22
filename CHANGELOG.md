@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Mobile Punch Access**: Promoted the employee dashboard punch control to a persistent mobile action dock above the bottom navigation and moved it ahead of the punch timeline on larger screens, keeping the next required DTR action within immediate reach.
 - **Admin Operations Workspaces**: Unified the dashboard, employee records, DTR review, payroll, analytics, 13th-month, archives, and settings routes around a responsive deep-purple command header, clearer operational context, stronger workspace cards, and mobile-safe controls without changing routes, permissions, or backend workflows.
 - **Employee Self-Service Workspaces**: Reframed Attendance, Work Planner, Payslips, Profile, and Notifications with a shared employee-green page header, clearer page purpose and status context, stronger workspace cards and toolbars, a guided payslip empty state, mobile-scrollable profile navigation, and accessible pressed-button filters.
 - **Employee DTR Action Center**: Added factual next-punch and configured schedule guidance, emphasized the single active punch state, introduced a mobile-sticky punch control, accessible completion feedback, automatically refreshed attendance data, conditional pending-correction details, and a four-item today-at-a-glance status strip.
