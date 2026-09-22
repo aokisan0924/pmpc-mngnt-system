@@ -87,8 +87,8 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
 
     return (
         <AdminLayout pendingEditCount={stats.pending_edits ?? 0}>
-            <div className="mx-auto max-w-7xl space-y-4 px-3.5 py-3.5 sm:space-y-5 sm:px-5 sm:py-4 lg:px-6">
-                <section className="flex flex-col gap-4 rounded-2xl bg-gradient-to-r from-[#1E1B4B] via-[#26215C] to-indigo-950 p-5 text-white shadow-xs sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div className="operations-console mx-auto max-w-7xl space-y-5 px-3.5 py-3.5 sm:space-y-6 sm:px-5 sm:py-5 lg:px-6">
+                <section className="operations-hero flex flex-col gap-4 p-5 text-white sm:flex-row sm:items-center sm:justify-between sm:p-7">
                     <div>
                         <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-indigo-200">Admin portal</p>
                         <h1 className="mt-1 font-display text-2xl font-bold tracking-tight">Operations overview</h1>
@@ -109,7 +109,7 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
                     </div>
                 </section>
 
-                <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4" aria-label="Operational summary">
+                <section className="operations-metrics grid grid-cols-2 gap-px overflow-hidden bg-border lg:grid-cols-4" aria-label="Operational summary">
                     <StatCard title="Total Workforce" value={stats.total_employees ?? 0} accent="indigo" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20a5 5 0 0 0-10 0m5-5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm7 5a4 4 0 0 0-4-4m0-1a3 3 0 1 0-1.2-5.75" /></svg>} />
                     <StatCard title="Present Today" value={stats.present_today ?? 0} accent="emerald" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="m8 12 2.5 2.5L16 9m5 3a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>} />
                     <StatCard title="Late Arrivals" value={stats.late_today ?? 0} accent={(stats.late_today ?? 0) > 0 ? 'amber' : 'slate'} icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>} />
@@ -117,7 +117,7 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
                 </section>
 
                 {pending_edit_requests.length > 0 && (
-                    <Card className="overflow-hidden border-amber-200/80 dark:border-amber-800/60">
+                    <Card className="operations-queue overflow-hidden border-0 shadow-none">
                         <CardHeader className="flex-col gap-3 border-b border-border/60 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <div className="flex items-center gap-2">
@@ -158,7 +158,7 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
                     </Card>
                 )}
 
-                <Card>
+                <Card className="operations-roster border-0 shadow-none">
                     <CardHeader className="flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <CardTitle>Today&apos;s attendance</CardTitle>

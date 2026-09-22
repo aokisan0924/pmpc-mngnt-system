@@ -249,7 +249,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
 
 function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLogout, onNavigate, className = '', employee }) {
     return (
-        <div className={`portal-sidebar flex flex-col border-r border-border bg-panel select-none ${className}`}>
+        <div className={`portal-sidebar admin-sidebar flex flex-col border-r border-border bg-panel select-none ${className}`}>
             {/* Brand Header */}
             <div className="flex items-center gap-2.5 h-13 px-4 border-b border-border/80">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-white dark:bg-slate-900 p-0.5 border border-border/80 shadow-2xs">

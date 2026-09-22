@@ -374,10 +374,140 @@
         border-color: color-mix(in srgb, var(--color-brand) 20%, transparent);
     }
 
+    /* The portal rail is deliberately role-specific: it makes the two work contexts
+       recognizable before any page content is read. */
+    .employee-sidebar,
+    .admin-sidebar {
+        --rail-text: rgba(255, 255, 255, 0.92);
+        --rail-muted: rgba(255, 255, 255, 0.58);
+        color: var(--rail-text);
+        border-color: rgba(255, 255, 255, 0.12) !important;
+    }
+
+    .employee-sidebar { background: linear-gradient(170deg, #06463A 0%, #0B5D4B 48%, #04382E 100%) !important; }
+    .admin-sidebar { background: linear-gradient(170deg, #1B1749 0%, #26215C 48%, #17123F 100%) !important; }
+
+    .employee-sidebar .border-border,
+    .admin-sidebar .border-border,
+    .employee-sidebar .border-border\/80,
+    .admin-sidebar .border-border\/80 { border-color: rgba(255, 255, 255, 0.12) !important; }
+
+    .employee-sidebar .text-text,
+    .admin-sidebar .text-text,
+    .employee-sidebar .text-sub,
+    .admin-sidebar .text-sub { color: var(--rail-text) !important; }
+
+    .employee-sidebar .text-dim,
+    .admin-sidebar .text-dim { color: var(--rail-muted) !important; }
+
+    .employee-sidebar .portal-nav-link,
+    .admin-sidebar .portal-nav-link { color: var(--rail-text) !important; }
+
+    .employee-sidebar .portal-nav-link:hover,
+    .admin-sidebar .portal-nav-link:hover { background: rgba(255, 255, 255, 0.1) !important; color: #FFFFFF !important; }
+
+    .employee-sidebar .portal-nav-link[aria-current='page'],
+    .admin-sidebar .portal-nav-link[aria-current='page'] {
+        border-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.16) !important;
+        color: #FFFFFF !important;
+        box-shadow: inset 3px 0 0 #FFFFFF;
+    }
+
     .page-shell {
         width: min(100%, 84rem);
         margin-inline: auto;
         padding: 1.25rem;
+    }
+
+    /* Dramatic operating surfaces: attendance is an active workstation; administration is a command board. */
+    .attendance-workstation {
+        max-width: 90rem;
+        padding-top: 1.5rem;
+    }
+
+    .attendance-hero {
+        border-radius: 1.25rem 1.25rem 0 0;
+        background: linear-gradient(112deg, #04382E 0%, #0F6E56 52%, #0B4E40 100%);
+        box-shadow: 0 20px 44px rgba(8, 74, 59, 0.2);
+    }
+
+    .attendance-console {
+        margin-top: -1rem;
+        border-radius: 0 0 1.25rem 1.25rem;
+        background: var(--color-panel);
+        box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+    }
+
+    .attendance-console > div:first-child {
+        background: color-mix(in srgb, var(--color-field) 68%, transparent);
+    }
+
+    .attendance-console > div:last-child {
+        padding: 1.25rem;
+    }
+
+    .attendance-metrics > div {
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        background: var(--color-panel);
+    }
+
+    .attendance-metrics > div:first-child { border-radius: 1rem 0 0 1rem; }
+    .attendance-metrics > div:last-child { border-radius: 0 1rem 1rem 0; }
+
+    .operations-console {
+        max-width: 90rem;
+        padding-top: 1.75rem;
+    }
+
+    .operations-hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 1.25rem;
+        background: linear-gradient(125deg, #17123F 0%, #26215C 56%, #3F347E 100%);
+        box-shadow: 0 20px 44px rgba(38, 33, 92, 0.18);
+    }
+
+    .operations-hero::after {
+        position: absolute;
+        right: -5rem;
+        top: -6rem;
+        width: 18rem;
+        height: 18rem;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        content: '';
+    }
+
+    .operations-hero > * { position: relative; z-index: 1; }
+
+    .operations-metrics > div {
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        background: var(--color-panel);
+    }
+
+    .operations-metrics > div:first-child { border-radius: 1rem 0 0 1rem; }
+    .operations-metrics > div:last-child { border-radius: 0 1rem 1rem 0; }
+
+    .operations-queue,
+    .operations-roster {
+        border-radius: 1.25rem;
+        box-shadow: 0 18px 34px rgba(15, 23, 42, 0.06);
+    }
+
+    @media (max-width: 639px) {
+        .attendance-hero { border-radius: 1rem 1rem 0 0; }
+        .attendance-console { border-radius: 0 0 1rem 1rem; }
+        .attendance-metrics > div,
+        .operations-metrics > div { border-radius: 0 !important; }
+        .attendance-metrics > div:first-child,
+        .operations-metrics > div:first-child { border-radius: 1rem 1rem 0 0 !important; }
+        .attendance-metrics > div:last-child,
+        .operations-metrics > div:last-child { border-radius: 0 0 1rem 1rem !important; }
     }
 
     @media (min-width: 640px) {

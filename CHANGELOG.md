@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Role-specific Control Rails**: Replaced the desktop white utility sidebars with high-contrast employee-green and administrator-purple control rails, making the two portals visually distinct at every route while retaining their existing navigation and permissions.
+- **DTR Workstation and Operations Console**: Replaced the employee and administrator dashboard compositions with purpose-built attendance and command-board surfaces. The employee DTR flow now forms one visual workstation with contiguous attendance metrics; the administrator dashboard now leads with a command surface, contiguous operational metrics, and focused queue/roster panels.
 - **Operational Frontend System**: Reworked the shared PMPC WorkForce visual foundation with calmer operational surfaces, consistent form and table styling, role-aware navigation groups, refined controls and cards, responsive portal headers, and durable product/design documentation. Existing routes and workflows remain unchanged.
 - **Employee Dashboard DTR Focus**: Prioritized the daily attendance workflow with a DTR-specific dashboard title, direct history access, days-present and completion metrics, and a clearer attendance-first greeting. Payroll remains available as secondary information.
 - **Default Theme Preference**: Changed the first-visit theme from the operating system color preference to light mode while continuing to preserve explicit user selections in local storage.

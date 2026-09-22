@@ -188,12 +188,12 @@ export default function Dashboard({
 
     return (
         <EmployeeLayout title="DTR Dashboard">
-            <div className="p-3.5 sm:p-5 lg:p-6 max-w-7xl mx-auto space-y-4 page-enter">
+            <div className="attendance-workstation p-3.5 sm:p-5 lg:p-6 max-w-7xl mx-auto space-y-4 page-enter">
                 {/* ── Welcome Banner & Live Clock ─────────────────── */}
                 <div
                     role="region"
                     aria-label="Shift overview"
-                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 sm:p-5 rounded-xl bg-gradient-to-r from-[#0A4739] via-[#0F6E56] to-[#07372C] text-white shadow-xs relative overflow-hidden select-none"
+                    className="attendance-hero flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 sm:p-6 text-white relative overflow-hidden select-none"
                 >
                     <div className="absolute -right-12 -bottom-12 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
                     <div className="relative z-10 max-w-2xl">
@@ -223,7 +223,7 @@ export default function Dashboard({
                 </div>
 
                 {/* ── Today's Attendance Punch State Machine & 1-Tap Punch (Top Priority) ── */}
-                <Card className="overflow-hidden border border-border/80 shadow-xs">
+                <Card className="attendance-console overflow-hidden border-0 shadow-none">
                     <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-border/60 bg-field/30 px-4 py-3">
                         <div className="flex flex-wrap items-center gap-2">
                             <CardTitle className="text-sm sm:text-base">Today's DTR: 4-Punch Attendance Flow</CardTitle>
@@ -363,7 +363,7 @@ export default function Dashboard({
                 </Card>
 
                 {/* ── Metric Cards with Contextual Progress Bars ───── */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div className="attendance-metrics grid grid-cols-1 sm:grid-cols-3 gap-px overflow-hidden bg-border sm:rounded-2xl">
                     <StatCard
                         title="Days Present"
                         value={summary?.days_present ?? 0}
@@ -415,7 +415,7 @@ export default function Dashboard({
                 </div>
 
                 {/* ── Lower Split: Action Hub & Latest Payslip ───────── */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
+                <div className="attendance-secondary grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
                     {/* Action Hub (Tasks & Notifications Tabs) */}
                     <div className="lg:col-span-2">
                         <Card className="h-full flex flex-col justify-between">

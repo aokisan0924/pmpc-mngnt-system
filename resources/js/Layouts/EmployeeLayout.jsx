@@ -84,7 +84,7 @@ export default function EmployeeLayout({ children, title }) {
             <a href="#main-content" className="skip-link">Skip to main content</a>
 
             {/* ── Desktop Sidebar ───────────────────────────────── */}
-            <aside className="portal-sidebar hidden md:flex w-56 lg:w-60 flex-shrink-0 flex-col sticky top-0 h-screen border-r border-border/80 bg-panel select-none">
+            <aside className="portal-sidebar employee-sidebar hidden md:flex w-56 lg:w-60 flex-shrink-0 flex-col sticky top-0 h-screen border-r border-border/80 bg-panel select-none">
                 {/* Brand Header */}
                 <div className="flex items-center gap-2.5 h-13 px-4 border-b border-border/80">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-white dark:bg-slate-900 p-0.5 border border-border/80 shadow-2xs">
