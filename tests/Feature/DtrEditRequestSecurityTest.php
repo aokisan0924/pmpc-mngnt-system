@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\DtrEditRequest;
 use App\Models\DtrLog;
 use App\Models\Employee;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -62,6 +63,84 @@ class DtrEditRequestSecurityTest extends TestCase
         $this->assertDatabaseMissing('dtr_edit_requests', [
             'dtr_log_id' => $bobsLog->id,
             'employee_id' => $alice->id,
+        ]);
+    }
+
+    public function test_super_admin_can_approve_edit_request(): void
+    {
+        $admin = Employee::factory()->create([
+            'role' => 'super_admin',
+            'first_name' => 'Jeffrae',
+            'last_name' => 'Sapla',
+        ]);
+        $employee = Employee::factory()->create();
+        $log = DtrLog::factory()->create(['employee_id' => $employee->id]);
+        $editRequest = DtrEditRequest::factory()->create([
+            'dtr_log_id' => $log->id,
+            'employee_id' => $employee->id,
+            'status' => 'pending',
+            'requested_am_time_in' => '08:00',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.edit-requests.approve', $editRequest));
+
+        $response->assertRedirect();
+        $this->assertEquals('approved', $editRequest->fresh()->status);
+    }
+
+    public function test_reynold_valdez_cannot_view_visit_approve_or_decline_dtr_edit_requests(): void
+    {
+        $reynold = Employee::factory()->create([
+            'role' => 'super_admin',
+            'first_name' => 'Reynold',
+            'last_name' => 'Valdez',
+        ]);
+        $employee = Employee::factory()->create();
+        $log = DtrLog::factory()->create(['employee_id' => $employee->id]);
+        $editRequest = DtrEditRequest::factory()->create([
+            'dtr_log_id' => $log->id,
+            'employee_id' => $employee->id,
+            'status' => 'pending',
+        ]);
+
+        // Cannot visit requests index (HTTP 403)
+        $responseIndex = $this->actingAs($reynold)->get(route('admin.edit-requests'));
+        $responseIndex->assertStatus(403);
+
+        // Cannot approve
+        $responseApprove = $this->actingAs($reynold)->post(route('admin.edit-requests.approve', $editRequest));
+        $responseApprove->assertStatus(403);
+        $this->assertEquals('pending', $editRequest->fresh()->status);
+
+        // Cannot decline
+        $responseDecline = $this->actingAs($reynold)->post(route('admin.edit-requests.decline', $editRequest));
+        $responseDecline->assertStatus(403);
+        $this->assertEquals('pending', $editRequest->fresh()->status);
+    }
+
+    public function test_reynold_valdez_can_submit_dtr_edit_request_for_own_log(): void
+    {
+        $reynold = Employee::factory()->create([
+            'role' => 'employee',
+            'first_name' => 'Reynold',
+            'last_name' => 'Valdez',
+        ]);
+        $log = DtrLog::factory()->create([
+            'employee_id' => $reynold->id,
+            'date' => today()->subDay()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($reynold)->post(route('employee.dtr.edit-request', $log), [
+            'requested_am_time_in' => '08:00',
+            'reason' => 'Submitting correction for own log',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('dtr_edit_requests', [
+            'employee_id' => $reynold->id,
+            'dtr_log_id' => $log->id,
+            'status' => 'pending',
+            'reason' => 'Submitting correction for own log',
         ]);
     }
 }

@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **DTR Edit Requests Permission Hardening & Access Control**: Enforced granular permission checks across DTR dispute workflows (`canManageDtrRequests`, `canViewDtrRequests`, and `canRequestDtrEdits` in `Employee.php`, `DtrEditRequestController.php`, `DtrEditRequestSubmissionRequest.php`, and `DtrController.php`). Restricted Reynold Valdez from visiting, viewing, approving, or declining DTR edit requests (returning HTTP 403 on `/admin/edit-requests` and approval/rejection endpoints, and hiding navigation menu items, dashboard quick action links, and triage cards), while retaining his ability to submit edit requests for his own attendance records via the employee portal. In the frontend, exposed `can_manage_dtr_requests`, `can_view_dtr_requests`, and `can_request_dtr_edits` through Inertia shared props (`AdminLayout.jsx`, `Admin/Dashboard.jsx`, `Admin/DtrEditRequests.jsx`).
 - **IDOR Protection on DTR Edit Requests**: Enforced strict employee ownership check (`abort_if($dtrLog->employee_id !== $request->user()->id, 403)`) in `DtrController::requestEdit()` and Form Request authorization in `DtrEditRequestSubmissionRequest.php`, preventing horizontal privilege escalation attacks across employee attendance records.
+
+### Added
+
+- **Admin Dashboard DTR Punch Station**: Implemented a tactile 1-tap Daily Time Record punch station directly on the Administrator Command Workstation (`Admin/Dashboard.jsx`), allowing administrators to record their own daily attendance punches (`am_in`, `am_out`, `pm_in`, `pm_out`) in compliance with PMPC labor standards without leaving the admin portal. Added `admin_dtr` and `schedule` payloads to `AdminDashboardController.php`, registered `POST /admin/dtr/punch` in `routes/web.php`, and integrated 4-punch chronological slot indicators, dynamic next-action buttons with loading spinners, accessible focus rings, feedback banners, and real-time polling synchronization.
 
 ### Removed
 

@@ -94,6 +94,7 @@ Route::middleware(['auth', 'role:super_admin'])
     ->name('admin.')
     ->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/dtr/punch', [DtrController::class, 'punch'])->name('dtr.punch');
         Route::get('/edit-requests', [DtrEditRequestController::class, 'index'])->name('edit-requests');
         Route::post('/edit-requests/{editRequest}/approve', [DtrEditRequestController::class, 'approve'])->name('edit-requests.approve');
         Route::post('/edit-requests/{editRequest}/decline', [DtrEditRequestController::class, 'decline'])->name('edit-requests.decline');

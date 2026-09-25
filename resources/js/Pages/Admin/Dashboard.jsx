@@ -1,11 +1,18 @@
 import { useMemo, useRef, useState, useEffect } from 'react'
-import { Link, router, usePoll } from '@inertiajs/react'
+import { Link, router, usePage, usePoll } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardContent, CardHeader, CardTitle } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 import pmpcLogo from '@images/pmpc_ems.png'
+
+const PUNCH_SLOTS = [
+    { key: 'am_time_in', label: 'AM In', period: 'Morning', targetTime: '08:00' },
+    { key: 'am_time_out', label: 'AM Out', period: 'Lunch Break', targetTime: '12:00' },
+    { key: 'pm_time_in', label: 'PM In', period: 'Afternoon', targetTime: '13:00' },
+    { key: 'pm_time_out', label: 'PM Out', period: 'End of Shift', targetTime: '17:00' },
+]
 
 function formatPunchTime(timeString) {
     if (!timeString) return '--:--'
@@ -59,23 +66,75 @@ function LiveClock() {
     )
 }
 
-export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapshot = [], pending_edit_requests = [] }) {
+export default function Dashboard({
+    stats = {},
+    active_cutoff = {},
+    today_snapshot = [],
+    pending_edit_requests = [],
+    admin_dtr = null,
+    schedule = {},
+}) {
+    const { auth } = usePage().props
+    const canManageRequests = auth?.employee?.can_manage_dtr_requests ?? true
+    const canViewRequests = auth?.employee?.can_view_dtr_requests ?? true
+
     const [searchQuery, setSearchQuery] = useState('')
     const [processingId, setProcessingId] = useState(null)
     const [declineTarget, setDeclineTarget] = useState(null)
     const [declineReason, setDeclineReason] = useState('')
     const [feedback, setFeedback] = useState(null)
+    const [punching, setPunching] = useState(false)
+    const [punchFeedback, setPunchFeedback] = useState(null)
     const processingRef = useRef(false)
 
-    // Silent background poll every 12s for real-time triage updates
+    // Silent background poll every 12s for real-time triage and attendance updates
     usePoll(12000, {
-        only: ['stats', 'pending_edit_requests', 'today_snapshot'],
+        only: ['stats', 'pending_edit_requests', 'today_snapshot', 'admin_dtr'],
         preserveScroll: true,
         preserveState: true,
     })
 
     const hour = new Date().getHours()
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+
+    // Determine current next expected punch index for administrator
+    const completedPunches = PUNCH_SLOTS.filter(s => Boolean(admin_dtr?.[s.key])).length
+    const nextPunchIndex = completedPunches < 4 ? completedPunches : -1
+    const nextSlot = nextPunchIndex !== -1 ? PUNCH_SLOTS[nextPunchIndex] : null
+    const nextScheduledTime = nextSlot ? schedule?.[nextSlot.key] : null
+
+    function handleAdminPunch() {
+        if (punching || nextPunchIndex === -1 || !nextSlot) return
+        const slotLabel = nextSlot.label
+        const punchTime = new Date().toLocaleTimeString('en-PH', {
+            timeZone: 'Asia/Manila',
+            hour: '2-digit',
+            minute: '2-digit',
+        })
+        setPunching(true)
+        setPunchFeedback(null)
+
+        router.post('/admin/dtr/punch', {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setPunchFeedback({
+                    type: 'success',
+                    message: `Recorded ${slotLabel} successfully at ${punchTime}.`,
+                })
+                setTimeout(() => setPunchFeedback(null), 5000)
+            },
+            onError: (err) => {
+                setPunchFeedback({
+                    type: 'error',
+                    message: err?.punch || 'Punch recording failed. Please try again.',
+                })
+                setTimeout(() => setPunchFeedback(null), 6000)
+            },
+            onFinish: () => {
+                setPunching(false)
+            },
+        })
+    }
 
     const filteredSnapshot = useMemo(() => {
         const query = searchQuery.trim().toLowerCase()
@@ -93,7 +152,7 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
     }
 
     function approve(requestId) {
-        if (processingRef.current) return
+        if (!canManageRequests || processingRef.current) return
         processingRef.current = true
         setProcessingId(requestId)
 
@@ -109,7 +168,7 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
     }
 
     function decline() {
-        if (!declineTarget || processingRef.current) return
+        if (!canManageRequests || !declineTarget || processingRef.current) return
         processingRef.current = true
         setProcessingId(declineTarget.id)
 
@@ -174,7 +233,7 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
                                     <span>Current Cycle: <strong className="text-white">{active_cutoff?.label || 'Active Cutoff'}</strong></span>
                                     <span className="text-indigo-200">• {active_cutoff?.days_remaining ?? 0} {active_cutoff?.days_remaining === 1 ? 'day' : 'days'} left</span>
                                 </span>
-                                {stats.pending_edits > 0 && (
+                                {canViewRequests && stats.pending_edits > 0 && (
                                     <Link href="/admin/edit-requests">
                                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-400/20 text-amber-300 border border-amber-400/30 hover:bg-amber-400/30 transition-colors">
                                             <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
@@ -199,7 +258,139 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
                     </div>
 
                     {/* Tactical Command Deck */}
-                    <div className="relative z-10 mt-5 pt-1">
+                    <div className="relative z-10 mt-5 pt-1 space-y-3.5">
+                        {/* ── Administrator Personal DTR & Quick Punch Station ── */}
+                        <div className="rounded-xl bg-[#17123F]/90 border border-white/20 p-4 sm:p-5 backdrop-blur-xs shadow-md">
+                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                <div className="min-w-0 space-y-2">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-indigo-300">
+                                            Administrator Attendance · DTR Punch Station
+                                        </span>
+                                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                            nextSlot
+                                                ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                                                : 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
+                                        }`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${nextSlot ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
+                                            {nextSlot ? `Ready for ${nextSlot.label}` : 'All 4 Punches Complete'}
+                                        </span>
+                                        {(admin_dtr?.hours_rendered ?? 0) > 0 && (
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-white/90 border border-white/15">
+                                                {admin_dtr.hours_rendered} hrs rendered
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <h2 className="font-heading text-lg sm:text-xl font-bold text-white tracking-tight">
+                                        {nextSlot ? `Next required action: Punch ${nextSlot.label}` : 'Daily attendance complete for today'}
+                                    </h2>
+                                    <p className="text-xs text-indigo-100/80">
+                                        {nextSlot
+                                            ? `Step ${completedPunches + 1} of 4 · Shift ${schedule?.am_time_in || '08:00'}–${schedule?.pm_time_out || '17:00'} (Asia/Manila standard time)`
+                                            : 'Daily attendance milestones secured. Shift logged.'}
+                                    </p>
+
+                                    {/* 4 Punch Timeline Strip */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                                        {PUNCH_SLOTS.map((slot, idx) => {
+                                            const punchValue = admin_dtr?.[slot.key]
+                                            const isRecorded = Boolean(punchValue)
+                                            const isCurrentNext = nextPunchIndex === idx
+
+                                            return (
+                                                <div
+                                                    key={slot.key}
+                                                    className={`flex flex-col p-2.5 rounded-lg border text-xs transition-colors ${
+                                                        isRecorded
+                                                            ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-100'
+                                                            : isCurrentNext
+                                                                ? 'bg-indigo-900/60 border-indigo-400/60 text-white ring-1 ring-indigo-400/50'
+                                                                : 'bg-white/5 border-white/10 text-indigo-200/60'
+                                                    }`}
+                                                >
+                                                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">
+                                                        {slot.label}
+                                                    </span>
+                                                    <span className="font-mono text-sm font-bold mt-0.5 text-white">
+                                                        {isRecorded ? formatPunchTime(punchValue) : '--:--'}
+                                                    </span>
+                                                    <span className="text-[9px] text-indigo-200/70 mt-0.5 truncate">
+                                                        {isRecorded
+                                                            ? 'Recorded'
+                                                            : isCurrentNext
+                                                                ? 'Next Required'
+                                                                : `Target ${slot.targetTime}`}
+                                                    </span>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Tactile Punch Controller */}
+                                <div className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end justify-center gap-2.5 shrink-0 pt-2 lg:pt-0 border-t border-white/10 lg:border-t-0">
+                                    {nextSlot ? (
+                                        <button
+                                            type="button"
+                                            onClick={handleAdminPunch}
+                                            disabled={punching}
+                                            aria-label={punching ? 'Recording punch...' : `Punch ${nextSlot.label}`}
+                                            className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-extrabold text-[#26215C] bg-white hover:bg-indigo-50 active:bg-indigo-100 disabled:opacity-50 disabled:pointer-events-none transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white shadow-lg cursor-pointer whitespace-nowrap"
+                                        >
+                                            {punching ? (
+                                                <>
+                                                    <svg className="animate-spin h-4 w-4 text-[#26215C]" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                    </svg>
+                                                    <span>Recording...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <svg className="w-4 h-4 text-[#26215C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <span>Punch {nextSlot.label}</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    ) : (
+                                        <div className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs font-bold text-emerald-200 bg-emerald-950/60 border border-emerald-400/40">
+                                            <svg className="w-4 h-4 text-emerald-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                            </svg>
+                                            <span>All Punches Completed</span>
+                                        </div>
+                                    )}
+
+                                    <Link
+                                        href="/employee/dtr"
+                                        className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-indigo-200 hover:text-white hover:bg-white/10 transition-colors"
+                                    >
+                                        <span>View Full Attendance Sheet</span>
+                                        <span aria-hidden="true">→</span>
+                                    </Link>
+                                </div>
+                            </div>
+
+                            {/* Punch Feedback Alert */}
+                            {punchFeedback && (
+                                <div
+                                    aria-live="polite"
+                                    className={`mt-3 flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium border ${
+                                        punchFeedback.type === 'success'
+                                            ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-200'
+                                            : 'bg-rose-500/20 border-rose-400/40 text-rose-200'
+                                    }`}
+                                >
+                                    <span className={`w-2 h-2 rounded-full shrink-0 ${punchFeedback.type === 'success' ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                                    <span>{punchFeedback.message}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* ── Payroll Cycle Control ── */}
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-xl bg-[#17123F]/85 border border-white/15 p-4 sm:p-5 backdrop-blur-xs shadow-xs">
                             <div className="min-w-0">
                                 <div className="flex items-center gap-2">
@@ -241,22 +432,24 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
                                     </button>
                                 </Link>
 
-                                <Link href="/admin/edit-requests">
-                                    <button
-                                        type="button"
-                                        className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/20 transition-colors cursor-pointer"
-                                    >
-                                        <svg className="w-3.5 h-3.5 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                        </svg>
-                                        <span>Edit Queue</span>
-                                        {stats.pending_edits > 0 && (
-                                            <span className="px-1.5 py-0.25 rounded-full text-[10px] font-bold bg-amber-400 text-[#26215C]">
-                                                {stats.pending_edits}
-                                            </span>
-                                        )}
-                                    </button>
-                                </Link>
+                                {canViewRequests && (
+                                    <Link href="/admin/edit-requests">
+                                        <button
+                                            type="button"
+                                            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/20 transition-colors cursor-pointer"
+                                        >
+                                            <svg className="w-3.5 h-3.5 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                            </svg>
+                                            <span>Edit Queue</span>
+                                            {stats.pending_edits > 0 && (
+                                                <span className="px-1.5 py-0.25 rounded-full text-[10px] font-bold bg-amber-400 text-[#26215C]">
+                                                    {stats.pending_edits}
+                                                </span>
+                                            )}
+                                        </button>
+                                    </Link>
+                                )}
 
                                 <Link href="/admin/employees">
                                     <button
@@ -319,7 +512,7 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
                 </section>
 
                 {/* ── Pending DTR Edit Requests ─────────────────── */}
-                {pending_edit_requests.length > 0 && (
+                {canViewRequests && pending_edit_requests.length > 0 && (
                     <Card className="admin-workspace-card overflow-hidden">
                         <CardHeader className="flex-col gap-3 border-b border-border/70 sm:flex-row sm:items-center sm:justify-between">
                             <div>
@@ -366,25 +559,33 @@ export default function Dashboard({ stats = {}, active_cutoff = {}, today_snapsh
                                                 </div>
                                                 {request.reason && <p className="mt-2 max-w-2xl text-xs leading-relaxed text-sub italic">&ldquo;{request.reason}&rdquo;</p>}
                                             </div>
-                                            <div className="flex shrink-0 gap-2">
-                                                <Button
-                                                    variant="emerald"
-                                                    size="sm"
-                                                    disabled={processing}
-                                                    onClick={() => approve(request.id)}
-                                                    className="h-9 px-3.5 text-xs font-bold"
-                                                >
-                                                    {processing ? 'Saving...' : 'Approve'}
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    disabled={processing}
-                                                    onClick={() => { setDeclineTarget(request); setDeclineReason('') }}
-                                                    className="h-9 border-rose-200 px-3.5 text-xs text-rose-700 hover:bg-rose-50 dark:border-rose-900 dark:text-rose-300 dark:hover:bg-rose-950/30"
-                                                >
-                                                    Decline
-                                                </Button>
+                                            <div className="flex shrink-0 items-center gap-2">
+                                                {canManageRequests ? (
+                                                    <>
+                                                        <Button
+                                                            variant="emerald"
+                                                            size="sm"
+                                                            disabled={processing}
+                                                            onClick={() => approve(request.id)}
+                                                            className="h-9 px-3.5 text-xs font-bold"
+                                                        >
+                                                            {processing ? 'Saving...' : 'Approve'}
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            disabled={processing}
+                                                            onClick={() => { setDeclineTarget(request); setDeclineReason('') }}
+                                                            className="h-9 border-rose-200 px-3.5 text-xs text-rose-700 hover:bg-rose-50 dark:border-rose-900 dark:text-rose-300 dark:hover:bg-rose-950/30"
+                                                        >
+                                                            Decline
+                                                        </Button>
+                                                    </>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                                                        Read-Only
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     )

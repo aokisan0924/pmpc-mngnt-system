@@ -29,6 +29,9 @@ class HandleInertiaRequests extends Middleware
                     'department' => $request->user()->department,
                     'position' => $request->user()->position,
                     'first_name' => $request->user()->first_name,
+                    'can_manage_dtr_requests' => $request->user()->canManageDtrRequests(),
+                    'can_view_dtr_requests' => $request->user()->canViewDtrRequests(),
+                    'can_request_dtr_edits' => $request->user()->canRequestDtrEdits(),
                 ] : null,
             ],
             'flash' => [

@@ -14,7 +14,8 @@ const PUNCH_ROWS = [
 ]
 
 export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
-    const { flash } = usePage().props
+    const { flash, auth } = usePage().props
+    const canManage = auth?.employee?.can_manage_dtr_requests ?? true
     const [filter, setFilter] = useState('pending')
     const [activeId, setActiveId] = useState(null)
     const [adminNotes, setAdminNotes] = useState({})
@@ -53,6 +54,7 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
     }, [filter, requests])
 
     function resolve(id, action) {
+        if (!canManage) return
         setProcessing(true)
         router.post(`/admin/edit-requests/${id}/${action}`, { admin_note: adminNotes[id] ?? '' }, {
             onSuccess: () => {
@@ -71,6 +73,14 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
     return (
         <AdminLayout pendingEditCount={pendingCount}>
             <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
+                {!canManage && (
+                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-200 text-xs font-medium">
+                        <svg className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                        </svg>
+                        <span>Permission Notice: Your account does not have permission to approve or decline DTR edit requests. You are in read-only mode.</span>
+                    </div>
+                )}
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
@@ -217,36 +227,43 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
 
                                         {/* Admin Action Area (if pending) */}
                                         {isPending ? (
-                                            <div className="pt-2 border-t border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                                <input
-                                                    type="text"
-                                                    value={adminNotes[req.id] ?? ''}
-                                                    onChange={e => setAdminNotes(prev => ({ ...prev, [req.id]: e.target.value }))}
-                                                    placeholder="Add optional supervisor note or reason…"
-                                                    aria-label="Supervisor note or reason for decision"
-                                                    className="flex-1 px-3 py-2 text-xs border border-border rounded-lg bg-panel text-text placeholder:text-dim focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                                />
-                                                <div className="flex items-center gap-2 self-end sm:self-auto">
-                                                    <Button
-                                                        variant="danger"
-                                                        size="sm"
-                                                        loading={processing}
-                                                        aria-label={`Decline edit request for ${req.employee_name}`}
-                                                        onClick={() => resolve(req.id, 'decline')}
-                                                    >
-                                                        Decline Request
-                                                    </Button>
-                                                    <Button
-                                                        variant="emerald"
-                                                        size="sm"
-                                                        loading={processing}
-                                                        aria-label={`Approve edit request for ${req.employee_name}`}
-                                                        onClick={() => resolve(req.id, 'approve')}
-                                                    >
-                                                        Approve & Overwrite DTR
-                                                    </Button>
+                                            canManage ? (
+                                                <div className="pt-2 border-t border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                                    <input
+                                                        type="text"
+                                                        value={adminNotes[req.id] ?? ''}
+                                                        onChange={e => setAdminNotes(prev => ({ ...prev, [req.id]: e.target.value }))}
+                                                        placeholder="Add optional supervisor note or reason…"
+                                                        aria-label="Supervisor note or reason for decision"
+                                                        className="flex-1 px-3 py-2 text-xs border border-border rounded-lg bg-panel text-text placeholder:text-dim focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                                                    />
+                                                    <div className="flex items-center gap-2 self-end sm:self-auto">
+                                                        <Button
+                                                            variant="danger"
+                                                            size="sm"
+                                                            loading={processing}
+                                                            aria-label={`Decline edit request for ${req.employee_name}`}
+                                                            onClick={() => resolve(req.id, 'decline')}
+                                                        >
+                                                            Decline Request
+                                                        </Button>
+                                                        <Button
+                                                            variant="emerald"
+                                                            size="sm"
+                                                            loading={processing}
+                                                            aria-label={`Approve edit request for ${req.employee_name}`}
+                                                            onClick={() => resolve(req.id, 'approve')}
+                                                        >
+                                                            Approve & Overwrite DTR
+                                                        </Button>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            ) : (
+                                                <div className="pt-2 border-t border-border/60 flex items-center justify-between gap-2 text-xs text-amber-700 dark:text-amber-300 bg-amber-500/10 p-2.5 rounded-lg border border-amber-500/20">
+                                                    <span>You do not have permission to approve or decline this request.</span>
+                                                    <Badge variant="amber" size="sm">Read-Only</Badge>
+                                                </div>
+                                            )
                                         ) : req.admin_note && (
                                             <p className="text-xs text-dim italic">
                                                 Admin note: "{req.admin_note}"

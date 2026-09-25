@@ -148,6 +148,7 @@ class DtrController extends Controller
 
     public function requestEdit(DtrEditRequestSubmissionRequest $request, DtrLog $dtrLog): RedirectResponse
     {
+        abort_if(! $request->user()->canRequestDtrEdits(), 403, 'You do not have permission to submit DTR edit requests.');
         abort_if($dtrLog->employee_id !== $request->user()->id, 403, 'Unauthorized access to this attendance record.');
 
         $validated = $request->validated();

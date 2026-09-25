@@ -15,8 +15,10 @@ use Inertia\Response;
 
 class DtrEditRequestController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        abort_if(! $request->user()->canViewDtrRequests(), 403, 'You do not have permission to view DTR edit requests.');
+
         $requests = DtrEditRequest::with(['employee', 'dtrLog'])
             ->orderByRaw("CASE status WHEN 'pending' THEN 1 WHEN 'approved' THEN 2 WHEN 'declined' THEN 3 ELSE 4 END")
             ->orderBy('created_at', 'desc')
@@ -50,6 +52,8 @@ class DtrEditRequestController extends Controller
 
     public function approve(Request $request, DtrEditRequest $editRequest): RedirectResponse
     {
+        abort_if(! $request->user()->canManageDtrRequests(), 403, 'You do not have permission to approve DTR edit requests.');
+
         $request->validate([
             'admin_note' => ['nullable', 'string', 'max:500'],
         ]);
@@ -90,6 +94,8 @@ class DtrEditRequestController extends Controller
 
     public function decline(Request $request, DtrEditRequest $editRequest): RedirectResponse
     {
+        abort_if(! $request->user()->canManageDtrRequests(), 403, 'You do not have permission to decline DTR edit requests.');
+
         $request->validate([
             'admin_note' => ['nullable', 'string', 'max:500'],
         ]);

@@ -8,23 +8,26 @@ use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
+use App\Models\Setting;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class AdminDashboardController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $today = today();
         $startOfMonth = now()->startOfMonth();
         $endOfMonth = now()->endOfMonth();
 
         // ── KPI cards ──────────────────────────────────────
+        $canViewRequests = $request->user()->canViewDtrRequests();
         $totalEmployees = Employee::where('is_staff', true)->count();
         $activeEmployees = Employee::where('is_staff', true)->where('status', 'active')->count();
-        $pendingEdits = DtrEditRequest::where('status', 'pending')->count();
+        $pendingEdits = $canViewRequests ? DtrEditRequest::where('status', 'pending')->count() : 0;
 
         // Today's attendance
         $presentToday = DtrLog::where('date', $today)
@@ -257,46 +260,50 @@ class AdminDashboardController extends Controller
         ];
 
         // ── Pending DTR Edit Requests Triage ───────────────
-        $pendingEditRequests = DtrEditRequest::with(['employee', 'dtrLog'])
-            ->where('status', 'pending')
-            ->orderBy('created_at', 'asc')
-            ->limit(5)
-            ->get()
-            ->map(fn ($r) => [
-                'id' => $r->id,
-                'employee_name' => $r->employee->full_name,
-                'employee_id' => $r->employee->employee_id,
-                'initials' => $r->employee->initials,
-                'department' => $r->employee->department ?? 'Unassigned',
-                'date' => $r->dtrLog->date->format('M d, Y'),
-                'original_am_time_in' => $r->original_am_time_in ? substr($r->original_am_time_in, 0, 5) : null,
-                'original_am_time_out' => $r->original_am_time_out ? substr($r->original_am_time_out, 0, 5) : null,
-                'original_pm_time_in' => $r->original_pm_time_in ? substr($r->original_pm_time_in, 0, 5) : null,
-                'original_pm_time_out' => $r->original_pm_time_out ? substr($r->original_pm_time_out, 0, 5) : null,
-                'requested_am_time_in' => $r->requested_am_time_in ? substr($r->requested_am_time_in, 0, 5) : null,
-                'requested_am_time_out' => $r->requested_am_time_out ? substr($r->requested_am_time_out, 0, 5) : null,
-                'requested_pm_time_in' => $r->requested_pm_time_in ? substr($r->requested_pm_time_in, 0, 5) : null,
-                'requested_pm_time_out' => $r->requested_pm_time_out ? substr($r->requested_pm_time_out, 0, 5) : null,
-                'reason' => $r->reason,
-                'submitted_at' => $r->created_at->diffForHumans(),
-            ]);
+        $pendingEditRequests = $canViewRequests
+            ? DtrEditRequest::with(['employee', 'dtrLog'])
+                ->where('status', 'pending')
+                ->orderBy('created_at', 'asc')
+                ->limit(5)
+                ->get()
+                ->map(fn ($r) => [
+                    'id' => $r->id,
+                    'employee_name' => $r->employee->full_name,
+                    'employee_id' => $r->employee->employee_id,
+                    'initials' => $r->employee->initials,
+                    'department' => $r->employee->department ?? 'Unassigned',
+                    'date' => $r->dtrLog->date->format('M d, Y'),
+                    'original_am_time_in' => $r->original_am_time_in ? substr($r->original_am_time_in, 0, 5) : null,
+                    'original_am_time_out' => $r->original_am_time_out ? substr($r->original_am_time_out, 0, 5) : null,
+                    'original_pm_time_in' => $r->original_pm_time_in ? substr($r->original_pm_time_in, 0, 5) : null,
+                    'original_pm_time_out' => $r->original_pm_time_out ? substr($r->original_pm_time_out, 0, 5) : null,
+                    'requested_am_time_in' => $r->requested_am_time_in ? substr($r->requested_am_time_in, 0, 5) : null,
+                    'requested_am_time_out' => $r->requested_am_time_out ? substr($r->requested_am_time_out, 0, 5) : null,
+                    'requested_pm_time_in' => $r->requested_pm_time_in ? substr($r->requested_pm_time_in, 0, 5) : null,
+                    'requested_pm_time_out' => $r->requested_pm_time_out ? substr($r->requested_pm_time_out, 0, 5) : null,
+                    'reason' => $r->reason,
+                    'submitted_at' => $r->created_at->diffForHumans(),
+                ])
+            : collect();
 
         // ── Recent activity ─────────────────────────────────
         $recentActivity = collect();
 
-        DtrEditRequest::with(['employee', 'reviewer'])
-            ->whereIn('status', ['approved', 'declined'])
-            ->orderByDesc('reviewed_at')
-            ->limit(5)
-            ->get()
-            ->each(function ($r) use (&$recentActivity) {
-                $recentActivity->push([
-                    'type' => $r->status === 'approved' ? 'approved' : 'declined',
-                    'message' => "DTR edit for {$r->employee->full_name} {$r->status}",
-                    'time' => $r->reviewed_at?->diffForHumans() ?? '—',
-                    'color' => $r->status === 'approved' ? 'emerald' : 'red',
-                ]);
-            });
+        if ($canViewRequests) {
+            DtrEditRequest::with(['employee', 'reviewer'])
+                ->whereIn('status', ['approved', 'declined'])
+                ->orderByDesc('reviewed_at')
+                ->limit(5)
+                ->get()
+                ->each(function ($r) use (&$recentActivity) {
+                    $recentActivity->push([
+                        'type' => $r->status === 'approved' ? 'approved' : 'declined',
+                        'message' => "DTR edit for {$r->employee->full_name} {$r->status}",
+                        'time' => $r->reviewed_at?->diffForHumans() ?? '—',
+                        'color' => $r->status === 'approved' ? 'emerald' : 'red',
+                    ]);
+                });
+        }
 
         Employee::where('is_staff', true)
             ->orderByDesc('created_at')
@@ -312,6 +319,33 @@ class AdminDashboardController extends Controller
             });
 
         $recentActivity = $recentActivity->sortByDesc('time')->take(8)->values();
+
+        // ── Admin Personal DTR status ──────────────────────
+        $admin = $request->user();
+        $adminTodayLog = DtrLog::firstOrCreate(
+            ['employee_id' => $admin->id, 'date' => $today],
+            ['status' => 'absent']
+        );
+
+        $adminDtr = [
+            'id' => $adminTodayLog->id,
+            'date' => $adminTodayLog->date->toDateString(),
+            'am_time_in' => $adminTodayLog->am_time_in,
+            'am_time_out' => $adminTodayLog->am_time_out,
+            'pm_time_in' => $adminTodayLog->pm_time_in,
+            'pm_time_out' => $adminTodayLog->pm_time_out,
+            'status' => $adminTodayLog->status,
+            'hours_rendered' => (float) $adminTodayLog->hours_rendered,
+            'next_punch' => $adminTodayLog->getNextPunchSlot(),
+            'punches_count' => $adminTodayLog->punchesCount(),
+        ];
+
+        $schedule = [
+            'am_time_in' => Setting::get('shift_start', '08:00'),
+            'am_time_out' => Setting::get('lunch_start', '12:00'),
+            'pm_time_in' => Setting::get('lunch_end', '13:00'),
+            'pm_time_out' => Setting::get('shift_end', '17:00'),
+        ];
 
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
@@ -345,6 +379,8 @@ class AdminDashboardController extends Controller
             'headcount_breakdown' => $headcountBreakdown,
             'pending_edit_requests' => $pendingEditRequests,
             'recent_activity' => $recentActivity,
+            'admin_dtr' => $adminDtr,
+            'schedule' => $schedule,
         ]);
     }
 

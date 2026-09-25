@@ -154,4 +154,37 @@ class Employee extends Authenticatable
             + $this->savings_deduction
             + $this->other_deductions;
     }
+
+    public function isReynoldValdez(): bool
+    {
+        $fullName = strtolower(trim("{$this->first_name} {$this->last_name}"));
+
+        return str_contains($fullName, 'reynold') && str_contains($fullName, 'valdez');
+    }
+
+    public function canManageDtrRequests(): bool
+    {
+        // Controls permission to approve or decline DTR edit requests.
+        // Reynold Valdez is restricted from approving or declining.
+        if ($this->isReynoldValdez()) {
+            return false;
+        }
+
+        return $this->isSuperAdmin();
+    }
+
+    public function canViewDtrRequests(): bool
+    {
+        // Reynold Valdez is restricted from viewing or visiting DTR edit requests.
+        if ($this->isReynoldValdez()) {
+            return false;
+        }
+
+        return $this->isSuperAdmin();
+    }
+
+    public function canRequestDtrEdits(): bool
+    {
+        return true;
+    }
 }

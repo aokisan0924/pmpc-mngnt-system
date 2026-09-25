@@ -59,4 +59,19 @@ class DtrPunchFlowTest extends TestCase
         $response = $this->actingAs($employee)->post(route('employee.dtr.punch'));
         $response->assertSessionHasErrors(['punch' => 'All punches for today are already recorded.']);
     }
+
+    public function test_admin_can_record_dtr_punch_via_admin_route(): void
+    {
+        $admin = Employee::factory()->create([
+            'role' => 'super_admin',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.dtr.punch'));
+
+        $response->assertRedirect();
+        $log = DtrLog::where('employee_id', $admin->id)->first();
+        $this->assertNotNull($log);
+        $this->assertEquals(today()->toDateString(), $log->date->toDateString());
+        $this->assertNotNull($log->am_time_in);
+    }
 }

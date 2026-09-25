@@ -158,8 +158,13 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
     const employee = auth?.employee
     useTheme()
     const [drawerOpen, setDrawerOpen] = useState(false)
-    const currentUrl = new URL(page.url, 'http://localhost').pathname
-    const adminNavItems = navItems
+    const canViewRequests = employee?.can_view_dtr_requests ?? true
+    const adminNavItems = navItems.filter(item => {
+        if (item.href === '/admin/edit-requests' && !canViewRequests) {
+            return false
+        }
+        return true
+    })
     const sections = [...new Set(adminNavItems.map(i => i.section))]
 
     // Close mobile drawer on Escape key press for keyboard accessibility
@@ -254,7 +259,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
 
                     {/* Right Tools: Notification counter, Profile pill */}
                     <div className="flex items-center gap-3">
-                        {pendingEditCount > 0 && (
+                        {canViewRequests && pendingEditCount > 0 && (
                             <Link
                                 href="/admin/edit-requests"
                                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60 hover:bg-amber-100 transition-colors shadow-2xs"
