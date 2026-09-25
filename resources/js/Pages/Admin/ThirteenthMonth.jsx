@@ -56,10 +56,11 @@ export default function ThirteenthMonth({ records = [] }) {
                     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
                         <div className="grid gap-4 sm:grid-cols-[8rem_minmax(0,1fr)] sm:items-end">
                             <div>
-                                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-sub">
+                                <label htmlFor="calendar-year" className="mb-2 block text-xs font-semibold uppercase tracking-wider text-sub">
                                     Calendar Year
                                 </label>
                                 <input
+                                    id="calendar-year"
                                     type="number"
                                     value={year}
                                     onChange={e => setYear(e.target.value)}

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\DtrLog;
 use App\Models\EmployeeNotification;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -37,6 +38,14 @@ class HandleInertiaRequests extends Middleware
             'unread_notifications' => $request->user()
                 ? EmployeeNotification::unreadCount($request->user()->id)
                 : 0,
+            'dtr_today' => $request->user() ? [
+                'next_slot' => DtrLog::where('employee_id', $request->user()->id)
+                    ->whereDate('date', today())
+                    ->first()?->getNextPunchSlot() ?? 'am_time_in',
+                'punches_count' => DtrLog::where('employee_id', $request->user()->id)
+                    ->whereDate('date', today())
+                    ->first()?->punchesCount() ?? 0,
+            ] : null,
         ]);
     }
 }

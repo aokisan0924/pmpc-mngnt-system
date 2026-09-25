@@ -168,6 +168,47 @@ class EmployeeDashboardController extends Controller
             ];
         }
 
+        // 5-Day Weekly Attendance Strip (Monday - Friday of current week)
+        $weekStart = $now->copy()->startOfWeek(Carbon::MONDAY);
+        $weekDates = [];
+        for ($i = 0; $i < 5; $i++) {
+            $weekDates[] = $weekStart->copy()->addDays($i)->toDateString();
+        }
+
+        $weekEnd = $weekStart->copy()->addDays(4)->endOfDay();
+        $weekLogs = DtrLog::where('employee_id', $employee->id)
+            ->whereBetween('date', [$weekStart->copy()->startOfDay(), $weekEnd])
+            ->get()
+            ->keyBy(fn ($log) => Carbon::parse($log->date)->toDateString());
+
+        $weeklyStrip = collect($weekDates)->map(function ($dateStr) use ($weekLogs, $now) {
+            $cDate = Carbon::parse($dateStr);
+            $log = $weekLogs->get($dateStr);
+            $isToday = $cDate->isToday();
+            $isPast = $cDate->lt($now->copy()->startOfDay());
+            $isFuture = $cDate->gt($now->copy()->startOfDay());
+
+            $punchesCount = $log ? $log->punchesCount() : 0;
+
+            return [
+                'date' => $dateStr,
+                'day_name' => $cDate->format('D'),
+                'day_short' => $cDate->format('M d'),
+                'day_number' => $cDate->format('j'),
+                'is_today' => $isToday,
+                'is_past' => $isPast,
+                'is_future' => $isFuture,
+                'status' => $log ? $log->status : ($isFuture ? 'scheduled' : 'absent'),
+                'punches_count' => $punchesCount,
+                'hours_rendered' => $log ? (float) $log->hours_rendered : 0.0,
+                'has_log' => (bool) $log,
+                'am_time_in' => $log?->am_time_in,
+                'am_time_out' => $log?->am_time_out,
+                'pm_time_in' => $log?->pm_time_in,
+                'pm_time_out' => $log?->pm_time_out,
+            ];
+        })->values()->all();
+
         return Inertia::render('Employee/Dashboard', [
             'employee' => [
                 'id' => $employee->id,
@@ -191,8 +232,10 @@ class EmployeeDashboardController extends Controller
                 'status' => $today->status,
                 'hours_rendered' => $today->hours_rendered,
                 'next_punch' => $today->getNextPunchSlot(),
+                'punches_count' => $today->punchesCount(),
             ],
             'schedule' => $schedule,
+            'weeklyStrip' => $weeklyStrip,
             'pendingEditRequests' => $pendingEditRequests,
             'recentNotifications' => $recentNotifications,
             'recentTasks' => $recentTasks,

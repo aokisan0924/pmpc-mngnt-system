@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useForm } from '@inertiajs/react'
 import Button from '@/Components/UI/Button'
 
@@ -17,6 +18,15 @@ const inputClass = "w-full px-3.5 py-2 text-sm rounded-xl border border-border b
 
 export default function EmployeeFormModal({ employee, onClose }) {
     const isEdit = !!employee
+
+    // Close on Escape key for keyboard accessibility
+    useEffect(() => {
+        function handleKeyDown(e) {
+            if (e.key === 'Escape') onClose()
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [onClose])
 
     const { data, setData, post, patch, processing, errors } = useForm({
         first_name:            employee?.first_name  ?? '',

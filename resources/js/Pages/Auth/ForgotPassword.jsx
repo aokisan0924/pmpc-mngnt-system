@@ -23,7 +23,8 @@ export default function ForgotPassword() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-bg px-4 py-8 sm:py-12 swiss-grid">
+        <main id="main-content" tabIndex="-1" className="min-h-screen flex items-center justify-center bg-bg px-4 py-8 sm:py-12 swiss-grid outline-none">
+            <a href="#email" className="skip-link">Skip to reset form</a>
             <div className="w-full max-w-4xl overflow-hidden shadow-xl border border-border bg-panel flex flex-col md:flex-row">
 
                 <div
@@ -46,11 +47,11 @@ export default function ForgotPassword() {
                         </div>
                         <div>
                             <p className="text-white text-sm md:text-xs font-semibold leading-tight">PMPC EMS</p>
-                            <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.55)' }}>People&apos;s Multi-Purpose Cooperative</p>
+                            <p className="text-[11px] text-white/80">People&apos;s Multi-Purpose Cooperative</p>
                         </div>
                     </div>
 
-                    <p className="hidden md:block relative" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, lineHeight: 1.5 }}>
+                    <p className="hidden md:block relative text-[11px] leading-relaxed text-white/70">
                         Employee Management System v2.0<br />
                         People&apos;s Multi-Purpose Cooperative
                     </p>
@@ -89,11 +90,11 @@ export default function ForgotPassword() {
                         </button>
                     </form>
 
-                    <p className="mt-6 pt-4 border-t border-border text-xs text-dim text-center">
+                    <p className="mt-6 pt-4 border-t border-border text-xs text-sub text-center">
                         Remembered it? <a href="/login" className="font-medium hover:underline text-brand">Back to sign in</a>
                     </p>
                 </div>
             </div>
-        </div>
+        </main>
     )
 }

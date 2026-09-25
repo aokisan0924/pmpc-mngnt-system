@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link, router, usePage } from '@inertiajs/react'
-import ThemeToggle from '@/Components/ThemeToggle'
 import pmpcLogo from '@images/pmpc_ems.png'
 
 const allNav = [
@@ -12,7 +11,7 @@ const allNav = [
     { label: 'Profile',        href: '/employee/profile'        },
 ]
 
-export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleTheme }) {
+export default function MobileHeader({ title, unreadCount = 0 }) {
     const { auth } = usePage().props
     const employee  = auth?.employee
     const isSuperAdmin = employee?.role === 'super_admin'
@@ -53,9 +52,6 @@ export default function MobileHeader({ title, unreadCount = 0, isDark, onToggleT
 
                     {/* Right actions */}
                     <div className="flex items-center gap-2 flex-shrink-0">
-                        {onToggleTheme && (
-                            <ThemeToggle isDark={isDark} onToggle={onToggleTheme} />
-                        )}
 
                         {/* Notification bell */}
                         {!isSuperAdmin && (

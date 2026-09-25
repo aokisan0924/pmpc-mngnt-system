@@ -126,11 +126,11 @@ export default function Payslips({ payslips = [] }) {
 
     return (
         <EmployeeLayout title="My Payslips">
-            <div className="employee-page-shell space-y-4">
+            <div className="employee-page-shell space-y-5">
 
                 {flash?.success && (
-                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#0F6E56]/10 border border-[#0F6E56]/25 text-[#0F6E56] dark:text-emerald-400 text-xs font-semibold">
+                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         <span>{flash.success}</span>
@@ -138,18 +138,19 @@ export default function Payslips({ payslips = [] }) {
                 )}
 
                 <EmployeePageHeader
-                    eyebrow="Compensation records"
+                    eyebrow="Compensation Archive"
                     title="My Payslips"
-                    description="Review finalized payroll periods and download your official payroll records."
-                    badge={finalizedPayslips.length > 0 ? `${finalizedPayslips.length} finalized` : 'Payroll in progress'}
+                    description="Review finalized semi-monthly payroll vouchers, verify earnings breakdowns, and export official payslips."
+                    badge={finalizedPayslips.length > 0 ? `${finalizedPayslips.length} finalized periods` : 'Payroll in progress'}
                 />
 
                 {/* Career summary stats */}
                 {payslips.length > 0 && (
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:gap-4">
+                    <div className="attendance-metrics grid grid-cols-2 gap-px overflow-hidden bg-border sm:grid-cols-4 sm:rounded-xl">
                         <StatCard
                             title="Finalized Months"
                             value={finalizedPayslips.length}
+                            subtitle="Disbursed vouchers"
                             accent="emerald"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -160,6 +161,7 @@ export default function Payslips({ payslips = [] }) {
                         <StatCard
                             title="In Progress"
                             value={pendingPeriods}
+                            subtitle="Pending HR closure"
                             accent="amber"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -170,6 +172,7 @@ export default function Payslips({ payslips = [] }) {
                         <StatCard
                             title="Total Gross Paid"
                             value={`₱ ${fmt(finalizedGross)}`}
+                            subtitle="Taxable base & overtime"
                             accent="amber"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -180,6 +183,7 @@ export default function Payslips({ payslips = [] }) {
                         <StatCard
                             title="Net Pay Received"
                             value={`₱ ${fmt(finalizedNet)}`}
+                            subtitle="Take-home disbursements"
                             accent="emerald"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -236,9 +240,9 @@ export default function Payslips({ payslips = [] }) {
                                     type="button"
                                     onClick={() => selectYear('all')}
                                     aria-pressed={yearFilter === 'all'}
-                                    className={`min-w-14 flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
+                                    className={`min-w-14 flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                         yearFilter === 'all'
-                                            ? 'bg-panel text-text shadow-xs border border-border'
+                                            ? 'bg-white text-[#0F6E56] dark:bg-emerald-950/80 dark:text-emerald-300 font-bold shadow-xs border border-emerald-200/80 dark:border-emerald-800'
                                             : 'text-sub hover:text-text'
                                     }`}
                                 >
@@ -250,9 +254,9 @@ export default function Payslips({ payslips = [] }) {
                                         type="button"
                                         onClick={() => selectYear(y)}
                                         aria-pressed={yearFilter === y}
-                                        className={`min-w-14 flex-1 rounded-lg py-2 text-xs font-semibold transition-all ${
+                                        className={`min-w-14 flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                             yearFilter === y
-                                                ? 'bg-panel text-text shadow-xs border border-border'
+                                                ? 'bg-white text-[#0F6E56] dark:bg-emerald-950/80 dark:text-emerald-300 font-bold shadow-xs border border-emerald-200/80 dark:border-emerald-800'
                                                 : 'text-sub hover:text-text'
                                         }`}
                                     >
@@ -273,8 +277,8 @@ export default function Payslips({ payslips = [] }) {
                                             aria-current={isCurrent ? 'true' : undefined}
                                             className={`w-full rounded-xl border p-3.5 text-left transition-all ${
                                                 isCurrent
-                                                    ? 'border-emerald-500/50 bg-emerald-500/5 ring-2 ring-emerald-500/10 shadow-xs'
-                                                    : 'border-border bg-panel hover:border-emerald-500/30'
+                                                    ? 'border-[#0F6E56] bg-[#0F6E56]/5 ring-2 ring-[#0F6E56]/20 shadow-xs'
+                                                    : 'border-border bg-panel hover:border-[#0F6E56]/30'
                                             }`}
                                         >
                                             <div className="flex items-center justify-between mb-1.5">
@@ -284,17 +288,17 @@ export default function Payslips({ payslips = [] }) {
                                             <div className="flex items-center justify-between font-mono text-xs">
                                                 <div className="flex gap-1">
                                                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                                                        p.has_first ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-field text-dim'
+                                                        p.has_first ? 'bg-[#0F6E56]/10 text-[#0F6E56] dark:text-emerald-300' : 'bg-field text-dim'
                                                     }`}>
                                                         1st Cutoff
                                                     </span>
                                                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                                                        p.has_second ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-field text-dim'
+                                                        p.has_second ? 'bg-[#0F6E56]/10 text-[#0F6E56] dark:text-emerald-300' : 'bg-field text-dim'
                                                     }`}>
                                                         2nd Cutoff
                                                     </span>
                                                 </div>
-                                                <span className={`font-bold ${p.status === 'complete' ? 'text-emerald-600 dark:text-emerald-400' : 'text-dim'}`}>
+                                                <span className={`font-bold ${p.status === 'complete' ? 'text-[#0F6E56] dark:text-emerald-400' : 'text-dim'}`}>
                                                     ₱ {fmt(p.total_net)}
                                                 </span>
                                             </div>
@@ -309,7 +313,7 @@ export default function Payslips({ payslips = [] }) {
                             {active ? (
                                 <div className="space-y-5">
                                     {/* Detail Top Header Card */}
-                                    <Card className="p-5 sm:p-6">
+                                    <Card className="employee-workspace-card p-5 sm:p-6">
                                         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                                             <div>
                                                 <div className="flex items-center gap-2">
@@ -326,12 +330,12 @@ export default function Payslips({ payslips = [] }) {
                                                     href={`/employee/payslips/${active.month}`}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="inline-flex min-h-9 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-emerald-700"
+                                                    className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[#0F6E56] hover:bg-[#0C5946] active:bg-[#0A4739] px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0F6E56] cursor-pointer"
                                                 >
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                    <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                                     </svg>
-                                                    <span>Download official PDF</span>
+                                                    <span>Download Official PDF</span>
                                                 </a>
                                             ) : (
                                                 <span className="inline-flex min-h-10 items-center rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 text-sm font-semibold text-amber-700 dark:text-amber-300">
@@ -341,16 +345,24 @@ export default function Payslips({ payslips = [] }) {
                                         </div>
 
                                         {/* Net Pay Highlight Banner */}
-                                        <div className="mt-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 p-5 text-white shadow-md sm:p-6">
-                                            <p className="text-[11px] uppercase tracking-[0.12em] font-semibold opacity-80">
-                                                {active.status === 'complete' ? 'Net compensation received' : 'Projected net compensation'}
-                                            </p>
-                                            <p className="mt-2 text-4xl font-mono font-bold tracking-tight sm:text-5xl">
-                                                ₱ {fmt(active.total_net)}
-                                            </p>
-                                            <p className="mt-2 text-sm font-mono opacity-80">
-                                                ₱ {fmt(active.total_gross)} Gross Earnings − ₱ {fmt(active.total_ded)} Deductions
-                                            </p>
+                                        <div
+                                            className="mt-6 rounded-2xl bg-[#0F6E56] border border-[#0D5C48] p-5 sm:p-6 text-white shadow-md relative overflow-hidden select-none"
+                                            style={{
+                                                backgroundImage: 'radial-gradient(ellipse 90% 70% at 20% 20%, rgba(20, 138, 108, 0.45), transparent 75%), radial-gradient(ellipse 70% 60% at 85% 85%, rgba(6, 46, 36, 0.65), transparent)'
+                                            }}
+                                        >
+                                            <div className="absolute inset-0 opacity-[0.06] swiss-grid pointer-events-none" aria-hidden="true" />
+                                            <div className="relative z-10">
+                                                <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-emerald-300">
+                                                    {active.status === 'complete' ? 'Net compensation received' : 'Projected net compensation'}
+                                                </p>
+                                                <p className="mt-2 text-4xl font-mono font-bold tracking-tight sm:text-5xl text-white">
+                                                    ₱ {fmt(active.total_net)}
+                                                </p>
+                                                <p className="mt-2 text-xs sm:text-sm font-mono text-emerald-100/80">
+                                                    ₱ {fmt(active.total_gross)} Gross Earnings − ₱ {fmt(active.total_ded)} Deductions
+                                                </p>
+                                            </div>
                                         </div>
                                     </Card>
 

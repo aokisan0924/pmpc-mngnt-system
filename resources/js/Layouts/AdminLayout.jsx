@@ -1,6 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, router, usePage, usePoll } from '@inertiajs/react'
-import ThemeToggle from '@/Components/ThemeToggle'
 import useTheme from '@/hooks/useTheme'
 import pmpcLogo from '@images/pmpc_ems.png'
 
@@ -10,8 +9,11 @@ const navItems = [
         href: '/admin/dashboard',
         section: 'Command center',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="7.5" height="7.5" rx="2" fill="currentColor" fillOpacity="0.22" stroke="currentColor" strokeWidth="1.8" />
+                <rect x="13.5" y="3" width="7.5" height="7.5" rx="2" stroke="currentColor" strokeWidth="1.8" />
+                <rect x="3" y="13.5" width="7.5" height="7.5" rx="2" stroke="currentColor" strokeWidth="1.8" />
+                <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2" fill="currentColor" fillOpacity="0.22" stroke="currentColor" strokeWidth="1.8" />
             </svg>
         ),
     },
@@ -20,8 +22,10 @@ const navItems = [
         href: '/employee/dtr',
         section: 'Personal workspace',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="9" fill="currentColor" fillOpacity="0.18" stroke="currentColor" strokeWidth="1.8" />
+                <path strokeLinecap="round" strokeLinejoin="round" stroke="currentColor" strokeWidth="1.8" d="M12 7.5v4.5l3 2" />
+                <circle cx="12" cy="12" r="1.2" fill="currentColor" />
             </svg>
         ),
     },
@@ -30,8 +34,12 @@ const navItems = [
         href: '/employee/planner',
         section: 'Personal workspace',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="4" width="6" height="6" rx="1.5" fill="currentColor" fillOpacity="0.25" stroke="currentColor" strokeWidth="1.8" />
+                <path strokeLinecap="round" strokeLinejoin="round" stroke="currentColor" strokeWidth="1.8" d="M4.8 7l1 1 2-2" />
+                <path strokeLinecap="round" strokeLinejoin="round" stroke="currentColor" strokeWidth="1.8" d="M12 7h9" />
+                <rect x="3" y="14" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
+                <path strokeLinecap="round" strokeLinejoin="round" stroke="currentColor" strokeWidth="1.8" d="M12 17h9" />
             </svg>
         ),
     },
@@ -40,8 +48,11 @@ const navItems = [
         href: '/admin/employees',
         section: 'People & attendance',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none">
+                <circle cx="9" cy="7.5" r="3.5" fill="currentColor" fillOpacity="0.22" stroke="currentColor" strokeWidth="1.8" />
+                <path fill="currentColor" fillOpacity="0.18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6" />
+                <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" d="M16 3.8a3.5 3.5 0 0 1 0 6.4" />
+                <path stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" d="M17.5 14.5c2.3.6 4 2.3 4.5 5" />
             </svg>
         ),
     },
@@ -50,8 +61,17 @@ const navItems = [
         href: '/admin/dtr',
         section: 'People & attendance',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="4" width="18" height="17" rx="3" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M3 8.5h18" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M3 4c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v4.5H3V4z" fill="currentColor" fillOpacity="0.25" />
+                <path strokeLinecap="round" stroke="currentColor" strokeWidth="1.8" d="M8 2.5v2M16 2.5v2" />
+                <circle cx="8" cy="13" r="1" fill="currentColor" />
+                <circle cx="12" cy="13" r="1" fill="currentColor" />
+                <circle cx="16" cy="13" r="1" fill="currentColor" />
+                <circle cx="8" cy="17" r="1" fill="currentColor" />
+                <circle cx="12" cy="17" r="1" fill="currentColor" />
+                <circle cx="16" cy="17" r="1" fill="currentColor" />
             </svg>
         ),
     },
@@ -61,8 +81,9 @@ const navItems = [
         section: 'People & attendance',
         badge: true,
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none">
+                <path fill="currentColor" fillOpacity="0.16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M11 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-6" />
+                <path strokeLinecap="round" strokeLinejoin="round" stroke="currentColor" strokeWidth="1.8" d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
         ),
     },
@@ -71,8 +92,10 @@ const navItems = [
         href: '/admin/payroll',
         section: 'Compensation & reports',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none">
+                <rect x="2.5" y="5.5" width="19" height="13" rx="2.5" fill="currentColor" fillOpacity="0.18" stroke="currentColor" strokeWidth="1.8" />
+                <circle cx="12" cy="12" r="3" fill="currentColor" fillOpacity="0.22" stroke="currentColor" strokeWidth="1.8" />
+                <path strokeLinecap="round" stroke="currentColor" strokeWidth="1.8" d="M6 9.5v.01M18 14.5v.01" />
             </svg>
         ),
     },
@@ -81,8 +104,11 @@ const navItems = [
         href: '/admin/payroll/analytics',
         section: 'Compensation & reports',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="12" width="4" height="8" rx="1.5" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="1.8" />
+                <rect x="10" y="7" width="4" height="13" rx="1.5" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="1.8" />
+                <rect x="17" y="3" width="4" height="17" rx="1.5" fill="currentColor" fillOpacity="0.28" stroke="currentColor" strokeWidth="1.8" />
+                <path strokeLinecap="round" strokeLinejoin="round" stroke="currentColor" strokeWidth="1.8" d="M3 21h18" />
             </svg>
         ),
     },
@@ -91,8 +117,12 @@ const navItems = [
         href: '/admin/thirteenth-month',
         section: 'Compensation & reports',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H4.5a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="9" width="18" height="12" rx="2" fill="currentColor" fillOpacity="0.18" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M3 9h18v3H3z" fill="currentColor" fillOpacity="0.25" />
+                <line x1="12" y1="9" x2="12" y2="21" stroke="currentColor" strokeWidth="1.8" />
+                <path strokeLinecap="round" strokeLinejoin="round" stroke="currentColor" strokeWidth="1.8" d="M12 9c-1.8 0-4-1.2-4-2.8 0-1.4 1.1-2.2 2.2-2.2 1.6 0 2.8 1.8 2.8 5z" />
+                <path strokeLinecap="round" strokeLinejoin="round" stroke="currentColor" strokeWidth="1.8" d="M12 9c1.8 0 4-1.2 4-2.8 0-1.4-1.1-2.2-2.2-2.2-1.6 0-2.8 1.8-2.8 5z" />
             </svg>
         ),
     },
@@ -101,8 +131,11 @@ const navItems = [
         href: '/admin/archives',
         section: 'Compensation & reports',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="4" width="18" height="6" rx="2" fill="currentColor" fillOpacity="0.25" stroke="currentColor" strokeWidth="1.8" />
+                <path fill="currentColor" fillOpacity="0.16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" d="M5 10v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9" />
+                <line x1="10" y1="15" x2="14" y2="15" strokeLinecap="round" stroke="currentColor" strokeWidth="1.8" />
+                <line x1="10" y1="7" x2="14" y2="7" strokeLinecap="round" stroke="currentColor" strokeWidth="1.8" />
             </svg>
         ),
     },
@@ -111,9 +144,9 @@ const navItems = [
         href: '/admin/settings',
         section: 'Administration',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="3.2" fill="currentColor" fillOpacity="0.22" stroke="currentColor" strokeWidth="1.8" />
+                <path strokeLinecap="round" strokeLinejoin="round" stroke="currentColor" strokeWidth="1.8" d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
         ),
     },
@@ -123,11 +156,21 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
     const page = usePage()
     const { auth } = page.props
     const employee = auth?.employee
-    const { isDark, toggleTheme } = useTheme()
+    useTheme()
     const [drawerOpen, setDrawerOpen] = useState(false)
     const currentUrl = new URL(page.url, 'http://localhost').pathname
     const adminNavItems = navItems
     const sections = [...new Set(adminNavItems.map(i => i.section))]
+
+    // Close mobile drawer on Escape key press for keyboard accessibility
+    useEffect(() => {
+        if (!drawerOpen) return
+        function handleKeyDown(e) {
+            if (e.key === 'Escape') setDrawerOpen(false)
+        }
+        window.addEventListener('keydown', handleKeyDown)
+        return () => window.removeEventListener('keydown', handleKeyDown)
+    }, [drawerOpen])
 
     // Silent background poll every 15s to keep pending edit count badge fresh across the admin portal
     usePoll(15000, {
@@ -163,7 +206,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
                     <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Admin</p>
                     <p className="text-sm font-heading font-semibold text-text truncate">{activeItem?.label}</p>
                 </div>
-                <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
+                <div className="w-9 -mr-2" aria-hidden="true" />
             </div>
 
             {/* ── Mobile Drawer Backdrop ────────────────────────── */}
@@ -209,21 +252,19 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
                         <span className="text-text font-semibold">{activeItem?.label}</span>
                     </nav>
 
-                    {/* Right Tools: Notification counter, ThemeToggle, Profile pill */}
+                    {/* Right Tools: Notification counter, Profile pill */}
                     <div className="flex items-center gap-3">
                         {pendingEditCount > 0 && (
                             <Link
                                 href="/admin/edit-requests"
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60 hover:bg-amber-100 transition-colors"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60 hover:bg-amber-100 transition-colors shadow-2xs"
                             >
-                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                                 {pendingEditCount} Pending Request{pendingEditCount > 1 ? 's' : ''}
                             </Link>
                         )}
-                        <ThemeToggle isDark={isDark} onToggle={toggleTheme} />
-                        <div className="h-5 w-px bg-border mx-1" />
-                        <div className="flex items-center gap-2.5 pl-1">
-                            <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 flex items-center justify-center font-heading font-semibold text-xs shadow-xs">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-[#26215C] text-white flex items-center justify-center font-heading font-semibold text-xs shadow-xs ring-2 ring-[#26215C]/15">
                                 {employee?.initials ?? 'SA'}
                             </div>
                             <div className="hidden lg:block text-left">
@@ -249,10 +290,10 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
 
 function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLogout, onNavigate, className = '', employee }) {
     return (
-        <div className={`portal-sidebar admin-sidebar flex flex-col border-r border-border bg-panel select-none ${className}`}>
+        <div className={`portal-sidebar admin-sidebar flex flex-col border-r border-white/15 bg-[#26215C] text-white select-none ${className}`}>
             {/* Brand Header */}
-            <div className="flex items-center gap-2.5 h-13 px-4 border-b border-border/80">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-white dark:bg-slate-900 p-0.5 border border-border/80 shadow-2xs">
+            <div className="flex items-center gap-2.5 h-15 px-4 border-b border-white/15 bg-transparent">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-white p-1 shadow-xs border border-white/30">
                     <img
                         src={pmpcLogo}
                         alt="PMPC"
@@ -265,10 +306,10 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
                     />
                 </div>
                 <div className="min-w-0">
-                    <p className="font-heading font-bold text-xs text-text tracking-tight truncate">PMPC WorkForce</p>
-                    <div className="flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                        <p className="text-[9px] text-indigo-600 dark:text-indigo-400 font-semibold tracking-wider uppercase">Admin Portal</p>
+                    <p className="font-heading font-bold text-xs text-white tracking-tight truncate">PMPC WorkForce</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-300 animate-pulse" />
+                        <p className="text-[9px] text-indigo-200 font-bold tracking-wider uppercase">Admin Portal</p>
                     </div>
                 </div>
             </div>
@@ -277,7 +318,7 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
             <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto" aria-label="Admin navigation">
                 {sections.map(section => (
                     <div key={section}>
-                        <p className="text-[10px] font-bold text-dim px-3 mb-1.5 tracking-wider uppercase">
+                        <p className="text-[10px] font-bold text-white/80 px-3 mb-1.5 tracking-wider uppercase">
                             {section}
                         </p>
                         <div className="space-y-0.5">
@@ -289,21 +330,25 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
                                         href={item.href}
                                         onClick={onNavigate}
                                         aria-current={active ? 'page' : undefined}
-                                    className={`portal-nav-link flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-all duration-150 ${
+                                        className={`group relative flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 ${
                                             active
-                                                ? 'bg-indigo-50 text-indigo-700 font-semibold shadow-2xs dark:bg-indigo-950/50 dark:text-indigo-300'
-                                                : 'text-sub hover:bg-field hover:text-text'
+                                                ? 'admin-sidebar-active-pill bg-white text-[#26215C] font-bold shadow-xs'
+                                                : 'text-white/80 hover:text-white hover:bg-white/10 hover:translate-x-0.5'
                                         }`}
                                     >
                                         <div className="flex items-center gap-2.5 min-w-0">
-                                            <span className={active ? 'text-indigo-600 dark:text-indigo-400' : 'text-dim'}>
+                                            <span className={`transition-colors ${active ? 'text-[#26215C]' : 'text-white/70 group-hover:text-white'}`}>
                                                 {item.icon}
                                             </span>
                                             <span className="truncate">{item.label}</span>
                                         </div>
                                         {item.badge && pendingEditCount > 0 && (
-                                            <span className="text-[10px] px-1.5 py-0.25 rounded-full font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                                                {pendingEditCount}
+                                            <span className={`text-[10px] px-1.5 py-0.25 rounded-full font-bold shadow-2xs ${
+                                                active
+                                                    ? 'bg-amber-500 text-white'
+                                                    : 'bg-amber-400 text-[#26215C]'
+                                            }`}>
+                                                {pendingEditCount > 99 ? '99+' : pendingEditCount}
                                             </span>
                                         )}
                                     </Link>
@@ -315,24 +360,26 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
             </nav>
 
             {/* User Footer Profile */}
-            <div className="p-3 border-t border-border/80">
-                <div className="p-2 rounded-xl bg-field/60 border border-border/60 flex items-center justify-between gap-2">
+            <div className="p-3 border-t border-white/15 bg-transparent">
+                <div className="p-2.5 rounded-xl bg-black/20 border border-white/15 flex items-center justify-between gap-2.5 shadow-2xs hover:border-white/30 transition-all backdrop-blur-xs">
                     <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-heading font-semibold text-xs flex-shrink-0">
+                        <div className="w-8 h-8 rounded-lg bg-white text-[#26215C] flex items-center justify-center font-heading font-bold text-xs flex-shrink-0 shadow-xs ring-2 ring-white/20">
                             {employee?.initials ?? 'SA'}
                         </div>
                         <div className="min-w-0">
-                            <p className="font-semibold text-xs text-text truncate">{employee?.full_name ?? 'Super Admin'}</p>
-                            <p className="text-[10px] text-sub truncate">{employee?.employee_id}</p>
+                            <p className="font-semibold text-xs text-white truncate leading-tight">{employee?.full_name ?? 'Super Admin'}</p>
+                            <p className="text-[10px] text-indigo-200 truncate leading-tight font-mono mt-0.5">{employee?.employee_id ?? 'ADM-0001'}</p>
                         </div>
                     </div>
                     <button
                         onClick={onLogout}
                         title="Sign out"
-                        className="p-1.5 rounded-lg text-sub hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                        aria-label="Sign out"
+                        className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-2 focus-visible:outline-white cursor-pointer"
                     >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                        <svg className="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M18.75 15l3-3m0 0l-3-3m3 3H9" />
                         </svg>
                     </button>
                 </div>

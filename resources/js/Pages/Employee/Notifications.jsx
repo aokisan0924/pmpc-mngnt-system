@@ -77,11 +77,11 @@ export default function Notifications({ notifications = [] }) {
 
     return (
         <EmployeeLayout title="Notifications">
-            <div className="employee-page-shell space-y-4">
+            <div className="employee-page-shell space-y-5">
 
                 {flash?.success && (
-                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#0F6E56]/10 border border-[#0F6E56]/25 text-[#0F6E56] dark:text-emerald-400 text-xs font-semibold">
+                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         <span>{flash.success}</span>
@@ -89,19 +89,19 @@ export default function Notifications({ notifications = [] }) {
                 )}
 
                 <EmployeePageHeader
-                    eyebrow="Updates and decisions"
+                    eyebrow="Updates & Directives"
                     title="Notification Center"
-                    description="Review DTR correction decisions, administrative updates, and organizational announcements."
+                    description="Review DTR correction decisions, administrative updates, and cooperative announcements."
                     badge={`${unread.length} unread`}
                     action={unread.length > 0 ? (
                         <button
                             type="button"
                             onClick={markAllRead}
                             disabled={loading}
-                            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-bold text-emerald-800 shadow-sm transition-all hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs sm:text-sm font-extrabold text-[#0F6E56] shadow-md transition-all hover:bg-emerald-50 active:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                         >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7m-4 5l4 4L23 8" />
+                            <svg className="w-4 h-4 text-[#0F6E56]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M5 13l4 4L19 7m-4 5l4 4L23 8" />
                             </svg>
                             <span>{loading ? 'Updating…' : 'Mark All Read'}</span>
                         </button>
@@ -109,7 +109,7 @@ export default function Notifications({ notifications = [] }) {
                 />
 
                 {/* Stat Grid */}
-                <div className="attendance-metrics grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-border lg:grid-cols-4">
+                <div className="attendance-metrics grid grid-cols-2 gap-px overflow-hidden bg-border sm:grid-cols-4 sm:rounded-xl">
                     <StatCard
                         title="Unread Alerts"
                         value={unread.length}
@@ -157,7 +157,7 @@ export default function Notifications({ notifications = [] }) {
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="employee-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2 rounded-2xl border border-border">
+                <div className="employee-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2.5 rounded-2xl border">
                     <div className="flex gap-1 p-1 bg-field rounded-xl border border-border overflow-x-auto" role="group" aria-label="Filter notifications">
                         {[
                             { key: 'all', label: 'All', count: notifications.length },
@@ -172,14 +172,14 @@ export default function Notifications({ notifications = [] }) {
                                 onClick={() => setFilter(tab.key)}
                                 className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                     filter === tab.key
-                                        ? 'bg-panel text-text shadow-xs border border-border'
-                                        : 'text-sub hover:text-text'
+                                        ? 'bg-white text-[#0F6E56] dark:bg-emerald-950/80 dark:text-emerald-300 font-bold shadow-xs border border-emerald-200/80 dark:border-emerald-800'
+                                        : 'text-sub hover:text-text hover:bg-panel/50'
                                 }`}
                             >
                                 <span>{tab.label}</span>
                                 <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-medium ${
                                     filter === tab.key
-                                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
+                                        ? 'bg-[#0F6E56]/15 text-[#0F6E56] dark:text-emerald-300'
                                         : 'bg-field text-dim'
                                 }`}>
                                     {tab.count}
@@ -204,7 +204,7 @@ export default function Notifications({ notifications = [] }) {
                                 className={`p-4 sm:p-5 rounded-2xl border transition-all ${
                                     notif.is_read
                                         ? 'border-border bg-panel'
-                                        : 'border-emerald-500/30 bg-emerald-500/5 shadow-xs ring-1 ring-emerald-500/10'
+                                        : 'border-[#0F6E56]/30 bg-[#0F6E56]/5 shadow-xs ring-1 ring-[#0F6E56]/15'
                                 } ${isRemoving ? 'opacity-30' : ''}`}
                             >
                                 <div className="flex items-start gap-4">
@@ -218,7 +218,7 @@ export default function Notifications({ notifications = [] }) {
                                             {badge}
                                             {!notif.is_read && (
                                                 <span className="flex items-center gap-1.5 ml-auto">
-                                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                                    <span className="w-2 h-2 rounded-full bg-[#0F6E56] animate-pulse" />
                                                     <span className="sr-only">Unread notification</span>
                                                 </span>
                                             )}

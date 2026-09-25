@@ -155,8 +155,8 @@ export default function Payroll({ payrolls = [] }) {
                                         <th scope="col" className="text-left px-5 py-3 font-semibold">Period</th>
                                         <th scope="col" className="text-left px-4 py-3 font-semibold">Cutoff</th>
                                         <th scope="col" className="text-right px-4 py-3 font-semibold">Gross Pay</th>
-                                        <th scope="col" className="text-right px-4 py-3 font-semibold text-rose-600">Deductions</th>
-                                        <th scope="col" className="text-right px-4 py-3 font-semibold text-emerald-600">Net Pay</th>
+                                        <th scope="col" className="text-right px-4 py-3 font-semibold text-rose-700 dark:text-rose-400">Deductions</th>
+                                        <th scope="col" className="text-right px-4 py-3 font-semibold text-emerald-700 dark:text-emerald-400">Net Pay</th>
                                         <th scope="col" className="text-center px-4 py-3 font-semibold">Status</th>
                                         <th scope="col" className="text-right px-5 py-3 font-semibold">Action</th>
                                     </tr>

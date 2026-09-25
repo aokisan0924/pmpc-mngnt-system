@@ -174,11 +174,11 @@ export default function Planner({ tasks = [] }) {
 
     return (
         <EmployeeLayout title="Task Planner">
-            <div className="employee-page-shell space-y-4">
+            <div className="employee-page-shell space-y-5">
 
                 {flash?.success && (
-                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#0F6E56]/10 border border-[#0F6E56]/25 text-[#0F6E56] dark:text-emerald-400 text-xs font-semibold">
+                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         <span>{flash.success}</span>
@@ -186,16 +186,16 @@ export default function Planner({ tasks = [] }) {
                 )}
 
                 <EmployeePageHeader
-                    eyebrow="Personal workspace"
+                    eyebrow="Personal Workspace"
                     title="Work Planner"
-                    description="Organize daily milestones, cooperative department tasks, and work priorities."
+                    description="Organize daily milestones, track cooperative department initiatives, and manage priority queues."
                     badge={`${tasks.filter(task => task.status !== 'done').length} pending`}
                     action={<button
                         type="button"
                         onClick={() => openNewTaskForm()}
-                        className="inline-flex min-h-10 w-fit items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-bold text-emerald-800 shadow-sm transition-all hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs sm:text-sm font-extrabold text-[#0F6E56] shadow-md transition-all hover:bg-emerald-50 active:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white cursor-pointer"
                     >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-4 h-4 text-[#0F6E56]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                         </svg>
                         <span>New Task</span>
@@ -203,38 +203,40 @@ export default function Planner({ tasks = [] }) {
                 />
 
                 {/* Controls Bar */}
-                <div className="employee-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2 rounded-2xl border border-border">
+                <div className="employee-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2.5 rounded-2xl border">
                     <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={() => changeMonth(-1)}
-                            className="p-2 rounded-xl border border-border bg-field text-sub hover:text-text hover:bg-panel transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
-                            title="Previous Month"
-                            aria-label="Previous Month"
-                        >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                        <span className="text-sm font-bold font-display text-text min-w-[140px] text-center">
-                            {`${viewDate.toLocaleDateString('en-PH', { month: 'long' })} ${viewDate.getFullYear()}`}
-                        </span>
-                        <button
-                            type="button"
-                            onClick={() => changeMonth(1)}
-                            className="p-2 rounded-xl border border-border bg-field text-sub hover:text-text hover:bg-panel transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
-                            title="Next Month"
-                            aria-label="Next Month"
-                        >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
+                        <div className="flex items-center gap-1.5 p-1 bg-field rounded-xl border border-border">
+                            <button
+                                type="button"
+                                onClick={() => changeMonth(-1)}
+                                className="p-1.5 rounded-lg text-sub hover:text-text hover:bg-panel transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                                title="Previous Month"
+                                aria-label="Previous Month"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <span className="min-w-36 text-center font-heading text-xs font-bold text-text">
+                                {`${viewDate.toLocaleDateString('en-PH', { month: 'long' })} ${viewDate.getFullYear()}`}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => changeMonth(1)}
+                                className="p-1.5 rounded-lg text-sub hover:text-text hover:bg-panel transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                                title="Next Month"
+                                aria-label="Next Month"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
                         <button
                             type="button"
                             onClick={goToToday}
                             aria-label="Jump to current date"
-                            className="ml-2 px-3 py-1.5 rounded-xl text-xs font-semibold border border-border bg-field text-emerald-600 dark:text-emerald-400 hover:bg-panel transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold border border-emerald-300/80 bg-white text-[#0F6E56] shadow-2xs hover:bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 cursor-pointer"
                         >
                             Today
                         </button>
@@ -247,10 +249,10 @@ export default function Planner({ tasks = [] }) {
                                 type="button"
                                 aria-pressed={filter === f}
                                 onClick={() => setFilter(f)}
-                                className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
+                                className={`px-3 py-1 text-xs font-semibold rounded-lg capitalize transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                     filter === f
-                                        ? 'bg-panel text-text shadow-xs border border-border'
-                                        : 'text-sub hover:text-text'
+                                        ? 'bg-white text-[#0F6E56] dark:bg-emerald-950/80 dark:text-emerald-300 font-bold shadow-xs border border-emerald-200/80 dark:border-emerald-800'
+                                        : 'text-sub hover:text-text hover:bg-panel/50'
                                 }`}
                             >
                                 {f}
@@ -298,13 +300,13 @@ export default function Planner({ tasks = [] }) {
                                                 ? 'border-emerald-500 bg-emerald-500/5 ring-2 ring-emerald-500/20 shadow-xs'
                                                 : inMonth
                                                     ? 'border-border/60 bg-field/40 hover:bg-field hover:border-emerald-500/30'
-                                                    : 'border-transparent bg-transparent opacity-30'
+                                                    : 'border-transparent bg-transparent'
                                         }`}
                                     >
                                         <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-mono font-bold ${
                                             isToday
-                                                ? 'bg-emerald-600 text-white'
-                                                : inMonth ? 'text-text' : 'text-dim'
+                                                ? 'bg-[#0F6E56] text-white shadow-2xs'
+                                                : inMonth ? 'text-text' : 'text-sub'
                                         }`}>
                                             {date.getDate()}
                                         </span>
@@ -322,7 +324,7 @@ export default function Planner({ tasks = [] }) {
                                                                     ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
                                                                     : t.priority === 'medium'
                                                                         ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                                                                        : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                                                                        : 'bg-[#0F6E56]/10 text-[#0F6E56] dark:text-emerald-300'
                                                         }`}
                                                     >
                                                         {t.title}
@@ -350,7 +352,7 @@ export default function Planner({ tasks = [] }) {
                             <button
                                 type="button"
                                 onClick={() => openNewTaskForm(selectedDate)}
-                                className="p-1.5 rounded-lg border border-border bg-field text-emerald-600 dark:text-emerald-400 hover:bg-panel transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                                className="p-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-[#0F6E56] hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 cursor-pointer"
                                 title="Add task to this date"
                                 aria-label="Add task to this date"
                             >

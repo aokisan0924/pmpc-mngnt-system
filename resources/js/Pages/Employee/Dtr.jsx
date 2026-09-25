@@ -6,49 +6,15 @@ import DtrEditRequestModal from '@/Components/DtrEditRequestModal'
 import Card, { CardContent, CardHeader, CardTitle } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
-import Button from '@/Components/UI/Button'
 
-const PUNCH_LABELS = {
-    am_time_in:  'AM In',
-    am_time_out: 'AM Out',
-    pm_time_in:  'PM In',
-    pm_time_out: 'PM Out',
-}
-const SLOT_ORDER = ['am_time_in', 'am_time_out', 'pm_time_in', 'pm_time_out']
-
-function DtrLiveClock() {
-    const [now, setNow] = useState(() => new Date())
-
-    useEffect(() => {
-        const id = setInterval(() => setNow(new Date()), 1000)
-        return () => clearInterval(id)
-    }, [])
-
-    const formatOptions = { timeZone: 'Asia/Manila' }
-    const timeStr = now.toLocaleTimeString('en-PH', { ...formatOptions, hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    const dateStr = now.toLocaleDateString('en-PH', { ...formatOptions, weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
-
-    return (
-        <div>
-            <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-0.5">
-                {dateStr}
-            </p>
-            <p className="font-mono text-2xl sm:text-3xl font-bold tracking-tight text-text tnum" aria-live="off">
-                {timeStr}
-            </p>
-        </div>
-    )
-}
-
-export default function Dtr({ logs = [], today = {}, summary = {}, month, next_punch, weeklyStrip = [] }) {
+export default function Dtr({ logs = [], today = {}, summary = {}, month, next_punch }) {
     const { flash, errors } = usePage().props
     const [editTarget, setEditTarget] = useState(null)
-    const [punching, setPunching]     = useState(false)
     const [loading, setLoading] = useState(false)
 
     // Silent background poll every 15s so employee sees edit approval/status changes and punch updates live
     usePoll(15000, {
-        only: ['logs', 'summary', 'today', 'next_punch', 'weeklyStrip'],
+        only: ['logs', 'summary', 'today', 'next_punch'],
         preserveScroll: true,
         preserveState: true,
     })
@@ -67,12 +33,6 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
         return () => { stop(); finish(); cancel(); error() }
     }, [])
 
-    function handlePunch() {
-        setPunching(true)
-        router.post('/employee/dtr/punch', {}, {
-            onFinish: () => setPunching(false),
-        })
-    }
 
     function handleMonthChange(dir) {
         if (loading) return
@@ -82,7 +42,12 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
         router.get('/employee/dtr', { month: newMonth }, { preserveState: true, preserveScroll: true })
     }
 
-    const nextLabel = next_punch ? PUNCH_LABELS[next_punch] : null
+    const nextLabel = next_punch ? {
+        am_time_in: 'AM In',
+        am_time_out: 'AM Out',
+        pm_time_in: 'PM In',
+        pm_time_out: 'PM Out',
+    }[next_punch] : null
 
     function getStatusBadge(log) {
         if (log.has_pending_edit) {
@@ -108,10 +73,10 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
 
     return (
         <EmployeeLayout title="Daily Time Record">
-            <div className="employee-page-shell space-y-4 bg-bg">
+            <div className="employee-page-shell space-y-5">
 
                 {flash?.success && (
-                    <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium">
+                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#0F6E56]/10 border border-[#0F6E56]/25 text-[#0F6E56] dark:text-emerald-400 text-xs font-semibold">
                         <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
@@ -120,7 +85,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 )}
 
                 {errors?.punch && (
-                    <div className="flex items-center gap-2.5 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3.5 py-2.5 text-xs font-medium text-rose-700 dark:text-rose-400" role="alert">
+                    <div className="flex items-center gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-xs font-semibold text-rose-700 dark:text-rose-400" role="alert">
                         <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3Z" />
                         </svg>
@@ -129,173 +94,29 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 )}
 
                 <EmployeePageHeader
-                    eyebrow="Attendance workspace"
+                    eyebrow="Attendance Archive"
                     title="Daily Time Record"
-                    description="Record today’s four-punch sequence, review weekly attendance, and manage official corrections."
-                    badge={nextLabel ? `Next: ${nextLabel}` : 'Day complete'}
+                    description="Review historical monthly attendance logs, audit verified time stamps, and export official DTR vouchers."
+                    badge={nextLabel ? `Next: ${nextLabel}` : 'Shift Logged'}
                     action={<a
                         href={`/employee/dtr/print?month=${month}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex min-h-10 w-fit items-center gap-2 rounded-xl border border-white/20 bg-white px-4 py-2 text-xs font-bold text-emerald-800 shadow-sm transition-all hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs sm:text-sm font-extrabold text-[#0F6E56] shadow-md transition-all hover:bg-emerald-50 active:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white cursor-pointer"
                     >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        <svg className="w-4 h-4 text-[#0F6E56]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                         </svg>
                         <span>Print Official DTR</span>
                     </a>}
                 />
 
-                {/* Hero Punch Stepper Card */}
-                <Card className="employee-workspace-card relative overflow-hidden p-4 sm:p-5">
-                    <div className="flex flex-col gap-3.5 border-b border-border pb-3.5 sm:flex-row sm:items-center sm:justify-between sm:pb-4">
-                        <DtrLiveClock />
-
-                        <div>
-                            {nextLabel ? (
-                                <Button
-                                    variant="emerald"
-                                    size="md"
-                                    onClick={handlePunch}
-                                    disabled={punching}
-                                    loading={punching}
-                                    aria-label={punching ? 'Recording punch...' : `Record ${nextLabel}`}
-                                    className="w-full sm:w-auto h-9 px-4 text-xs font-semibold shadow-xs"
-                                >
-                                    Record {nextLabel}
-                                </Button>
-                            ) : (
-                                <Badge variant="emerald" dot size="sm">Day Complete</Badge>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Stepper Progress */}
-                    <div className="pt-3.5 sm:pt-4">
-                        <div className="relative grid grid-cols-4 gap-2 sm:gap-3">
-                            {SLOT_ORDER.map((slot, i) => {
-                                const done = Boolean(today[slot])
-                                const isNext = slot === next_punch
-
-                                return (
-                                    <div key={slot} className="flex flex-col items-center text-center">
-                                        <div className={`w-8.5 h-8.5 rounded-xl flex items-center justify-center border font-mono text-xs font-bold transition-all ${
-                                            done
-                                                ? 'bg-emerald-500 text-white border-emerald-500 shadow-xs'
-                                                : isNext
-                                                    ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400 ring-3 ring-amber-500/20 animate-pulse'
-                                                    : 'bg-field border-border text-dim'
-                                        }`}>
-                                            {done ? (
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            ) : (
-                                                <span>0{i + 1}</span>
-                                            )}
-                                        </div>
-                                        <p className={`text-[11px] font-semibold mt-1.5 ${done ? 'text-text' : isNext ? 'text-amber-600 dark:text-amber-400' : 'text-dim'}`}>
-                                            {PUNCH_LABELS[slot]}
-                                        </p>
-                                        <p className="text-[10px] font-mono mt-0.5 text-sub">
-                                            {done ? today[slot].slice(0, 5) : isNext ? 'Pending' : '—'}
-                                        </p>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </div>
-
-                    {/* ── 5-Day Weekly Attendance Strip (Mon-Fri Sanity Check) ── */}
-                    {weeklyStrip && weeklyStrip.length > 0 && (
-                        <div className="pt-5 mt-5 border-t border-border">
-                            <p className="text-xs font-semibold text-text mb-3">This Week's Attendance</p>
-
-                            <div className="grid grid-cols-5 gap-2 sm:gap-3">
-                                {weeklyStrip.map((day) => {
-                                    const isComplete = day.punches_count === 4
-                                    const isPartial = day.punches_count > 0 && day.punches_count < 4
-                                    const isAbsent = day.is_past && day.punches_count === 0
-
-                                    return (
-                                        <div
-                                            key={day.date}
-                                            className={`p-2.5 sm:p-3 rounded-xl border transition-all text-center flex flex-col justify-between select-none ${
-                                                day.is_today
-                                                    ? 'bg-emerald-50/70 dark:bg-emerald-950/25 border-emerald-500/80 shadow-xs ring-1.5 ring-emerald-500/30'
-                                                    : day.is_future
-                                                    ? 'bg-field/20 border-border/40 opacity-70'
-                                                    : isComplete
-                                                    ? 'bg-panel border-emerald-300 dark:border-emerald-800/60'
-                                                    : isPartial
-                                                    ? 'bg-panel border-amber-300 dark:border-amber-800/60'
-                                                    : 'bg-field/30 border-border/60'
-                                            }`}
-                                        >
-                                            {/* Day Header */}
-                                            <div className="flex items-center justify-between text-[10px] leading-tight mb-1">
-                                                <span className={`font-bold uppercase tracking-wider ${
-                                                    day.is_today ? 'text-emerald-700 dark:text-emerald-300' : 'text-sub'
-                                                }`}>
-                                                    {day.day_name}
-                                                </span>
-                                                {day.is_today ? (
-                                                    <span className="px-1.5 py-0.25 rounded text-[8px] font-extrabold bg-emerald-500 text-white leading-none">
-                                                        TODAY
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-[10px] text-dim">{day.day_number}</span>
-                                                )}
-                                            </div>
-
-                                            {/* Status Badge / Punch Count */}
-                                            <div className="py-1 sm:py-1.5">
-                                                {day.is_future ? (
-                                                    <span className="text-[10px] text-dim font-medium">Scheduled</span>
-                                                ) : isComplete ? (
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                                                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                                                            </svg>
-                                                            4/4
-                                                        </span>
-                                                        <span className="text-[9px] text-sub font-mono">{day.hours_rendered}h</span>
-                                                    </div>
-                                                ) : isPartial ? (
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-amber-600 dark:text-amber-400">
-                                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                                                            {day.punches_count}/4
-                                                        </span>
-                                                        <span className="text-[9px] text-amber-700 dark:text-amber-300 font-medium">
-                                                            {day.is_today ? 'In progress' : 'Incomplete'}
-                                                        </span>
-                                                    </div>
-                                                ) : isAbsent ? (
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500">
-                                                            0/4
-                                                        </span>
-                                                        <span className="text-[9px] text-dim">Absent / Off</span>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-[10px] text-sub">--</span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        </div>
-                    )}
-                </Card>
-
                 {/* Monthly Summary Stats */}
-                <div className="grid gap-3 sm:grid-cols-3 lg:gap-4">
+                <div className="attendance-metrics grid grid-cols-1 gap-px overflow-hidden bg-border sm:grid-cols-3 sm:rounded-xl">
                     <StatCard
                         title="Days Present"
                         value={summary.days_present ?? 0}
+                        subtitle="This month"
                         accent="emerald"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -306,6 +127,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <StatCard
                         title="Late Days"
                         value={summary.days_late ?? 0}
+                        subtitle="Recorded tardiness"
                         accent="amber"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -315,7 +137,8 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     />
                     <StatCard
                         title="Rendered Hours"
-                        value={`${summary.hours_rendered ?? 0}h`}
+                        value={`${Number(summary.hours_rendered ?? 0).toFixed(1)}h`}
+                        subtitle="Cumulative total"
                         accent="emerald"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -327,15 +150,17 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
 
                 {/* Monthly DTR Log Card */}
                 <Card className="employee-workspace-card overflow-hidden">
-                    <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center">
+                    <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center border-b border-border/60 px-4 py-3 sm:px-6">
                         <div className="min-w-0">
                             <CardTitle>Monthly Attendance Log</CardTitle>
+                            <p className="text-xs text-sub mt-0.5">Chronological record of verified daily punches and hours rendered</p>
                         </div>
-                        <div className="flex shrink-0 items-center gap-2">
+                        <div className="flex shrink-0 items-center gap-1.5 p-1 bg-field rounded-xl border border-border">
                             <button
+                                type="button"
                                 onClick={() => handleMonthChange(-1)}
                                 disabled={loading}
-                                className="rounded-lg border border-border bg-panel p-2 text-sub transition-all hover:bg-hover hover:text-text disabled:opacity-40"
+                                className="p-1.5 rounded-lg text-sub hover:text-text hover:bg-panel transition-all disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                                 title="Previous Month"
                                 aria-label="View previous month"
                             >
@@ -343,13 +168,14 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                 </svg>
                             </button>
-                            <span className="min-w-24 rounded-lg border border-border bg-field px-3 py-2 text-center font-mono text-xs font-semibold text-text">
+                            <span className="min-w-28 px-3 py-1 text-center font-heading text-xs font-bold text-text">
                                 {new Date(month + '-01').toLocaleDateString('en-PH', { month: 'short', year: 'numeric' })}
                             </span>
                             <button
+                                type="button"
                                 onClick={() => handleMonthChange(1)}
                                 disabled={loading}
-                                className="rounded-lg border border-border bg-panel p-2 text-sub transition-all hover:bg-hover hover:text-text disabled:opacity-40"
+                                className="p-1.5 rounded-lg text-sub hover:text-text hover:bg-panel transition-all disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                                 title="Next Month"
                                 aria-label="View next month"
                             >

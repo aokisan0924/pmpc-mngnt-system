@@ -87,11 +87,11 @@ export default function Profile({ employee, govIds }) {
 
     return (
         <EmployeeLayout title="My Profile">
-            <div className="employee-page-shell max-w-5xl space-y-4">
+            <div className="employee-page-shell max-w-5xl space-y-5">
 
                 {flash?.success && (
-                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#0F6E56]/10 border border-[#0F6E56]/25 text-[#0F6E56] dark:text-emerald-400 text-xs font-semibold">
+                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                         <span>{flash.success}</span>
@@ -102,22 +102,22 @@ export default function Profile({ employee, govIds }) {
                     eyebrow={`Employee ID ${employee.employee_id}`}
                     title={`${employee.first_name} ${employee.last_name}`}
                     description={`${employee.department || 'Department not assigned'} · ${employee.position || 'Position not assigned'}`}
-                    badge="Active staff"
+                    badge="Active Staff"
                     leading={(
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/25 bg-white/15 font-heading text-2xl font-bold text-white shadow-sm">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-[#0F6E56] font-heading text-2xl font-extrabold shadow-md ring-4 ring-white/20 shrink-0">
                             {initials(employee.first_name, employee.last_name)}
                         </div>
                     )}
                     action={(
-                        <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left sm:text-right">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-200">Daily rate</p>
-                            <p className="mt-0.5 font-mono text-base font-bold text-white">{formatCurrency.format(Number(employee.daily_rate || 0))} / day</p>
+                        <div className="rounded-xl border border-white/20 bg-black/20 backdrop-blur-xs px-4 py-2.5 text-left sm:text-right shadow-2xs">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Daily compensation rate</p>
+                            <p className="mt-0.5 font-mono text-base font-bold text-white tracking-tight">{formatCurrency.format(Number(employee.daily_rate || 0))} / day</p>
                         </div>
                     )}
                 />
 
                 {/* Tab Navigation */}
-                <div className="employee-toolbar flex gap-2 overflow-x-auto p-1.5 rounded-2xl border border-border" role="tablist" aria-label="Profile navigation">
+                <div className="employee-toolbar flex gap-2 overflow-x-auto p-1.5 rounded-2xl border" role="tablist" aria-label="Profile navigation">
                     {TABS.map(tab => (
                         <button
                             key={tab.key}
@@ -129,8 +129,8 @@ export default function Profile({ employee, govIds }) {
                             onClick={() => setActiveTab(tab.key)}
                             className={`min-w-[10rem] flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                 activeTab === tab.key
-                                    ? 'bg-panel text-emerald-700 dark:text-emerald-300 shadow-xs border border-border font-bold'
-                                    : 'text-sub hover:text-text hover:bg-panel/40'
+                                    ? 'bg-white text-[#0F6E56] dark:bg-emerald-950/80 dark:text-emerald-300 font-bold shadow-xs border border-emerald-200/80 dark:border-emerald-800'
+                                    : 'text-sub hover:text-text hover:bg-panel/50'
                             }`}
                         >
                             {tab.icon}

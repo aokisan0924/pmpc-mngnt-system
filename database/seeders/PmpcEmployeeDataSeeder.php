@@ -2,9 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\DtrLog;
 use App\Models\Employee;
-use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -98,10 +96,8 @@ class PmpcEmployeeDataSeeder extends Seeder
             ],
         ];
 
-        $records = [];
-
         foreach ($employees as $data) {
-            $records[$data['employee_id']] = Employee::firstOrCreate(
+            Employee::firstOrCreate(
                 ['employee_id' => $data['employee_id']],
                 [
                     'first_name' => $data['first_name'],
@@ -117,51 +113,5 @@ class PmpcEmployeeDataSeeder extends Seeder
                 ]
             );
         }
-
-        $this->seedDtrRecords($records);
-    }
-
-    private function seedDtrRecords(array $employees): void
-    {
-        $start = Carbon::parse('2026-07-01');
-        $end = Carbon::parse('2026-07-15');
-
-        // No exceptions — every employee gets full, on-time attendance
-        // for the whole period (payroll testing).
-        $exceptions = [];
-
-        foreach ($employees as $employeeCode => $employee) {
-            for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
-                if ($date->isWeekend()) {
-                    continue;
-                }
-
-                $dateKey = $date->format('Y-m-d');
-                $scenario = $exceptions[$dateKey][$employeeCode] ?? 'full';
-
-                $log = DtrLog::firstOrNew([
-                    'employee_id' => $employee->id,
-                    'date' => $dateKey,
-                ]);
-
-                match ($scenario) {
-                    'absent' => $this->applyPunches($log, null, null, null, null),
-                    'half_am_absent' => $this->applyPunches($log, null, null, '13:00:00', '17:00:00'),
-                    'half_pm_absent' => $this->applyPunches($log, '08:00:00', '12:00:00', null, null),
-                    default => $this->applyPunches($log, '08:00:00', '12:00:00', '13:00:00', '17:00:00'),
-                };
-
-                $log->computeHoursAndStatus();
-                $log->save();
-            }
-        }
-    }
-
-    private function applyPunches(DtrLog $log, ?string $amIn, ?string $amOut, ?string $pmIn, ?string $pmOut): void
-    {
-        $log->am_time_in = $amIn;
-        $log->am_time_out = $amOut;
-        $log->pm_time_in = $pmIn;
-        $log->pm_time_out = $pmOut;
     }
 }

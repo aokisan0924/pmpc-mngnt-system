@@ -103,10 +103,12 @@ export default function Employees({ employees = [] }) {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                             </svg>
                             <input
+                                id="search-employees"
                                 type="text"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 placeholder="Search employees by name, ID, or department…"
+                                aria-label="Search employees by name, ID, or department"
                                 className="w-full pl-9 pr-9 py-2 text-xs border border-border rounded-lg bg-panel text-text placeholder:text-dim focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                             />
                             {search && (

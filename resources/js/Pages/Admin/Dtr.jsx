@@ -118,10 +118,10 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                                 <thead>
                                     <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[11px]">
                                         <th scope="col" className="text-left px-5 py-3 font-semibold">Employee</th>
-                                        <th scope="col" className="text-center px-4 py-3 font-semibold text-emerald-600">Present</th>
-                                        <th scope="col" className="text-center px-4 py-3 font-semibold text-amber-600">Late</th>
-                                        <th scope="col" className="text-center px-4 py-3 font-semibold text-rose-600">Absent</th>
-                                        <th scope="col" className="text-center px-4 py-3 font-semibold text-sky-600">Half Day</th>
+                                        <th scope="col" className="text-center px-4 py-3 font-semibold text-emerald-700 dark:text-emerald-400">Present</th>
+                                        <th scope="col" className="text-center px-4 py-3 font-semibold text-amber-700 dark:text-amber-400">Late</th>
+                                        <th scope="col" className="text-center px-4 py-3 font-semibold text-rose-700 dark:text-rose-400">Absent</th>
+                                        <th scope="col" className="text-center px-4 py-3 font-semibold text-sky-700 dark:text-sky-400">Half Day</th>
                                         <th scope="col" className="text-center px-4 py-3 font-semibold">Hours</th>
                                         <th scope="col" className="text-right px-5 py-3 font-semibold">Actions</th>
                                     </tr>
@@ -140,21 +140,21 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-3.5 text-center font-semibold text-emerald-600">
+                                            <td className="px-4 py-3.5 text-center font-semibold text-emerald-700 dark:text-emerald-400">
                                                 {emp.days_present}
                                             </td>
                                             <td className="px-4 py-3.5 text-center">
-                                                <span className={`font-semibold ${emp.days_late > 0 ? 'text-amber-600' : 'text-dim'}`}>
+                                                <span className={`font-semibold ${emp.days_late > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-dim'}`}>
                                                     {emp.days_late}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3.5 text-center">
-                                                <span className={`font-semibold ${emp.days_absent > 0 ? 'text-rose-600' : 'text-dim'}`}>
+                                                <span className={`font-semibold ${emp.days_absent > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-dim'}`}>
                                                     {emp.days_absent}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3.5 text-center">
-                                                <span className={`font-semibold ${emp.half_days > 0 ? 'text-sky-600' : 'text-dim'}`}>
+                                                <span className={`font-semibold ${emp.half_days > 0 ? 'text-sky-700 dark:text-sky-400' : 'text-dim'}`}>
                                                     {emp.half_days}
                                                 </span>
                                             </td>

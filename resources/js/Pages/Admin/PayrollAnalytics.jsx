@@ -419,7 +419,7 @@ function EmptyState({ message }) {
                 </svg>
             </div>
             <p className="text-sm font-medium text-text">{message}</p>
-            <p className="text-xs text-dim mt-1">Finalized payroll records will populate these analytics charts automatically.</p>
+            <p className="text-xs text-sub mt-1">Finalized payroll records will populate these analytics charts automatically.</p>
         </div>
     )
 }

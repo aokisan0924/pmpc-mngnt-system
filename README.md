@@ -40,64 +40,42 @@ to the correct portal based on their role after authentication.
 
 ## Key Features
 
-### 🕒 Daily Time Record (DTR)
-- Four punch slots per day — AM In, AM Out, PM In, PM Out — locked in sequence so only the next
-  expected punch is active
-- Automatic status computation per entry: `on_time`, `late`, `undertime`, `half_day`, `absent`,
-  based on configurable shift start/end times and a late grace period
-- Employee-submitted **edit requests** for missed or incorrect punches, within a 7-day window,
-  routed to the admin for approval/decline with real-time notification back to the employee
-- One-click **PDF export** of any employee's DTR for any month, with cooperative letterhead and
-  signatory blocks
-- **Automated monthly archiving** — on the 1st of each month, a scheduled job generates a DTR PDF
-  per active employee, zips them into `storage/app/dtr_archives/YYYY-MM.zip`, and removes the
-  loose PDFs
+### Daily Time Record (DTR)
+- Four sequential punch slots per day (AM In / AM Out / PM In / PM Out)
+- Automatic status computation (`on_time`, `late`, `undertime`, `half_day`, `absent`) based on configurable shift rules
+- Employee-submitted edit requests within a 7-day window, routed to admin for approval/decline
+- One-click PDF export per employee per month with cooperative letterhead
+- Automated monthly archiving via scheduled `dtr:archive` command
 
-### 👥 Employee Management
-- Full employee profile management — personal info, department, position, date hired, status
-- Auto-generated sequential Employee IDs (`EMP-0001`, `EMP-0002`, …)
-- Per-employee **compensation profile**: daily rate, transportation/representation/quarterly
-  allowances, and a full deduction schedule (SSS, PhilHealth, Pag-IBIG, withholding tax, loan,
-  capital contribution, cash advance, rental, savings, other)
-- Government ID records (SSS, PhilHealth, TIN, Pag-IBIG) tracked separately per employee
-- Self-service profile updates, government ID updates, and password changes for employees
+### Employee Management
+- Full profile management with auto-generated Employee IDs (`EMP-0001`, `EMP-0002`, ...)
+- Per-employee compensation profile: daily rate, allowances, and full deduction schedule
+- Government ID records (SSS, PhilHealth, TIN, Pag-IBIG)
+- Self-service profile, government ID, and password updates
 
-### 💰 Payroll Processing
-- **Semi-monthly cutoffs** — 1st (1st–15th, full government deductions) and 2nd (16th–end of
-  month, government deductions waived, split deductions continue)
-- Automatic days-present pull from DTR records for the selected period
-- Per-employee **overtime input** — weekday hours (×125%) and weekend/rest-day hours (×130%),
-  computed against hourly rate (`daily_rate ÷ 8`)
-- Draft → **Finalize** workflow — finalized payrolls are immutable
-- Bulk or individual **PDF payslip** generation and download
-- Employees can view and download their own payslip history at any time
+### Payroll Processing
+- Semi-monthly cutoffs: 1st (1st-15th, full statutory deductions) and 2nd (16th-EOM, waived statutory, split loans)
+- Automatic days-present pull from DTR records
+- Overtime input: weekday (x125%) and weekend/rest-day (x130%)
+- Draft / Finalize workflow with immutable finalized payrolls
+- Bulk or individual PDF payslip generation and download
 
-### 🎁 13th Month Pay
-- Computed per **RA 6686 / PD 851** in two tranches: Mid-year (Jan 1 – Jun 30, released June) and
-  Year-end (Jul 1 – Dec 31, released December)
-- Formula: `(daily_rate × total DTR days present in period) ÷ 12` — fully pro-rated on actual
-  attendance, not assumed working days
-- Draft → Finalize workflow mirroring payroll
+### 13th Month Pay
+- Computed per RA 6686 / PD 851: `(daily_rate x DTR days present) / 12`, pro-rated on actual attendance
+- Two tranches: Mid-year (Jan-Jun) and Year-end (Jul-Dec)
+- Draft / Finalize workflow
 
-### 📊 Payroll Analytics
-- Chart-driven dashboard (Recharts) surfacing payroll cost trends, gross-vs-deductions
-  breakdowns, and other cooperative-wide KPIs for administrators
+### Payroll Analytics
+- Chart-driven dashboard (Recharts) for payroll cost trends and gross-vs-deductions breakdowns
 
-### ✅ Task Planner
-- Lightweight personal calendar/task manager per employee — title, description, due date,
-  category, priority, and completion status
+### Task Planner
+- Personal task manager per employee with due dates, categories, priority, and completion tracking
 
-### 🔔 Real-Time Notifications
-- In-app notification center with unread badge counts
-- Delivered instantly via **Pusher** WebSocket broadcasting — no polling, no page refresh —
-  triggered on DTR edit-request approval/decline
+### Real-Time Notifications
+- In-app notification center with unread counts via Pusher WebSocket broadcasting
 
-### ⚙️ System Settings
-Centralized, cached key-value configuration covering:
-- Cooperative info (name, address, email, phone) — appears on every DTR print and payslip
-- Shift & attendance rules (shift start/end, lunch window, late grace period)
-- Payroll defaults (working days per month)
-- The two signing officials (name + role) printed on DTR exports and payslips
+### System Settings
+Centralized key-value configuration: cooperative info, shift/attendance rules, payroll defaults, and signing officials.
 
 ## Roles & Permissions
 

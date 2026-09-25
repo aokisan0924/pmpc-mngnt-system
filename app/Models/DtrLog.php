@@ -63,6 +63,25 @@ class DtrLog extends Model
         return null;
     }
 
+    public function punchesCount(): int
+    {
+        $count = 0;
+        if ($this->am_time_in) {
+            $count++;
+        }
+        if ($this->am_time_out) {
+            $count++;
+        }
+        if ($this->pm_time_in) {
+            $count++;
+        }
+        if ($this->pm_time_out) {
+            $count++;
+        }
+
+        return $count;
+    }
+
     // ── Hours + status computation ─────────────────────────
 
     public function computeHoursAndStatus(): void

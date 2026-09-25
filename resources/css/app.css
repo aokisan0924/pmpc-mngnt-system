@@ -16,7 +16,7 @@
     --color-border:     #DDE5E1;
     --color-text:       #0F172A;
     --color-sub:        #475569;
-    --color-dim:        #94A3B8;
+    --color-dim:        #64748B;
 
     /* Brand & Accents: Indigo for Admin, Emerald for Employee */
     --color-brand:      #4F46E5;
@@ -56,7 +56,7 @@
     --color-border:     #2C3A36;
     --color-text:       #F8FAFC;
     --color-sub:        #94A3B8;
-    --color-dim:        #64748B;
+    --color-dim:        #94A3B8;
 
     --color-brand:      #6366F1;
     --color-indigo:     #6366F1;
@@ -384,8 +384,8 @@
         border-color: rgba(255, 255, 255, 0.12) !important;
     }
 
-    .employee-sidebar { background: linear-gradient(170deg, #06463A 0%, #0B5D4B 48%, #04382E 100%) !important; }
-    .admin-sidebar { background: linear-gradient(170deg, #1B1749 0%, #26215C 48%, #17123F 100%) !important; }
+    .employee-sidebar { background: #0F6E56 !important; }
+    .admin-sidebar { background: #26215C !important; }
 
     .employee-page-shell {
         width: min(100%, 90rem);
@@ -394,7 +394,7 @@
     }
 
     .employee-page-header {
-        background: linear-gradient(118deg, #06463A 0%, #0F6E56 58%, #168169 100%);
+        background: #0F6E56;
         box-shadow: 0 18px 38px rgba(8, 74, 59, 0.16);
     }
 
@@ -437,6 +437,26 @@
         background: rgba(255, 255, 255, 0.16) !important;
         color: #FFFFFF !important;
         box-shadow: inset 3px 0 0 #FFFFFF;
+    }
+
+    .employee-sidebar .employee-sidebar-active-pill {
+        background: #FFFFFF !important;
+        color: #0F6E56 !important;
+    }
+
+    .employee-sidebar .employee-sidebar-active-pill span,
+    .employee-sidebar .employee-sidebar-active-pill svg {
+        color: #0F6E56 !important;
+    }
+
+    .admin-sidebar .admin-sidebar-active-pill {
+        background: #FFFFFF !important;
+        color: #26215C !important;
+    }
+
+    .admin-sidebar .admin-sidebar-active-pill span,
+    .admin-sidebar .admin-sidebar-active-pill svg {
+        color: #26215C !important;
     }
 
     .page-shell {
@@ -572,6 +592,35 @@
         box-shadow: 0 8px 24px rgba(38, 33, 92, 0.05);
     }
 
+    .employee-page-shell {
+        width: min(100%, 90rem);
+        margin-inline: auto;
+        padding: 0.875rem;
+    }
+
+    .employee-page-header {
+        background-color: #0F6E56;
+        border: 1px solid #0D5C48;
+        box-shadow: 0 20px 44px rgba(15, 110, 86, 0.18);
+    }
+
+    .employee-workspace-card {
+        border-color: color-mix(in srgb, #0F6E56 16%, var(--color-border));
+        box-shadow: 0 15px 34px rgba(15, 23, 42, 0.04);
+    }
+
+    .employee-toolbar {
+        border: 1px solid color-mix(in srgb, #0F6E56 16%, var(--color-border));
+        border-radius: 1rem;
+        background: color-mix(in srgb, var(--color-panel) 94%, #ECF8F4);
+        box-shadow: 0 8px 24px rgba(15, 110, 86, 0.04);
+    }
+
+    .dark .employee-toolbar {
+        background: color-mix(in srgb, var(--color-panel) 94%, #04251E);
+        border-color: color-mix(in srgb, #0F6E56 22%, var(--color-border));
+    }
+
     @media (max-width: 639px) {
         .attendance-hero { border-radius: 1rem 1rem 0 0; }
         .attendance-console { border-radius: 0 0 1rem 1rem; }
@@ -586,11 +635,13 @@
     @media (min-width: 640px) {
         .page-shell { padding: 1.75rem; }
         .admin-page-shell { padding: 1.25rem; }
+        .employee-page-shell { padding: 1.25rem; }
     }
 
     @media (min-width: 1024px) {
         .page-shell { padding: 2rem; }
         .admin-page-shell { padding: 1.5rem; }
+        .employee-page-shell { padding: 1.5rem; }
     }
 
     .skip-link {
@@ -605,10 +656,25 @@
         font-size: 0.75rem;
         font-weight: 700;
         border-radius: 0.375rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        text-decoration: none;
     }
 
     .skip-link:focus {
         transform: translateY(0);
+        outline: 2px solid #FFFFFF;
+        outline-offset: 2px;
+    }
+
+    /* ── Global Accessible Keyboard Focus Ring ──────────── */
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    [tabindex]:not([tabindex="-1"]):focus-visible {
+        outline: 2px solid var(--color-brand);
+        outline-offset: 2px;
     }
 
     .page-enter {

@@ -5,6 +5,7 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
+import pmpcLogo from '@images/pmpc_ems.png'
 
 function formatPunchTime(timeString) {
     if (!timeString) return '--:--'
@@ -23,7 +24,7 @@ const PUNCH_SLOTS = [
         stepNum: 1,
         label: 'AM In',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
             </svg>
         ),
@@ -33,7 +34,7 @@ const PUNCH_SLOTS = [
         stepNum: 2,
         label: 'AM Out',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
         ),
@@ -43,7 +44,7 @@ const PUNCH_SLOTS = [
         stepNum: 3,
         label: 'PM In',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v1.069m7.5 0c1.472.085 2.923.23 4.35.434m-11.85 0c-1.472.085-2.923.23-4.35.434" />
             </svg>
         ),
@@ -53,7 +54,7 @@ const PUNCH_SLOTS = [
         stepNum: 4,
         label: 'PM Out',
         icon: (
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
             </svg>
         ),
@@ -79,14 +80,14 @@ function LiveClock() {
     return (
         <div
             aria-live="off"
-            className="relative z-10 flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-3.5 py-2.5 rounded-lg border border-white/15 w-fit self-start md:self-auto shrink-0 shadow-xs"
+            className="relative z-10 flex items-center gap-3 bg-[#0B5442]/90 px-4 py-2.5 rounded-xl border border-white/20 w-fit self-start md:self-auto shrink-0 shadow-xs backdrop-blur-xs"
         >
-            <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#42AA8B] animate-pulse" aria-hidden="true" />
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-300 animate-pulse" aria-hidden="true" />
             <div>
                 <p className="font-heading font-bold text-lg sm:text-xl tracking-tight text-white tnum leading-none">
                     {timeStr}
                 </p>
-                <p className="text-[11px] text-emerald-200/90 mt-0.5 leading-none">{dateStr}</p>
+                <p className="text-[11px] font-medium text-emerald-100/75 mt-1 leading-none">{dateStr}</p>
             </div>
         </div>
     )
@@ -106,7 +107,7 @@ export default function Dashboard({
     const [punching, setPunching] = useState(false)
     const [togglingTaskId, setTogglingTaskId] = useState(null)
     const [punchFeedback, setPunchFeedback] = useState(null)
-    const [activeTab, setActiveTab] = useState('tasks') // 'tasks' | 'alerts'
+    const [activeTab, setActiveTab] = useState('tasks')
     const actionTabRefs = useRef({})
 
     usePoll(30000, {
@@ -125,7 +126,7 @@ export default function Dashboard({
     const nextSlot = nextPunchIndex !== -1 ? PUNCH_SLOTS[nextPunchIndex] : null
     const nextScheduledTime = nextSlot ? schedule?.[nextSlot.key] : null
 
-    // Direct 1-Tap Quick Punch Handler
+    // 1-Tap Quick Punch Handler
     function handleQuickPunch() {
         if (punching || nextPunchIndex === -1 || !nextSlot) return
         const slotLabel = nextSlot.label
@@ -202,133 +203,221 @@ export default function Dashboard({
     return (
         <EmployeeLayout title="DTR Dashboard">
             <div className="attendance-workstation mx-auto max-w-[90rem] space-y-5 p-3.5 pb-44 sm:p-5 lg:p-6">
-                {/* ── Welcome Banner & Live Clock ─────────────────── */}
-                <div
-                    role="region"
-                    aria-label="Shift overview"
-                    className="attendance-hero flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 sm:p-6 text-white relative overflow-hidden select-none"
-                >
-                    <div className="absolute -right-12 -bottom-12 w-72 h-72 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
-                    <div className="relative z-10 max-w-2xl">
-                        {cutoff && (
-                            <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/15 text-white border border-white/20">
-                                    <span className="font-semibold">{cutoff.label}</span>
-                                    <span className="text-emerald-200">• {cutoff.days_remaining} {cutoff.days_remaining === 1 ? 'day' : 'days'} left</span>
-                                </span>
-                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-400/25 text-emerald-100 border border-emerald-300/35 shadow-xs">
-                                    <svg className="w-3 h-3 text-emerald-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span>Next Payday: <strong className="text-white">{cutoff.payday_label}</strong></span>
-                                    {cutoff.is_payday_today && <span className="text-emerald-200 font-normal">(Today!)</span>}
-                                </span>
-                            </div>
-                        )}
-                        <h1 className="font-heading font-bold text-xl sm:text-2xl text-white tracking-tight">
-                            {greeting}, {firstName}. Your DTR is ready.
-                        </h1>
 
+                {/* ── DTR Hero Workstation (Consistent with Landing Page #0F6E56) ─────────────────── */}
+                <section
+                    aria-label="Daily Time Record Workstation"
+                    className="relative overflow-hidden rounded-2xl bg-[#0F6E56] text-white border border-[#0D5C48] p-5 sm:p-6 select-none shadow-lg transition-colors"
+                    style={{
+                        backgroundImage: 'radial-gradient(ellipse 90% 70% at 20% 20%, rgba(20, 138, 108, 0.45), transparent 75%), radial-gradient(ellipse 70% 60% at 85% 85%, rgba(6, 46, 36, 0.65), transparent)'
+                    }}
+                >
+                    {/* Background swiss-grid & watermark emblem from landing page */}
+                    <div className="absolute inset-0 opacity-[0.08] swiss-grid pointer-events-none" aria-hidden="true" />
+                    <div
+                        className="absolute right-[-10%] sm:right-[-6%] top-1/2 -translate-y-1/2 w-[340px] h-[340px] sm:w-[440px] sm:h-[440px] pointer-events-none select-none opacity-[0.08] [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_80%)]"
+                        aria-hidden="true"
+                    >
+                        <img
+                            src={pmpcLogo}
+                            alt=""
+                            className="w-full h-full object-contain filter grayscale brightness-200 contrast-125"
+                            onError={(e) => {
+                                if (e.currentTarget.src !== window.location.origin + '/pmpc_ems.png') {
+                                    e.currentTarget.src = '/pmpc_ems.png'
+                                }
+                            }}
+                        />
                     </div>
 
-                    {/* Live Ticking Clock */}
-                    <LiveClock />
-                </div>
-
-                {/* ── Today's Attendance Punch State Machine & 1-Tap Punch (Top Priority) ── */}
-                <Card className="attendance-console overflow-hidden border-0 shadow-none">
-                    <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border/60 bg-field/30 px-5 py-4 sm:px-6">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <CardTitle className="text-base sm:text-lg">Today's DTR: 4-Punch Attendance Flow</CardTitle>
-                            {summary?.pending_edits > 0 && (
-                                <Badge variant="amber" size="sm">
-                                    {summary.pending_edits} edit request{summary.pending_edits > 1 ? 's' : ''} pending
-                                </Badge>
+                    {/* Console Header Bar */}
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div className="max-w-2xl space-y-1.5">
+                            {cutoff && (
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-black/20 text-white border border-white/20">
+                                        <span>{cutoff.label}</span>
+                                        <span className="text-emerald-300">• {cutoff.days_remaining} {cutoff.days_remaining === 1 ? 'day' : 'days'} left</span>
+                                    </span>
+                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-white/15 text-white border border-white/25">
+                                        <svg className="w-3.5 h-3.5 text-emerald-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>Next Payday: <strong className="text-white">{cutoff.payday_label}</strong></span>
+                                        {cutoff.is_payday_today && <span className="text-emerald-300 font-bold">(Today!)</span>}
+                                    </span>
+                                </div>
                             )}
+                            <h1 className="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight">
+                                {greeting}, {firstName}. Daily Time Record Console.
+                            </h1>
+                            <p className="text-xs sm:text-sm text-emerald-100/85">
+                                Precision attendance recording compliant with PMPC Philippine labor standards.
+                            </p>
                         </div>
-                        <Link href="/employee/dtr" className="rounded text-xs font-semibold text-emerald-700 hover:text-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:text-emerald-300 dark:hover:text-emerald-200">
-                            View DTR history
-                        </Link>
-                    </CardHeader>
 
-                    <CardContent className="flex flex-col gap-5 p-5 sm:p-6 lg:p-7">
-                        <section
-                            aria-labelledby="next-dtr-action"
-                            className={`order-1 flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between ${
-                                nextSlot
-                                    ? 'border-emerald-300 bg-emerald-50/80 dark:border-emerald-800 dark:bg-emerald-950/30'
-                                    : 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900 dark:bg-emerald-950/20'
-                            }`}
-                        >
+                        {/* Manila Precision Live Clock */}
+                        <LiveClock />
+                    </div>
+
+                    {/* Workstation Command Deck: Punch Action */}
+                    <div className="relative z-10 my-5 pt-1">
+
+                        {/* Punch Controller */}
+                        <div className="flex flex-col justify-between rounded-xl bg-[#094738]/90 border border-white/15 p-4 sm:p-5 space-y-4 backdrop-blur-xs">
                             <div>
-                                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">
+                                <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-300">
                                     {nextSlot ? 'Next required action' : 'Today’s attendance'}
-                                </p>
-                                <h2 id="next-dtr-action" className="mt-1 font-heading text-xl font-bold text-text sm:text-2xl">
+                                </span>
+                                <h2 id="next-dtr-action" className="mt-1 font-heading text-xl sm:text-2xl font-bold text-white tracking-tight">
                                     {nextSlot ? `Punch ${nextSlot.label}` : 'All four punches completed'}
                                 </h2>
-                                <p className="mt-1 text-sm text-sub">
-                                    {completedPunches} of 4 punches recorded
-                                    {nextScheduledTime ? ` · Scheduled ${formatPunchTime(nextScheduledTime)}` : ''}
+                                <p className="mt-0.5 text-xs sm:text-sm text-emerald-100/80">
+                                    {nextSlot
+                                        ? `Step ${completedPunches + 1} of 4${nextScheduledTime ? ` · Scheduled ${formatPunchTime(nextScheduledTime)}` : ' · Asia/Manila standard time'}`
+                                        : 'Daily milestones secured. Shift complete.'}
                                 </p>
                             </div>
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-lg font-bold text-white shadow-sm" aria-hidden="true">
-                                {completedPunches}/4
-                            </div>
-                        </section>
 
-                        {/* Connected 4-step Timeline */}
-                        <div className="order-3 relative grid grid-cols-1 gap-3.5 select-none sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+                            {/* Tactile Punch Controller */}
+                            <div
+                                data-testid="dtr-primary-action"
+                                className="fixed inset-x-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 flex items-center justify-between gap-3 rounded-2xl border border-white/20 bg-[#063328] p-3.5 shadow-xl sm:static sm:flex-row sm:border-white/15 sm:bg-[#07382C] sm:p-3.5 sm:shadow-none"
+                            >
+                                <div className="min-w-0 pr-2">
+                                    <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 truncate">
+                                        {nextSlot ? `Ready for ${nextSlot.label}` : 'Attendance Complete'}
+                                    </p>
+                                    <p className="text-xs text-emerald-100/80 truncate mt-0.5">
+                                        {nextSlot
+                                            ? (nextScheduledTime ? `Target: ${formatPunchTime(nextScheduledTime)}` : 'Asia/Manila timestamp')
+                                            : 'All logs verified'}
+                                    </p>
+                                </div>
+
+                                <div className="flex shrink-0 items-center gap-2">
+                                    {nextSlot ? (
+                                        <button
+                                            type="button"
+                                            onClick={handleQuickPunch}
+                                            disabled={punching}
+                                            aria-label={punching ? 'Recording punch...' : `Punch ${nextSlot.label}`}
+                                            className="group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-extrabold text-[#0F6E56] bg-white hover:bg-emerald-50 active:bg-emerald-100 disabled:opacity-50 disabled:pointer-events-none transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white shadow-md cursor-pointer"
+                                        >
+                                            {punching ? (
+                                                <>
+                                                    <svg className="animate-spin h-4 w-4 text-[#0F6E56]" fill="none" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                    </svg>
+                                                    <span>Recording...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <svg className="w-4 h-4 text-[#0F6E56]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    <span>Punch {nextSlot.label}</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    ) : (
+                                        <Link href="/employee/dtr">
+                                            <button
+                                                type="button"
+                                                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-white/15 hover:bg-white/25 border border-white/20 transition-colors"
+                                            >
+                                                View DTR History →
+                                            </button>
+                                        </Link>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Polite Feedback Container */}
+                            <div aria-live="polite" aria-atomic="true">
+                                {punchFeedback && (
+                                    <div className={`p-2.5 rounded-lg text-xs font-semibold flex items-center gap-2 border ${
+                                        punchFeedback.type === 'success'
+                                            ? 'bg-[#063328] border-emerald-400/50 text-emerald-200'
+                                            : 'bg-rose-950/90 border-rose-400/40 text-rose-200'
+                                    }`}>
+                                        {punchFeedback.type === 'success' ? (
+                                            <svg className="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        ) : (
+                                            <svg className="w-4 h-4 text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                                            </svg>
+                                        )}
+                                        <span>{punchFeedback.message}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Connected 4-Slot Attendance Pipeline */}
+                    <div className="relative z-10 pt-4 border-t border-white/15">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-white">
+                                Today's DTR: 4-Punch Attendance Flow
+                            </h3>
+                            <span className="text-[11px] text-emerald-100/75">
+                                Asia/Manila Standard Time
+                            </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                             {PUNCH_SLOTS.map((slot, index) => {
                                 const rawVal = today?.[slot.key]
                                 const isDone = Boolean(rawVal)
                                 const isNext = index === nextPunchIndex
-                                const isLocked = !isDone && !isNext
 
                                 return (
                                     <div
                                         key={slot.key}
                                         role="group"
                                         aria-label={`${slot.label}: ${isDone ? `Punched at ${rawVal}` : isNext ? 'Ready to punch' : 'Locked'}`}
-                                        className={`p-4 sm:p-5 rounded-xl border transition-all duration-200 relative flex flex-col justify-between ${
+                                        className={`rounded-xl border p-4 transition-colors flex flex-col justify-between ${
                                             isDone
-                                                ? 'min-h-[124px] bg-emerald-50/60 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/60'
+                                                ? 'bg-[#07382C]/90 border-emerald-400/40'
                                                 : isNext
-                                                ? 'min-h-[172px] bg-panel border-emerald-500 shadow-md ring-2 ring-emerald-500/25 lg:-translate-y-1 lg:scale-[1.03] lg:z-10'
-                                                : 'min-h-[124px] bg-field/40 border-border/60 opacity-45'
+                                                ? 'bg-[#0B5442] border-2 border-emerald-300 shadow-md ring-2 ring-emerald-400/20'
+                                                : 'bg-[#052A22]/50 border-white/10 opacity-60'
                                         }`}
                                     >
-                                        {/* Step Header */}
-                                        <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center justify-between mb-2.5">
                                             <div className="flex items-center gap-2">
                                                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
                                                     isDone
-                                                        ? 'bg-emerald-600 text-white'
+                                                        ? 'bg-emerald-400 text-[#062E24]'
                                                         : isNext
-                                                        ? 'bg-emerald-500 text-white animate-pulse'
-                                                        : 'bg-slate-200 dark:bg-slate-700 text-sub'
+                                                        ? 'bg-white text-[#0F6E56]'
+                                                        : 'bg-white/15 text-white/60'
                                                 }`}>
                                                     {slot.stepNum}
                                                 </span>
-                                                <span className="text-xs font-semibold text-sub uppercase tracking-wider">
+                                                <span className="text-xs font-bold text-white uppercase tracking-wider">
                                                     {slot.label}
                                                 </span>
                                             </div>
 
                                             {isDone ? (
-                                                <span className="inline-flex items-center justify-center w-4.5 h-4.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300">
-                                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
+                                                    <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                                     </svg>
                                                 </span>
                                             ) : isNext ? (
-                                                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100/90 dark:bg-emerald-950 px-1.5 py-0.25 rounded-full border border-emerald-200 dark:border-emerald-800">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                                                    Next
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-white/20 px-2 py-0.5 rounded-full border border-white/30">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                                                    Ready
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 text-[9px] text-dim">
-                                                    <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                                <span className="inline-flex items-center gap-1 text-[10px] text-emerald-100/50">
+                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                                                     </svg>
                                                     Locked
@@ -336,168 +425,115 @@ export default function Dashboard({
                                             )}
                                         </div>
 
-                                        {/* Recorded Punch Time */}
-                                        <div className="my-0.5">
-                                            <p className="font-heading font-bold text-2xl lg:text-3xl text-text tnum tracking-tight">
+                                        <div>
+                                            <p className="font-heading font-bold text-xl sm:text-2xl text-white tnum tracking-tight">
                                                 {isDone ? formatPunchTime(rawVal) : isNext ? 'Ready' : '--:--'}
                                             </p>
-                                            {!isDone && schedule?.[slot.key] && (
-                                                <p className="mt-1 text-xs text-sub">Scheduled {formatPunchTime(schedule[slot.key])}</p>
-                                            )}
+                                            <p className="mt-0.5 text-xs text-emerald-100/75 truncate">
+                                                {isDone ? 'Recorded timestamp' : schedule?.[slot.key] ? `Scheduled ${formatPunchTime(schedule[slot.key])}` : 'Pending trigger'}
+                                            </p>
                                         </div>
                                     </div>
                                 )
                             })}
                         </div>
+                    </div>
 
-                        {/* Interactive Punch Action, feedback, and factual exceptions */}
-                        <div className={`order-2 grid gap-4 ${pendingEditRequests.length > 0 ? 'lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.7fr)]' : ''}`}>
-                            <div data-testid="dtr-primary-action" className="fixed inset-x-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-panel/95 p-3 shadow-xl backdrop-blur-md sm:static sm:flex-row sm:border-border/80 sm:bg-field/60 sm:p-5 sm:shadow-none sm:backdrop-blur-none dark:border-emerald-900 dark:bg-slate-900/95 dark:sm:border-border/80 dark:sm:bg-slate-900/50">
-                                <div className="min-w-0">
-                                    <p className="text-xs font-bold uppercase tracking-wider text-sub">
-                                        {nextSlot ? `Ready for ${nextSlot.label}` : 'Attendance complete'}
-                                    </p>
-                                    <p className="mt-1 text-sm text-text">
-                                        {nextSlot
-                                            ? `${completedPunches} of 4 recorded${nextScheduledTime ? ` · ${formatPunchTime(nextScheduledTime)} schedule` : ''}`
-                                            : 'Your four-punch sequence is complete for today.'}
-                                    </p>
-                                    <div aria-live="polite" aria-atomic="true">
-                                        {punchFeedback && (
-                                            <p className={`mt-2 text-xs font-semibold transition-opacity ${
-                                                punchFeedback.type === 'success' ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
-                                            }`}>
-                                                {punchFeedback.message}
-                                            </p>
-                                        )}
-                                    </div>
+
+                </section>
+
+                {/* ── Pending DTR Corrections Alert (if any) ─────────────────── */}
+                {pendingEditRequests.length > 0 && (
+                    <aside className="rounded-xl border border-amber-300/80 bg-amber-50/90 p-4 dark:border-amber-900/70 dark:bg-amber-950/30" aria-labelledby="dtr-attention-heading">
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                                    </svg>
                                 </div>
-
-                                <div className="flex shrink-0 flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:flex-nowrap">
-                                    {nextSlot ? (
-                                        <Button
-                                            variant="emerald"
-                                            size="lg"
-                                            onClick={handleQuickPunch}
-                                            disabled={punching}
-                                            aria-label={punching ? 'Recording punch...' : `Punch ${nextSlot.label}`}
-                                            className="h-12 min-w-[132px] px-4 text-sm font-semibold shadow-xs sm:min-w-[180px] sm:px-5"
-                                        >
-                                            {punching ? (
-                                                <span className="inline-flex items-center gap-1.5">
-                                                    <svg className="animate-spin h-3.5 w-3.5 text-white" aria-hidden="true" fill="none" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                                    </svg>
-                                                    Recording...
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1.5">
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                    </svg>
-                                                    Punch {nextSlot.label}
-                                                </span>
-                                            )}
-                                        </Button>
-                                    ) : (
-                                        <Link href="/employee/dtr" className="flex-1 sm:flex-none">
-                                            <Button variant="softEmerald" size="md" className="w-full">
-                                                View DTR History →
-                                            </Button>
-                                        </Link>
-                                    )}
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">DTR Correction Review</p>
+                                    <h3 id="dtr-attention-heading" className="text-xs sm:text-sm font-bold text-text">Pending DTR Edit Requests</h3>
                                 </div>
                             </div>
-
-                            {pendingEditRequests.length > 0 && (
-                                <aside className="rounded-xl border border-amber-200 bg-amber-50/80 p-4 dark:border-amber-900/70 dark:bg-amber-950/25" aria-labelledby="dtr-attention-heading">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <div>
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">DTR attention</p>
-                                            <h3 id="dtr-attention-heading" className="mt-0.5 text-sm font-bold text-text">Pending corrections</h3>
-                                        </div>
-                                        <Badge variant="amber" size="sm">{summary?.pending_edits ?? pendingEditRequests.length}</Badge>
-                                    </div>
-                                    <div className="mt-3 space-y-2">
-                                        {pendingEditRequests.map(request => (
-                                            <div key={request.id} className="rounded-lg border border-amber-200/80 bg-white/70 px-3 py-2 dark:border-amber-900/60 dark:bg-slate-950/30">
-                                                <p className="text-xs font-semibold text-text">{request.date_label}</p>
-                                                <p className="mt-0.5 truncate text-[11px] text-sub">Submitted {request.submitted_at}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <Link href="/employee/dtr" className="mt-3 inline-flex rounded text-xs font-semibold text-amber-800 hover:text-amber-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 dark:text-amber-200">
-                                        Review DTR requests →
-                                    </Link>
-                                </aside>
-                            )}
+                            <Badge variant="amber" size="sm">{summary?.pending_edits ?? pendingEditRequests.length}</Badge>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                            {pendingEditRequests.map(request => (
+                                <div key={request.id} className="rounded-lg border border-amber-200/80 bg-white/80 p-2.5 dark:border-amber-900/60 dark:bg-slate-950/40">
+                                    <p className="text-xs font-semibold text-text">{request.date_label}</p>
+                                    <p className="mt-0.5 truncate text-[11px] text-sub">Submitted {request.submitted_at}</p>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-2.5 pt-2 border-t border-amber-200/60 dark:border-amber-900/40 flex justify-end">
+                            <Link href="/employee/dtr" className="text-xs font-semibold text-amber-800 hover:text-amber-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 dark:text-amber-300">
+                                Review DTR requests in full archive →
+                            </Link>
+                        </div>
+                    </aside>
+                )}
 
-                {/* ── Today at a glance ────────────────────────────── */}
+                {/* ── Operational Overview (Non-redundant Cutoff & Workday Telemetry) ─────────────────── */}
                 <section aria-labelledby="today-glance-heading" className="space-y-2">
                     <div className="flex items-center justify-between px-1">
-                        <h2 id="today-glance-heading" className="text-xs font-bold uppercase tracking-[0.14em] text-sub">Today at a glance</h2>
-                        <span className="text-xs text-dim">Refreshes automatically</span>
+                        <h2 id="today-glance-heading" className="text-xs font-bold uppercase tracking-[0.14em] text-sub">
+                            Today at a glance
+                        </h2>
+                        <span className="text-xs text-sub font-medium">Refreshes automatically</span>
                     </div>
-                <div className="attendance-metrics grid grid-cols-1 gap-px overflow-hidden bg-border sm:grid-cols-2 sm:rounded-2xl lg:grid-cols-4">
-                    <StatCard
-                        title="Hours Today"
-                        value={`${Number(today?.hours_rendered || 0).toFixed(1)}h`}
-                        accent="emerald"
-                        progress={{
-                            value: today?.hours_rendered ?? 0,
-                            max: 8,
-                            label: 'Recorded today',
-                            color: 'bg-emerald-500',
-                        }}
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="DTR Completion"
-                        value={`${completedPunches}/4`}
-                        accent={completedPunches === 4 ? 'emerald' : 'amber'}
-                        progress={{
-                            value: completedPunches,
-                            max: 4,
-                            label: completedPunches === 4 ? 'Today is complete' : `Next: ${nextSlot?.label ?? 'complete'}`,
-                            color: completedPunches === 4 ? 'bg-emerald-500' : 'bg-amber-500',
-                        }}
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="Pending Tasks"
-                        value={pendingTasksCount}
-                        subtitle={pendingTasksCount === 0 ? 'No pending tasks' : pendingTasksCount === 1 ? 'Task needs attention' : 'Tasks need attention'}
-                        accent={pendingTasksCount > 0 ? 'amber' : 'emerald'}
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="DTR Edits"
-                        value={summary?.pending_edits ?? 0}
-                        subtitle={(summary?.pending_edits ?? 0) > 0 ? 'Awaiting HR review' : 'No pending requests'}
-                        accent={(summary?.pending_edits ?? 0) > 0 ? 'amber' : 'emerald'}
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
-                            </svg>
-                        }
-                    />
-                </div>
+                    <div className="attendance-metrics grid grid-cols-1 gap-px overflow-hidden bg-border sm:grid-cols-2 sm:rounded-xl lg:grid-cols-4">
+                        <StatCard
+                            title="Hours Today"
+                            value={`${Number(today?.hours_rendered || 0).toFixed(1)}h`}
+                            accent="emerald"
+                            progress={{
+                                value: today?.hours_rendered ?? 0,
+                                max: 8,
+                                label: 'Recorded today',
+                                color: 'bg-emerald-500',
+                            }}
+                            icon={
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            }
+                        />
+                        <StatCard
+                            title="Cutoff Attendance"
+                            value={`${summary?.present_days ?? 0} days`}
+                            subtitle={`${cutoff?.label ?? 'Current cutoff'} presence`}
+                            accent="emerald"
+                            icon={
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.253M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5" />
+                                </svg>
+                            }
+                        />
+                        <StatCard
+                            title="Pending Tasks"
+                            value={pendingTasksCount}
+                            subtitle={pendingTasksCount === 0 ? 'No pending tasks' : pendingTasksCount === 1 ? 'Task needs attention' : 'Tasks need attention'}
+                            accent={pendingTasksCount > 0 ? 'amber' : 'emerald'}
+                            icon={
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                </svg>
+                            }
+                        />
+                        <StatCard
+                            title="DTR Edits"
+                            value={summary?.pending_edits ?? 0}
+                            subtitle={(summary?.pending_edits ?? 0) > 0 ? 'Awaiting HR review' : 'No pending requests'}
+                            accent={(summary?.pending_edits ?? 0) > 0 ? 'amber' : 'emerald'}
+                            icon={
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                                </svg>
+                            }
+                        />
+                    </div>
                 </section>
 
                 {/* ── Lower Split: Action Hub & Latest Payslip ───────── */}
@@ -550,7 +586,6 @@ export default function Dashboard({
                                                 Alerts & Notices ({alertsList.length})
                                             </button>
                                         </div>
-
                                     </div>
                                 </CardHeader>
 
@@ -670,8 +705,7 @@ export default function Dashboard({
 
                     {/* Right Column: Latest Payslip Voucher */}
                     <div className="space-y-3.5">
-                        {/* Latest Payslip Voucher Card */}
-                        <Card className="h-full border border-emerald-200/80 dark:border-emerald-900/60 bg-gradient-to-br from-emerald-50/40 via-panel to-panel dark:from-emerald-950/20 shadow-xs">
+                        <Card className="h-full border border-border/80 bg-panel shadow-xs">
                             <CardHeader className="px-4 py-2.5 pb-2">
                                 <div className="flex items-center justify-between w-full">
                                     <div className="flex items-center gap-2">
@@ -718,7 +752,6 @@ export default function Dashboard({
                     </div>
                 </div>
             </div>
-
         </EmployeeLayout>
     )
 }

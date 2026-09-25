@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
-import ThemeToggle from '@/Components/ThemeToggle'
 import useTheme from '@/hooks/useTheme'
 import pmpcLogo from '@images/pmpc_ems.png'
 
@@ -26,7 +25,7 @@ const FEATURES = [
 
 export default function Login() {
     const { errors } = usePage().props
-    const { isDark, toggleTheme } = useTheme()
+    useTheme()
     const [showPassword, setShowPassword] = useState(false)
     const [capsLockActive, setCapsLockActive] = useState(false)
     const { data, setData, post, processing } = useForm({ login: '', password: '', remember: false })
@@ -51,7 +50,9 @@ export default function Login() {
     }
 
     return (
-        <main className="login-portal min-h-screen bg-bg lg:grid lg:grid-cols-[minmax(340px,44%)_1fr]">
+        <main id="main-content" tabIndex="-1" className="login-portal min-h-screen bg-bg lg:grid lg:grid-cols-[minmax(340px,44%)_1fr] outline-none">
+            <a href="#login" className="skip-link">Skip to sign in form</a>
+
             {/* ── Left Hero Section: Ambient Brand Pillar ── */}
             <section
                 className="relative overflow-hidden bg-[#0F6E56] text-white px-6 py-8 sm:px-10 lg:px-14 lg:py-12 lg:min-h-screen flex flex-col border-b lg:border-b-0 lg:border-r border-black/15 dark:border-white/10 transition-colors"
@@ -122,10 +123,6 @@ export default function Login() {
                 {/* Ambient Radial Vignette */}
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(15,110,86,0.06),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(38,33,92,0.04),transparent_50%)] pointer-events-none" aria-hidden="true" />
 
-                {/* Top Theme Switcher */}
-                <div className="absolute top-5 right-5 flex items-center">
-                    <ThemeToggle isDark={isDark} onToggle={toggleTheme} className="rounded-lg shadow-2xs" />
-                </div>
 
                 {/* Elevated Form Card Container */}
                 <div className={`w-full max-w-md page-enter ${hasErrors ? 'animate-shake' : ''}`}>
