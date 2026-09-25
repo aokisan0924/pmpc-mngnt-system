@@ -19,6 +19,8 @@ export default function PayrollShow({ payroll, items = [] }) {
 
     const [confirmOpen, setConfirmOpen]   = useState(false)
     const [processing, setProcessing]     = useState(false)
+    const [deleteOpen, setDeleteOpen]     = useState(false)
+    const [deleting, setDeleting]         = useState(false)
 
     function finalize() {
         setConfirmOpen(true)
@@ -30,6 +32,16 @@ export default function PayrollShow({ payroll, items = [] }) {
             onFinish: () => {
                 setProcessing(false)
                 setConfirmOpen(false)
+            },
+        })
+    }
+
+    function handleDeleteConfirm() {
+        setDeleting(true)
+        router.delete(`/admin/payroll/${payroll.id}`, {
+            onFinish: () => {
+                setDeleting(false)
+                setDeleteOpen(false)
             },
         })
     }
@@ -64,14 +76,24 @@ export default function PayrollShow({ payroll, items = [] }) {
                         </a>
 
                         {payroll.status === 'draft' && (
-                            <Button
-                                variant="primary"
-                                size="md"
-                                onClick={finalize}
-                                className="admin-header-primary shadow-xs"
-                            >
-                                Finalize Payroll Batch
-                            </Button>
+                            <>
+                                <Button
+                                    variant="danger"
+                                    size="md"
+                                    onClick={() => setDeleteOpen(true)}
+                                    className="shadow-xs"
+                                >
+                                    Discard Draft
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    size="md"
+                                    onClick={finalize}
+                                    className="admin-header-primary shadow-xs"
+                                >
+                                    Finalize Payroll Batch
+                                </Button>
+                            </>
                         )}
                     </div>
                     }
@@ -259,6 +281,19 @@ export default function PayrollShow({ payroll, items = [] }) {
                 processing={processing}
                 onConfirm={handleConfirm}
                 onCancel={() => setConfirmOpen(false)}
+            />
+
+            {/* ── Confirm Discard Draft Modal ────────────────────── */}
+            <ConfirmModal
+                open={deleteOpen}
+                title="Discard draft payroll batch?"
+                message={`Are you sure you want to discard the draft batch for ${payroll.period_label}? All draft item calculations will be removed. You can generate a new batch at any time.`}
+                confirmLabel="Yes, discard draft"
+                cancelLabel="Keep draft"
+                confirmStyle="danger"
+                processing={deleting}
+                onConfirm={handleDeleteConfirm}
+                onCancel={() => setDeleteOpen(false)}
             />
         </AdminLayout>
     )

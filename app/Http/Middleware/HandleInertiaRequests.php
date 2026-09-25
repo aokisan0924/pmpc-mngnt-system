@@ -34,7 +34,7 @@ class HandleInertiaRequests extends Middleware
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
             ],
-            'unread_notifications' => $request->user() && $request->user()->isEmployee()
+            'unread_notifications' => $request->user()
                 ? EmployeeNotification::unreadCount($request->user()->id)
                 : 0,
         ]);

@@ -9,13 +9,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Inertia\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DtrArchiveController extends Controller
 {
     private const DIR = 'dtr_archives';
 
-    public function index(): \Inertia\Response
+    public function index(): Response
     {
         $disk = Storage::disk('local');
 

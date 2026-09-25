@@ -31,6 +31,13 @@ const IconLock = (p) => (
         <path d="M8 10.5V7a4 4 0 0 1 8 0v3.5" />
     </svg>
 )
+const IconId = (p) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" {...p}>
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <circle cx="9" cy="10" r="2" />
+        <path d="M15 8h2M15 12h2M7 16h10" strokeLinecap="round" />
+    </svg>
+)
 
 function initials(first, last) {
     return `${(first || '?')[0] ?? ''}${(last || '')[0] ?? ''}`.toUpperCase()
@@ -91,6 +98,13 @@ export default function EmployeeShow({ employee, govIds }) {
         password_confirmation: '',
     })
 
+    const govForm = useForm({
+        sss_no:        govIds?.sss_no        ?? '',
+        philhealth_no: govIds?.philhealth_no ?? '',
+        tin_no:        govIds?.tin_no        ?? '',
+        pagibig_no:    govIds?.pagibig_no    ?? '',
+    })
+
     function submitInfo(e) {
         e.preventDefault()
         infoForm.patch(`/admin/employees/${employee.id}`)
@@ -108,6 +122,11 @@ export default function EmployeeShow({ employee, govIds }) {
         })
     }
 
+    function submitGov(e) {
+        e.preventDefault()
+        govForm.patch(`/admin/employees/${employee.id}/government-ids`)
+    }
+
     // Live computation preview
     const dailyRate     = parseFloat(compForm.data.daily_rate) || 0
     const monthlyBasic  = dailyRate * 22
@@ -123,6 +142,7 @@ export default function EmployeeShow({ employee, govIds }) {
 
     const tabs = [
         { key: 'info',         label: 'Profile',        Icon: IconUser   },
+        { key: 'gov_ids',      label: 'Government IDs', Icon: IconId     },
         { key: 'compensation', label: 'Compensation',   Icon: IconWallet },
         { key: 'password',     label: 'Reset password', Icon: IconLock   },
     ]
@@ -258,6 +278,65 @@ export default function EmployeeShow({ employee, govIds }) {
                                 Save changes
                             </Button>
                             {infoForm.recentlySuccessful && (
+                                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Saved</span>
+                            )}
+                        </div>
+                    </form>
+                )}
+
+                {/* Government IDs tab */}
+                {activeTab === 'gov_ids' && (
+                    <form onSubmit={submitGov}
+                        className="bg-panel rounded-2xl border border-border shadow-sm p-5 sm:p-6 space-y-5">
+                        <div>
+                            <h3 className="text-sm font-semibold text-text">Philippine Statutory IDs</h3>
+                            <p className="text-xs text-sub mt-0.5">Government registration numbers for SSS, PhilHealth, Pag-IBIG, and BIR Tax Identification Number.</p>
+                        </div>
+
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <Field label="Social Security System (SSS)" error={govForm.errors.sss_no}>
+                                <input
+                                    type="text"
+                                    value={govForm.data.sss_no}
+                                    onChange={e => govForm.setData('sss_no', e.target.value)}
+                                    placeholder="00-0000000-0"
+                                    className={inputClass}
+                                />
+                            </Field>
+                            <Field label="PhilHealth Number" error={govForm.errors.philhealth_no}>
+                                <input
+                                    type="text"
+                                    value={govForm.data.philhealth_no}
+                                    onChange={e => govForm.setData('philhealth_no', e.target.value)}
+                                    placeholder="00-000000000-0"
+                                    className={inputClass}
+                                />
+                            </Field>
+                            <Field label="Tax Identification Number (TIN)" error={govForm.errors.tin_no}>
+                                <input
+                                    type="text"
+                                    value={govForm.data.tin_no}
+                                    onChange={e => govForm.setData('tin_no', e.target.value)}
+                                    placeholder="000-000-000-000"
+                                    className={inputClass}
+                                />
+                            </Field>
+                            <Field label="Pag-IBIG / HDMF MID" error={govForm.errors.pagibig_no}>
+                                <input
+                                    type="text"
+                                    value={govForm.data.pagibig_no}
+                                    onChange={e => govForm.setData('pagibig_no', e.target.value)}
+                                    placeholder="0000-0000-0000"
+                                    className={inputClass}
+                                />
+                            </Field>
+                        </div>
+
+                        <div className="pt-2 flex items-center gap-3">
+                            <Button type="submit" variant="primary" size="md" loading={govForm.processing}>
+                                Save Government IDs
+                            </Button>
+                            {govForm.recentlySuccessful && (
                                 <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Saved</span>
                             )}
                         </div>

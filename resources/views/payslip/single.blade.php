@@ -349,6 +349,10 @@
                     <td class="label">Capital contribution</td>
                     <td class="amt neg">{{ $d['capital_contribution'] > 0 ? '(₱ '.p($d['capital_contribution']).')' : '—' }}</td>
                 </tr>
+                <tr class="indent">
+                    <td class="label">Rental</td>
+                    <td class="amt neg">{{ $d['rental'] > 0 ? '(₱ '.p($d['rental']).')' : '—' }}</td>
+                </tr>
                 @if($d['other'] > 0)
                 <tr class="indent">
                     <td class="label">Other</td>

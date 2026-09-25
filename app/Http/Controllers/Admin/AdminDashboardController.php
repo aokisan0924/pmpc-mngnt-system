@@ -81,13 +81,19 @@ class AdminDashboardController extends Controller
             ->first();
 
         // ── Chart 1: Today's attendance snapshot ───────────
-        $todaySnapshot = Employee::where('is_staff', true)
+        $activeStaff = Employee::where('is_staff', true)
             ->where('status', 'active')
+            ->get();
+        $activeStaffIds = $activeStaff->pluck('id');
+
+        $todayLogs = DtrLog::where('date', $today)
+            ->whereIn('employee_id', $activeStaffIds)
             ->get()
-            ->map(function ($emp) use ($today) {
-                $log = DtrLog::where('employee_id', $emp->id)
-                    ->where('date', $today)
-                    ->first();
+            ->keyBy('employee_id');
+
+        $todaySnapshot = $activeStaff
+            ->map(function ($emp) use ($todayLogs) {
+                $log = $todayLogs->get($emp->id);
 
                 return [
                     'id' => $emp->id,
@@ -146,44 +152,32 @@ class AdminDashboardController extends Controller
         })->values();
 
         // ── Chart 3: Department attendance comparison (this month + today) ──
-        $departmentAttendance = Employee::where('is_staff', true)
-            ->where('status', 'active')
-            ->select(DB::raw("COALESCE(department, 'Unassigned') as department"), DB::raw('COUNT(*) as headcount'))
-            ->groupBy('department')
-            ->get()
-            ->map(function ($dept) use ($startOfMonth, $endOfMonth, $today) {
-                $empIds = Employee::where('is_staff', true)
-                    ->where('status', 'active')
-                    ->where(DB::raw("COALESCE(department, 'Unassigned')"), $dept->department)
-                    ->pluck('id');
+        $monthlyDeptLogs = DtrLog::whereBetween('date', [$startOfMonth, $endOfMonth])
+            ->whereIn('employee_id', $activeStaffIds)
+            ->get(['employee_id', 'date', 'status']);
 
-                $present = DtrLog::whereIn('employee_id', $empIds)
-                    ->whereBetween('date', [$startOfMonth, $endOfMonth])
-                    ->whereNotIn('status', ['absent'])
-                    ->count();
+        $departmentAttendance = $activeStaff
+            ->groupBy(fn ($e) => $e->department ?: 'Unassigned')
+            ->map(function ($members, $department) use ($monthlyDeptLogs, $todayLogs) {
+                $memberIds = $members->pluck('id')->flip();
+                $headcount = $members->count();
 
-                $late = DtrLog::whereIn('employee_id', $empIds)
-                    ->whereBetween('date', [$startOfMonth, $endOfMonth])
-                    ->where('status', 'late')
-                    ->count();
+                $deptLogs = $monthlyDeptLogs->filter(fn ($l) => isset($memberIds[$l->employee_id]));
+                $present = $deptLogs->whereNotIn('status', ['absent'])->count();
+                $late = $deptLogs->where('status', 'late')->count();
+                $absent = $deptLogs->where('status', 'absent')->count();
 
-                $absent = DtrLog::whereIn('employee_id', $empIds)
-                    ->whereBetween('date', [$startOfMonth, $endOfMonth])
-                    ->where('status', 'absent')
-                    ->count();
+                $todayPresent = $members->filter(function ($m) use ($todayLogs) {
+                    $log = $todayLogs->get($m->id);
 
-                $todayPresent = DtrLog::whereIn('employee_id', $empIds)
-                    ->where('date', $today)
-                    ->whereNotIn('status', ['absent'])
-                    ->count();
+                    return $log && $log->status !== 'absent';
+                })->count();
 
-                $todayTurnout = $dept->headcount > 0
-                    ? round(($todayPresent / $dept->headcount) * 100)
-                    : 0;
+                $todayTurnout = $headcount > 0 ? round(($todayPresent / $headcount) * 100) : 0;
 
                 return [
-                    'department' => $dept->department,
-                    'headcount' => $dept->headcount,
+                    'department' => $department,
+                    'headcount' => $headcount,
                     'present' => $present,
                     'late' => $late,
                     'absent' => $absent,

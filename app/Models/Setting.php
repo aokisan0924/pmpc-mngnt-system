@@ -53,7 +53,7 @@ class Setting extends Model
             'coop_phone' => '',
 
             // Signatories on DTR print
-            'signatory_1_name' => 'Michaela P. Mauanay',
+            'signatory_1_name' => 'Katherine B. Sevilleno',
             'signatory_1_role' => 'Accounting Clerk',
             'signatory_2_name' => 'Alexander L. Feria, CPA, MNSA',
             'signatory_2_role' => 'President',

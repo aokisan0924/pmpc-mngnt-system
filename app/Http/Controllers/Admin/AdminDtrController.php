@@ -20,42 +20,46 @@ class AdminDtrController extends Controller
         $from = Carbon::parse($month)->startOfMonth();
         $to = Carbon::parse($month)->endOfMonth();
 
-        $employees = Employee::where('is_staff', true)
+        $activeStaff = Employee::where('is_staff', true)
             ->where('status', 'active')
             ->orderBy('first_name')
-            ->get()
-            ->map(fn ($e) => [
-                'id' => $e->id,
-                'employee_id' => $e->employee_id,
-                'full_name' => $e->full_name,
-                'department' => $e->department,
-                'initials' => $e->initials,
-            ]);
+            ->get();
 
-        // Build DTR summary for all employees this month
-        $dtrSummary = Employee::where('is_staff', true)
-            ->where('status', 'active')
-            ->when($employeeId, fn ($q) => $q->where('id', $employeeId))
-            ->get()
-            ->map(function ($emp) use ($from, $to) {
-                $logs = DtrLog::where('employee_id', $emp->id)
-                    ->whereBetween('date', [$from, $to])
-                    ->get();
+        $employees = $activeStaff->map(fn ($e) => [
+            'id' => $e->id,
+            'employee_id' => $e->employee_id,
+            'full_name' => $e->full_name,
+            'department' => $e->department,
+            'initials' => $e->initials,
+        ]);
 
-                return [
-                    'id' => $emp->id,
-                    'employee_id' => $emp->employee_id,
-                    'full_name' => $emp->full_name,
-                    'department' => $emp->department,
-                    'initials' => $emp->initials,
-                    'days_present' => $logs->whereIn('status', ['on_time', 'late', 'undertime', 'half_day'])
-                        ->sum(fn ($log) => $log->status === 'half_day' ? 0.5 : 1),
-                    'days_late' => $logs->where('status', 'late')->count(),
-                    'days_absent' => $logs->where('status', 'absent')->count(),
-                    'half_days' => $logs->where('status', 'half_day')->count(),
-                    'hours_rendered' => round($logs->sum('hours_rendered'), 2),
-                ];
-            });
+        $targetStaff = $employeeId
+            ? $activeStaff->where('id', (int) $employeeId)
+            : $activeStaff;
+
+        $allLogs = DtrLog::whereIn('employee_id', $targetStaff->pluck('id'))
+            ->whereBetween('date', [$from, $to])
+            ->get()
+            ->groupBy('employee_id');
+
+        // Build DTR summary for employees this month
+        $dtrSummary = $targetStaff->map(function ($emp) use ($allLogs) {
+            $logs = $allLogs->get($emp->id, collect());
+
+            return [
+                'id' => $emp->id,
+                'employee_id' => $emp->employee_id,
+                'full_name' => $emp->full_name,
+                'department' => $emp->department,
+                'initials' => $emp->initials,
+                'days_present' => $logs->whereIn('status', ['on_time', 'late', 'undertime', 'half_day'])
+                    ->sum(fn ($log) => $log->status === 'half_day' ? 0.5 : 1),
+                'days_late' => $logs->where('status', 'late')->count(),
+                'days_absent' => $logs->where('status', 'absent')->count(),
+                'half_days' => $logs->where('status', 'half_day')->count(),
+                'hours_rendered' => round($logs->sum('hours_rendered'), 2),
+            ];
+        })->values();
 
         return Inertia::render('Admin/Dtr', [
             'employees' => $employees,

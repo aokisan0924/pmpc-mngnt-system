@@ -105,6 +105,7 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::patch('/employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
         Route::patch('/employees/{employee}/password', [EmployeeController::class, 'resetPassword'])->name('employees.password');
         Route::patch('/employees/{employee}/compensation', [EmployeeController::class, 'updateCompensation'])->name('employees.compensation');
+        Route::patch('/employees/{employee}/government-ids', [EmployeeController::class, 'updateGovIds'])->name('employees.government-ids');
         Route::get('/employees/{employee}/dtr/print', [DtrPrintController::class, 'adminPrint'])->name('employees.dtr.print');
 
         // Payroll
@@ -114,6 +115,7 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
         Route::get('/payroll/{payroll}', [PayrollController::class, 'show'])->name('payroll.show');
         Route::post('/payroll/{payroll}/finalize', [PayrollController::class, 'finalize'])->name('payroll.finalize');
+        Route::delete('/payroll/{payroll}', [PayrollController::class, 'destroy'])->name('payroll.destroy');
 
         // DTR management
         Route::get('/dtr/{employee}/print', [DtrPrintController::class, 'adminPrint'])->name('dtr.admin-print');

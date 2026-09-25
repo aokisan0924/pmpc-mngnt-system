@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class DtrEditRequest extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'dtr_log_id',
         'employee_id',

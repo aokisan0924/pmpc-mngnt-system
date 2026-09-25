@@ -135,4 +135,21 @@ class EmployeeController extends Controller
 
         return back()->with('success', 'Compensation updated.');
     }
+
+    public function updateGovIds(Request $request, Employee $employee): RedirectResponse
+    {
+        $validated = $request->validate([
+            'sss_no' => ['nullable', 'string', 'max:50'],
+            'philhealth_no' => ['nullable', 'string', 'max:50'],
+            'tin_no' => ['nullable', 'string', 'max:50'],
+            'pagibig_no' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $employee->governmentIds()->updateOrCreate(
+            ['employee_id' => $employee->id],
+            $validated
+        );
+
+        return back()->with('success', "Government IDs updated for {$employee->full_name}.");
+    }
 }

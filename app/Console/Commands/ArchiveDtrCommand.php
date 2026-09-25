@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\DtrLog;
 use App\Models\Employee;
+use App\Models\Setting;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -31,6 +32,15 @@ class ArchiveDtrCommand extends Command
         $employees = Employee::where('is_staff', true)
             ->where('status', 'active')
             ->get();
+
+        $settings = Setting::getMany([
+            'coop_name',
+            'coop_address',
+            'signatory_1_name',
+            'signatory_1_role',
+            'signatory_2_name',
+            'signatory_2_role',
+        ]);
 
         $this->info("Archiving DTR for {$label} — {$employees->count()} employees");
         $bar = $this->output->createProgressBar($employees->count());
@@ -74,6 +84,7 @@ class ArchiveDtrCommand extends Command
                 'month' => $from->format('F Y'),
                 'calendar' => $calendar,
                 'summary' => $summary,
+                'settings' => $settings,
             ])->setPaper('a4', 'portrait');
 
             $filename = "{$zipDir}/{$employee->employee_id}_{$label}_DTR.pdf";

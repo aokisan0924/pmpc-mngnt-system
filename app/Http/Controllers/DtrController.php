@@ -148,6 +148,8 @@ class DtrController extends Controller
 
     public function requestEdit(DtrEditRequestSubmissionRequest $request, DtrLog $dtrLog): RedirectResponse
     {
+        abort_if($dtrLog->employee_id !== $request->user()->id, 403, 'Unauthorized access to this attendance record.');
+
         $validated = $request->validated();
 
         // Block if there's already a pending request for this log

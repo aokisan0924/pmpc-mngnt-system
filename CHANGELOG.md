@@ -7,7 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **IDOR Protection on DTR Edit Requests**: Enforced strict employee ownership check (`abort_if($dtrLog->employee_id !== $request->user()->id, 403)`) in `DtrController::requestEdit()` and Form Request authorization in `DtrEditRequestSubmissionRequest.php`, preventing horizontal privilege escalation attacks across employee attendance records.
+
+### Added
+
+- **Draft Payroll Batch Discard Lifecycle**: Added `destroy()` method in `PayrollController.php`, registered route `DELETE /admin/payroll/{payroll}`, and integrated a "Discard Draft" confirmation modal and button in `PayrollShow.jsx`, allowing administrators to cleanly discard erroneous draft batches while immutably locking finalized payrolls.
+- **Administrator Government IDs Management**: Added `updateGovIds()` endpoint in `EmployeeController.php`, registered `PATCH /admin/employees/{employee}/government-ids`, and added a dedicated "Government IDs" tab in `Admin/EmployeeShow.jsx` for viewing and editing Philippine statutory IDs (SSS, PhilHealth, TIN, Pag-IBIG).
+- **Automated Testing Suite & Model Factories**: Created Eloquent model factories (`EmployeeFactory`, `DtrLogFactory`, `PayrollFactory`, `PayrollItemFactory`, `DtrEditRequestFactory`) and comprehensive feature test suites (`DtrPunchFlowTest`, `DtrEditRequestSecurityTest`, `PayrollCalculationTest`, `EmployeeGovernmentIdsTest`), testing 4-punch state sequence, IDOR protection, 1st/2nd cutoff calculations, and role-based permissions.
+- **Missing Employee Model Relationships**: Added `tasks()`, `payrollItems()`, `thirteenthMonthPays()`, and `notifications()` Eloquent relationships on `Employee.php` to prevent `BadMethodCallException` and support eager loading across reports.
+- **Admin Unread Notifications Count**: Updated `HandleInertiaRequests.php` to calculate and share unread notification counts for super administrators in Inertia page props.
+- **Explicit React Dependency**: Explicitly documented direct dependency `"react": "^19.2.7"` in `package.json`.
+
 ### Fixed
+
+- **Critical DTR Archive Crash**: Injected global `$settings` into `ArchiveDtrCommand.php` when rendering the `dtr.print` template, fixing the fatal `Undefined variable $settings` crash during monthly attendance archiving.
+- **Production Logging Overhead**: Removed high-frequency per-request `Log::info('EnsureRole check', ...)` logging from `EnsureRole.php` middleware to eliminate disk I/O bottlenecks.
+- **Financial Ledger Discrepancy & Rental Deductions**: Included `rental_deduction` in `PayslipController.php` and `single.blade.php`, ensuring complete parity across database schemas, payroll batches, and printed employee payslips.
+- **13th Month Immutability Violation**: Added guard check in `ThirteenthMonthController.php` preventing finalized 13th month batches from being overwritten or reset back to draft.
+- **Admin Dashboard & Attendance N+1 Database Queries**: Optimized `AdminDashboardController.php` (batching daily DTR records & grouping department aggregates) and `AdminDtrController.php` (batching staff DTR logs) to eliminate per-row database roundtrips.
+- **Payroll Analytics Query Optimization**: Consolidated redundant triple-join queries in `PayrollAnalyticsController.php` into a single aggregate query and corrected the average net pay per employee calculation.
 
 - **Admin Filter Control Semantics**: Replaced misleading ARIA tab roles on employee status, DTR request, employee record, and settings switches with pressed-button groups because these controls do not expose persistent tab panels.
 - **Employee Dashboard Data and Bundle Reliability**: Added the missing Carbon import used by finalized payslip summaries and switched Inertia page resolution from eager loading to route-level lazy loading, reducing the initial JavaScript payload while retaining explicit unknown-page errors.
@@ -37,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **DTR Export Accounting Signatory**: Updated the default Accounting Clerk signatory name in `Setting.php` and active system settings to `Katherine B. Sevilleno`, ensuring exported DTR print timesheets accurately credit the designated reviewer.
 - **Mobile Punch Access**: Promoted the employee dashboard punch control to a persistent mobile action dock above the bottom navigation and moved it ahead of the punch timeline on larger screens, keeping the next required DTR action within immediate reach.
 - **Admin Operations Workspaces**: Unified the dashboard, employee records, DTR review, payroll, analytics, 13th-month, archives, and settings routes around a responsive deep-purple command header, clearer operational context, stronger workspace cards, and mobile-safe controls without changing routes, permissions, or backend workflows.
 - **Employee Self-Service Workspaces**: Reframed Attendance, Work Planner, Payslips, Profile, and Notifications with a shared employee-green page header, clearer page purpose and status context, stronger workspace cards and toolbars, a guided payslip empty state, mobile-scrollable profile navigation, and accessible pressed-button filters.

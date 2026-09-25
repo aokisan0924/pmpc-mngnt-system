@@ -11,7 +11,9 @@ class DtrEditRequestSubmissionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user() !== null;
+        $dtrLog = $this->route('dtrLog');
+
+        return $this->user() !== null && $dtrLog && $dtrLog->employee_id === $this->user()->id;
     }
 
     /**

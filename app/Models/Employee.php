@@ -94,6 +94,26 @@ class Employee extends Authenticatable
         return $this->hasMany(DtrEditRequest::class);
     }
 
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    public function payrollItems()
+    {
+        return $this->hasMany(PayrollItem::class);
+    }
+
+    public function thirteenthMonthPays()
+    {
+        return $this->hasMany(ThirteenthMonthPay::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(EmployeeNotification::class);
+    }
+
     public static function generateEmployeeId(): string
     {
         $latestEmpId = static::where('employee_id', 'LIKE', 'EMP-%')

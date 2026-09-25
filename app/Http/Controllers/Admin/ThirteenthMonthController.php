@@ -105,6 +105,15 @@ class ThirteenthMonthController extends Controller
     {
         $validated = $request->validated();
 
+        $alreadyFinalized = ThirteenthMonthPay::where('year', $validated['year'])
+            ->where('tranche', $validated['tranche'])
+            ->where('status', 'finalized')
+            ->exists();
+
+        if ($alreadyFinalized) {
+            return back()->withErrors(['error' => 'This 13th month pay batch has already been finalized and is immutable.']);
+        }
+
         DB::transaction(function () use ($validated, $request) {
             foreach ($validated['items'] as $item) {
                 ThirteenthMonthPay::updateOrCreate(

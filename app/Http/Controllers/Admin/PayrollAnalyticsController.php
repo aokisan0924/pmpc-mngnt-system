@@ -110,28 +110,29 @@ class PayrollAnalyticsController extends Controller
         }
 
         // ── 4. KPI summary cards ───────────────────────────
-        $kpis = [
-            'total_payroll_cost' => PayrollItem::join('payrolls', 'payroll_items.payroll_id', '=', 'payrolls.id')
-                ->where('payrolls.status', 'finalized')
-                ->sum('payroll_items.gross_pay'),
-            'total_net_paid' => PayrollItem::join('payrolls', 'payroll_items.payroll_id', '=', 'payrolls.id')
-                ->where('payrolls.status', 'finalized')
-                ->sum('payroll_items.net_pay'),
-            'total_deductions' => PayrollItem::join('payrolls', 'payroll_items.payroll_id', '=', 'payrolls.id')
-                ->where('payrolls.status', 'finalized')
-                ->sum('payroll_items.total_deductions'),
-            'total_payrolls' => Payroll::where('status', 'finalized')->count(),
-            'active_employees' => Employee::where('is_staff', true)->where('status', 'active')->count(),
-            'avg_net_per_employee' => 0,
-            'latest_period' => $latestPayroll?->period_label ?? '—',
-            'latest_net' => $latestPayroll
-                ? PayrollItem::where('payroll_id', $latestPayroll->id)->sum('net_pay')
-                : 0,
-        ];
+        $finalizedTotals = PayrollItem::join('payrolls', 'payroll_items.payroll_id', '=', 'payrolls.id')
+            ->where('payrolls.status', 'finalized')
+            ->selectRaw('COALESCE(SUM(payroll_items.gross_pay), 0) as total_gross, COALESCE(SUM(payroll_items.net_pay), 0) as total_net, COALESCE(SUM(payroll_items.total_deductions), 0) as total_deductions')
+            ->first();
 
-        if ($kpis['active_employees'] > 0) {
-            $kpis['avg_net_per_employee'] = $kpis['total_net_paid'] / $kpis['active_employees'];
-        }
+        $activeStaffCount = Employee::where('is_staff', true)->where('status', 'active')->count();
+        $latestBatchNet = $latestPayroll
+            ? (float) PayrollItem::where('payroll_id', $latestPayroll->id)->sum('net_pay')
+            : 0.0;
+        $latestBatchCount = $latestPayroll
+            ? PayrollItem::where('payroll_id', $latestPayroll->id)->count()
+            : 0;
+
+        $kpis = [
+            'total_payroll_cost' => (float) ($finalizedTotals?->total_gross ?? 0),
+            'total_net_paid' => (float) ($finalizedTotals?->total_net ?? 0),
+            'total_deductions' => (float) ($finalizedTotals?->total_deductions ?? 0),
+            'total_payrolls' => Payroll::where('status', 'finalized')->count(),
+            'active_employees' => $activeStaffCount,
+            'avg_net_per_employee' => $latestBatchCount > 0 ? round($latestBatchNet / $latestBatchCount, 2) : 0,
+            'latest_period' => $latestPayroll?->period_label ?? '—',
+            'latest_net' => $latestBatchNet,
+        ];
 
         // ── 5. Headcount vs payroll cost over time ─────────
         // Already in monthlyTrend — headcount field included
