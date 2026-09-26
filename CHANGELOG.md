@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Admin Dashboard White Screen**: Restored the missing `currentUrl` declaration in `AdminLayout.jsx`, preventing the navigation active-state calculation from throwing a client-side `ReferenceError` and blocking all authenticated admin pages from rendering.
 - **WCAG 2.1 Level AA Full Accessibility Compliance**: Conducted comprehensive automated and manual accessibility audits across all 17 public, employee, and admin portal views, resolving 19 identified violations down to 0:
   - **Color Contrast Optimization (WCAG 1.4.3)**: Adjusted `--color-dim` in `app.css` from `#94A3B8` (2.54:1) to `#64748B` (4.67:1 in light mode) and `#94A3B8` in dark mode, ensuring all muted table cells, subtitles, and captions satisfy the 4.5:1 minimum threshold. Upgraded table status indicator classes across DTR and Payroll tables (`text-emerald-700`, `text-amber-700`, `text-rose-700`, `text-sky-700`) and sidebar section header captions (`text-white/80`).
   - **Form Control Label Associations (WCAG 1.3.1, 4.1.2)**: Added accessible label associations and `aria-label` attributes to the staff search input in `Admin/Employees.jsx` and the Calendar Year input in `Admin/ThirteenthMonth.jsx` (`htmlFor="calendar-year"`).

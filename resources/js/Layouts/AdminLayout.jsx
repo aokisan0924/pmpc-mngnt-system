@@ -156,6 +156,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
     const page = usePage()
     const { auth } = page.props
     const employee = auth?.employee
+    const currentUrl = window.location.pathname
     useTheme()
     const [drawerOpen, setDrawerOpen] = useState(false)
     const canViewRequests = employee?.can_view_dtr_requests ?? true
