@@ -160,20 +160,23 @@ test.describe('PMPC WorkForce Smoke & Design Verification', () => {
         }
     })
 
-    test('6. Admin Portal - Dark Theme Core Workspaces', async ({ page }) => {
+    test('6. Saved dark preference no longer activates dark mode', async ({ page }) => {
         await page.addInitScript(() => window.localStorage.setItem('pmpc-theme', 'dark'))
         await page.goto('/login')
+        await expect(page.locator('html')).not.toHaveClass(/dark/)
+        await expect.poll(() => page.evaluate(() => window.localStorage.getItem('pmpc-theme'))).toBe('light')
         await page.locator('input[type="text"], input[name="identifier"], input[type="email"]').first().fill('jeffraesapla24@gmail.com')
         await page.locator('input[type="password"]').first().fill('admin123')
         await page.locator('button[type="submit"]').click()
         await page.waitForURL('**/admin/dashboard', { timeout: 10000 })
-        await expect(page.locator('html')).toHaveClass(/dark/)
-        await page.waitForTimeout(400)
-        await page.screenshot({ path: 'output/admin-dashboard-dark.png', fullPage: true })
+        await expect(page.locator('html')).not.toHaveClass(/dark/)
 
         await page.goto('/admin/settings')
         await expect(page.getByRole('heading', { name: 'System Settings', exact: true })).toBeVisible()
-        await page.waitForTimeout(400)
-        await page.screenshot({ path: 'output/admin-settings-dark.png', fullPage: true })
+        await expect(page.locator('html')).not.toHaveClass(/dark/)
+
+        await page.goto('/employee/dtr')
+        await expect(page.getByRole('heading', { name: 'Daily Time Record', exact: true })).toBeVisible()
+        await expect(page.locator('html')).not.toHaveClass(/dark/)
     })
 })

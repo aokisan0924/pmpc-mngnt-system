@@ -1,39 +1,17 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 const STORAGE_KEY = 'pmpc-theme'
 
-function getInitialTheme() {
-    if (typeof window === 'undefined') return 'light'
-
-    const stored = window.localStorage.getItem(STORAGE_KEY)
-    if (stored === 'light' || stored === 'dark') return stored
-
-    // New visitors start in light mode. Their explicit toggle choice is saved.
-    return 'light'
-}
-
 /**
- * Shared light/dark theme state. Applies the `dark` class to <html>,
- * which every semantic color token in app.css (--color-bg, --color-text,
- * etc.) responds to automatically — no per-component theme logic needed
- * beyond using the `bg-bg`, `text-text`, etc. utility classes.
+ * Keep every portal in light mode, including browsers with an old dark preference.
  */
 export default function useTheme() {
-    const [theme, setTheme] = useState(getInitialTheme)
-
     useEffect(() => {
-        const root = document.documentElement
-        if (theme === 'dark') {
-            root.classList.add('dark')
-        } else {
-            root.classList.remove('dark')
+        document.documentElement.classList.remove('dark')
+        try {
+            window.localStorage.setItem(STORAGE_KEY, 'light')
+        } catch {
+            // Light mode still applies when browser storage is unavailable.
         }
-        window.localStorage.setItem(STORAGE_KEY, theme)
-    }, [theme])
-
-    const toggleTheme = useCallback(() => {
-        setTheme(t => (t === 'dark' ? 'light' : 'dark'))
     }, [])
-
-    return { theme, toggleTheme, isDark: theme === 'dark' }
 }

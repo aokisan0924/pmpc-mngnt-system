@@ -6,7 +6,7 @@ Calm operational workspace for recurring HR work. The interface prioritizes the 
 
 ## Color and Theme
 
-Light mode is the default for daylight office and mobile use. Dark mode remains available for preference and lower-light work. Employee actions use PMPC green; administrator actions use deep purple. Status colors communicate state, not portal identity.
+Light mode is the only application theme for consistent daylight office and mobile use. Old browser dark-mode preferences are reset to light. Employee actions use PMPC green; administrator actions use deep purple. Status colors communicate state, not portal identity.
 
 ## Typography
 
@@ -68,6 +68,5 @@ The next required DTR punch remains persistently available above the employee bo
 - **Operations Dashboard (`/admin/dashboard`)**: Operations overview console, Manila live clock, payroll cutoff tactical deck, workforce telemetry stat cards, pending DTR edit requests triage with accessible decline dialog, and real-time attendance search roster.
 - **Admin Page Header (`AdminPageHeader.jsx`)**: Standardized with authentic PMPC watermark emblem, dual radial depth lighting, swiss-grid texture, and high-contrast action buttons.
 
-Last updated: 2026-09-25
-
+Last updated: 2026-09-29 - Removed the user-selectable dark theme and made existing dark preferences resolve to light.
 
