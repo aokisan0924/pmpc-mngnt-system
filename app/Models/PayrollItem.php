@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\OfficePayrollCalculator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -10,10 +11,16 @@ class PayrollItem extends Model
     use HasFactory;
 
     protected $fillable = [
+        'basic_before_absence',
+        'absence_deduction',
         'payroll_id',
         'employee_id',
         'cutoff',
         'days_present',
+        'payroll_office',
+        'paid_days_basis',
+        'absence_days',
+        'tardiness_deduction',
         'cutoff_basic',
         'cutoff_transpo',
         'cutoff_rep',
@@ -40,6 +47,8 @@ class PayrollItem extends Model
     ];
 
     protected $casts = [
+        'basic_before_absence' => 'float',
+        'absence_deduction' => 'float',
         'cutoff_basic' => 'float',
         'cutoff_transpo' => 'float',
         'cutoff_rep' => 'float',
@@ -83,6 +92,16 @@ class PayrollItem extends Model
     public function computeTotals(bool $isFirst): void
     {
         $emp = $this->employee;
+
+        if ($this->payroll_office !== null) {
+            $this->fill(app(OfficePayrollCalculator::class)->calculate(
+                $emp, $isFirst, (float) $this->paid_days_basis, (float) $this->absence_days,
+                (float) $this->weekday_ot_hours, (float) $this->weekend_ot_hours, (float) $this->tardiness_deduction,
+                $this->only(['sss_deduction', 'philhealth_deduction', 'pagibig_deduction', 'tax_deduction', 'loan_deduction', 'capital_contribution_deduction', 'cash_advance_deduction', 'rental_deduction', 'savings_deduction', 'other_deductions']),
+            ));
+
+            return;
+        }
 
         // OT pay
         $hourlyRate = $emp->daily_rate / 8;

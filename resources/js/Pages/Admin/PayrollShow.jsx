@@ -5,6 +5,7 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Button from '@/Components/UI/Button'
 import ConfirmModal from '@/Components/ConfirmModal'
 import AdminPageHeader from '@/Components/AdminPageHeader'
+import PayrollExcelExport from '@/Components/PayrollExcelExport'
 
 function fmt(num) {
     return Number(num || 0).toLocaleString('en-PH', {
@@ -13,9 +14,8 @@ function fmt(num) {
     })
 }
 
-export default function PayrollShow({ payroll, items = [] }) {
-    const { flash } = usePage().props
-    const isFirst   = payroll.cutoff === 'first'
+export default function PayrollShow({ payroll, items = [], signatureEmployees = [] }) {
+    const { flash, errors } = usePage().props
 
     const [confirmOpen, setConfirmOpen]   = useState(false)
     const [processing, setProcessing]     = useState(false)
@@ -49,6 +49,7 @@ export default function PayrollShow({ payroll, items = [] }) {
     return (
         <AdminLayout>
             <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
+                {errors?.export && <div role="alert" className="rounded-xl bg-rose-50 p-4 text-sm text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">{errors.export}</div>}
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
@@ -65,8 +66,11 @@ export default function PayrollShow({ payroll, items = [] }) {
                     meta={<Link href="/admin/payroll" className="font-medium text-indigo-100 hover:text-white">← Back to Payroll Ledger</Link>}
                     action={
                     <div className="flex flex-wrap items-center gap-3">
+                        <a href="#payroll-excel-export" className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-white/20 sm:text-sm">
+                            Export Management Excel
+                        </a>
                         <a
-                            href={`/admin/payslips/download-all?month=${payroll.period_from?.slice(0, 7)}`}
+                            href={`/admin/payslips/download-all?month=${payroll.month_key}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-white/20 sm:text-sm"
@@ -100,6 +104,7 @@ export default function PayrollShow({ payroll, items = [] }) {
                 />
 
                 {/* ── Summary Cards ──────────────────────────────────── */}
+                <PayrollExcelExport payroll={payroll} employees={signatureEmployees} />
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <Card>
                         <CardContent className="p-4 sm:p-5">
@@ -149,7 +154,7 @@ export default function PayrollShow({ payroll, items = [] }) {
                                     <th scope="col" rowSpan={2} className="text-right px-4 py-2 font-semibold text-[11px] uppercase text-emerald-600 dark:text-emerald-400 border-l border-border/80" style={{ verticalAlign: 'middle' }}>
                                         Gross Pay
                                     </th>
-                                    <th scope="colgroup" colSpan={isFirst ? 5 : 1} className="text-center px-3 py-2 font-semibold text-[11px] uppercase text-rose-600 dark:text-rose-400 border-l border-border/80">
+                                    <th scope="colgroup" colSpan={5} className="text-center px-3 py-2 font-semibold text-[11px] uppercase text-rose-600 dark:text-rose-400 border-l border-border/80">
                                         Deductions
                                     </th>
                                     <th scope="col" rowSpan={2} className="text-right px-5 py-2 font-semibold text-[11px] uppercase text-text border-l border-border/80" style={{ verticalAlign: 'middle' }}>
@@ -162,14 +167,12 @@ export default function PayrollShow({ payroll, items = [] }) {
                                     <th scope="col" className="text-right px-3 py-2 font-medium">Rep</th>
                                     <th scope="col" className="text-right px-3 py-2 font-medium">Quarterly</th>
                                     <th scope="col" className="text-right px-3 py-2 font-medium">OT Pay</th>
-                                    {isFirst && (
-                                        <>
+
                                             <th scope="col" className="text-right px-3 py-2 font-medium border-l border-border/80">SSS</th>
                                             <th scope="col" className="text-right px-3 py-2 font-medium">PhilHealth</th>
                                             <th scope="col" className="text-right px-3 py-2 font-medium">Pag-IBIG</th>
                                             <th scope="col" className="text-right px-3 py-2 font-medium">Tax</th>
-                                        </>
-                                    )}
+
                                     <th scope="col" className="text-right px-3 py-2 font-medium border-l border-border/80">Other Ded.</th>
                                 </tr>
                             </thead>
@@ -181,6 +184,7 @@ export default function PayrollShow({ payroll, items = [] }) {
                                         + (parseFloat(item.rental_deduction) || 0)
                                         + (parseFloat(item.savings_deduction) || 0)
                                         + (parseFloat(item.other_deductions) || 0)
+                                        + (parseFloat(item.tardiness_deduction) || 0)
 
                                     return (
                                         <tr key={item.id} className="hover:bg-field/40 transition-colors">
@@ -195,7 +199,8 @@ export default function PayrollShow({ payroll, items = [] }) {
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-3 py-3.5 text-center font-semibold text-text">{item.days_present}</td>
+                                            <td className="px-3 py-3.5 text-center font-semibold text-text">{item.days_present}
+                                                {item.payroll_office && <p className="text-[10px] text-sub">{item.payroll_office_label} · {item.paid_days_basis} paid − {item.absence_days} absent</p>}</td>
                                             <td className="px-3 py-3.5 text-right font-medium text-text border-l border-border/80">₱ {fmt(item.cutoff_basic)}</td>
                                             <td className="px-3 py-3.5 text-right text-sub">₱ {fmt(item.cutoff_transpo)}</td>
                                             <td className="px-3 py-3.5 text-right text-sub">₱ {fmt(item.cutoff_rep)}</td>
@@ -210,14 +215,12 @@ export default function PayrollShow({ payroll, items = [] }) {
                                             <td className="px-4 py-3.5 text-right font-semibold text-text border-l border-border/80">
                                                 ₱ {fmt(item.gross_pay)}
                                             </td>
-                                            {isFirst && (
-                                                <>
+
                                                     <td className="px-3 py-3.5 text-right text-rose-600 border-l border-border/80">₱ {fmt(item.sss_deduction)}</td>
                                                     <td className="px-3 py-3.5 text-right text-rose-600">₱ {fmt(item.philhealth_deduction)}</td>
                                                     <td className="px-3 py-3.5 text-right text-rose-600">₱ {fmt(item.pagibig_deduction)}</td>
                                                     <td className="px-3 py-3.5 text-right text-rose-600">₱ {fmt(item.tax_deduction)}</td>
-                                                </>
-                                            )}
+
                                             <td className="px-3 py-3.5 text-right text-rose-600 border-l border-border/80">
                                                 -₱ {fmt(splitDed)}
                                             </td>
@@ -240,7 +243,7 @@ export default function PayrollShow({ payroll, items = [] }) {
                                     <td className="px-4 py-3.5 text-right text-text font-bold border-l border-border/80">
                                         ₱ {fmt(payroll.total_gross)}
                                     </td>
-                                    <td colSpan={isFirst ? 5 : 1} className="px-3 py-3.5 text-right text-rose-600 border-l border-border/80">
+                                    <td colSpan={5} className="px-3 py-3.5 text-right text-rose-600 border-l border-border/80">
                                         -₱ {fmt(payroll.total_deductions)}
                                     </td>
                                     <td className="px-5 py-3.5 text-right text-emerald-600 font-heading font-bold text-base border-l border-border/80">

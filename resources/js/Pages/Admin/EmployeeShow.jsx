@@ -3,6 +3,7 @@ import { useForm, usePage, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Button from '@/Components/UI/Button'
 import AdminPageHeader from '@/Components/AdminPageHeader'
+import EmployeeSignatureUpload from '@/Components/EmployeeSignatureUpload'
 
 const inputClass = "w-full px-3 py-2.5 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors placeholder:text-dim"
 
@@ -181,6 +182,7 @@ export default function EmployeeShow({ employee, govIds }) {
                 />
 
                 {/* Tabs */}
+                <EmployeeSignatureUpload employee={employee} />
                 <div
                     role="group"
                     aria-label="Employee profile sections"

@@ -11,10 +11,11 @@ use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
-use App\Models\Setting;
+use App\Services\OfficePayrollCalculator;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -50,78 +51,32 @@ class PayrollController extends Controller
         $from = Carbon::parse($validated['period_from']);
         $to = Carbon::parse($validated['period_to']);
         $isFirst = $validated['cutoff'] === 'first';
-
-        $employees = Employee::where('is_staff', true)
-            ->where('status', 'active')
-            ->get()
-            ->map(function ($emp) use ($from, $to, $isFirst) {
-
-                $daysPresent = DtrLog::where('employee_id', $emp->id)
-                    ->whereBetween('date', [$from, $to])
-                    ->whereNotIn('status', ['absent'])
-                    ->sum(DB::raw("CASE WHEN status = 'half_day' THEN 0.5 ELSE 1 END"));
-
-                $workingDays = (int) Setting::get('working_days_month', 22);
-                $monthlyBasic = $emp->daily_rate * $workingDays; // reference figure only (full-attendance monthly basic)
-                $cutoffBasic = round($emp->daily_rate * $daysPresent, 2); // prorated by actual attendance (half_day = 0.5 day)
-                $cutoffTranspo = round($emp->transpo_allowance / 2, 2);
-                $cutoffRep = round($emp->rep_allowance / 2, 2);
-                $cutoffQuart = round($emp->quarterly_allowance / 2, 2);
-                $cutoffGross = $cutoffBasic + $cutoffTranspo + $cutoffRep + $cutoffQuart;
-
-                $hourlyRate = $emp->daily_rate / 8;
-
-                // Deductions
-                $sss = $isFirst ? $emp->sss_deduction : 0;
-                $philhealth = $isFirst ? $emp->philhealth_deduction : 0;
-                $pagibig = $isFirst ? $emp->pagibig_deduction : 0;
-                $tax = $isFirst ? $emp->tax_deduction : 0;
-
-                $loan = round($emp->loan_deduction / 2, 2);
-                $cc = round($emp->capital_contribution_deduction / 2, 2);
-                $cashAdv = round($emp->cash_advance_deduction / 2, 2);
-                $rental = round($emp->rental_deduction / 2, 2);
-                $savings = round($emp->savings_deduction / 2, 2);
-                $other = round($emp->other_deductions / 2, 2);
-
-                $totalDeductions = $sss + $philhealth + $pagibig + $tax
-                                + $loan + $cc + $cashAdv + $rental + $savings + $other;
+        $attendance = DtrLog::whereBetween('date', [$from, $to])
+            ->whereNotIn('status', ['absent'])
+            ->selectRaw("employee_id, SUM(CASE WHEN status = 'half_day' THEN 0.5 ELSE 1 END) AS days")
+            ->groupBy('employee_id')->pluck('days', 'employee_id');
+        $employees = Employee::where('is_staff', true)->where('status', 'active')->get()
+            ->map(function (Employee $emp) use ($attendance, $isFirst): array {
+                $suggestions = app(OfficePayrollCalculator::class)->calculate($emp, $isFirst, 11, 0);
 
                 return [
                     'id' => $emp->id,
                     'employee_id' => $emp->employee_id,
                     'full_name' => $emp->full_name,
-                    'initials' => $emp->initials,
-                    'department' => $emp->department,
-                    'position' => $emp->position,
                     'daily_rate' => $emp->daily_rate,
-                    'days_present' => $daysPresent,
-                    // Gross breakdown
-                    'monthly_basic' => $monthlyBasic,
-                    'cutoff_basic' => $cutoffBasic,
-                    'cutoff_transpo' => $cutoffTranspo,
-                    'cutoff_rep' => $cutoffRep,
-                    'cutoff_quarterly' => $cutoffQuart,
-                    'cutoff_gross' => $cutoffGross,
-                    'hourly_rate' => round($hourlyRate, 4),
-                    // OT (admin will input)
+                    'transpo_allowance' => $emp->transpo_allowance,
+                    'rep_allowance' => $emp->rep_allowance,
+                    'quarterly_allowance' => $emp->quarterly_allowance,
+                    'compensation_signature' => app(OfficePayrollCalculator::class)->compensationSignature($emp),
+                    'dtr_days_present' => (float) ($attendance[$emp->id] ?? 0),
+                    'payroll_office' => '',
+                    'paid_days_basis' => 11,
+                    'absence_days' => 0,
                     'weekday_ot_hours' => 0,
                     'weekend_ot_hours' => 0,
-                    // Deductions
-                    'sss_deduction' => $sss,
-                    'philhealth_deduction' => $philhealth,
-                    'pagibig_deduction' => $pagibig,
-                    'tax_deduction' => $tax,
-                    'loan_deduction' => $loan,
-                    'capital_contribution_deduction' => $cc,
-                    'cash_advance_deduction' => $cashAdv,
-                    'rental_deduction' => $rental,
-                    'savings_deduction' => $savings,
-                    'other_deductions' => $other,
-                    'total_deductions' => $totalDeductions,
-                    // Net preview
-                    'gross_pay' => $cutoffGross,
-                    'net_pay' => $cutoffGross - $totalDeductions,
+                    'tardiness_deduction' => 0,
+                    'deductions_reviewed' => false,
+                    'deductions' => collect($suggestions)->only(OfficePayrollCalculator::DEDUCTIONS)->all(),
                 ];
             });
 
@@ -132,6 +87,7 @@ class PayrollController extends Controller
             'period_label' => $from->format('M d').' – '.$to->format('M d, Y'),
             'cutoff' => $validated['cutoff'],
             'is_first' => $isFirst,
+            'offices' => OfficePayrollCalculator::OFFICES,
         ]);
     }
 
@@ -142,9 +98,8 @@ class PayrollController extends Controller
 
         // Preload all submitted employees to prevent N+1 queries during item creation
         $employeeIds = collect($validated['items'])->pluck('employee_id')->all();
-        $employees = Employee::whereIn('id', $employeeIds)->get()->keyBy('id');
-
-        $payroll = DB::transaction(function () use ($validated, $employees, $isFirst, $request) {
+        $payroll = DB::transaction(function () use ($validated, $employeeIds, $isFirst, $request) {
+            $employees = Employee::whereIn('id', $employeeIds)->where('is_staff', true)->where('status', 'active')->lockForUpdate()->get()->keyBy('id');
             $payroll = Payroll::create([
                 'period_label' => $validated['period_label'],
                 'period_from' => $validated['period_from'],
@@ -157,7 +112,10 @@ class PayrollController extends Controller
             foreach ($validated['items'] as $itemData) {
                 $emp = $employees->get($itemData['employee_id']);
                 if (! $emp) {
-                    continue;
+                    throw ValidationException::withMessages(['items' => 'An employee is no longer available. Reload the payroll preview.']);
+                }
+                if (! hash_equals(app(OfficePayrollCalculator::class)->compensationSignature($emp), $itemData['compensation_signature'])) {
+                    throw ValidationException::withMessages(['items' => 'An employee’s rate or allowances changed. Reload and review the payroll preview.']);
                 }
 
                 $item = new PayrollItem;
@@ -165,12 +123,20 @@ class PayrollController extends Controller
                 $item->employee_id = $emp->id;
                 $item->cutoff = $validated['cutoff'];
                 $item->days_present = $itemData['days_present'] ?? 0;
+                $item->payroll_office = $itemData['payroll_office'];
+                $item->paid_days_basis = $itemData['paid_days_basis'];
+                $item->absence_days = $itemData['absence_days'];
+                $item->tardiness_deduction = $itemData['tardiness_deduction'];
                 $item->weekday_ot_hours = floatval($itemData['weekday_ot_hours'] ?? 0);
                 $item->weekend_ot_hours = floatval($itemData['weekend_ot_hours'] ?? 0);
 
                 // Eager load employee for computeTotals
                 $item->setRelation('employee', $emp);
-                $item->computeTotals($isFirst);
+                $item->fill(app(OfficePayrollCalculator::class)->calculate(
+                    $emp, $isFirst, (float) $item->paid_days_basis, (float) $item->absence_days,
+                    (float) $item->weekday_ot_hours, (float) $item->weekend_ot_hours,
+                    (float) $item->tardiness_deduction, $itemData['deductions'],
+                ));
                 $item->save();
             }
 
@@ -196,6 +162,11 @@ class PayrollController extends Controller
                 'department' => $item->employee->department,
                 'position' => $item->employee->position,
                 'days_present' => $item->days_present,
+                'payroll_office' => $item->payroll_office,
+                'payroll_office_label' => OfficePayrollCalculator::OFFICES[$item->payroll_office]['label'] ?? null,
+                'paid_days_basis' => $item->paid_days_basis,
+                'absence_days' => $item->absence_days,
+                'tardiness_deduction' => $item->tardiness_deduction,
                 'cutoff_basic' => $item->cutoff_basic,
                 'cutoff_transpo' => $item->cutoff_transpo,
                 'cutoff_rep' => $item->cutoff_rep,
@@ -222,12 +193,14 @@ class PayrollController extends Controller
             ]);
 
         return Inertia::render('Admin/PayrollShow', [
+            'signatureEmployees' => Employee::whereNotNull('signature_path')->orderBy('first_name')->get(['id', 'employee_id', 'first_name', 'last_name'])->map(fn (Employee $employee) => ['id' => $employee->id, 'name' => $employee->full_name, 'employee_id' => $employee->employee_id]),
             'payroll' => [
                 'id' => $payroll->id,
                 'period_label' => $payroll->period_label,
                 'cutoff' => $payroll->cutoff,
                 'cutoff_label' => $payroll->cutoff === 'first' ? '1st Cutoff (1–15)' : '2nd Cutoff (16–30)',
                 'period_from' => $payroll->period_from->format('M d, Y'),
+                'month_key' => $payroll->period_from->format('Y-m'),
                 'period_to' => $payroll->period_to->format('M d, Y'),
                 'status' => $payroll->status,
                 'total_gross' => $payroll->total_gross,

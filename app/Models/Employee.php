@@ -44,11 +44,13 @@ class Employee extends Authenticatable
     ];
 
     protected $hidden = [
+        'signature_path',
         'password',
         'remember_token',
     ];
 
     protected $casts = [
+        'signature_uploaded_at' => 'datetime',
         'date_hired' => 'date',
         'password' => 'hashed',
         'is_staff' => 'boolean',

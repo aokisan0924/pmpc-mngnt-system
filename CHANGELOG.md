@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release classification: **MINOR**, because office payroll review, management Excel exports, and signature uploads add compatible features. A numbered version will be assigned when a release is explicitly cut.
+
+### Added
+
+- Upload, replace, privately preview and remove employee signature images, then choose separate first/second-cutoff Prepared by, Certified Correct and Approved by signatories for management Excel downloads. Images appear only in sign-off areas; unsigned selections stay blank.
+
+- Download saved monthly payroll as an Excel management workbook using a sanitized September template, with four office sheets, both cutoff sections, supplemental deduction details, and an accounting-review reconciliation. Missing cutoffs stay blank; export rejects duplicate batches, missing offices, or template capacity overflow without silently omitting employees. Payslip PDF downloads remain available.
+
+### Changed
+
+- Prepare office-based payroll with 11 paid days for Main Office, Fort Magsaysay, and Cubao, or 15 for General Merchandise, less verified absences; allow individual paid-day exceptions and retain DTR attendance as a reference only.
+- Require staff to select each payroll office and review editable per-cutoff deductions instead of inferring inconsistent office deduction policies from September workbook formulas. Suggest half-month withholding tax and full first-cutoff statutory contributions; record the reviewed amounts.
+
+### Fixed
+
+- Preserve the original management workbook package's typography, column widths, borders, logos and printer settings; restore original Basic Pay and Absent headings with monetary absence values. Store new basic-before-absence and absence-amount snapshots without changing saved gross/net payroll or deducting absences twice.
+
+- Calculate new payroll previews and stored amounts using component-level peso-cent rounding, store office/paid-day/absence inputs and tardiness deductions, and include tardiness in monthly payslip totals. Historical payroll figures remain unchanged.
+- Reject office payroll submissions if compensation changed after preview, and use a valid calendar month in the saved batch’s payslip download link.
+- Use DomPDF-compatible payslip layouts, visible peso symbols and net pay, and a local currency formatting closure so multi-employee PDF downloads do not redeclare a global function.
+
 ### Security
 
 - **DTR Edit Requests Permission Hardening & Access Control**: Enforced granular permission checks across DTR dispute workflows (`canManageDtrRequests`, `canViewDtrRequests`, and `canRequestDtrEdits` in `Employee.php`, `DtrEditRequestController.php`, `DtrEditRequestSubmissionRequest.php`, and `DtrController.php`). Restricted Reynold Valdez from visiting, viewing, approving, or declining DTR edit requests (returning HTTP 403 on `/admin/edit-requests` and approval/rejection endpoints, and hiding navigation menu items, dashboard quick action links, and triage cards), while retaining his ability to submit edit requests for his own attendance records via the employee portal. In the frontend, exposed `can_manage_dtr_requests`, `can_view_dtr_requests`, and `can_request_dtr_edits` through Inertia shared props (`AdminLayout.jsx`, `Admin/Dashboard.jsx`, `Admin/DtrEditRequests.jsx`).

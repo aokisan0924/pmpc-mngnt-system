@@ -132,12 +132,38 @@
     margin-top:16px; text-align:center; font-size:7.3px; color:#b0b5b3;
     border-top:1px solid #eef0ef; padding-top:8px;
   }
+
+  /* DomPDF uses table layouts; flexbox and gradients are unsupported. */
+  body { font-family: 'DejaVu Sans', sans-serif; }
+  .page { padding: 20px 24px; }
+  .header { display: table; width: 100%; }
+  .coop-block { display: table-cell; width: 65%; vertical-align: middle; }
+  .coop-mark { display: none; }
+  .payslip-label { display: table-cell; width: 35%; vertical-align: middle; }
+  .emp-info { display: table; width: 100%; table-layout: fixed; }
+  .emp-field { display: table-cell; width: 16.66%; min-width: 0; padding: 7px 8px; vertical-align: top; }
+  .ef-value { font-size: 9px; overflow-wrap: break-word; }
+  .cols { display: table; width: 100%; table-layout: fixed; }
+  .col { display: table-cell; width: 50%; vertical-align: top; }
+  .col:first-child { padding-right: 7px; }
+  .col:last-child { padding-left: 7px; }
+  .section-title, table.items tr.cutoff-header td { display: block; }
+  table.items tr.cutoff-header td { display: table-cell; }
+  table.items td { padding: 5px 8px; font-size: 8px; }
+  table.items td.amt, .net-box .net-amount { font-family: 'DejaVu Sans', sans-serif; }
+  .net-box { display: table; width: 100%; background: #0F6E56; }
+  .net-box > div { display: table-cell; width: 55%; vertical-align: middle; }
+  .net-box .net-amount { display: table-cell; width: 45%; text-align: right; vertical-align: middle; font-size: 17px; font-weight: 700; }
+  .net-box .net-label, .net-box .net-sub { color: #ffffff; }
+  .sigs { display: table; width: 100%; }
+  .sig-block { display: table-cell; width: 50%; padding: 0 22px; vertical-align: bottom; }
+  .sig-img-wrap { display: block; }
 </style>
 </head>
 <body>
 @php
     $d = $data;
-    function p($n) { return number_format((float)$n, 2); }
+    $p = fn ($n) => number_format((float) $n, 2);
 @endphp
 <div class="page">
 
@@ -176,7 +202,7 @@
         </div>
         <div class="emp-field">
             <div class="ef-label">Daily rate</div>
-            <div class="ef-value">₱ {{ p($d['daily_rate']) }}</div>
+            <div class="ef-value">₱ {{ $p($d['daily_rate']) }}</div>
         </div>
         <div class="emp-field" style="border-right:none">
             <div class="ef-label">Days worked</div>
@@ -204,41 +230,41 @@
                 </tr>
                 <tr class="indent">
                     <td class="label">Basic pay</td>
-                    <td class="amt">₱ {{ p($d['first_basic']) }}</td>
+                    <td class="amt">₱ {{ $p($d['first_basic']) }}</td>
                 </tr>
                 @if($d['first_transpo'] > 0)
                 <tr class="indent">
                     <td class="label">Transportation allowance</td>
-                    <td class="amt">₱ {{ p($d['first_transpo']) }}</td>
+                    <td class="amt">₱ {{ $p($d['first_transpo']) }}</td>
                 </tr>
                 @endif
                 @if($d['first_rep'] > 0)
                 <tr class="indent">
                     <td class="label">Representation allowance</td>
-                    <td class="amt">₱ {{ p($d['first_rep']) }}</td>
+                    <td class="amt">₱ {{ $p($d['first_rep']) }}</td>
                 </tr>
                 @endif
                 @if($d['first_quarterly'] > 0)
                 <tr class="indent">
                     <td class="label">Quarterly allowance</td>
-                    <td class="amt">₱ {{ p($d['first_quarterly']) }}</td>
+                    <td class="amt">₱ {{ $p($d['first_quarterly']) }}</td>
                 </tr>
                 @endif
                 @if($d['first_ot_weekday'] > 0)
                 <tr class="indent">
                     <td class="label">Overtime (weekday)</td>
-                    <td class="amt">₱ {{ p($d['first_ot_weekday']) }}</td>
+                    <td class="amt">₱ {{ $p($d['first_ot_weekday']) }}</td>
                 </tr>
                 @endif
                 @if($d['first_ot_weekend'] > 0)
                 <tr class="indent">
                     <td class="label">Overtime (weekend)</td>
-                    <td class="amt">₱ {{ p($d['first_ot_weekend']) }}</td>
+                    <td class="amt">₱ {{ $p($d['first_ot_weekend']) }}</td>
                 </tr>
                 @endif
                 <tr class="subtotal">
                     <td class="label">1st cutoff subtotal</td>
-                    <td class="amt">₱ {{ p($d['first_gross']) }}</td>
+                    <td class="amt">₱ {{ $p($d['first_gross']) }}</td>
                 </tr>
                 @endif
 
@@ -254,48 +280,48 @@
                 </tr>
                 <tr class="indent">
                     <td class="label">Basic pay</td>
-                    <td class="amt">₱ {{ p($d['second_basic']) }}</td>
+                    <td class="amt">₱ {{ $p($d['second_basic']) }}</td>
                 </tr>
                 @if($d['second_transpo'] > 0)
                 <tr class="indent">
                     <td class="label">Transportation allowance</td>
-                    <td class="amt">₱ {{ p($d['second_transpo']) }}</td>
+                    <td class="amt">₱ {{ $p($d['second_transpo']) }}</td>
                 </tr>
                 @endif
                 @if($d['second_rep'] > 0)
                 <tr class="indent">
                     <td class="label">Representation allowance</td>
-                    <td class="amt">₱ {{ p($d['second_rep']) }}</td>
+                    <td class="amt">₱ {{ $p($d['second_rep']) }}</td>
                 </tr>
                 @endif
                 @if($d['second_quarterly'] > 0)
                 <tr class="indent">
                     <td class="label">Quarterly allowance</td>
-                    <td class="amt">₱ {{ p($d['second_quarterly']) }}</td>
+                    <td class="amt">₱ {{ $p($d['second_quarterly']) }}</td>
                 </tr>
                 @endif
                 @if($d['second_ot_weekday'] > 0)
                 <tr class="indent">
                     <td class="label">Overtime (weekday)</td>
-                    <td class="amt">₱ {{ p($d['second_ot_weekday']) }}</td>
+                    <td class="amt">₱ {{ $p($d['second_ot_weekday']) }}</td>
                 </tr>
                 @endif
                 @if($d['second_ot_weekend'] > 0)
                 <tr class="indent">
                     <td class="label">Overtime (weekend)</td>
-                    <td class="amt">₱ {{ p($d['second_ot_weekend']) }}</td>
+                    <td class="amt">₱ {{ $p($d['second_ot_weekend']) }}</td>
                 </tr>
                 @endif
                 <tr class="subtotal">
                     <td class="label">2nd cutoff subtotal</td>
-                    <td class="amt">₱ {{ p($d['second_gross']) }}</td>
+                    <td class="amt">₱ {{ $p($d['second_gross']) }}</td>
                 </tr>
                 @endif
 
                 {{-- Total gross --}}
                 <tr class="total-row" style="background:#e6f7f1;">
                     <td class="label" style="color:#085041;">Total gross pay</td>
-                    <td class="amt" style="color:#085041;">₱ {{ p($d['total_gross']) }}</td>
+                    <td class="amt" style="color:#085041;">₱ {{ $p($d['total_gross']) }}</td>
                 </tr>
             </table>
         </div>
@@ -310,23 +336,23 @@
                 </tr>
                 <tr class="indent">
                     <td class="label">SSS</td>
-                    <td class="amt neg">{{ $d['sss'] > 0 ? '(₱ '.p($d['sss']).')' : '—' }}</td>
+                    <td class="amt neg">{{ $d['sss'] > 0 ? '(₱ '.$p($d['sss']).')' : '—' }}</td>
                 </tr>
                 <tr class="indent">
                     <td class="label">PhilHealth</td>
-                    <td class="amt neg">{{ $d['philhealth'] > 0 ? '(₱ '.p($d['philhealth']).')' : '—' }}</td>
+                    <td class="amt neg">{{ $d['philhealth'] > 0 ? '(₱ '.$p($d['philhealth']).')' : '—' }}</td>
                 </tr>
                 <tr class="indent">
                     <td class="label">Pag-IBIG</td>
-                    <td class="amt neg">{{ $d['pagibig'] > 0 ? '(₱ '.p($d['pagibig']).')' : '—' }}</td>
+                    <td class="amt neg">{{ $d['pagibig'] > 0 ? '(₱ '.$p($d['pagibig']).')' : '—' }}</td>
                 </tr>
                 <tr class="indent">
                     <td class="label">Withholding tax</td>
-                    <td class="amt neg">{{ $d['tax'] > 0 ? '(₱ '.p($d['tax']).')' : '—' }}</td>
+                    <td class="amt neg">{{ $d['tax'] > 0 ? '(₱ '.$p($d['tax']).')' : '—' }}</td>
                 </tr>
                 <tr class="subtotal-ded">
                     <td class="label">Government subtotal</td>
-                    <td class="amt" style="color:#3730A3;">(₱ {{ p($d['govt_subtotal']) }})</td>
+                    <td class="amt" style="color:#3730A3;">(₱ {{ $p($d['govt_subtotal']) }})</td>
                 </tr>
 
                 {{-- Other --}}
@@ -335,39 +361,45 @@
                 </tr>
                 <tr class="indent">
                     <td class="label">Loan</td>
-                    <td class="amt neg">{{ $d['loan'] > 0 ? '(₱ '.p($d['loan']).')' : '—' }}</td>
+                    <td class="amt neg">{{ $d['loan'] > 0 ? '(₱ '.$p($d['loan']).')' : '—' }}</td>
                 </tr>
                 <tr class="indent">
                     <td class="label">Cash advance</td>
-                    <td class="amt neg">{{ $d['cash_advance'] > 0 ? '(₱ '.p($d['cash_advance']).')' : '—' }}</td>
+                    <td class="amt neg">{{ $d['cash_advance'] > 0 ? '(₱ '.$p($d['cash_advance']).')' : '—' }}</td>
                 </tr>
                 <tr class="indent">
                     <td class="label">Savings</td>
-                    <td class="amt neg">{{ $d['savings'] > 0 ? '(₱ '.p($d['savings']).')' : '—' }}</td>
+                    <td class="amt neg">{{ $d['savings'] > 0 ? '(₱ '.$p($d['savings']).')' : '—' }}</td>
                 </tr>
                 <tr class="indent">
                     <td class="label">Capital contribution</td>
-                    <td class="amt neg">{{ $d['capital_contribution'] > 0 ? '(₱ '.p($d['capital_contribution']).')' : '—' }}</td>
+                    <td class="amt neg">{{ $d['capital_contribution'] > 0 ? '(₱ '.$p($d['capital_contribution']).')' : '—' }}</td>
                 </tr>
                 <tr class="indent">
                     <td class="label">Rental</td>
-                    <td class="amt neg">{{ $d['rental'] > 0 ? '(₱ '.p($d['rental']).')' : '—' }}</td>
+                    <td class="amt neg">{{ $d['rental'] > 0 ? '(₱ '.$p($d['rental']).')' : '—' }}</td>
                 </tr>
+                @if(($d['tardiness'] ?? 0) > 0)
+                <tr class="indent">
+                    <td class="label">Tardiness</td>
+                    <td class="amt neg">(₱ {{ $p($d['tardiness']) }})</td>
+                </tr>
+                @endif
                 @if($d['other'] > 0)
                 <tr class="indent">
                     <td class="label">Other</td>
-                    <td class="amt neg">(₱ {{ p($d['other']) }})</td>
+                    <td class="amt neg">(₱ {{ $p($d['other']) }})</td>
                 </tr>
                 @endif
                 <tr class="subtotal-ded">
                     <td class="label">Other subtotal</td>
-                    <td class="amt" style="color:#3730A3;">(₱ {{ p($d['other_subtotal']) }})</td>
+                    <td class="amt" style="color:#3730A3;">(₱ {{ $p($d['other_subtotal']) }})</td>
                 </tr>
 
                 {{-- Total deductions --}}
                 <tr class="total-row" style="background:#fce8e8;">
                     <td class="label" style="color:#b91c1c;">Total deductions</td>
-                    <td class="amt" style="color:#b91c1c;">(₱ {{ p($d['total_deductions']) }})</td>
+                    <td class="amt" style="color:#b91c1c;">(₱ {{ $p($d['total_deductions']) }})</td>
                 </tr>
             </table>
         </div>
@@ -379,7 +411,7 @@
             <div class="net-label">Net pay</div>
             <div class="net-sub">{{ $d['month'] }}</div>
         </div>
-        <span class="net-amount">₱ {{ p($d['net_pay']) }}</span>
+        <span class="net-amount">₱ {{ $p($d['net_pay']) }}</span>
     </div>
 
     {{-- Signatures --}}

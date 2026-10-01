@@ -1,324 +1,100 @@
-import { useState, useMemo } from 'react'
-import { router, Link } from '@inertiajs/react'
+import { useMemo } from 'react'
+import { useForm, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
-import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Button from '@/Components/UI/Button'
 import AdminPageHeader from '@/Components/AdminPageHeader'
+import { calculateOfficeItem } from './officePayrollMath'
 
-function fmt(num) {
-    return Number(num || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const fmt = value => Number(value || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const deductionFields = {
+    sss_deduction: 'SSS', philhealth_deduction: 'PhilHealth', pagibig_deduction: 'Pag-IBIG',
+    tax_deduction: 'Withholding tax', loan_deduction: 'Loan', capital_contribution_deduction: 'Capital contribution',
+    cash_advance_deduction: 'Cash advance', rental_deduction: 'Rental', savings_deduction: 'Savings', other_deductions: 'Other deductions',
 }
 
-function computeOtPay(item) {
-    const hourlyRate    = (parseFloat(item.daily_rate) || 0) / 8
-    const weekdayOtPay = hourlyRate * 1.25 * (parseFloat(item.weekday_ot_hours) || 0)
-    const weekendOtPay = hourlyRate * 1.30 * (parseFloat(item.weekend_ot_hours) || 0)
-    return { weekdayOtPay, weekendOtPay, totalOtPay: weekdayOtPay + weekendOtPay }
-}
-
-function computeGross(item) {
-    const { totalOtPay } = computeOtPay(item)
-    return (parseFloat(item.cutoff_gross) || 0) + totalOtPay
-}
-
-function computeNet(item) {
-    return computeGross(item) - (parseFloat(item.total_deductions) || 0)
-}
-
-export default function PayrollCreate({ employees = [], period_from, period_to, period_label, cutoff, is_first }) {
-    const [items, setItems]           = useState(employees.map(e => ({ ...e })))
-    const [processing, setProcessing] = useState(false)
+export default function PayrollCreate({ employees = [], period_from, period_to, period_label, cutoff, is_first, offices = {} }) {
+    const { data, setData, post, processing, errors } = useForm({
+        period_from, period_to, period_label, cutoff,
+        items: employees.map(employee => ({ ...employee, employee_id: employee.id, employee_code: employee.employee_id })),
+    })
+    const items = useMemo(() => data.items.map(calculateOfficeItem), [data.items])
+    const totals = items.reduce((result, item) => ({ gross: result.gross + item.gross_pay, deductions: result.deductions + item.total_deductions, net: result.net + item.net_pay }), { gross: 0, deductions: 0, net: 0 })
+    const unreviewed = items.filter(item => !item.payroll_office || !item.deductions_reviewed).length
 
     function update(index, field, value) {
-        setItems(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item))
+        setData('items', data.items.map((item, i) => {
+            if (i !== index) return item
+            const changes = field === 'payroll_office' ? { paid_days_basis: offices[value]?.days ?? 11, absence_days: 0 } : {}
+            return { ...item, ...changes, [field]: value, deductions_reviewed: field === 'deductions_reviewed' ? value : false }
+        }))
     }
 
-    function submit() {
-        setProcessing(true)
-        router.post('/admin/payroll', {
-            period_label,
-            period_from,
-            period_to,
-            cutoff,
-            items: items.map(item => ({
-                employee_id:       item.id,
-                days_present:      item.days_present,
-                weekday_ot_hours:  item.weekday_ot_hours || 0,
-                weekend_ot_hours:  item.weekend_ot_hours || 0,
-            })),
-        }, { onError: () => setProcessing(false) })
+    function input(index, field, label, options = {}) {
+        const key = 'items.' + index + '.' + field
+        return <label className="block text-xs text-sub" key={field}>{label}
+            <input type="number" min="0" step="0.5" {...options} value={data.items[index][field]}
+                onChange={event => update(index, field, event.target.value)}
+                aria-label={label + ' for ' + items[index].full_name} aria-invalid={!!errors[key]}
+                className="mt-1 w-full rounded-lg border border-border bg-field px-3 py-2 text-text" />
+            {errors[key] && <span className="block mt-1 text-rose-700">{errors[key]}</span>}
+        </label>
     }
 
-    const { totalGross, totalDed, totalNet } = useMemo(() => {
-        let gross = 0
-        let ded = 0
-        let net = 0
-        for (const item of items) {
-            gross += computeGross(item)
-            ded   += (parseFloat(item.total_deductions) || 0)
-            net   += computeNet(item)
-        }
-        return { totalGross: gross, totalDed: ded, totalNet: net }
-    }, [items])
-
-    return (
-        <AdminLayout>
-            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
-                {/* ── Top Header ────────────────────────────────────── */}
-                <AdminPageHeader
-                    eyebrow="Payroll batch preparation"
-                    title={period_label}
-                    description="Verify DTR days, enter overtime adjustments, and inspect deduction splits before saving this batch."
-                    badge={is_first ? '1st cutoff · full deductions' : '2nd cutoff · deductions waived'}
-                    meta={<Link href="/admin/payroll" className="font-medium text-indigo-100 hover:text-white">← Back to Payroll Ledger</Link>}
-                    action={
-                    <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex items-center gap-4 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs shadow-xs">
-                            <div>
-                                <span className="block text-[10px] font-semibold uppercase text-indigo-200">Gross Pay</span>
-                                <strong className="font-heading text-sm font-bold text-white tnum">₱ {fmt(totalGross)}</strong>
-                            </div>
-                            <div className="h-7 w-px bg-white/20" />
-                            <div>
-                                <span className="block text-[10px] font-semibold uppercase text-rose-200">Deductions</span>
-                                <strong className="font-heading text-sm font-bold text-rose-100 tnum">-₱ {fmt(totalDed)}</strong>
-                            </div>
-                            <div className="h-7 w-px bg-white/20" />
-                            <div>
-                                <span className="block text-[10px] font-semibold uppercase text-emerald-200">Net Payout</span>
-                                <strong className="font-heading text-sm font-bold text-emerald-100 tnum">₱ {fmt(totalNet)}</strong>
-                            </div>
-                        </div>
-
-                        <Button
-                            variant="primary"
-                            size="md"
-                            loading={processing}
-                            onClick={submit}
-                            className="admin-header-primary shadow-xs"
-                        >
-                            Save Payroll Batch →
-                        </Button>
-                    </div>
-                    }
-                />
-
-                {/* ── Formula Reminder ──────────────────────────────── */}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-2.5 rounded-xl bg-field/60 border border-border/80 text-xs text-sub">
-                    <span className="font-semibold text-text">Compensation Formulas:</span>
-                    <span>Monthly Basic = <strong className="text-text font-mono">Daily Rate × 22</strong></span>
-                    <span className="text-dim">•</span>
-                    <span>Cutoff Basic = <strong className="text-text font-mono">Monthly Basic ÷ 2</strong></span>
-                    <span className="text-dim">•</span>
-                    <span>Weekday OT = <strong className="text-text font-mono">Rate/8 × 125% × Hrs</strong></span>
-                    <span className="text-dim">•</span>
-                    <span>Weekend/Rest OT = <strong className="text-text font-mono">Rate/8 × 130% × Hrs</strong></span>
-                </div>
-
-                {/* ── Table Card ────────────────────────────────────── */}
-                <Card className="admin-workspace-card overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="text-xs w-full min-w-[1200px]">
-                            <thead>
-                                <tr className="bg-field/70 border-b border-border/80 text-sub">
-                                    {/* Employee */}
-                                    <th scope="col" rowSpan={2} className="text-left px-5 py-3 font-semibold text-[11px] uppercase" style={{ minWidth: 190, verticalAlign: 'middle' }}>
-                                        Employee
-                                    </th>
-                                    <th scope="col" rowSpan={2} className="text-center px-3 py-3 font-semibold text-[11px] uppercase" style={{ verticalAlign: 'middle' }}>
-                                        Days<br/>Present
-                                    </th>
-
-                                    {/* Gross group */}
-                                    <th scope="colgroup" colSpan={4} className="text-center px-3 py-2 font-semibold text-[11px] uppercase text-indigo-600 dark:text-indigo-400 border-l border-border/80">
-                                        Gross Components (Cutoff)
-                                    </th>
-
-                                    {/* OT group */}
-                                    <th scope="colgroup" colSpan={4} className="text-center px-3 py-2 font-semibold text-[11px] uppercase text-amber-600 dark:text-amber-400 border-l border-border/80">
-                                        Overtime Adjustments
-                                    </th>
-
-                                    {/* Totals */}
-                                    <th scope="col" rowSpan={2} className="text-right px-4 py-2 font-semibold text-[11px] uppercase text-emerald-600 dark:text-emerald-400 border-l border-border/80" style={{ verticalAlign: 'middle' }}>
-                                        Gross Pay
-                                    </th>
-
-                                    {/* Deductions group */}
-                                    <th scope="colgroup" colSpan={is_first ? 5 : 1} className="text-center px-3 py-2 font-semibold text-[11px] uppercase text-rose-600 dark:text-rose-400 border-l border-border/80">
-                                        Deductions
-                                    </th>
-
-                                    <th scope="col" rowSpan={2} className="text-right px-5 py-2 font-semibold text-[11px] uppercase text-text border-l border-border/80" style={{ verticalAlign: 'middle' }}>
-                                        Net Pay
-                                    </th>
-                                </tr>
-                                <tr className="bg-field/50 border-b border-border/80 text-sub text-[11px]">
-                                    {/* Gross sub-headers */}
-                                    <th scope="col" className="text-right px-3 py-2 font-medium border-l border-border/80">Basic</th>
-                                    <th scope="col" className="text-right px-3 py-2 font-medium">Transpo</th>
-                                    <th scope="col" className="text-right px-3 py-2 font-medium">Rep</th>
-                                    <th scope="col" className="text-right px-3 py-2 font-medium">Quarterly</th>
-
-                                    {/* OT sub-headers */}
-                                    <th scope="col" className="text-center px-2 py-2 font-medium border-l border-border/80" style={{ minWidth: 70 }}>WD Hrs</th>
-                                    <th scope="col" className="text-right px-2 py-2 font-medium">WD Pay</th>
-                                    <th scope="col" className="text-center px-2 py-2 font-medium" style={{ minWidth: 70 }}>WE Hrs</th>
-                                    <th scope="col" className="text-right px-2 py-2 font-medium">WE Pay</th>
-
-                                    {/* Deduction sub-headers */}
-                                    {is_first && (
-                                        <>
-                                            <th scope="col" className="text-right px-3 py-2 font-medium border-l border-border/80">SSS</th>
-                                            <th scope="col" className="text-right px-3 py-2 font-medium">PhilHealth</th>
-                                            <th scope="col" className="text-right px-3 py-2 font-medium">Pag-IBIG</th>
-                                            <th scope="col" className="text-right px-3 py-2 font-medium">Tax</th>
-                                        </>
-                                    )}
-                                    <th scope="col" className="text-right px-3 py-2 font-medium border-l border-border/80">Other Ded.</th>
-                                </tr>
-                            </thead>
-
-                            <tbody className="divide-y divide-border/60 tnum">
-                                {items.map((item, index) => {
-                                    const { weekdayOtPay, weekendOtPay } = computeOtPay(item)
-                                    const gross = computeGross(item)
-                                    const net   = computeNet(item)
-                                    const splitDed = (parseFloat(item.loan_deduction) || 0)
-                                        + (parseFloat(item.capital_contribution_deduction) || 0)
-                                        + (parseFloat(item.cash_advance_deduction) || 0)
-                                        + (parseFloat(item.rental_deduction) || 0)
-                                        + (parseFloat(item.savings_deduction) || 0)
-                                        + (parseFloat(item.other_deductions) || 0)
-
-                                    return (
-                                        <tr key={item.id} className="hover:bg-field/40 transition-colors">
-                                            {/* Employee */}
-                                            <td className="px-5 py-3.5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 flex items-center justify-center font-heading font-semibold text-xs flex-shrink-0">
-                                                        {item.initials}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-semibold text-text whitespace-nowrap">{item.full_name}</p>
-                                                        <p className="text-[11px] text-sub font-mono">{item.employee_id} • ₱{fmt(item.daily_rate)}/day</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                            {/* Days present */}
-                                            <td className="px-3 py-3.5 text-center font-semibold text-text">
-                                                {item.days_present}
-                                            </td>
-
-                                            {/* Gross components */}
-                                            <td className="px-3 py-3.5 text-right font-medium text-text border-l border-border/80">₱ {fmt(item.cutoff_basic)}</td>
-                                            <td className="px-3 py-3.5 text-right text-sub">₱ {fmt(item.cutoff_transpo)}</td>
-                                            <td className="px-3 py-3.5 text-right text-sub">₱ {fmt(item.cutoff_rep)}</td>
-                                            <td className="px-3 py-3.5 text-right text-sub">₱ {fmt(item.cutoff_quarterly)}</td>
-
-                                            {/* OT inputs */}
-                                            <td className="px-2 py-2.5 border-l border-border/80">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    step="0.5"
-                                                    value={item.weekday_ot_hours ?? ''}
-                                                    onChange={e => update(index, 'weekday_ot_hours', e.target.value)}
-                                                    placeholder="0"
-                                                    aria-label={`Weekday OT hours for ${item.full_name}`}
-                                                    className="w-full px-2 py-1.5 border border-amber-500/30 rounded-lg text-center font-mono text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300 placeholder:text-dim"
-                                                />
-                                            </td>
-                                            <td className="px-2 py-3.5 text-right font-medium text-amber-600 dark:text-amber-400">₱ {fmt(weekdayOtPay)}</td>
-                                            <td className="px-2 py-2.5">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    step="0.5"
-                                                    value={item.weekend_ot_hours ?? ''}
-                                                    onChange={e => update(index, 'weekend_ot_hours', e.target.value)}
-                                                    placeholder="0"
-                                                    aria-label={`Weekend OT hours for ${item.full_name}`}
-                                                    className="w-full px-2 py-1.5 border border-amber-500/30 rounded-lg text-center font-mono text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300 placeholder:text-dim"
-                                                />
-                                            </td>
-                                            <td className="px-2 py-3.5 text-right font-medium text-amber-600 dark:text-amber-400">₱ {fmt(weekendOtPay)}</td>
-
-                                            {/* Gross pay */}
-                                            <td className="px-4 py-3.5 text-right font-semibold text-text border-l border-border/80">
-                                                ₱ {fmt(gross)}
-                                            </td>
-
-                                            {/* Deductions */}
-                                            {is_first && (
-                                                <>
-                                                    <td className="px-3 py-3.5 text-right text-rose-600 border-l border-border/80">₱ {fmt(item.sss_deduction)}</td>
-                                                    <td className="px-3 py-3.5 text-right text-rose-600">₱ {fmt(item.philhealth_deduction)}</td>
-                                                    <td className="px-3 py-3.5 text-right text-rose-600">₱ {fmt(item.pagibig_deduction)}</td>
-                                                    <td className="px-3 py-3.5 text-right text-rose-600">₱ {fmt(item.tax_deduction)}</td>
-                                                </>
-                                            )}
-                                            <td className="px-3 py-3.5 text-right text-rose-600 border-l border-border/80" title="Loan + CC + Cash advance + Savings + Share capital + Other">
-                                                -₱ {fmt(splitDed)}
-                                            </td>
-
-                                            {/* Net pay */}
-                                            <td className={`px-5 py-3.5 text-right font-heading font-bold text-sm border-l border-border/80 ${net < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                                ₱ {fmt(net)}
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-
-                            {/* Footer totals */}
-                            <tfoot>
-                                <tr className="border-t-2 border-border/80 bg-field/60 font-semibold tnum">
-                                    <td colSpan={2} className="px-5 py-3.5 text-text font-heading">
-                                        Totals — {items.length} employees
-                                    </td>
-                                    <td colSpan={4} className="px-3 py-3.5 text-right text-text border-l border-border/80">
-                                        ₱ {fmt(items.reduce((s, i) => s + (parseFloat(i.cutoff_gross) || 0), 0))}
-                                    </td>
-                                    <td colSpan={4} className="px-2 py-3.5 text-right text-amber-600 dark:text-amber-400 border-l border-border/80">
-                                        ₱ {fmt(items.reduce((s, i) => { const { totalOtPay } = computeOtPay(i); return s + totalOtPay }, 0))}
-                                    </td>
-                                    <td className="px-4 py-3.5 text-right text-text font-bold border-l border-border/80">
-                                        ₱ {fmt(totalGross)}
-                                    </td>
-                                    <td colSpan={is_first ? 5 : 1} className="px-3 py-3.5 text-right text-rose-600 border-l border-border/80">
-                                        -₱ {fmt(totalDed)}
-                                    </td>
-                                    <td className="px-5 py-3.5 text-right text-emerald-600 font-heading font-bold text-base border-l border-border/80">
-                                        ₱ {fmt(totalNet)}
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </Card>
-
-                {/* ── Legend ────────────────────────────────────────── */}
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-sub px-1">
-                    <span className="inline-flex items-center gap-1.5">
-                        <span className="inline-block w-2.5 h-2.5 rounded-sm bg-amber-500/20 border border-amber-500/40" />
-                        <span><strong>WD</strong> = Weekday OT (×1.25)</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                        <span className="inline-block w-2.5 h-2.5 rounded-sm bg-amber-500/20 border border-amber-500/40" />
-                        <span><strong>WE</strong> = Weekend/Rest Day OT (×1.30)</span>
-                    </span>
-                    {!is_first && (
-                        <span className="inline-flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
-                            <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.949 3.374H4.646c-1.732 0-2.815-1.874-1.949-3.374L10.05 3.374c.866-1.5 3.034-1.5 3.9 0l7.353 12.752zM12 15.75h.008v.008H12v-.008z" />
-                            </svg>
-                            <span>2nd Cutoff Notice: Statutory contributions (SSS, PhilHealth, Pag-IBIG, Tax) waived for this cycle.</span>
-                        </span>
-                    )}
-                </div>
+    return <AdminLayout>
+        <form onSubmit={event => { event.preventDefault(); post('/admin/payroll') }} className="admin-page-shell space-y-5 page-enter">
+            <AdminPageHeader eyebrow="Payroll batch preparation" title={period_label}
+                description="Choose each employee’s office, verify paid and absence days, and review the exact deductions for this cutoff."
+                badge={is_first ? '1st cutoff' : '2nd cutoff'}
+                meta={<Link href="/admin/payroll" className="font-medium text-indigo-100 hover:text-white">Back to Payroll Ledger</Link>}
+                action={<Button type="submit" loading={processing} disabled={processing || items.length === 0 || unreviewed > 0} className="admin-header-primary">Save Payroll Batch</Button>} />
+            <div className="admin-workspace-card rounded-xl border border-border bg-card p-4 text-sm text-sub space-y-2">
+                <p>Basic pay = daily rate × (paid days − absence days). Main Office, Fort Magsaysay, and Cubao default to 11 paid days; General Merchandise defaults to 15. Adjust paid days for individual exceptions.</p>
+                <p>DTR days are a reference only. Missing DTR records do not automatically deduct pay. Allowances are split in half. Weekday OT uses 125%; rest-day OT uses 130%.</p>
+                <p>Deduction amounts are suggestions from employee profiles. Confirm actual cutoff amounts with payroll records, especially loans and cash advances. Enter verified tardiness deductions in pesos.</p>
+                <p role="status" className="font-semibold text-text">{unreviewed} of {items.length} employees still need an office and review.</p>
             </div>
-        </AdminLayout>
-    )
+            {Object.entries(errors).filter(([key]) => !key.startsWith('items.')).map(([key, message]) => <p key={key} role="alert" className="text-sm text-rose-700">{message}</p>)}
+            {items.map((item, index) => <section key={item.id} aria-labelledby={'employee-' + item.id} className="admin-workspace-card rounded-xl border border-border bg-card p-4 sm:p-5 space-y-4">
+                <div className="flex flex-wrap justify-between gap-3">
+                    <div><h2 id={'employee-' + item.id} className="font-semibold text-text">{item.full_name}</h2><p className="text-xs text-sub">{item.employee_code} · ₱{fmt(item.daily_rate)}/day · DTR recorded days: {item.dtr_days_present}</p></div>
+                    <div className="text-right"><p className="text-xs text-sub">Net pay</p><p className={'text-xl font-bold tnum ' + (item.net_pay < 0 ? 'text-rose-700' : 'text-emerald-700')}>₱ {fmt(item.net_pay)}</p></div>
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    <label className="text-xs text-sub">Payroll office
+                        <select value={item.payroll_office} onChange={event => update(index, 'payroll_office', event.target.value)} aria-label={'Payroll office for ' + item.full_name} className="mt-1 w-full rounded-lg border border-border bg-field px-3 py-2 text-text">
+                            <option value="">Select office</option>{Object.entries(offices).map(([key, office]) => <option key={key} value={key}>{office.label}</option>)}
+                        </select>
+                        {errors['items.' + index + '.payroll_office'] && <span className="block text-rose-700">{errors['items.' + index + '.payroll_office']}</span>}
+                    </label>
+                    {input(index, 'paid_days_basis', 'Paid days before absences', { max: 15 })}
+                    {input(index, 'absence_days', 'Verified absence days', { max: item.paid_days_basis })}
+                    {input(index, 'tardiness_deduction', 'Tardiness deduction (₱)', { step: '0.01' })}
+                    {input(index, 'weekday_ot_hours', 'Weekday OT hours', { max: 999 })}
+                    {input(index, 'weekend_ot_hours', 'Rest-day OT hours', { max: 999 })}
+                </div>
+                <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-sub">
+                    <span>Basic: ₱{fmt(item.cutoff_basic)}</span><span>Transpo: ₱{fmt(item.cutoff_transpo)}</span><span>Representation: ₱{fmt(item.cutoff_rep)}</span><span>Quarterly allowance: ₱{fmt(item.cutoff_quarterly)}</span>
+                    <span>OT: ₱{fmt(item.weekday_ot_pay + item.weekend_ot_pay)}</span><strong className="text-text">Gross: ₱{fmt(item.gross_pay)}</strong>
+                </div>
+                <fieldset><legend className="text-sm font-semibold text-text mb-3">Deductions for this cutoff</legend>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">{Object.entries(deductionFields).map(([field, label]) => {
+                        const key = 'items.' + index + '.deductions.' + field
+                        return <label key={field} className="text-xs text-sub">{label} (₱)
+                            <input type="number" min="0" max="99999999" step="0.01" value={data.items[index].deductions[field]}
+                                onChange={event => update(index, 'deductions', { ...data.items[index].deductions, [field]: event.target.value })}
+                                aria-label={label + ' for ' + item.full_name} aria-invalid={!!errors[key]}
+                                className="mt-1 w-full rounded-lg border border-border bg-field px-3 py-2 text-text" />
+                            {errors[key] && <span className="block text-rose-700">{errors[key]}</span>}
+                        </label>
+                    })}</div>
+                </fieldset>
+                <p className="text-sm font-semibold text-rose-700">Total deductions: ₱{fmt(item.total_deductions)}</p>
+                <label className="flex items-start gap-2 text-sm text-text"><input type="checkbox" checked={item.deductions_reviewed} disabled={!item.payroll_office} onChange={event => update(index, 'deductions_reviewed', event.target.checked)} className="mt-1" />I reviewed this employee’s office, paid days, absences, overtime, and cutoff deductions.</label>
+                {errors['items.' + index + '.deductions_reviewed'] && <p className="text-xs text-rose-700">{errors['items.' + index + '.deductions_reviewed']}</p>}
+            </section>)}
+            <div className="admin-workspace-card rounded-xl border border-border bg-card p-4 flex flex-wrap gap-5 text-sm font-semibold text-text tnum">
+                <span>Gross: ₱{fmt(totals.gross)}</span><span>Deductions: ₱{fmt(totals.deductions)}</span><span>Net payout: ₱{fmt(totals.net)}</span>
+            </div>
+        </form>
+    </AdminLayout>
 }

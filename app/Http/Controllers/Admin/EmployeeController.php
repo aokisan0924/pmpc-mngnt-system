@@ -49,6 +49,7 @@ class EmployeeController extends Controller
         return Inertia::render('Admin/EmployeeShow', [
             'employee' => [
                 'id' => $employee->id,
+                'signature_url' => $employee->signature_path ? route('admin.employees.signature.show', $employee).'?v='.$employee->signature_uploaded_at?->timestamp : null,
                 'employee_id' => $employee->employee_id,
                 'first_name' => $employee->first_name,
                 'last_name' => $employee->last_name,
