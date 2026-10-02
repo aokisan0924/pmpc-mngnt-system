@@ -10,6 +10,7 @@ use App\Http\Requests\Admin\UpdateCompensationRequest;
 use App\Http\Requests\Admin\UpdateEmployeeRequest;
 use App\Models\Employee;
 use App\Models\EmployeeGovernmentId;
+use App\Services\OfficePayrollCalculator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -49,9 +50,14 @@ class EmployeeController extends Controller
         return Inertia::render('Admin/EmployeeShow', [
             'employee' => [
                 'id' => $employee->id,
+                'payroll_office' => $employee->payroll_office,
+                'office_verified_at' => $employee->office_verified_at?->toIso8601String(),
+                'setup_completed_at' => $employee->setup_completed_at?->toIso8601String(),
                 'signature_url' => $employee->signature_path ? route('admin.employees.signature.show', $employee).'?v='.$employee->signature_uploaded_at?->timestamp : null,
                 'employee_id' => $employee->employee_id,
                 'first_name' => $employee->first_name,
+                'middle_name' => $employee->middle_name,
+                'name_suffix' => $employee->name_suffix,
                 'last_name' => $employee->last_name,
                 'full_name' => $employee->full_name,
                 'email' => $employee->email,
@@ -78,6 +84,8 @@ class EmployeeController extends Controller
                 'savings_deduction' => $employee->savings_deduction,
                 'other_deductions' => $employee->other_deductions,
             ],
+            'offices' => OfficePayrollCalculator::OFFICES,
+            'setupHistory' => $employee->accountSetupRequests()->latest('id')->get(['id', 'status', 'details', 'review_note', 'reviewed_by', 'reviewed_at']),
             'govIds' => $employee->governmentIds ? [
                 'sss_no' => $employee->governmentIds->sss_no,
                 'philhealth_no' => $employee->governmentIds->philhealth_no,

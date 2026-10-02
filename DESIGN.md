@@ -70,3 +70,32 @@ The next required DTR punch remains persistently available above the employee bo
 
 Last updated: 2026-09-29 - Removed the user-selectable dark theme and made existing dark preferences resolve to light.
 
+## Payroll workspace
+
+Refined operational ledger: preserve Manrope, deep purple `#26215C`, semantic panel/field/border tokens, and tabular currency. Use compact section labels and whitespace to distinguish preparation, employee review, and saved reports.
+
+- Preparation uses a 280px searchable review queue beside one employee editor; mobile stacks the queue above the editor. Search and review filters do not remove employees from the submitted batch.
+- Group the editor into office and attendance basis, overtime and earnings, and statutory/cooperative deductions. A persistent bottom action shows batch net payout and remaining review count. Edits invalidate that employee's review confirmation.
+- Saved batches use responsive employee summaries with native expandable earnings/deduction details. Downloads and signatory selection follow the ledger; discard is separated from finalization.
+- Controls use a minimum 44px height, visible native focus, named inputs, and text status indicators. No new animation or font dependencies; existing reduced-motion behavior remains in effect.
+- Components: `PayrollSummary`, `PayrollCreate` employee queue/editor, `PayrollShow` expandable ledger, and `PayrollExcelExport` signatory fields.
+
+Last updated: 2026-10-02 - Organized payroll review and reporting with the frontend-god-mode skill.
+
+### Payroll progressive review
+
+- Saved batches are the main payroll landing view; new-batch setup opens on demand and is initially visible for an empty ledger.
+- Employee review shows one of three sections at a time: Pay basis, Earnings, Deductions. Numbered buttons allow direct access; Continue advances the review. Confirmation remains in the deductions section and all original fields remain in the form.
+- Switching employees returns to pay basis; server errors select the affected employee and review section.
+
+Last updated: 2026-10-02 - Reduced simultaneous payroll controls with progressive employee review and on-demand batch setup.
+
+Last updated: 2026-10-02 - New payroll offers exactly three offices: Fort Magsaysay, Cubao Satelite Office, and General Merchandise. Main Office is historical export compatibility only.
+
+## Account setup and payroll release
+
+- One-time confirmation collects identity, contact and office information, with employment review and optional government IDs in a disclosure. Signatures are a separate optional private upload. Pending/rejected/approved status is explicit; attendance remains available.
+- HR review uses a pending queue and employee detail office-transfer history. Payroll shows the verified office as read-only, flags unverified staff, and preserves every employee in the batch.
+- Employee payslip totals and PDFs include finalized cutoffs only; the remaining cutoff is absent until released.
+
+Last updated: 2026-10-02 - Added account setup, HR verification, automatic payroll offices and finalized-only employee payslips.

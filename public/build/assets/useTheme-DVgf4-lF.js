@@ -1,1 +1,0 @@
-import{D as e,c as t}from"./app-C1fzbn6Q.js";var n=e(t(),1),r=`pmpc-theme`;function i(){(0,n.useEffect)(()=>{document.documentElement.classList.remove(`dark`);try{window.localStorage.setItem(r,`light`)}catch{}},[])}export{i as t};

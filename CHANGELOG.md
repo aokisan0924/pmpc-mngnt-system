@@ -11,16 +11,26 @@ Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release c
 
 ### Added
 
+- One-time employee account confirmation with HR approval, optional government IDs and private self-service signature upload; preserve passwords, employee IDs and attendance access. Record review decisions and HR-controlled office transfers.
+
 - Upload, replace, privately preview and remove employee signature images, then choose separate first/second-cutoff Prepared by, Certified Correct and Approved by signatories for management Excel downloads. Images appear only in sign-off areas; unsigned selections stay blank.
 
 - Download saved monthly payroll as an Excel management workbook using a sanitized September template, with four office sheets, both cutoff sections, supplemental deduction details, and an accounting-review reconciliation. Missing cutoffs stay blank; export rejects duplicate batches, missing offices, or template capacity overflow without silently omitting employees. Payslip PDF downloads remain available.
 
 ### Changed
 
+- Populate new payroll from verified employee offices and reject unverified or changed office assignments; preserve saved office snapshots.
+
+- Simplify payroll with on-demand new-batch setup and three focused employee review steps (pay basis, earnings, deductions), preserving calculations, all submitted employees, and required review confirmation.
+
+- Organize payroll into cutoff preparation, a searchable employee review queue with one focused editor and persistent totals, and saved batches with expandable employee breakdowns. Separate report downloads from finalization, retain review confirmation and all existing payroll formulas, and make payroll controls usable on narrow screens.
+
 - Prepare office-based payroll with 11 paid days for Main Office, Fort Magsaysay, and Cubao, or 15 for General Merchandise, less verified absences; allow individual paid-day exceptions and retain DTR attendance as a reference only.
 - Require staff to select each payroll office and review editable per-cutoff deductions instead of inferring inconsistent office deduction policies from September workbook formulas. Suggest half-month withholding tax and full first-cutoff statutory contributions; record the reviewed amounts.
 
 ### Fixed
+
+- Limit new payroll office selection and validation to Fort Magsaysay, Cubao Satelite Office, and General Merchandise. Preserve historical Main Office export compatibility and existing pay calculations.
 
 - Preserve the original management workbook package's typography, column widths, borders, logos and printer settings; restore original Basic Pay and Absent headings with monetary absence values. Store new basic-before-absence and absence-amount snapshots without changing saved gross/net payroll or deducting absences twice.
 
@@ -29,6 +39,8 @@ Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release c
 - Use DomPDF-compatible payslip layouts, visible peso symbols and net pay, and a local currency formatting closure so multi-employee PDF downloads do not redeclare a global function.
 
 ### Security
+
+- Restrict employee payslip history, totals and PDF downloads to finalized payroll cutoffs. Keep draft figures available only through administrator previews. Prevent self-service profile edits from bypassing HR name verification.
 
 - **DTR Edit Requests Permission Hardening & Access Control**: Enforced granular permission checks across DTR dispute workflows (`canManageDtrRequests`, `canViewDtrRequests`, and `canRequestDtrEdits` in `Employee.php`, `DtrEditRequestController.php`, `DtrEditRequestSubmissionRequest.php`, and `DtrController.php`). Restricted Reynold Valdez from visiting, viewing, approving, or declining DTR edit requests (returning HTTP 403 on `/admin/edit-requests` and approval/rejection endpoints, and hiding navigation menu items, dashboard quick action links, and triage cards), while retaining his ability to submit edit requests for his own attendance records via the employee portal. In the frontend, exposed `can_manage_dtr_requests`, `can_view_dtr_requests`, and `can_request_dtr_edits` through Inertia shared props (`AdminLayout.jsx`, `Admin/Dashboard.jsx`, `Admin/DtrEditRequests.jsx`).
 - **IDOR Protection on DTR Edit Requests**: Enforced strict employee ownership check (`abort_if($dtrLog->employee_id !== $request->user()->id, 403)`) in `DtrController::requestEdit()` and Form Request authorization in `DtrEditRequestSubmissionRequest.php`, preventing horizontal privilege escalation attacks across employee attendance records.

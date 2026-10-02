@@ -22,6 +22,7 @@ class PayslipController extends Controller
         $employee = $request->user();
 
         $items = PayrollItem::where('employee_id', $employee->id)
+            ->whereHas('payroll', fn ($query) => $query->where('status', 'finalized'))
             ->with('payroll')
             ->orderByDesc('created_at')
             ->get();
@@ -105,7 +106,7 @@ class PayslipController extends Controller
     {
         $employee = $request->user();
 
-        return $this->generatePayslipPdf($employee, $month);
+        return $this->generatePayslipPdf($employee, $month, finalizedOnly: true);
     }
 
     // ── Admin downloads payslip for any employee ───────────
@@ -152,7 +153,7 @@ class PayslipController extends Controller
 
     // ── Core PDF generator ─────────────────────────────────
 
-    private function generatePayslipPdf(Employee $employee, string $month): Response
+    private function generatePayslipPdf(Employee $employee, string $month, bool $finalizedOnly = false): Response
     {
         $settings = Setting::getMany([
             'coop_name', 'coop_address',
@@ -160,7 +161,7 @@ class PayslipController extends Controller
             'signatory_2_name', 'signatory_2_role', 'signatory_2_signature',
         ]);
 
-        $data = $this->buildPayslipData($employee, $month, $settings);
+        $data = $this->buildPayslipData($employee, $month, $settings, $finalizedOnly);
 
         if (! $data) {
             abort(404, 'No payroll records found for this employee and month.');
@@ -176,7 +177,7 @@ class PayslipController extends Controller
         return $pdf->download($filename);
     }
 
-    private function buildPayslipData(Employee $employee, string $month, array $settings): ?array
+    private function buildPayslipData(Employee $employee, string $month, array $settings, bool $finalizedOnly = false): ?array
     {
         $from = Carbon::parse($month.'-01')->startOfMonth();
         $to = Carbon::parse($month.'-01')->endOfMonth();
@@ -184,8 +185,8 @@ class PayslipController extends Controller
         // Get all payroll items for this employee in this month
         $items = PayrollItem::where('employee_id', $employee->id)
             ->whereHas('payroll', fn ($q) => $q
-                ->whereBetween('period_from', [$from, $to])
-                ->orWhereBetween('period_to', [$from, $to])
+                ->when($finalizedOnly, fn ($query) => $query->where('status', 'finalized'))
+                ->where(fn ($dates) => $dates->whereBetween('period_from', [$from, $to])->orWhereBetween('period_to', [$from, $to]))
             )
             ->with('payroll')
             ->get();

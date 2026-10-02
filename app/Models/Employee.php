@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Services\OfficePayrollCalculator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -13,6 +15,8 @@ class Employee extends Authenticatable
     protected $fillable = [
         'employee_id',
         'first_name',
+        'middle_name',
+        'name_suffix',
         'last_name',
         'email',
         'password',
@@ -51,6 +55,8 @@ class Employee extends Authenticatable
 
     protected $casts = [
         'signature_uploaded_at' => 'datetime',
+        'setup_completed_at' => 'datetime',
+        'office_verified_at' => 'datetime',
         'date_hired' => 'date',
         'password' => 'hashed',
         'is_staff' => 'boolean',
@@ -58,7 +64,7 @@ class Employee extends Authenticatable
 
     public function getFullNameAttribute(): string
     {
-        return "{$this->first_name} {$this->last_name}";
+        return implode(' ', array_filter([$this->first_name, $this->middle_name, $this->last_name, $this->name_suffix]));
     }
 
     public function getInitialsAttribute(): string
@@ -79,6 +85,17 @@ class Employee extends Authenticatable
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    public function accountSetupRequests(): HasMany
+    {
+        return $this->hasMany(AccountSetupRequest::class);
+    }
+
+    public function hasVerifiedPayrollOffice(): bool
+    {
+        return $this->setup_completed_at !== null && $this->office_verified_at !== null
+            && isset(OfficePayrollCalculator::OFFICES[$this->payroll_office]);
     }
 
     public function governmentIds()

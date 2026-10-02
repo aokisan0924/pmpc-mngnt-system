@@ -1,216 +1,249 @@
 import { useState } from 'react'
-import { router, usePage, Link } from '@inertiajs/react'
+import { useForm, usePage, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
-import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 import AdminPageHeader from '@/Components/AdminPageHeader'
 
+const fmt = (value) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(Number(value || 0))
+const control = 'min-h-[44px] w-full min-w-0 rounded-xl border border-border bg-field px-3 py-2 text-sm text-text'
+
 export default function Payroll({ payrolls = [] }) {
     const { flash } = usePage().props
-    const [periodFrom, setPeriodFrom] = useState('')
-    const [periodTo, setPeriodTo] = useState('')
-    const [cutoff, setCutoff] = useState('first')
-    const [error, setError] = useState('')
-
-    function startPayroll() {
-        if (!periodFrom || !periodTo) {
-            setError('Please select both starting and ending dates.')
-            return
-        }
-        if (periodFrom > periodTo) {
-            setError('Ending date must be on or after starting date.')
-            return
-        }
-        setError('')
-        router.get('/admin/payroll/create', { period_from: periodFrom, period_to: periodTo, cutoff })
+    const form = useForm({ period_from: '', period_to: '', cutoff: 'first' })
+    const [search, setSearch] = useState('')
+    const [status, setStatus] = useState('all')
+    const [preparing, setPreparing] = useState(!payrolls.length)
+    const visible = payrolls.filter(
+        (batch) =>
+            (status === 'all' || batch.status === status) &&
+            `${batch.period_label} ${batch.created_by}`.toLowerCase().includes(search.toLowerCase()),
+    )
+    function start(event) {
+        event.preventDefault()
+        form.clearErrors()
+        if (!form.data.period_from || !form.data.period_to)
+            return form.setError('period_to', 'Select both dates to prepare the payroll preview.')
+        if (form.data.period_from > form.data.period_to)
+            return form.setError('period_to', 'End date must be on or after the start date.')
+        form.get('/admin/payroll/create')
     }
-
-    function fmt(num) {
-        return Number(num || 0).toLocaleString('en-PH', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        })
-    }
-
     return (
         <AdminLayout>
-            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
+            <div className="admin-page-shell space-y-5 page-enter">
                 {flash?.success && (
-                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                    <p
+                        role="status"
+                        className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
+                    >
                         {flash.success}
-                    </div>
+                    </p>
                 )}
-
                 <AdminPageHeader
                     eyebrow="Compensation operations"
                     title="Payroll Management"
-                    description="Prepare semi-monthly payroll batches, review cutoff totals, and control finalization from one ledger."
-                    badge="Semi-monthly processing"
+                    description="Prepare a cutoff, review employee pay, then save and finalize your batch."
                     action={
-                    <Link
-                        href="/admin/payroll/analytics"
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3.5 py-2 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-white/20"
-                    >
-                        <span>View Payroll Analytics</span>
-                        <span aria-hidden="true">↗</span>
-                    </Link>
+                        <div className="flex flex-wrap items-center gap-3">
+                        <Button onClick={() => setPreparing(!preparing)} aria-expanded={preparing} aria-controls="payroll-setup" className="admin-header-primary min-h-[44px]">
+                            {preparing ? 'Close setup' : 'New payroll batch'}
+                        </Button>
+                        <Link
+                            href="/admin/payroll/analytics"
+                            className="inline-flex min-h-[44px] items-center rounded-xl border border-white/20 px-4 text-sm font-semibold text-white hover:bg-white/10"
+                        >
+                            Payroll analytics
+                        </Link>
+                        </div>
                     }
                 />
-
-                {/* ── Process New Payroll Card ──────────────────────── */}
-                <Card className="admin-workspace-card">
-                    <CardHeader>
-                        <div>
-                            <CardTitle>Initiate New Payroll Batch</CardTitle>
-                            <p className="text-xs text-sub mt-0.5">
-                                Select the cutoff period to pull DTR attendance days, overtime records, and deduction rules.
-                            </p>
+                <section
+                    id="payroll-setup"
+                    hidden={!preparing && !Object.keys(form.errors).length}
+                    aria-labelledby="prepare-title"
+                    className={`${preparing || Object.keys(form.errors).length ? "grid" : "hidden"} overflow-hidden rounded-2xl border border-border bg-panel lg:grid-cols-[260px_minmax(0,1fr)]`}
+                >
+                    <div className="border-b border-border bg-field p-5 lg:border-r lg:border-b-0">
+                        <p className="text-xs font-semibold text-[#26215C]">New batch</p>
+                        <h2 id="prepare-title" className="mt-2 font-heading text-xl font-bold text-text">
+                            Start a payroll batch
+                        </h2>
+                        <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-sub">
+                            Choose the cutoff and dates. The preview uses employee compensation with DTR attendance
+                            available as a reference.
+                        </p>
+                    </div>
+                    <form onSubmit={start} className="space-y-4 p-5">
+                        <fieldset>
+                            <legend className="mb-2 text-xs font-semibold text-sub">Cutoff</legend>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                                {[
+                                    ['first', 'First cutoff', '1st to 15th'],
+                                    ['second', 'Second cutoff', '16th to month end'],
+                                ].map(([value, label, detail]) => (
+                                    <label
+                                        key={value}
+                                        className={`flex min-h-16 cursor-pointer items-center gap-3 rounded-xl border p-3 ${form.data.cutoff === value ? 'border-indigo-300 bg-indigo-50' : 'border-border bg-field'}`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="cutoff"
+                                            value={value}
+                                            checked={form.data.cutoff === value}
+                                            onChange={() => form.setData('cutoff', value)}
+                                            className="size-4 accent-[#26215C]"
+                                        />
+                                        <span>
+                                            <span className="block text-sm font-semibold text-text">{label}</span>
+                                            <span className="text-xs text-sub">{detail}</span>
+                                        </span>
+                                    </label>
+                                ))}
+                            </div>
+                            {form.errors.cutoff && (
+                                <p role="alert" className="mt-2 text-sm text-rose-700">
+                                    {form.errors.cutoff}
+                                </p>
+                            )}
+                        </fieldset>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            {[
+                                ['period_from', 'Start date'],
+                                ['period_to', 'End date'],
+                            ].map(([field, label]) => (
+                                <label key={field} className="block min-w-0 text-xs font-semibold text-sub">
+                                    {label}
+                                    <input
+                                        type="date"
+                                        required
+                                        aria-label={label}
+                                        value={form.data[field]}
+                                        onInput={(event) => {
+                                            form.setData(field, event.currentTarget.value)
+                                            form.clearErrors(field)
+                                        }}
+                                        aria-invalid={!!form.errors[field]}
+                                        className={`${control} mt-2`}
+                                    />
+                                    {form.errors[field] && (
+                                        <span role="alert" className="mt-2 block text-rose-700">
+                                            {form.errors[field]}
+                                        </span>
+                                    )}
+                                </label>
+                            ))}
                         </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex flex-col lg:flex-row items-stretch lg:items-end gap-4 flex-wrap">
-                            {/* Cutoff Selector */}
-                            <div>
-                                <label className="block text-xs font-medium text-sub mb-1.5">Cutoff Type</label>
-                                <div
-                                    role="radiogroup"
-                                    aria-label="Cutoff type selection"
-                                    className="flex items-center gap-1 bg-field p-1 rounded-lg border border-border/70"
-                                >
-                                    {[
-                                        { value: 'first', label: '1st Cutoff (1st–15th: Full Deductions)' },
-                                        { value: 'second', label: '2nd Cutoff (16th–EOM: Deductions Waived)' },
-                                    ].map(opt => (
-                                        <button
-                                            key={opt.value}
-                                            type="button"
-                                            role="radio"
-                                            aria-checked={cutoff === opt.value}
-                                            onClick={() => setCutoff(opt.value)}
-                                            className={`px-3 py-1.5 text-xs rounded-md font-medium transition-all ${
-                                                cutoff === opt.value
-                                                    ? 'bg-panel text-text shadow-2xs font-semibold'
-                                                    : 'text-sub hover:text-text'
-                                            }`}
-                                        >
-                                            {opt.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Date Range */}
-                            <div className="flex items-center gap-3">
-                                <div>
-                                    <label htmlFor="payroll-period-from" className="block text-xs font-medium text-sub mb-1.5">From Date</label>
-                                    <input
-                                        id="payroll-period-from"
-                                        type="date"
-                                        value={periodFrom}
-                                        onChange={e => setPeriodFrom(e.target.value)}
-                                        className="px-3 py-2 text-xs border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="payroll-period-to" className="block text-xs font-medium text-sub mb-1.5">To Date</label>
-                                    <input
-                                        id="payroll-period-to"
-                                        type="date"
-                                        value={periodTo}
-                                        onChange={e => setPeriodTo(e.target.value)}
-                                        className="px-3 py-2 text-xs border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-                                    />
-                                </div>
-                            </div>
-
-                            <Button variant="primary" size="md" onClick={startPayroll}>
-                                Generate Batch Preview →
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+                            <p className="max-w-[45ch] text-xs leading-relaxed text-sub">
+                                Review exact deduction amounts for each employee before saving.
+                            </p>
+                            <Button
+                                type="submit"
+                                loading={form.processing}
+                                className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]"
+                            >
+                                Prepare payroll preview
                             </Button>
                         </div>
-
-                        {error && (
-                            <p className="mt-3 flex items-start gap-1.5 text-xs font-medium text-rose-600">
-                                <svg className="mt-px h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.949 3.374H4.646c-1.732 0-2.815-1.874-1.949-3.374L10.05 3.374c.866-1.5 3.034-1.5 3.9 0l7.353 12.752zM12 15.75h.008v.008H12v-.008z" />
-                                </svg>
-                                <span>{error}</span>
+                    </form>
+                </section>
+                <section
+                    aria-labelledby="batches-title"
+                    className="overflow-hidden rounded-2xl border border-border bg-panel"
+                >
+                    <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border p-5">
+                        <div>
+                            <p className="text-xs font-semibold text-[#26215C]">Payroll ledger</p>
+                            <h2 id="batches-title" className="mt-1 font-heading text-xl font-bold text-text">
+                                Payroll batches
+                            </h2>
+                            <p className="mt-1 text-xs text-sub">
+                                {payrolls.filter((batch) => batch.status === 'draft').length} drafts ·{' '}
+                                {payrolls.filter((batch) => batch.status === 'finalized').length} finalized
                             </p>
-                        )}
-                    </CardContent>
-                </Card>
-
-                {/* ── Payroll History Table ─────────────────────────── */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Payroll Archive & Batches</CardTitle>
-                        <span className="text-xs text-sub">{payrolls.length} finalized & draft runs</span>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-xs min-w-[760px]">
-                                <thead>
-                                    <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[11px]">
-                                        <th scope="col" className="text-left px-5 py-3 font-semibold">Period</th>
-                                        <th scope="col" className="text-left px-4 py-3 font-semibold">Cutoff</th>
-                                        <th scope="col" className="text-right px-4 py-3 font-semibold">Gross Pay</th>
-                                        <th scope="col" className="text-right px-4 py-3 font-semibold text-rose-700 dark:text-rose-400">Deductions</th>
-                                        <th scope="col" className="text-right px-4 py-3 font-semibold text-emerald-700 dark:text-emerald-400">Net Pay</th>
-                                        <th scope="col" className="text-center px-4 py-3 font-semibold">Status</th>
-                                        <th scope="col" className="text-right px-5 py-3 font-semibold">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-border/60 tnum">
-                                    {payrolls.map(p => (
-                                        <tr key={p.id} className="hover:bg-field/40 transition-colors">
-                                            <td className="px-5 py-3.5">
-                                                <p className="font-semibold text-text">{p.period_label}</p>
-                                                <p className="text-[11px] text-dim">{p.period_from} — {p.period_to}</p>
-                                            </td>
-                                            <td className="px-4 py-3.5">
-                                                <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-field text-sub border border-border/60">
-                                                    {p.cutoff === 'first' ? '1st Cutoff' : '2nd Cutoff'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3.5 text-right font-medium text-text">
-                                                ₱ {fmt(p.total_gross)}
-                                            </td>
-                                            <td className="px-4 py-3.5 text-right font-medium text-rose-600">
-                                                -₱ {fmt(p.total_deductions)}
-                                            </td>
-                                            <td className="px-4 py-3.5 text-right font-heading font-bold text-sm text-emerald-600">
-                                                ₱ {fmt(p.total_net)}
-                                            </td>
-                                            <td className="px-4 py-3.5 text-center">
-                                                <Badge variant={p.status} dot size="sm">
-                                                    {p.status}
-                                                </Badge>
-                                            </td>
-                                            <td className="px-5 py-3.5 text-right">
-                                                <Link
-                                                    href={`/admin/payroll/${p.id}`}
-                                                    aria-label={`Open payroll batch for ${p.period_label}`}
-                                                    className="inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-indigo-200 bg-indigo-50 px-3 text-xs font-semibold text-indigo-700 shadow-2xs transition-colors hover:bg-indigo-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-indigo-800/70 dark:bg-indigo-950/50 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
-                                                >
-                                                    Open Batch →
-                                                </Link>
-                                            </td>
-                                        </tr>
-                                    ))}
-
-                                    {payrolls.length === 0 && (
-                                        <tr>
-                                            <td colSpan={7} className="text-center py-12 text-sub">
-                                                No payroll batches processed yet.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
                         </div>
-                    </CardContent>
-                </Card>
+                        <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-[minmax(180px,1fr)_150px]">
+                            <label className="text-xs text-sub">
+                                Search batches
+                                <input
+                                    type="search"
+                                    value={search}
+                                    onChange={(event) => setSearch(event.target.value)}
+                                    placeholder="Period or preparer"
+                                    className={`${control} mt-1`}
+                                />
+                            </label>
+                            <label className="text-xs text-sub">
+                                Batch status
+                                <select
+                                    value={status}
+                                    onChange={(event) => setStatus(event.target.value)}
+                                    className={`${control} mt-1`}
+                                >
+                                    <option value="all">All statuses</option>
+                                    <option value="draft">Draft</option>
+                                    <option value="finalized">Finalized</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                    <div className="divide-y divide-border">
+                        {visible.map((batch) => (
+                            <div
+                                key={batch.id}
+                                className="grid items-center gap-4 p-5 md:grid-cols-[minmax(200px,1.5fr)_2fr_auto]"
+                            >
+                                <div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <Link
+                                            href={`/admin/payroll/${batch.id}`}
+                                            className="font-semibold text-text hover:text-[#26215C]"
+                                        >
+                                            {batch.period_label}
+                                        </Link>
+                                        <Badge variant={batch.status}>{batch.status}</Badge>
+                                    </div>
+                                    <p className="mt-1 text-xs text-sub">
+                                        {batch.cutoff === 'first' ? 'First' : 'Second'} cutoff · {batch.created_by}
+                                    </p>
+                                </div>
+                                <dl className="grid grid-cols-3 gap-3 text-xs">
+                                    {[
+                                        ['Gross', batch.total_gross],
+                                        ['Deductions', batch.total_deductions],
+                                        ['Net pay', batch.total_net],
+                                    ].map(([label, amount]) => (
+                                        <div key={label}>
+                                            <dt className="text-sub">{label}</dt>
+                                            <dd className="mt-1 break-words font-semibold text-text tnum">
+                                                {fmt(amount)}
+                                            </dd>
+                                        </div>
+                                    ))}
+                                </dl>
+                                <Link
+                                    href={`/admin/payroll/${batch.id}`}
+                                    aria-label={`Open payroll for ${batch.period_label}`}
+                                    className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-border px-4 text-sm font-semibold text-[#26215C] hover:bg-field"
+                                >
+                                    Open batch
+                                </Link>
+                            </div>
+                        ))}
+                    </div>
+                    {!visible.length && (
+                        <div className="px-5 py-12 text-center">
+                            <h3 className="font-semibold text-text">
+                                {payrolls.length ? 'No matching batches' : 'Your payroll ledger starts here'}
+                            </h3>
+                            <p className="mx-auto mt-2 max-w-[45ch] text-sm leading-relaxed text-sub">
+                                {payrolls.length
+                                    ? 'Try a different search or status filter.'
+                                    : 'Prepare a cutoff above. Saved drafts and finalized payrolls will appear here.'}
+                            </p>
+                        </div>
+                    )}
+                </section>
             </div>
         </AdminLayout>
     )

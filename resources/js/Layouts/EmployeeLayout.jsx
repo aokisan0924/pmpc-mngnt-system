@@ -1,3 +1,4 @@
+import AccountSetupNotice from '@/Components/AccountSetupNotice'
 import { Link, usePage, router } from '@inertiajs/react'
 import useNotifications from '@/hooks/useNotifications'
 import NotificationToast from '@/Components/NotificationToast'
@@ -242,6 +243,7 @@ export default function EmployeeLayout({ children, title }) {
 
                 {/* Page Content */}
                 <main id="main-content" tabIndex="-1" className="flex-1 pb-20 md:pb-0 bg-bg outline-none">
+                    <AccountSetupNotice />
                     {children}
                 </main>
             </div>

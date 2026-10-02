@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdatePersonalInfoRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -23,6 +24,7 @@ class EmployeeProfileController extends Controller
                 'id' => $employee->id,
                 'employee_id' => $employee->employee_id,
                 'first_name' => $employee->first_name,
+                'full_name' => $employee->full_name,
                 'last_name' => $employee->last_name,
                 'email' => $employee->email,
                 'phone' => $employee->phone,
@@ -43,16 +45,11 @@ class EmployeeProfileController extends Controller
 
     // ── Update personal info ───────────────────────────────
 
-    public function updateInfo(Request $request): RedirectResponse
+    public function updateInfo(UpdatePersonalInfoRequest $request): RedirectResponse
     {
         $employee = $request->user();
 
-        $validated = $request->validate([
-            'first_name' => ['required', 'string', 'max:100'],
-            'last_name' => ['required', 'string', 'max:100'],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'address' => ['nullable', 'string', 'max:500'],
-        ]);
+        $validated = $request->safe()->only(['phone', 'address']);
 
         $employee->update($validated);
 

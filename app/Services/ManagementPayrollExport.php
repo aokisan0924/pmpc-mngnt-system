@@ -60,7 +60,7 @@ class ManagementPayrollExport
         }
         foreach (self::LAYOUT as $office => $layout) {
             if ($items->where('payroll_office', $office)->pluck('employee_id')->unique()->count() > $layout['capacity']) {
-                $this->reject(OfficePayrollCalculator::OFFICES[$office]['label'].' exceeds the supplied template capacity ('.$layout['capacity'].' employees). Expand the approved template before exporting; no rows have been omitted.');
+                $this->reject((OfficePayrollCalculator::OFFICES[$office]['label'] ?? 'Main Office (historical)').' exceeds the supplied template capacity ('.$layout['capacity'].' employees). Expand the approved template before exporting; no rows have been omitted.');
             }
         }
         File::ensureDirectoryExists(storage_path('app/private'));

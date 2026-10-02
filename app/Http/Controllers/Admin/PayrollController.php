@@ -57,7 +57,9 @@ class PayrollController extends Controller
             ->groupBy('employee_id')->pluck('days', 'employee_id');
         $employees = Employee::where('is_staff', true)->where('status', 'active')->get()
             ->map(function (Employee $emp) use ($attendance, $isFirst): array {
-                $suggestions = app(OfficePayrollCalculator::class)->calculate($emp, $isFirst, 11, 0);
+                $office = $emp->hasVerifiedPayrollOffice() ? $emp->payroll_office : '';
+                $paidDays = OfficePayrollCalculator::OFFICES[$office]['days'] ?? 11;
+                $suggestions = app(OfficePayrollCalculator::class)->calculate($emp, $isFirst, $paidDays, 0);
 
                 return [
                     'id' => $emp->id,
@@ -69,8 +71,9 @@ class PayrollController extends Controller
                     'quarterly_allowance' => $emp->quarterly_allowance,
                     'compensation_signature' => app(OfficePayrollCalculator::class)->compensationSignature($emp),
                     'dtr_days_present' => (float) ($attendance[$emp->id] ?? 0),
-                    'payroll_office' => '',
-                    'paid_days_basis' => 11,
+                    'payroll_office' => $office,
+                    'office_verified' => $emp->hasVerifiedPayrollOffice(),
+                    'paid_days_basis' => $paidDays,
                     'absence_days' => 0,
                     'weekday_ot_hours' => 0,
                     'weekend_ot_hours' => 0,
@@ -113,6 +116,9 @@ class PayrollController extends Controller
                 $emp = $employees->get($itemData['employee_id']);
                 if (! $emp) {
                     throw ValidationException::withMessages(['items' => 'An employee is no longer available. Reload the payroll preview.']);
+                }
+                if (! $emp->hasVerifiedPayrollOffice() || $itemData['payroll_office'] !== $emp->payroll_office) {
+                    throw ValidationException::withMessages(['items' => 'An employee office is unverified or changed. Complete HR verification and reload payroll.']);
                 }
                 if (! hash_equals(app(OfficePayrollCalculator::class)->compensationSignature($emp), $itemData['compensation_signature'])) {
                     throw ValidationException::withMessages(['items' => 'An employee’s rate or allowances changed. Reload and review the payroll preview.']);
@@ -163,7 +169,7 @@ class PayrollController extends Controller
                 'position' => $item->employee->position,
                 'days_present' => $item->days_present,
                 'payroll_office' => $item->payroll_office,
-                'payroll_office_label' => OfficePayrollCalculator::OFFICES[$item->payroll_office]['label'] ?? null,
+                'payroll_office_label' => OfficePayrollCalculator::OFFICES[$item->payroll_office]['label'] ?? ($item->payroll_office === 'main_office' ? 'Main Office (historical)' : null),
                 'paid_days_basis' => $item->paid_days_basis,
                 'absence_days' => $item->absence_days,
                 'tardiness_deduction' => $item->tardiness_deduction,

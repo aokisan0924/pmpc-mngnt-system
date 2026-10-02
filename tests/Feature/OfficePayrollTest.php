@@ -18,11 +18,13 @@ class OfficePayrollTest extends TestCase
 
     private function payload(Employee $employee, array $changes = []): array
     {
+        $employee->forceFill(['payroll_office' => 'fort_magsaysay', 'setup_completed_at' => now(), 'office_verified_at' => now()])->save();
+
         return [
             'period_from' => '2026-09-01', 'period_to' => '2026-09-15',
             'period_label' => 'September first cutoff', 'cutoff' => 'first',
             'items' => [array_replace([
-                'employee_id' => $employee->id, 'payroll_office' => 'main_office',
+                'employee_id' => $employee->id, 'payroll_office' => 'fort_magsaysay',
                 'paid_days_basis' => 11, 'absence_days' => 0, 'tardiness_deduction' => 0,
                 'weekday_ot_hours' => 0, 'weekend_ot_hours' => 0,
                 'deductions_reviewed' => true,
@@ -32,7 +34,7 @@ class OfficePayrollTest extends TestCase
         ];
     }
 
-    public function test_main_office_pay_does_not_require_dtr_rows_and_ignores_client_totals(): void
+    public function test_fort_magsaysay_pay_does_not_require_dtr_rows_and_ignores_client_totals(): void
     {
         $admin = Employee::factory()->superAdmin()->create();
         $employee = Employee::factory()->create(['daily_rate' => 720, 'transpo_allowance' => 1000, 'rep_allowance' => 500]);
@@ -43,10 +45,20 @@ class OfficePayrollTest extends TestCase
         $this->assertEquals(8670, $item->gross_pay);
         $this->assertEquals(7720, $item->net_pay);
         $this->assertEquals(11, $item->days_present);
-        $this->assertEquals('main_office', $item->payroll_office);
+        $this->assertEquals('fort_magsaysay', $item->payroll_office);
         $this->get(route('admin.payroll.show', $item->payroll_id))->assertInertia(fn (AssertableInertia $page) => $page
             ->where('payroll.month_key', '2026-09')
-            ->where('items.0.payroll_office_label', 'Main Office'));
+            ->where('items.0.payroll_office_label', 'Fort Magsaysay'));
+    }
+
+    public function test_main_office_is_rejected_for_new_payroll(): void
+    {
+        $admin = Employee::factory()->superAdmin()->create();
+        $employee = Employee::factory()->create();
+        $this->actingAs($admin)->post('/admin/payroll', $this->payload($employee, ['payroll_office' => 'main_office']))
+            ->assertSessionHasErrors('items.0.payroll_office');
+        $this->assertDatabaseCount('payrolls', 0);
+        $this->assertDatabaseCount('payroll_items', 0);
     }
 
     public function test_fort_absences_and_general_merchandise_paid_days(): void

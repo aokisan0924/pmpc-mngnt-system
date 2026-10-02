@@ -25,7 +25,7 @@ class EmployeeSignatureController extends Controller
     {
         abort_unless($employee->signature_path && Storage::disk('local')->exists($employee->signature_path), 404);
 
-        return response()->file(Storage::disk('local')->path($employee->signature_path), ['Content-Type' => 'image/png', 'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff']);
+        return response()->file(Storage::disk('local')->path($employee->signature_path), ['Content-Type' => 'image/png', 'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff'])->setPrivate();
     }
 
     public function destroy(Employee $employee, EmployeeSignatureService $service): RedirectResponse

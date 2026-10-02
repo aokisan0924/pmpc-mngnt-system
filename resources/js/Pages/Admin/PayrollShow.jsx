@@ -1,301 +1,277 @@
 import { useState } from 'react'
-import { router, usePage, Link } from '@inertiajs/react'
+import { useForm, usePage, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
-import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Button from '@/Components/UI/Button'
 import ConfirmModal from '@/Components/ConfirmModal'
 import AdminPageHeader from '@/Components/AdminPageHeader'
 import PayrollExcelExport from '@/Components/PayrollExcelExport'
+import PayrollSummary from '@/Components/PayrollSummary'
 
-function fmt(num) {
-    return Number(num || 0).toLocaleString('en-PH', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    })
+const fmt = (value) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(Number(value || 0))
+const earnings = {
+    cutoff_basic: 'Basic pay after absences',
+    cutoff_transpo: 'Transportation',
+    cutoff_rep: 'Representation',
+    cutoff_quarterly: 'Quarterly allowance',
+    weekday_ot_pay: 'Weekday overtime',
+    weekend_ot_pay: 'Rest-day overtime',
+}
+const deductions = {
+    sss_deduction: 'SSS',
+    philhealth_deduction: 'PhilHealth',
+    pagibig_deduction: 'Pag-IBIG',
+    tax_deduction: 'Withholding tax',
+    loan_deduction: 'Loan',
+    capital_contribution_deduction: 'Capital contribution',
+    cash_advance_deduction: 'Cash advance',
+    rental_deduction: 'Rental',
+    savings_deduction: 'Savings',
+    other_deductions: 'Other deductions',
+    tardiness_deduction: 'Tardiness',
 }
 
 export default function PayrollShow({ payroll, items = [], signatureEmployees = [] }) {
     const { flash, errors } = usePage().props
-
-    const [confirmOpen, setConfirmOpen]   = useState(false)
-    const [processing, setProcessing]     = useState(false)
-    const [deleteOpen, setDeleteOpen]     = useState(false)
-    const [deleting, setDeleting]         = useState(false)
-
-    function finalize() {
-        setConfirmOpen(true)
-    }
-
-    function handleConfirm() {
-        setProcessing(true)
-        router.post(`/admin/payroll/${payroll.id}/finalize`, {}, {
-            onFinish: () => {
-                setProcessing(false)
-                setConfirmOpen(false)
-            },
-        })
-    }
-
-    function handleDeleteConfirm() {
-        setDeleting(true)
-        router.delete(`/admin/payroll/${payroll.id}`, {
-            onFinish: () => {
-                setDeleting(false)
-                setDeleteOpen(false)
-            },
-        })
-    }
-
+    const form = useForm({})
+    const [confirmOpen, setConfirmOpen] = useState(false)
+    const [deleteOpen, setDeleteOpen] = useState(false)
+    const [search, setSearch] = useState('')
+    const [office, setOffice] = useState('all')
+    const offices = [...new Set(items.map((item) => item.payroll_office_label).filter(Boolean))]
+    const visible = items.filter(
+        (item) =>
+            `${item.full_name} ${item.employee_id}`.toLowerCase().includes(search.toLowerCase()) &&
+            (office === 'all' || item.payroll_office_label === office),
+    )
     return (
         <AdminLayout>
-            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
-                {errors?.export && <div role="alert" className="rounded-xl bg-rose-50 p-4 text-sm text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">{errors.export}</div>}
+            <div className="admin-page-shell space-y-5 page-enter">
                 {flash?.success && (
-                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                    <p
+                        role="status"
+                        className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"
+                    >
                         {flash.success}
-                    </div>
+                    </p>
                 )}
-
-                {/* ── Top Header ────────────────────────────────────── */}
+                {Object.entries(errors || {})
+                    .filter(([key]) => !key.startsWith('signatories.'))
+                    .map(([key, message]) => (
+                        <p role="alert" key={key} className="rounded-xl bg-rose-50 p-4 text-sm text-rose-800">
+                            {message}
+                        </p>
+                    ))}
                 <AdminPageHeader
-                    eyebrow="Payroll batch ledger"
+                    eyebrow="Saved payroll batch"
                     title={payroll.period_label}
-                    description={`${payroll.period_from} to ${payroll.period_to} · Generated compensation ledger`}
+                    description={`${payroll.period_from} to ${payroll.period_to}`}
                     badge={`${payroll.cutoff_label} · ${payroll.status}`}
-                    meta={<Link href="/admin/payroll" className="font-medium text-indigo-100 hover:text-white">← Back to Payroll Ledger</Link>}
+                    meta={
+                        <Link
+                            href="/admin/payroll"
+                            className="inline-flex min-h-[44px] items-center font-medium text-indigo-100 hover:text-white"
+                        >
+                            Back to payroll
+                        </Link>
+                    }
                     action={
-                    <div className="flex flex-wrap items-center gap-3">
-                        <a href="#payroll-excel-export" className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-white/20 sm:text-sm">
-                            Export Management Excel
-                        </a>
+                        payroll.status === 'draft' && (
+                            <Button
+                                disabled={form.processing}
+                                onClick={() => setConfirmOpen(true)}
+                                className="admin-header-primary min-h-[44px]"
+                            >
+                                Finalize payroll batch
+                            </Button>
+                        )
+                    }
+                />
+                <PayrollSummary
+                    gross={payroll.total_gross}
+                    deductions={payroll.total_deductions}
+                    net={payroll.total_net}
+                >
+                    <p className="mt-4 border-t border-border pt-3 text-sm text-sub">
+                        {items.length} employee records ·{' '}
+                        {payroll.status === 'draft'
+                            ? 'Draft: review the employee breakdown before finalizing.'
+                            : 'Finalized: payroll figures are locked.'}
+                    </p>
+                </PayrollSummary>
+                <section
+                    aria-labelledby="breakdown-title"
+                    className="overflow-hidden rounded-2xl border border-border bg-panel"
+                >
+                    <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border p-5">
+                        <div>
+                            <h2 id="breakdown-title" className="font-heading text-xl font-bold text-text">
+                                Employee breakdown
+                            </h2>
+                            <p className="mt-1 text-xs text-sub">
+                                Open an employee to inspect earnings and deductions.
+                            </p>
+                        </div>
+                        <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-2">
+                            <label className="text-xs text-sub">
+                                Search employees
+                                <input
+                                    type="search"
+                                    value={search}
+                                    onChange={(event) => setSearch(event.target.value)}
+                                    placeholder="Name or ID"
+                                    className="mt-1 min-h-[44px] w-full rounded-xl border border-border bg-field px-3 text-sm text-text"
+                                />
+                            </label>
+                            <label className="text-xs text-sub">
+                                Payroll office
+                                <select
+                                    value={office}
+                                    onChange={(event) => setOffice(event.target.value)}
+                                    className="mt-1 min-h-[44px] w-full rounded-xl border border-border bg-field px-3 text-sm text-text"
+                                >
+                                    <option value="all">All offices</option>
+                                    {offices.map((label) => (
+                                        <option key={label}>{label}</option>
+                                    ))}
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+                    <div className="divide-y divide-border">
+                        {visible.map((item) => (
+                            <details key={item.id} className="group">
+                                <summary className="grid cursor-pointer list-none items-center gap-4 px-5 py-4 hover:bg-field md:grid-cols-[minmax(200px,1.4fr)_2fr_auto]">
+                                    <div>
+                                        <h3 className="text-sm font-semibold text-text">{item.full_name}</h3>
+                                        <p className="mt-1 text-xs text-sub">
+                                            {item.employee_id} ·{' '}
+                                            {item.payroll_office_label || item.position || 'Employee'}
+                                        </p>
+                                        <p className="mt-1 text-xs text-sub">
+                                            {item.payroll_office
+                                                ? `${item.paid_days_basis} paid days − ${item.absence_days} absent`
+                                                : `${item.days_present} attendance days`}
+                                        </p>
+                                    </div>
+                                    <dl className="grid grid-cols-3 gap-3 text-xs">
+                                        {[
+                                            ['Gross', item.gross_pay],
+                                            ['Deductions', item.total_deductions],
+                                            ['Net pay', item.net_pay],
+                                        ].map(([label, amount]) => (
+                                            <div key={label}>
+                                                <dt className="text-sub">{label}</dt>
+                                                <dd
+                                                    className={`mt-1 break-words font-semibold tnum ${Number(amount) < 0 ? 'text-rose-700' : 'text-text'}`}
+                                                >
+                                                    {fmt(amount)}
+                                                </dd>
+                                            </div>
+                                        ))}
+                                    </dl>
+                                    <span className="text-xs font-semibold text-[#26215C]">
+                                        <span className="group-open:hidden">View details +</span>
+                                        <span className="hidden group-open:inline">Close details −</span>
+                                    </span>
+                                </summary>
+                                <div className="grid gap-6 border-t border-border bg-field/60 p-5 md:grid-cols-2">
+                                    {[
+                                        ['Earnings', earnings],
+                                        ['Deductions', deductions],
+                                    ].map(([title, fields]) => (
+                                        <section key={title}>
+                                            <h4 className="mb-3 text-sm font-semibold text-text">{title}</h4>
+                                            <dl className="divide-y divide-border text-xs">
+                                                {Object.entries(fields).map(([field, label]) => (
+                                                    <div key={field} className="flex justify-between gap-3 py-2">
+                                                        <dt className="text-sub">{label}</dt>
+                                                        <dd className="font-medium text-text tnum">
+                                                            {fmt(item[field])}
+                                                        </dd>
+                                                    </div>
+                                                ))}
+                                            </dl>
+                                        </section>
+                                    ))}
+                                    {(Number(item.weekday_ot_hours) > 0 || Number(item.weekend_ot_hours) > 0) && (
+                                        <p className="text-xs text-sub md:col-span-2">
+                                            Overtime recorded: {item.weekday_ot_hours} weekday hours ·{' '}
+                                            {item.weekend_ot_hours} rest-day hours
+                                        </p>
+                                    )}
+                                </div>
+                            </details>
+                        ))}
+                    </div>
+                    {!visible.length && (
+                        <p className="p-8 text-center text-sm text-sub">No employees match these filters.</p>
+                    )}
+                </section>
+                <section aria-labelledby="downloads-title" className="rounded-2xl border border-border bg-panel p-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h2 id="downloads-title" className="font-heading text-lg font-bold text-text">
+                                Reports & downloads
+                            </h2>
+                            <p className="mt-1 text-xs text-sub">
+                                Download payslips or choose signatories for the management workbook.
+                            </p>
+                        </div>
                         <a
                             href={`/admin/payslips/download-all?month=${payroll.month_key}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-white/20 sm:text-sm"
+                            className="inline-flex min-h-[44px] items-center rounded-xl border border-border px-4 text-sm font-semibold text-[#26215C] hover:bg-field"
                         >
-                            <span>Download All Payslips</span>
-                            <span aria-hidden="true">↓</span>
+                            Download all payslips
                         </a>
-
-                        {payroll.status === 'draft' && (
-                            <>
-                                <Button
-                                    variant="danger"
-                                    size="md"
-                                    onClick={() => setDeleteOpen(true)}
-                                    className="shadow-xs"
-                                >
-                                    Discard Draft
-                                </Button>
-                                <Button
-                                    variant="primary"
-                                    size="md"
-                                    onClick={finalize}
-                                    className="admin-header-primary shadow-xs"
-                                >
-                                    Finalize Payroll Batch
-                                </Button>
-                            </>
-                        )}
                     </div>
-                    }
-                />
-
-                {/* ── Summary Cards ──────────────────────────────────── */}
-                <PayrollExcelExport payroll={payroll} employees={signatureEmployees} />
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <Card>
-                        <CardContent className="p-4 sm:p-5">
-                            <p className="text-xs font-semibold text-sub uppercase tracking-wider mb-1">Total Gross Pay</p>
-                            <p className="text-2xl sm:text-3xl font-heading font-bold text-text tnum">₱ {fmt(payroll.total_gross)}</p>
-                            <p className="text-[11px] text-dim mt-1">Base salaries + overtime compensation</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="p-4 sm:p-5">
-                            <p className="text-xs font-semibold text-rose-600 uppercase tracking-wider mb-1">Total Deductions</p>
-                            <p className="text-2xl sm:text-3xl font-heading font-bold text-rose-600 tnum">-₱ {fmt(payroll.total_deductions)}</p>
-                            <p className="text-[11px] text-dim mt-1">Statutory contributions & cooperative loans</p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="p-4 sm:p-5">
-                            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-1">Total Net Payout</p>
-                            <p className="text-2xl sm:text-3xl font-heading font-bold text-emerald-600 tnum">₱ {fmt(payroll.total_net)}</p>
-                            <p className="text-[11px] text-dim mt-1">Disbursable cooperative staff compensation</p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* ── Payroll Table Card ─────────────────────────────── */}
-                <Card className="admin-workspace-card overflow-hidden">
-                    <CardHeader>
-                        <CardTitle>Batch Itemized Breakdown</CardTitle>
-                        <span className="text-xs text-sub">{items.length} employee compensation records</span>
-                    </CardHeader>
-
-                    <div className="overflow-x-auto">
-                        <table className="text-xs w-full min-w-[1100px]">
-                            <thead>
-                                <tr className="bg-field/70 border-b border-border/80 text-sub">
-                                    <th scope="col" rowSpan={2} className="text-left px-5 py-3 font-semibold text-[11px] uppercase" style={{ verticalAlign: 'middle', minWidth: 190 }}>
-                                        Employee
-                                    </th>
-                                    <th scope="col" rowSpan={2} className="text-center px-3 py-3 font-semibold text-[11px] uppercase" style={{ verticalAlign: 'middle' }}>
-                                        Days
-                                    </th>
-                                    <th scope="colgroup" colSpan={5} className="text-center px-3 py-2 font-semibold text-[11px] uppercase text-indigo-600 dark:text-indigo-400 border-l border-border/80">
-                                        Gross Breakdown
-                                    </th>
-                                    <th scope="col" rowSpan={2} className="text-right px-4 py-2 font-semibold text-[11px] uppercase text-emerald-600 dark:text-emerald-400 border-l border-border/80" style={{ verticalAlign: 'middle' }}>
-                                        Gross Pay
-                                    </th>
-                                    <th scope="colgroup" colSpan={5} className="text-center px-3 py-2 font-semibold text-[11px] uppercase text-rose-600 dark:text-rose-400 border-l border-border/80">
-                                        Deductions
-                                    </th>
-                                    <th scope="col" rowSpan={2} className="text-right px-5 py-2 font-semibold text-[11px] uppercase text-text border-l border-border/80" style={{ verticalAlign: 'middle' }}>
-                                        Net Pay
-                                    </th>
-                                </tr>
-                                <tr className="bg-field/50 border-b border-border/80 text-sub text-[11px]">
-                                    <th scope="col" className="text-right px-3 py-2 font-medium border-l border-border/80">Basic</th>
-                                    <th scope="col" className="text-right px-3 py-2 font-medium">Transpo</th>
-                                    <th scope="col" className="text-right px-3 py-2 font-medium">Rep</th>
-                                    <th scope="col" className="text-right px-3 py-2 font-medium">Quarterly</th>
-                                    <th scope="col" className="text-right px-3 py-2 font-medium">OT Pay</th>
-
-                                            <th scope="col" className="text-right px-3 py-2 font-medium border-l border-border/80">SSS</th>
-                                            <th scope="col" className="text-right px-3 py-2 font-medium">PhilHealth</th>
-                                            <th scope="col" className="text-right px-3 py-2 font-medium">Pag-IBIG</th>
-                                            <th scope="col" className="text-right px-3 py-2 font-medium">Tax</th>
-
-                                    <th scope="col" className="text-right px-3 py-2 font-medium border-l border-border/80">Other Ded.</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-border/60 tnum">
-                                {items.map(item => {
-                                    const splitDed = (parseFloat(item.loan_deduction) || 0)
-                                        + (parseFloat(item.capital_contribution_deduction) || 0)
-                                        + (parseFloat(item.cash_advance_deduction) || 0)
-                                        + (parseFloat(item.rental_deduction) || 0)
-                                        + (parseFloat(item.savings_deduction) || 0)
-                                        + (parseFloat(item.other_deductions) || 0)
-                                        + (parseFloat(item.tardiness_deduction) || 0)
-
-                                    return (
-                                        <tr key={item.id} className="hover:bg-field/40 transition-colors">
-                                            <td className="px-5 py-3.5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 flex items-center justify-center font-heading font-semibold text-xs flex-shrink-0">
-                                                        {item.initials}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-semibold text-text whitespace-nowrap">{item.full_name}</p>
-                                                        <p className="text-[11px] text-sub font-mono">{item.employee_id} • {item.position}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-3 py-3.5 text-center font-semibold text-text">{item.days_present}
-                                                {item.payroll_office && <p className="text-[10px] text-sub">{item.payroll_office_label} · {item.paid_days_basis} paid − {item.absence_days} absent</p>}</td>
-                                            <td className="px-3 py-3.5 text-right font-medium text-text border-l border-border/80">₱ {fmt(item.cutoff_basic)}</td>
-                                            <td className="px-3 py-3.5 text-right text-sub">₱ {fmt(item.cutoff_transpo)}</td>
-                                            <td className="px-3 py-3.5 text-right text-sub">₱ {fmt(item.cutoff_rep)}</td>
-                                            <td className="px-3 py-3.5 text-right text-sub">₱ {fmt(item.cutoff_quarterly)}</td>
-                                            <td className="px-3 py-3.5 text-right text-amber-600 dark:text-amber-400 font-medium">
-                                                {item.total_ot_pay > 0 ? (
-                                                    <span title={`WD: ₱${fmt(item.weekday_ot_pay)} + WE: ₱${fmt(item.weekend_ot_pay)}`}>
-                                                        ₱ {fmt(item.total_ot_pay)}
-                                                    </span>
-                                                ) : '—'}
-                                            </td>
-                                            <td className="px-4 py-3.5 text-right font-semibold text-text border-l border-border/80">
-                                                ₱ {fmt(item.gross_pay)}
-                                            </td>
-
-                                                    <td className="px-3 py-3.5 text-right text-rose-600 border-l border-border/80">₱ {fmt(item.sss_deduction)}</td>
-                                                    <td className="px-3 py-3.5 text-right text-rose-600">₱ {fmt(item.philhealth_deduction)}</td>
-                                                    <td className="px-3 py-3.5 text-right text-rose-600">₱ {fmt(item.pagibig_deduction)}</td>
-                                                    <td className="px-3 py-3.5 text-right text-rose-600">₱ {fmt(item.tax_deduction)}</td>
-
-                                            <td className="px-3 py-3.5 text-right text-rose-600 border-l border-border/80">
-                                                -₱ {fmt(splitDed)}
-                                            </td>
-                                            <td className={`px-5 py-3.5 text-right font-heading font-bold text-sm border-l border-border/80 ${item.net_pay < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                                ₱ {fmt(item.net_pay)}
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-                            <tfoot>
-                                <tr className="border-t-2 border-border/80 bg-field/60 font-semibold tnum">
-                                    <td colSpan={2} className="px-5 py-3.5 text-text font-heading">
-                                        Totals — {items.length} employees
-                                    </td>
-                                    <td colSpan={5} className="px-3 py-3.5 text-right text-text border-l border-border/80">
-                                        ₱ {fmt(payroll.total_gross - items.reduce((s, i) => s + (i.total_ot_pay || 0), 0))}
-                                        <span className="text-amber-600 dark:text-amber-400 ml-2">+ OT ₱ {fmt(items.reduce((s, i) => s + (i.total_ot_pay || 0), 0))}</span>
-                                    </td>
-                                    <td className="px-4 py-3.5 text-right text-text font-bold border-l border-border/80">
-                                        ₱ {fmt(payroll.total_gross)}
-                                    </td>
-                                    <td colSpan={5} className="px-3 py-3.5 text-right text-rose-600 border-l border-border/80">
-                                        -₱ {fmt(payroll.total_deductions)}
-                                    </td>
-                                    <td className="px-5 py-3.5 text-right text-emerald-600 font-heading font-bold text-base border-l border-border/80">
-                                        ₱ {fmt(payroll.total_net)}
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </Card>
-
-                {/* ── OT Detail Breakdown ────────────────────────────── */}
-                {items.some(i => i.total_ot_pay > 0) && (
-                    <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-3.5 text-xs text-amber-700 dark:text-amber-300">
-                        <p className="font-heading font-bold mb-2 uppercase tracking-wider text-[11px]">Recorded Overtime Detail Breakdown</p>
-                        <div className="space-y-1">
-                            {items.filter(i => i.total_ot_pay > 0).map(item => (
-                                <p key={item.id} className="font-mono text-xs">
-                                    <strong className="text-text">{item.full_name}</strong>
-                                    {item.weekday_ot_hours > 0 && ` · Weekday: ${item.weekday_ot_hours}hrs @ ₱${fmt(item.weekday_ot_pay)}`}
-                                    {item.weekend_ot_hours > 0 && ` · Weekend: ${item.weekend_ot_hours}hrs @ ₱${fmt(item.weekend_ot_pay)}`}
-                                    {` · Total OT: ₱${fmt(item.total_ot_pay)}`}
-                                </p>
-                            ))}
-                        </div>
+                    <details
+                        open={Object.keys(errors || {}).some((key) => key.startsWith('signatories.')) || undefined}
+                        className="mt-5 border-t border-border pt-4"
+                    >
+                        <summary className="flex min-h-[44px] cursor-pointer items-center text-sm font-semibold text-text">
+                            Management Excel · signatories & export
+                        </summary>
+                        <PayrollExcelExport payroll={payroll} employees={signatureEmployees} />
+                    </details>
+                </section>
+                {payroll.status === 'draft' && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+                        <p className="text-xs text-sub">Discarding removes this draft and its employee calculations.</p>
+                        <Button
+                            variant="outline"
+                            disabled={form.processing}
+                            onClick={() => setDeleteOpen(true)}
+                            className="min-h-[44px] text-rose-700"
+                        >
+                            Discard draft
+                        </Button>
                     </div>
                 )}
             </div>
-
-            {/* ── Confirm Finalize Modal ─────────────────────────── */}
             <ConfirmModal
                 open={confirmOpen}
                 title="Finalize payroll batch?"
-                message={`This will permanently lock the ${payroll.period_label} batch. Under statutory accounting rules, finalized payroll batches and generated payslips cannot be edited or deleted. Make sure all compensation figures and deductions are verified.`}
-                confirmLabel="Yes, finalize batch"
-                cancelLabel="Cancel"
+                message={`This locks the ${payroll.period_label} batch. Finalized payroll cannot be edited or deleted. Verify all employee figures and deductions before continuing.`}
+                confirmLabel="Finalize batch"
+                cancelLabel="Keep reviewing"
                 confirmStyle="primary"
-                processing={processing}
-                onConfirm={handleConfirm}
+                processing={form.processing}
+                onConfirm={() =>
+                    form.post(`/admin/payroll/${payroll.id}/finalize`, { onFinish: () => setConfirmOpen(false) })
+                }
                 onCancel={() => setConfirmOpen(false)}
             />
-
-            {/* ── Confirm Discard Draft Modal ────────────────────── */}
             <ConfirmModal
                 open={deleteOpen}
                 title="Discard draft payroll batch?"
-                message={`Are you sure you want to discard the draft batch for ${payroll.period_label}? All draft item calculations will be removed. You can generate a new batch at any time.`}
-                confirmLabel="Yes, discard draft"
+                message={`Remove the draft for ${payroll.period_label} and its employee calculations? You can prepare a new batch afterward.`}
+                confirmLabel="Discard draft"
                 cancelLabel="Keep draft"
                 confirmStyle="danger"
-                processing={deleting}
-                onConfirm={handleDeleteConfirm}
+                processing={form.processing}
+                onConfirm={() => form.delete(`/admin/payroll/${payroll.id}`, { onFinish: () => setDeleteOpen(false) })}
                 onCancel={() => setDeleteOpen(false)}
             />
         </AdminLayout>

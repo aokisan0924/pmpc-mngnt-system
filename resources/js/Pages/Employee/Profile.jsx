@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm, usePage } from '@inertiajs/react'
+import { useForm, usePage, Link } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import EmployeePageHeader from '@/Components/EmployeePageHeader'
 import Card, { CardContent, CardFooter } from '@/Components/UI/Card'
@@ -89,6 +89,9 @@ export default function Profile({ employee, govIds }) {
         <EmployeeLayout title="My Profile">
             <div className="employee-page-shell max-w-5xl space-y-5">
 
+                <Link href="/employee/setup" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[#0F6E56] underline">Account setup, verified office & optional signature</Link>
+                <p className="text-sm text-sub">Name changes require HR verification. Contact HR after your account setup is approved.</p>
+
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#0F6E56]/10 border border-[#0F6E56]/25 text-[#0F6E56] dark:text-emerald-400 text-xs font-semibold">
                         <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,7 +103,7 @@ export default function Profile({ employee, govIds }) {
 
                 <EmployeePageHeader
                     eyebrow={`Employee ID ${employee.employee_id}`}
-                    title={`${employee.first_name} ${employee.last_name}`}
+                    title={employee.full_name || `${employee.first_name} ${employee.last_name}`}
                     description={`${employee.department || 'Department not assigned'} · ${employee.position || 'Position not assigned'}`}
                     badge="Active Staff"
                     leading={(
@@ -157,6 +160,7 @@ export default function Profile({ employee, govIds }) {
                                         <input
                                             id="profile-first-name"
                                             type="text"
+                                            readOnly
                                             value={infoForm.data.first_name}
                                             onChange={e => infoForm.setData('first_name', e.target.value)}
                                             className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
@@ -171,6 +175,7 @@ export default function Profile({ employee, govIds }) {
                                         <input
                                             id="profile-last-name"
                                             type="text"
+                                            readOnly
                                             value={infoForm.data.last_name}
                                             onChange={e => infoForm.setData('last_name', e.target.value)}
                                             className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
