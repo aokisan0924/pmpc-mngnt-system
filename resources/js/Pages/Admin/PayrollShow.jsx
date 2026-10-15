@@ -199,7 +199,10 @@ export default function PayrollShow({ payroll, items = [], signatureEmployees = 
                                             <dl className="divide-y divide-border text-xs">
                                                 {Object.entries(fields).map(([field, label]) => (
                                                     <div key={field} className="flex justify-between gap-3 py-2">
-                                                        <dt className="text-sub">{label}</dt>
+                                                        <dt className="text-sub">
+                                                            {label}
+                                                            {field === 'tardiness_deduction' && Number(item.tardiness_minutes) > 0 && ` (${Number(item.tardiness_minutes)} mins)`}
+                                                        </dt>
                                                         <dd className="font-medium text-text tnum">
                                                             {fmt(item[field])}
                                                         </dd>

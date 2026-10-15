@@ -101,8 +101,11 @@ class OfficePayrollTest extends TestCase
         $admin = Employee::factory()->superAdmin()->create();
         $employee = Employee::factory()->create(['daily_rate' => 600, 'cash_advance_deduction' => 1000]);
         $deductions = array_replace(array_fill_keys(OfficePayrollCalculator::DEDUCTIONS, 0), ['cash_advance_deduction' => 1000, 'loan_deduction' => 123.45]);
-        $this->actingAs($admin)->post('/admin/payroll', $this->payload($employee, ['deductions' => $deductions, 'tardiness_deduction' => 5]))->assertSessionHasNoErrors();
+        // 4 late minutes at 600 / 8 / 60 = 5.00; a client-sent peso amount is ignored.
+        $this->actingAs($admin)->post('/admin/payroll', $this->payload($employee, ['deductions' => $deductions, 'tardiness_minutes' => 4, 'tardiness_deduction' => 999]))->assertSessionHasNoErrors();
         $item = PayrollItem::firstOrFail();
+        $this->assertEquals(4, $item->tardiness_minutes);
+        $this->assertEquals(5, $item->tardiness_deduction);
         $this->assertEquals(1000, $item->cash_advance_deduction);
         $this->assertEquals(1128.45, $item->total_deductions);
         $this->assertEquals(5471.55, $item->net_pay);
@@ -181,13 +184,23 @@ class OfficePayrollTest extends TestCase
     {
         $admin = Employee::factory()->superAdmin()->create();
         $employee = Employee::factory()->create(['daily_rate' => 600]);
-        $this->actingAs($admin)->post('/admin/payroll', $this->payload($employee, ['tardiness_deduction' => 5]))->assertSessionHasNoErrors();
+        $this->actingAs($admin)->post('/admin/payroll', $this->payload($employee, ['tardiness_minutes' => 4]))->assertSessionHasNoErrors();
         $employee->update(['daily_rate' => 999]);
         $method = new \ReflectionMethod(PayslipController::class, 'buildPayslipData');
         $data = $method->invoke(new PayslipController, $employee, '2026-09', []);
         $this->assertEquals(5, $data['tardiness']);
+        $this->assertEquals(4, $data['tardiness_minutes']);
         $this->assertEquals(5, $data['total_deductions']);
         $this->assertEquals(6595, $data['net_pay']);
+    }
+
+    public function test_tardiness_uses_each_employee_daily_rate_per_minute(): void
+    {
+        $calculator = new OfficePayrollCalculator;
+        // Excel formula: rate / 8 / 60 x minutes, with the employee's own rate.
+        $this->assertEquals(23.33, $calculator->tardinessFor(Employee::factory()->make(['daily_rate' => 800]), 14));
+        $this->assertEquals(12.83, $calculator->tardinessFor(Employee::factory()->make(['daily_rate' => 879.81]), 7));
+        $this->assertEquals(2.50, $calculator->tardinessFor(Employee::factory()->make(['daily_rate' => 600]), 2));
     }
 
     public function test_office_migration_can_be_rolled_back_and_reapplied_without_changing_payroll_figures(): void

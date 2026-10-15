@@ -2,6 +2,8 @@ const money = value => {
     const number = Number(value) || 0
     return Math.round((number + Math.abs(number) * Number.EPSILON) * 100) / 100
 }
+// Same as OfficePayrollCalculator::tardinessFor: daily rate / 8 / 60 x minutes late.
+export const tardinessFor = (item) => money(Number(item.daily_rate) / 8 / 60 * Number(item.tardiness_minutes || 0))
 export function calculateOfficeItem(item) {
     const days_present = Number(item.paid_days_basis) - Number(item.absence_days)
     const cutoff_basic = money(Number(item.daily_rate) * days_present)
@@ -14,6 +16,6 @@ export function calculateOfficeItem(item) {
     const holiday_pay = money(item.holiday_pay)
     const cutoff_gross = money(cutoff_basic + cutoff_transpo + cutoff_rep + cutoff_quarterly)
     const gross_pay = money(cutoff_gross + weekday_ot_pay + weekend_ot_pay + holiday_pay)
-    const total_deductions = money(Object.values(item.deductions).reduce((sum, value) => sum + money(value), 0) + money(item.tardiness_deduction))
-    return { ...item, ...item.deductions, days_present, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, cutoff_gross, weekday_ot_pay, weekend_ot_pay, holiday_pay, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
+    const total_deductions = money(Object.values(item.deductions).reduce((sum, value) => sum + money(value), 0) + tardinessFor(item))
+    return { ...item, ...item.deductions, tardiness_deduction: tardinessFor(item), days_present, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, cutoff_gross, weekday_ot_pay, weekend_ot_pay, holiday_pay, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
 }

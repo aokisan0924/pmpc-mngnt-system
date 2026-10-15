@@ -231,6 +231,7 @@ class PayslipController extends Controller
         $savings = ($first?->savings_deduction ?? 0) + ($second?->savings_deduction ?? 0);
         $other = ($first?->other_deductions ?? 0) + ($second?->other_deductions ?? 0);
         $tardiness = ($first?->tardiness_deduction ?? 0) + ($second?->tardiness_deduction ?? 0);
+        $tardinessMinutes = ($first?->tardiness_minutes ?? 0) + ($second?->tardiness_minutes ?? 0);
 
         $govtSubtotal = $sss + $philhealth + $pagibig + $tax;
         $otherSubtotal = $loan + $capitalContrib + $cashAdv + $rental + $savings + $other + $tardiness;
@@ -276,6 +277,7 @@ class PayslipController extends Controller
             'capital_contribution' => $capitalContrib,
             'other' => $other,
             'tardiness' => $tardiness,
+            'tardiness_minutes' => $tardinessMinutes,
             'other_subtotal' => $otherSubtotal,
             'total_deductions' => $totalDed,
             'net_pay' => $netPay,

@@ -39,7 +39,7 @@ The workbook does not establish one reliable deduction schedule for every office
 
 The preparation form suggests full SSS, PhilHealth, and Pag-IBIG on the first cutoff and zero on the second; withholding tax and other monthly profile deductions are suggested at half per cutoff. These are editable suggestions, not confirmed office policies. Payroll staff must enter the verified amounts for the selected cutoff, including loans, capital contribution, savings, rentals, cash advances, and other deductions. An odd cent in a monthly amount may require adjusting one cutoff so both cutoffs reconcile to the monthly amount.
 
-Enter tardiness as a verified peso amount. The workbook uses inconsistent daily rates in tardiness formulas, so WorkForce does not infer a rate or calculate a deduction from minutes.
+Enter tardiness as minutes late. WorkForce deducts each employee's daily rate ÷ 8 ÷ 60 per minute (the workbook formula, but with the employee's own rate instead of the workbook's fixed ₱720/₱1,200) and stores both the minutes and the peso amount.
 
 ## Preparing and saving
 

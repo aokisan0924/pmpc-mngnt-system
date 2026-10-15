@@ -393,7 +393,7 @@
                 </tr>
                 @if(($d['tardiness'] ?? 0) > 0)
                 <tr class="indent">
-                    <td class="label">Tardiness</td>
+                    <td class="label">Tardiness{{ ($d['tardiness_minutes'] ?? 0) > 0 ? ' ('.rtrim(rtrim(number_format($d['tardiness_minutes'], 1), '0'), '.').' mins)' : '' }}</td>
                     <td class="amt neg">(₱ {{ $p($d['tardiness']) }})</td>
                 </tr>
                 @endif

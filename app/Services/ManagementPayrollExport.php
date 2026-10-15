@@ -154,12 +154,12 @@ class ManagementPayrollExport
                 $detail = self::DETAIL_ROW;
                 $this->put($doc, 'B'.($detail - 2), 'Status: '.$batches->map(fn ($p) => $p->cutoff.' cutoff '.$p->status)->implode(', ').'. Saved figures only; gross includes entered holiday pay. Interest income from loans is not split by the system.');
                 $this->put($doc, 'B'.($detail - 1), 'Supplemental detail (amounts without a dedicated column in the original layout). Not part of the printed payroll.');
-                $headers = ['Employee ID', 'Employee', 'Cutoff', 'Paid days basis', 'Absence days', 'Transport', 'Representation', 'Quarterly', 'Weekday OT', 'Rest day OT', 'Savings', 'Other deductions', 'Tardiness', 'Cash advance', 'Holiday pay'];
+                $headers = ['Employee ID', 'Employee', 'Cutoff', 'Paid days basis', 'Absence days', 'Transport', 'Representation', 'Quarterly', 'Weekday OT', 'Rest day OT', 'Savings', 'Other deductions', 'Tardiness', 'Cash advance', 'Holiday pay', 'Late minutes'];
                 foreach ($headers as $j => $header) {
                     $this->put($doc, self::letter(2 + $j).$detail, $header);
                 }
                 foreach ($officeItems->values() as $offset => $item) {
-                    $values = [$item->employee->employee_id, $item->employee->full_name, $item->cutoff, (float) $item->paid_days_basis, (float) $item->absence_days, $item->cutoff_transpo, $item->cutoff_rep, $item->cutoff_quarterly, $item->weekday_ot_pay, $item->weekend_ot_pay, $item->savings_deduction, $item->other_deductions, $item->tardiness_deduction, $item->cash_advance_deduction, $item->holiday_pay];
+                    $values = [$item->employee->employee_id, $item->employee->full_name, $item->cutoff, (float) $item->paid_days_basis, (float) $item->absence_days, $item->cutoff_transpo, $item->cutoff_rep, $item->cutoff_quarterly, $item->weekday_ot_pay, $item->weekend_ot_pay, $item->savings_deduction, $item->other_deductions, $item->tardiness_deduction, $item->cash_advance_deduction, $item->holiday_pay, (float) $item->tardiness_minutes];
                     foreach ($values as $j => $value) {
                         $this->put($doc, self::letter(2 + $j).($detail + 1 + $offset), $value);
                     }

@@ -89,7 +89,7 @@ class PayrollController extends Controller
                         : ((float) ($attendance[$emp->id] ?? 0) === 0.0 ? 'No DTR account' : ''),
                     'weekday_ot_hours' => 0,
                     'weekend_ot_hours' => 0,
-                    'tardiness_deduction' => 0,
+                    'tardiness_minutes' => 0,
                     'deductions' => collect($suggestions)->only(OfficePayrollCalculator::DEDUCTIONS)->all(),
                 ];
             });
@@ -159,7 +159,9 @@ class PayrollController extends Controller
                 $item->absence_days = $itemData['absence_days'];
                 $item->dtr_days_present = $dtrDays;
                 $item->dtr_reconciliation_note = $reconciliationNote !== '' ? $reconciliationNote : null;
-                $item->tardiness_deduction = $itemData['tardiness_deduction'];
+                // Pesos are always computed here from minutes; a client-sent peso amount is ignored.
+                $item->tardiness_minutes = (float) ($itemData['tardiness_minutes'] ?? 0);
+                $item->tardiness_deduction = app(OfficePayrollCalculator::class)->tardinessFor($emp, (float) $item->tardiness_minutes);
                 $item->weekday_ot_hours = floatval($itemData['weekday_ot_hours'] ?? 0);
                 $item->weekend_ot_hours = floatval($itemData['weekend_ot_hours'] ?? 0);
                 $item->holiday_pay = floatval($itemData['holiday_pay'] ?? 0);
@@ -205,6 +207,7 @@ class PayrollController extends Controller
                 'dtr_days_present' => $item->dtr_days_present,
                 'dtr_reconciliation_note' => $item->dtr_reconciliation_note,
                 'tardiness_deduction' => $item->tardiness_deduction,
+                'tardiness_minutes' => $item->tardiness_minutes,
                 'cutoff_basic' => $item->cutoff_basic,
                 'cutoff_transpo' => $item->cutoff_transpo,
                 'cutoff_rep' => $item->cutoff_rep,

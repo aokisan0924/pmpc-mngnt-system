@@ -27,7 +27,7 @@ const rowFields = [
     ['weekday_ot_hours', 'Weekday OT hrs', { max: 999, step: '0.5' }],
     ['weekend_ot_hours', 'Rest-day OT hrs', { max: 999, step: '0.5' }],
     ['holiday_pay', 'Holiday pay ₱', { step: '0.01' }],
-    ['tardiness_deduction', 'Tardiness ₱', { step: '0.01' }],
+    ['tardiness_minutes', 'Late mins', { max: 9999, step: '0.5' }],
 ]
 const cell = 'min-h-[44px] w-24 rounded-lg border border-border bg-field px-2 py-1.5 text-right text-sm text-text tnum'
 const dtrDiffers = (item) =>
@@ -145,7 +145,7 @@ export default function PayrollCreate({
                     <ul className="mt-2 max-w-[70ch] list-disc space-y-1 pl-5 leading-relaxed">
                         <li>Basic pay = daily rate × (paid days − absent days). Paid days start at the office default (11; 15 for General Merchandise).</li>
                         <li>Allowances are half the monthly amount. Weekday overtime is daily rate ÷ 8 × 125%; rest-day overtime × 130%.</li>
-                        <li>Holiday pay and tardiness are typed in pesos. Deductions start from employee profiles; open Details to change them.</li>
+                        <li>Holiday pay is typed in pesos. Late minutes are deducted at daily rate ÷ 8 ÷ 60 per minute. Deductions start from employee profiles; open Details to change them.</li>
                         <li>DTR days are shown for reference only and never block saving.</li>
                     </ul>
                 </details>
@@ -192,6 +192,9 @@ export default function PayrollCreate({
                                                 {rowFields.map(([field, label, options]) => (
                                                     <td key={field} className="px-2 py-3 text-right">
                                                         {numberInput(index, field, label, field === 'absence_days' ? { ...options, max: item.paid_days_basis } : options, data.items[index][field], (value) => update(index, field, value))}
+                                                        {field === 'tardiness_minutes' && Number(item.tardiness_minutes) > 0 && (
+                                                            <span className="mt-1 block text-[11px] text-rose-700 tnum">−₱{fmt(item.tardiness_deduction)}</span>
+                                                        )}
                                                     </td>
                                                 ))}
                                                 <td className="px-2 py-3 text-right">

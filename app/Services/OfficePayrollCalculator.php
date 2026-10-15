@@ -26,6 +26,12 @@ class OfficePayrollCalculator
         'cubao' => ['label' => 'Cubao Satelite Office', 'days' => 11],
     ];
 
+    /** Late deduction as in the workbook: daily rate / 8 hours / 60 minutes x minutes late. */
+    public function tardinessFor(Employee $employee, float $minutes): float
+    {
+        return round((float) $employee->daily_rate / 8 / 60 * $minutes, 2);
+    }
+
     /** @return array<string, float> */
     public function calculate(Employee $employee, bool $isFirst, float $paidDays, float $absenceDays, float $weekdayHours = 0, float $weekendHours = 0, float $tardiness = 0, array $deductions = [], float $holidayPay = 0): array
     {

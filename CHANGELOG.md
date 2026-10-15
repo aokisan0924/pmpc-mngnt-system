@@ -22,6 +22,9 @@ Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release c
 
 ### Changed
 
+- Enter tardiness as late minutes on the payroll table; the server computes the deduction with the workbook formula using each employee's own rate (daily rate ÷ 8 ÷ 60 × minutes) and stores both minutes and pesos. Minutes appear on the saved batch, payslip and Excel supplemental detail.
+- Let HR assign a verified payroll office from the employee profile before account setup is completed, so payroll can run on go-live; the first assignment is recorded in the review history. Employees still complete setup and the required signature.
+
 - Replace the per-employee three-step payroll review with one Excel-style table grouped by office: edit paid days, absences, overtime hours, holiday pay and tardiness per row, open Details for deductions, and confirm the whole batch once. DTR mismatches are flagged with pre-filled notes ("No DTR account", "Always present Mon–Fri") and no longer block saving; pay formulas are unchanged.
 
 - Populate new payroll from verified employee offices and reject unverified or changed office assignments; preserve saved office snapshots.
