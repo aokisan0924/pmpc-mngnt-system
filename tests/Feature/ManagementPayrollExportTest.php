@@ -104,6 +104,22 @@ class ManagementPayrollExportTest extends TestCase
         $this->assertStringContainsString('second cutoff', $this->value($path, 4, 'B88'));
     }
 
+    public function test_main_office_fits_four_employees_with_totals_and_journal_below(): void
+    {
+        $batch = $this->batch();
+        foreach (range(1, 4) as $unused) {
+            $this->item($batch);
+        }
+        $path = $this->exported($batch);
+        $this->assertEquals(6760, $this->value($path, 1, 'Y14'));
+        $this->assertSame('TOTAL', $this->value($path, 1, 'O15'));
+        $this->assertEquals(27040, $this->value($path, 1, 'Y15'));
+        $this->assertEquals(97.5, $this->value($path, 1, 'BE25'));
+        $this->assertSame('Salaries and Wages', $this->value($path, 1, 'P25'));
+        $this->assertEquals(28540, $this->value($path, 1, 'R25'));
+        $this->assertEquals(28540, $this->value($path, 1, 'R39'));
+    }
+
     public function test_download_is_admin_only_and_returns_a_real_xlsx(): void
     {
         $batch = $this->batch();
@@ -118,11 +134,11 @@ class ManagementPayrollExportTest extends TestCase
     public function test_over_capacity_reports_error_without_omitting_rows(): void
     {
         $batch = $this->batch();
-        foreach (range(1, 4) as $unused) {
+        foreach (range(1, 5) as $unused) {
             $this->item($batch);
         }
         $this->actingAs(Employee::findOrFail($batch->created_by))->from(route('admin.payroll.show', $batch))->get(route('admin.payroll.export', $batch))->assertRedirect(route('admin.payroll.show', $batch))->assertSessionHasErrors('export');
-        $this->assertDatabaseCount('payroll_items', 4);
+        $this->assertDatabaseCount('payroll_items', 5);
     }
 
     public function test_legacy_office_data_and_duplicate_cutoffs_are_rejected(): void

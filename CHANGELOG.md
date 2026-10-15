@@ -26,6 +26,7 @@ Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release c
 
 ### Changed
 
+- Management Excel export: the Main Office sheet now holds four employees (TOTAL, sign-off, overtime and journal blocks move down one row, same styling), so the export no longer rejects the current Main Office staff.
 - Show each employee's Attendance records month in full Sunday–Saturday weeks with week headings and present/absent/hours subtotals; days after today appear as upcoming.
 - Enter tardiness as late minutes on the payroll table; the server computes the deduction with the workbook formula using each employee's own rate (daily rate ÷ 8 ÷ 60 × minutes) and stores both minutes and pesos. Minutes appear on the saved batch, payslip and Excel supplemental detail.
 - Let HR assign a verified payroll office from the employee profile before account setup is completed, so payroll can run on go-live; the first assignment is recorded in the review history. Employees still complete setup and the required signature.

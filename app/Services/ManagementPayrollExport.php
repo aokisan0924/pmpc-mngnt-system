@@ -24,7 +24,7 @@ class ManagementPayrollExport
     private const NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 
     private const LAYOUT = [
-        'main_office' => ['sheet' => 1, 'capacity' => 3, 'second' => ['O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', null, 'W', 'X', 'Y'], 'monthly' => 'AB', 'first_ded' => 'AM', 'second_ded' => 'AX', 'ot_first' => 'AM', 'ot_second' => 'AX', 'ot_row' => 21],
+        'main_office' => ['sheet' => 1, 'capacity' => 4, 'second' => ['O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', null, 'W', 'X', 'Y'], 'monthly' => 'AB', 'first_ded' => 'AM', 'second_ded' => 'AX', 'ot_first' => 'AM', 'ot_second' => 'AX', 'ot_row' => 22],
         'fort_magsaysay' => ['sheet' => 2, 'capacity' => 2, 'second' => ['O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], 'monthly' => 'AC', 'first_ded' => 'AN', 'second_ded' => 'AY', 'ot_first' => 'AN', 'ot_second' => 'AY', 'ot_row' => 18],
         'gen_mdse' => ['sheet' => 3, 'capacity' => 2, 'second' => ['L', 'M', 'N', 'O', null, null, null, null, 'P', 'Q', 'R', 'S'], 'monthly' => 'X', 'first_ded' => 'AI', 'second_ded' => 'AT', 'ot_first' => 'AI', 'ot_second' => 'AT', 'ot_row' => 18],
         'cubao' => ['sheet' => 4, 'capacity' => 4, 'second' => ['O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], 'monthly' => 'AC', 'first_ded' => 'AO', 'second_ded' => 'AZ', 'ot_first' => 'AO', 'ot_second' => 'AZ', 'ot_row' => 20],
@@ -33,7 +33,7 @@ class ManagementPayrollExport
     /** Original workbook journal block per office: label/debit/credit columns and row per account. */
     private const JOURNAL = [
         'main_office' => ['debit' => 'R', 'credit' => 'S', 'employer' => null, 'savings' => true,
-            'rows' => ['gross' => 24, 'tax_deduction' => 25, 'sss_deduction' => 26, 'philhealth_deduction' => 27, 'pagibig_deduction' => 28, 'loan_deduction' => 29, 'capital_contribution_deduction' => 31, 'rental_deduction' => 32, 'savings_deduction' => 33, 'cash_advance_deduction' => 35, 'other' => 36, 'net_pay' => 37, 'benefit' => 34, 'total' => 38]],
+            'rows' => ['gross' => 25, 'tax_deduction' => 26, 'sss_deduction' => 27, 'philhealth_deduction' => 28, 'pagibig_deduction' => 29, 'loan_deduction' => 30, 'capital_contribution_deduction' => 32, 'rental_deduction' => 33, 'savings_deduction' => 34, 'cash_advance_deduction' => 36, 'other' => 37, 'net_pay' => 38, 'benefit' => 35, 'total' => 39]],
         'fort_magsaysay' => ['debit' => 'R', 'credit' => 'S', 'employer' => 36, 'savings' => false,
             'rows' => ['gross' => 21, 'tax_deduction' => 22, 'sss_deduction' => 23, 'philhealth_deduction' => 24, 'pagibig_deduction' => 25, 'loan_deduction' => 26, 'capital_contribution_deduction' => 28, 'rental_deduction' => 29, 'cash_advance_deduction' => 30, 'other' => 32, 'net_pay' => 33, 'benefit' => 31, 'total' => 34]],
         'gen_mdse' => ['debit' => 'O', 'credit' => 'P', 'employer' => 36, 'savings' => false,
@@ -218,7 +218,7 @@ class ManagementPayrollExport
                 $definedNames->appendChild($name);
                 $sheetName = $sheets->item($index)->getAttribute('name');
                 $name->nodeValue = "'".$sheetName."'!".match ($index) {
-                    0 => '$B$1:$M$19,\''.$sheetName.'\'!$O$1:$Y$19,\''.$sheetName.'\'!$AB$1:$BH$32',
+                    0 => '$B$1:$M$20,\''.$sheetName.'\'!$O$1:$Y$20,\''.$sheetName.'\'!$AB$1:$BH$33',
                     1 => '$B$1:$M$19,\''.$sheetName.'\'!$O$1:$Z$19,\''.$sheetName.'\'!$AC$1:$BI$29',
                     2 => '$B$1:$J$19,\''.$sheetName.'\'!$L$1:$S$19,\''.$sheetName.'\'!$X$1:$BD$29',
                     3 => '$B$1:$M$21,\''.$sheetName.'\'!$O$1:$Z$21,\''.$sheetName.'\'!$AC$1:$BJ$32',
@@ -284,7 +284,9 @@ class ManagementPayrollExport
 
     private function signOff(DOMDocument $doc, string $office, string $cutoff, array $roles, Collection $people): void
     {
-        $nameRow = $office === 'cubao' ? 20 : 18;
+        $nameRow = match ($office) {
+            'cubao' => 20, 'main_office' => 19, default => 18,
+        };
         $columns = $cutoff === 'first'
             ? ($office === 'gen_mdse' ? ['B', 'E', 'H'] : ['B', 'F', 'K'])
             : match ($office) {
@@ -296,7 +298,9 @@ class ManagementPayrollExport
             'gen_mdse' => $cutoff === 'first' ? ['AI', 'AM', 'AQ'] : ['AT', 'AX', 'BB'],
             'cubao' => $cutoff === 'first' ? ['AO', 'AS', 'AW'] : ['AZ', 'BD', 'BH'],
         };
-        $otRow = in_array($office, ['main_office', 'cubao'], true) ? 29 : 27;
+        $otRow = match ($office) {
+            'main_office' => 30, 'cubao' => 29, default => 27,
+        };
         foreach (['prepared', 'certified', 'approved'] as $index => $role) {
             $person = $people->get($roles[$role] ?? null);
             if ($person) {
