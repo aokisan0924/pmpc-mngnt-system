@@ -26,7 +26,7 @@ class OfficePayrollCalculator
     ];
 
     /** @return array<string, float> */
-    public function calculate(Employee $employee, bool $isFirst, float $paidDays, float $absenceDays, float $weekdayHours = 0, float $weekendHours = 0, float $tardiness = 0, array $deductions = []): array
+    public function calculate(Employee $employee, bool $isFirst, float $paidDays, float $absenceDays, float $weekdayHours = 0, float $weekendHours = 0, float $tardiness = 0, array $deductions = [], float $holidayPay = 0): array
     {
         $amounts = [
             'basic_before_absence' => round((float) $employee->daily_rate * $paidDays, 2),
@@ -43,6 +43,8 @@ class OfficePayrollCalculator
             'pagibig_deduction' => $isFirst ? (float) $employee->pagibig_deduction : 0,
             'tax_deduction' => round((float) $employee->tax_deduction / 2, 2),
             'tardiness_deduction' => round($tardiness, 2),
+            // Not part of the workbook formula: entered by payroll staff as a verified peso amount.
+            'holiday_pay' => round($holidayPay, 2),
         ];
         foreach (['loan_deduction', 'capital_contribution_deduction', 'cash_advance_deduction', 'rental_deduction', 'savings_deduction', 'other_deductions'] as $field) {
             $amounts[$field] = round((float) $employee->{$field} / 2, 2);
@@ -55,7 +57,7 @@ class OfficePayrollCalculator
         $amounts['absence_deduction'] = round($amounts['basic_before_absence'] - $amounts['cutoff_basic'], 2);
         $amounts['cutoff_gross'] = $amounts['cutoff_basic'] + $amounts['cutoff_transpo'] + $amounts['cutoff_rep'] + $amounts['cutoff_quarterly'];
         $amounts['total_ot_pay'] = $amounts['weekday_ot_pay'] + $amounts['weekend_ot_pay'];
-        $amounts['gross_pay'] = $amounts['cutoff_gross'] + $amounts['total_ot_pay'];
+        $amounts['gross_pay'] = $amounts['cutoff_gross'] + $amounts['total_ot_pay'] + $amounts['holiday_pay'];
         $amounts['total_deductions'] = array_sum(array_intersect_key($amounts, array_flip([...self::DEDUCTIONS, 'tardiness_deduction'])));
         $amounts['net_pay'] = $amounts['gross_pay'] - $amounts['total_deductions'];
 

@@ -66,15 +66,15 @@ class ArchiveDtrCommand extends Command
                     'pm_time_in' => $log?->pm_time_in,
                     'pm_time_out' => $log?->pm_time_out,
                     'hours' => $log?->hours_rendered,
-                    'status' => $log?->displayStatus() ?? ($current->isWeekend() ? 'rest_day' : 'absent'),
+                    'status' => $log?->displayStatus() ?? DtrLog::fallbackStatus($employee->id, $current),
                 ];
                 $current->addDay();
             }
 
             $summary = [
-                'days_present' => $logs->whereNotIn('status', ['absent'])->count(),
+                'days_present' => DtrLog::daysPresentBetween($employee->id, $from->toDateString(), $to->toDateString()),
                 'days_late' => $logs->where('status', 'late')->count(),
-                'days_absent' => $logs->filter(fn ($log) => $log->status === 'absent' && ! $log->isRestDayAbsence())->count(),
+                'days_absent' => $logs->filter(fn ($log) => $log->status === 'absent' && ! $log->isExcusedAbsence())->count(),
                 'half_days' => $logs->where('status', 'half_day')->count(),
                 'hours_rendered' => round($logs->sum('hours_rendered'), 2),
             ];

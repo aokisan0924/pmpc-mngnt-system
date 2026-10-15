@@ -68,6 +68,8 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 return <Badge variant="rose" size="sm">Absent</Badge>
             case 'rest_day':
                 return <Badge variant="slate" size="sm">Rest Day</Badge>
+            case 'holiday':
+                return <Badge variant="holiday" size="sm">Holiday</Badge>
             default:
                 return <Badge variant="slate" size="sm">{log.status || '—'}</Badge>
         }

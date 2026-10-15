@@ -15,6 +15,7 @@ const earnings = {
     cutoff_quarterly: 'Quarterly allowance',
     weekday_ot_pay: 'Weekday overtime',
     weekend_ot_pay: 'Rest-day overtime',
+    holiday_pay: 'Holiday pay',
 }
 const deductions = {
     sss_deduction: 'SSS',

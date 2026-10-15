@@ -262,6 +262,12 @@
                     <td class="amt">₱ {{ $p($d['first_ot_weekend']) }}</td>
                 </tr>
                 @endif
+                @if(($d['first_holiday'] ?? 0) > 0)
+                <tr class="indent">
+                    <td class="label">Holiday pay</td>
+                    <td class="amt">₱ {{ $p($d['first_holiday']) }}</td>
+                </tr>
+                @endif
                 <tr class="subtotal">
                     <td class="label">1st cutoff subtotal</td>
                     <td class="amt">₱ {{ $p($d['first_gross']) }}</td>
@@ -310,6 +316,12 @@
                 <tr class="indent">
                     <td class="label">Overtime (weekend)</td>
                     <td class="amt">₱ {{ $p($d['second_ot_weekend']) }}</td>
+                </tr>
+                @endif
+                @if(($d['second_holiday'] ?? 0) > 0)
+                <tr class="indent">
+                    <td class="label">Holiday pay</td>
+                    <td class="amt">₱ {{ $p($d['second_holiday']) }}</td>
                 </tr>
                 @endif
                 <tr class="subtotal">

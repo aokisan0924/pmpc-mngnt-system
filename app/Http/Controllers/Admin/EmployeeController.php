@@ -83,6 +83,7 @@ class EmployeeController extends Controller
                 'tax_deduction' => $employee->tax_deduction,
                 'savings_deduction' => $employee->savings_deduction,
                 'other_deductions' => $employee->other_deductions,
+                'auto_present_weekdays' => $employee->auto_present_weekdays,
             ],
             'offices' => OfficePayrollCalculator::OFFICES,
             'setupHistory' => $employee->accountSetupRequests()->latest('id')->get(['id', 'status', 'details', 'review_note', 'reviewed_by', 'reviewed_at']),

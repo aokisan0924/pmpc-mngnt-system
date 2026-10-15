@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DtrArchiveController;
 use App\Http\Controllers\Admin\DtrEditRequestController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\EmployeeSignatureController;
+use App\Http\Controllers\Admin\HolidayController;
 use App\Http\Controllers\Admin\ManagementPayrollExportController;
 use App\Http\Controllers\Admin\PayrollAnalyticsController;
 use App\Http\Controllers\Admin\PayrollController;
@@ -144,6 +145,8 @@ Route::middleware(['auth', 'role:super_admin'])
         // Settings
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
         Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
+        Route::post('/holidays', [HolidayController::class, 'store'])->name('holidays.store');
+        Route::delete('/holidays/{holiday}', [HolidayController::class, 'destroy'])->name('holidays.destroy');
 
         // 13th month pay
         Route::get('/thirteenth-month', [ThirteenthMonthController::class, 'index'])->name('thirteenth-month');

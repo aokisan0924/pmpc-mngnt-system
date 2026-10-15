@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\CreatePayrollRequest;
 use App\Http\Requests\Admin\StorePayrollRequest;
 use App\Models\DtrLog;
 use App\Models\Employee;
+use App\Models\Holiday;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
 use App\Services\OfficePayrollCalculator;
@@ -58,6 +59,7 @@ class PayrollController extends Controller
             $from->toDateString(),
             $to->toDateString(),
         );
+        $holidays = Holiday::whereBetween('date', [$from->toDateString(), $to->toDateString()])->orderBy('date')->get();
         $employees = $activeEmployees
             ->map(function (Employee $emp) use ($attendance, $isFirst): array {
                 $office = $emp->hasVerifiedPayrollOffice() ? $emp->payroll_office : '';
@@ -78,6 +80,7 @@ class PayrollController extends Controller
                     'office_verified' => $emp->hasVerifiedPayrollOffice(),
                     'paid_days_basis' => $paidDays,
                     'absence_days' => 0,
+                    'holiday_pay' => 0,
                     'dtr_reconciliation_note' => '',
                     'weekday_ot_hours' => 0,
                     'weekend_ot_hours' => 0,
@@ -95,6 +98,11 @@ class PayrollController extends Controller
             'cutoff' => $validated['cutoff'],
             'is_first' => $isFirst,
             'offices' => OfficePayrollCalculator::OFFICES,
+            'holidays' => $holidays->map(fn (Holiday $holiday): array => [
+                'date' => $holiday->date->format('D, M d'),
+                'name' => $holiday->name,
+                'type' => Holiday::TYPES[$holiday->type]['label'] ?? $holiday->type,
+            ])->values(),
         ]);
     }
 
@@ -156,6 +164,7 @@ class PayrollController extends Controller
                 $item->tardiness_deduction = $itemData['tardiness_deduction'];
                 $item->weekday_ot_hours = floatval($itemData['weekday_ot_hours'] ?? 0);
                 $item->weekend_ot_hours = floatval($itemData['weekend_ot_hours'] ?? 0);
+                $item->holiday_pay = floatval($itemData['holiday_pay'] ?? 0);
 
                 // Eager load employee for computeTotals
                 $item->setRelation('employee', $emp);
@@ -163,6 +172,7 @@ class PayrollController extends Controller
                     $emp, $isFirst, (float) $item->paid_days_basis, (float) $item->absence_days,
                     (float) $item->weekday_ot_hours, (float) $item->weekend_ot_hours,
                     (float) $item->tardiness_deduction, $itemData['deductions'],
+                    (float) $item->holiday_pay,
                 ));
                 $item->save();
             }
@@ -207,6 +217,7 @@ class PayrollController extends Controller
                 'weekend_ot_hours' => $item->weekend_ot_hours,
                 'weekend_ot_pay' => $item->weekend_ot_pay,
                 'total_ot_pay' => $item->total_ot_pay,
+                'holiday_pay' => $item->holiday_pay,
                 'gross_pay' => $item->gross_pay,
                 'sss_deduction' => $item->sss_deduction,
                 'philhealth_deduction' => $item->philhealth_deduction,
@@ -223,7 +234,7 @@ class PayrollController extends Controller
             ]);
 
         return Inertia::render('Admin/PayrollShow', [
-            'signatureEmployees' => Employee::whereNotNull('signature_path')->orderBy('first_name')->get(['id', 'employee_id', 'first_name', 'last_name'])->map(fn (Employee $employee) => ['id' => $employee->id, 'name' => $employee->full_name, 'employee_id' => $employee->employee_id]),
+            'signatureEmployees' => Employee::where('status', 'active')->orderBy('first_name')->get(['id', 'employee_id', 'first_name', 'last_name'])->map(fn (Employee $employee) => ['id' => $employee->id, 'name' => $employee->full_name, 'employee_id' => $employee->employee_id]),
             'payroll' => [
                 'id' => $payroll->id,
                 'period_label' => $payroll->period_label,

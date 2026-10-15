@@ -205,6 +205,7 @@ class PayslipController extends Controller
         $firstQuarterly = $first?->cutoff_quarterly ?? 0;
         $firstOtWeekday = $first?->weekday_ot_pay ?? 0;
         $firstOtWeekend = $first?->weekend_ot_pay ?? 0;
+        $firstHoliday = $first?->holiday_pay ?? 0;
         $firstGross = $first?->gross_pay ?? 0;
 
         $secondBasic = $second?->cutoff_basic ?? 0;
@@ -213,6 +214,7 @@ class PayslipController extends Controller
         $secondQuarterly = $second?->cutoff_quarterly ?? 0;
         $secondOtWeekday = $second?->weekday_ot_pay ?? 0;
         $secondOtWeekend = $second?->weekend_ot_pay ?? 0;
+        $secondHoliday = $second?->holiday_pay ?? 0;
         $secondGross = $second?->gross_pay ?? 0;
 
         $totalGross = $firstGross + $secondGross;
@@ -247,6 +249,7 @@ class PayslipController extends Controller
             'first_quarterly' => $firstQuarterly,
             'first_ot_weekday' => $firstOtWeekday,
             'first_ot_weekend' => $firstOtWeekend,
+            'first_holiday' => $firstHoliday,
             'first_gross' => $firstGross,
             // 2nd cutoff
             'second_period' => $second ? $second->payroll->period_from->format('M d').' – '.$second->payroll->period_to->format('M d, Y') : null,
@@ -256,6 +259,7 @@ class PayslipController extends Controller
             'second_quarterly' => $secondQuarterly,
             'second_ot_weekday' => $secondOtWeekday,
             'second_ot_weekend' => $secondOtWeekend,
+            'second_holiday' => $secondHoliday,
             'second_gross' => $secondGross,
             // Totals
             'total_gross' => $totalGross,

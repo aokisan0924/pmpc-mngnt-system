@@ -1,4 +1,4 @@
-import { useForm, usePage } from '@inertiajs/react'
+import { useForm, usePage, router } from '@inertiajs/react'
 import { useState } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/UI/Card'
@@ -7,6 +7,16 @@ import Button from '@/Components/UI/Button'
 import AdminPageHeader from '@/Components/AdminPageHeader'
 
 const TABS = [
+    {
+        key: 'holidays',
+        label: 'Holidays',
+        desc: 'Regular, special and announced holidays used by DTR and payroll',
+        icon: (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        ),
+    },
     {
         key: 'coop',
         label: 'Cooperative Profile',
@@ -49,7 +59,7 @@ const TABS = [
     },
 ]
 
-export default function Settings({ settings }) {
+export default function Settings({ settings, holidays = [], holidayTypes = {} }) {
     const { flash } = usePage().props
     const [activeTab, setActiveTab] = useState('coop')
 
@@ -84,7 +94,7 @@ export default function Settings({ settings }) {
                 <div
                     role="group"
                     aria-label="Settings categories"
-                    className="admin-toolbar grid grid-cols-2 gap-1.5 p-1.5 sm:grid-cols-4"
+                    className="admin-toolbar grid grid-cols-2 gap-1.5 p-1.5 sm:grid-cols-5"
                 >
                     {TABS.map(tab => (
                         <button
@@ -103,6 +113,8 @@ export default function Settings({ settings }) {
                         </button>
                     ))}
                 </div>
+
+                {activeTab === 'holidays' && <HolidayCalendar holidays={holidays} holidayTypes={holidayTypes} />}
 
                 <form onSubmit={submit}>
 
@@ -490,6 +502,74 @@ export default function Settings({ settings }) {
                 </form>
             </div>
         </AdminLayout>
+    )
+}
+
+function HolidayCalendar({ holidays, holidayTypes }) {
+    const { data, setData, post, processing, errors, reset } = useForm({ date: '', name: '', type: 'regular' })
+    const field = 'w-full min-h-[44px] rounded-xl border border-border bg-field px-3 py-2 text-sm text-text'
+
+    function submit(event) {
+        event.preventDefault()
+        post('/admin/holidays', { preserveScroll: true, onSuccess: () => reset() })
+    }
+
+    function remove(holiday) {
+        if (window.confirm(`Remove ${holiday.name} (${holiday.label})?`)) {
+            router.delete(`/admin/holidays/${holiday.id}`, { preserveScroll: true })
+        }
+    }
+
+    return (
+        <SettingsCard
+            title="Holiday calendar"
+            description="DTR shows these days as holidays instead of absences, and the payroll form lists them for each cutoff. Holiday pay itself is entered on the payroll form."
+        >
+            <form onSubmit={submit} className="grid gap-4 sm:grid-cols-[160px_1fr_220px_auto] sm:items-end">
+                <label className="block text-xs font-medium text-sub">
+                    Date
+                    <input type="date" required value={data.date} onChange={(e) => setData('date', e.target.value)}
+                        aria-invalid={!!errors.date} aria-describedby={errors.date ? 'holiday-date-error' : undefined} className={`mt-1.5 ${field}`} />
+                    {errors.date && <span id="holiday-date-error" className="mt-1 block text-rose-700">{errors.date}</span>}
+                </label>
+                <label className="block text-xs font-medium text-sub">
+                    Name
+                    <input type="text" required maxLength={100} value={data.name} onChange={(e) => setData('name', e.target.value)}
+                        placeholder="e.g. Independence Day" aria-invalid={!!errors.name}
+                        aria-describedby={errors.name ? 'holiday-name-error' : undefined} className={`mt-1.5 ${field}`} />
+                    {errors.name && <span id="holiday-name-error" className="mt-1 block text-rose-700">{errors.name}</span>}
+                </label>
+                <label className="block text-xs font-medium text-sub">
+                    Type
+                    <select value={data.type} onChange={(e) => setData('type', e.target.value)} className={`mt-1.5 ${field}`}>
+                        {Object.entries(holidayTypes).map(([value, label]) => (
+                            <option key={value} value={value}>{label}</option>
+                        ))}
+                    </select>
+                    {errors.type && <span className="mt-1 block text-rose-700">{errors.type}</span>}
+                </label>
+                <Button variant="primary" size="md" type="submit" loading={processing} disabled={processing} className="min-h-[44px]">
+                    Add holiday
+                </Button>
+            </form>
+
+            <ul className="mt-6 divide-y divide-border rounded-xl border border-border">
+                {holidays.length === 0 && <li className="p-4 text-sm text-sub">No holidays recorded yet.</li>}
+                {holidays.map((holiday) => (
+                    <li key={holiday.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold text-text">{holiday.name}</p>
+                            <p className="text-xs text-sub">{holiday.label} · {holidayTypes[holiday.type] || holiday.type}</p>
+                        </div>
+                        <button type="button" onClick={() => remove(holiday)}
+                            className="min-h-[44px] rounded-xl border border-border px-4 text-sm font-semibold text-rose-700 hover:bg-rose-50"
+                            aria-label={`Remove ${holiday.name} on ${holiday.label}`}>
+                            Remove
+                        </button>
+                    </li>
+                ))}
+            </ul>
+        </SettingsCard>
     )
 }
 

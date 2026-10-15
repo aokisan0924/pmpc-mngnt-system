@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
+use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -144,17 +146,37 @@ class DtrLog extends Model
                 $this->status = 'on_time';
             }
         }
+
+        // Employees flagged as always present are never late, undertime or half-day.
+        if ($this->status !== 'absent' && Employee::isAlwaysPresent((int) $this->employee_id)) {
+            $this->status = 'on_time';
+        }
     }
 
-    public function isRestDayAbsence(): bool
+    /** Absent with no punches on a rest day, a holiday, or a weekday of an always-present employee. */
+    public function isExcusedAbsence(): bool
     {
-        return $this->status === 'absent' && $this->punchesCount() === 0 && $this->date->isWeekend();
+        return $this->status === 'absent' && $this->punchesCount() === 0
+            && self::fallbackStatus((int) $this->employee_id, $this->date) !== 'absent';
+    }
+
+    /** Status shown for a calendar day that has no recorded punches. */
+    public static function fallbackStatus(int $employeeId, CarbonInterface $date): string
+    {
+        if (Holiday::typeOn($date)) {
+            return 'holiday';
+        }
+        if ($date->isWeekend()) {
+            return 'rest_day';
+        }
+
+        return Employee::isAlwaysPresent($employeeId) ? 'on_time' : 'absent';
     }
 
     public function displayStatus(): string
     {
-        if ($this->isRestDayAbsence()) {
-            return 'rest_day';
+        if ($this->isExcusedAbsence()) {
+            return self::fallbackStatus((int) $this->employee_id, $this->date);
         }
 
         // Historical Friday logs can still have the old 17:00-based status.
@@ -188,12 +210,24 @@ class DtrLog extends Model
             return collect();
         }
 
-        return static::whereIn('employee_id', $employeeIds)
+        $days = static::whereIn('employee_id', $employeeIds)
             ->whereBetween('date', [$from, $to])
             ->whereIn('status', ['on_time', 'late', 'undertime', 'half_day'])
-            ->get(['employee_id', 'status'])
+            ->get(['employee_id', 'status', 'date'])
             ->groupBy('employee_id')
-            ->map(fn (Collection $logs): float => self::weightedDaysPresent($logs));
+            ->map(fn (Collection $logs, int $id): float => Employee::isAlwaysPresent($id)
+                ? self::weightedDaysPresent($logs->filter(fn (self $log): bool => $log->date->isWeekend()))
+                : self::weightedDaysPresent($logs));
+
+        // Always-present employees: every Monday-Friday counts, holidays included.
+        foreach (array_filter($employeeIds, fn ($id): bool => Employee::isAlwaysPresent((int) $id)) as $id) {
+            $weekdays = collect(CarbonPeriod::create($from, $to))
+                ->filter(fn (CarbonInterface $day): bool => ! $day->isWeekend())
+                ->count();
+            $days[(int) $id] = ($days[(int) $id] ?? 0.0) + $weekdays;
+        }
+
+        return $days;
     }
 
     public static function presenceWeight(string $status): float

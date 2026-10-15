@@ -45,6 +45,7 @@ export default function PayrollCreate({
     cutoff,
     is_first,
     offices = {},
+    holidays = [],
 }) {
     const { data, setData, post, processing, errors } = useForm({
         period_from,
@@ -373,7 +374,21 @@ export default function PayrollCreate({
                                     <div className="clear-both grid gap-4 sm:grid-cols-2">
                                         {input('weekday_ot_hours', 'Weekday OT hours', { max: 999 })}
                                         {input('weekend_ot_hours', 'Rest-day OT hours', { max: 999 })}
+                                        {input('holiday_pay', 'Holiday pay (₱)', { step: '0.01' })}
                                     </div>
+                                    {holidays.length > 0 ? (
+                                        <div className="mt-4 rounded-xl border border-border bg-field p-4 text-xs text-sub">
+                                            <p className="font-semibold text-text">Holidays this cutoff</p>
+                                            <ul className="mt-2 space-y-1">
+                                                {holidays.map((holiday) => (
+                                                    <li key={holiday.date}>{holiday.date} · {holiday.name} · {holiday.type}</li>
+                                                ))}
+                                            </ul>
+                                            <p className="mt-2">For reference only. Enter any holiday pay for this employee as a peso amount; basic pay still follows the office paid days.</p>
+                                        </div>
+                                    ) : (
+                                        <p className="mt-4 text-xs text-sub">No holidays recorded for this cutoff.</p>
+                                    )}
                                     <dl className="mt-4 grid grid-cols-2 gap-x-5 gap-y-3 text-xs sm:grid-cols-3">
                                         {[
                                             ['Basic pay', item.cutoff_basic],
@@ -381,6 +396,7 @@ export default function PayrollCreate({
                                             ['Representation', item.cutoff_rep],
                                             ['Quarterly allowance', item.cutoff_quarterly],
                                             ['Overtime pay', item.weekday_ot_pay + item.weekend_ot_pay],
+                                            ['Holiday pay', item.holiday_pay],
                                             ['Gross pay', item.gross_pay],
                                         ].map(([label, value]) => (
                                             <div key={label}>

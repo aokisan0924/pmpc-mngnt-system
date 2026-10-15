@@ -10,8 +10,10 @@ export function calculateOfficeItem(item) {
     const cutoff_quarterly = money(Number(item.quarterly_allowance) / 2)
     const weekday_ot_pay = money(Number(item.daily_rate) / 8 * 1.25 * Number(item.weekday_ot_hours || 0))
     const weekend_ot_pay = money(Number(item.daily_rate) / 8 * 1.30 * Number(item.weekend_ot_hours || 0))
+    // Entered by payroll staff; not part of the workbook formula.
+    const holiday_pay = money(item.holiday_pay)
     const cutoff_gross = money(cutoff_basic + cutoff_transpo + cutoff_rep + cutoff_quarterly)
-    const gross_pay = money(cutoff_gross + weekday_ot_pay + weekend_ot_pay)
+    const gross_pay = money(cutoff_gross + weekday_ot_pay + weekend_ot_pay + holiday_pay)
     const total_deductions = money(Object.values(item.deductions).reduce((sum, value) => sum + money(value), 0) + money(item.tardiness_deduction))
-    return { ...item, ...item.deductions, days_present, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, cutoff_gross, weekday_ot_pay, weekend_ot_pay, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
+    return { ...item, ...item.deductions, days_present, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, cutoff_gross, weekday_ot_pay, weekend_ot_pay, holiday_pay, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
 }

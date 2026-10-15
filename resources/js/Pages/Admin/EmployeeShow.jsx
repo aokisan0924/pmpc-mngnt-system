@@ -95,6 +95,7 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
         rental_deduction:                 employee.rental_deduction                 ?? '0',
         savings_deduction:                employee.savings_deduction                ?? '0',
         other_deductions:                 employee.other_deductions                 ?? '0',
+        auto_present_weekdays:            !!employee.auto_present_weekdays,
     })
 
     const passForm = useForm({
@@ -457,6 +458,16 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                                 ))}
                             </div>
                         </section>
+
+                        <label className="flex min-h-[44px] items-start gap-3 rounded-xl border border-border bg-field/60 p-4 text-sm text-text">
+                            <input type="checkbox" checked={compForm.data.auto_present_weekdays}
+                                onChange={e => compForm.setData('auto_present_weekdays', e.target.checked)}
+                                className="mt-0.5 h-5 w-5 shrink-0" />
+                            <span>
+                                <span className="font-semibold">Always present Monday–Friday</span>
+                                <span className="mt-1 block text-xs text-sub">Counts every weekday as present and on time without DTR punches (e.g. the president).</span>
+                            </span>
+                        </label>
 
                         <div className="pt-2 flex items-center gap-3">
                             <Button type="submit" variant="primary" size="md" loading={compForm.processing}>

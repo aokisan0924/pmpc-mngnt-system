@@ -34,6 +34,7 @@ class UpdateCompensationRequest extends FormRequest
             'rental_deduction' => ['nullable', 'numeric', 'min:0'],
             'savings_deduction' => ['nullable', 'numeric', 'min:0'],
             'other_deductions' => ['nullable', 'numeric', 'min:0'],
+            'auto_present_weekdays' => ['sometimes', 'boolean'],
         ];
     }
 }

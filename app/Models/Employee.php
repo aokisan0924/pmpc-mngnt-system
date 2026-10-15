@@ -22,6 +22,7 @@ class Employee extends Authenticatable
         'password',
         'role',
         'is_staff',
+        'auto_present_weekdays',
         'department',
         'position',
         'phone',
@@ -60,6 +61,7 @@ class Employee extends Authenticatable
         'date_hired' => 'date',
         'password' => 'hashed',
         'is_staff' => 'boolean',
+        'auto_present_weekdays' => 'boolean',
     ];
 
     public function getFullNameAttribute(): string
@@ -85,6 +87,12 @@ class Employee extends Authenticatable
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    /** Cached per request so DTR status checks do not query once per log. */
+    public static function isAlwaysPresent(int $id): bool
+    {
+        return in_array($id, once(fn (): array => static::where('auto_present_weekdays', true)->pluck('id')->all()), true);
     }
 
     public function accountSetupRequests(): HasMany

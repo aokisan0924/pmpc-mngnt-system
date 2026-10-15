@@ -55,7 +55,7 @@ class AdminDtrController extends Controller
                 'days_present' => $logs->whereIn('status', ['on_time', 'late', 'undertime', 'half_day'])
                     ->sum(fn ($log) => $log->status === 'half_day' ? 0.5 : 1),
                 'days_late' => $logs->where('status', 'late')->count(),
-                'days_absent' => $logs->filter(fn ($log) => $log->status === 'absent' && ! $log->isRestDayAbsence())->count(),
+                'days_absent' => $logs->filter(fn ($log) => $log->status === 'absent' && ! $log->isExcusedAbsence())->count(),
                 'half_days' => $logs->where('status', 'half_day')->count(),
                 'hours_rendered' => round($logs->sum('hours_rendered'), 2),
             ];

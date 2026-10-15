@@ -33,6 +33,7 @@ class PayrollItem extends Model
         'weekend_ot_hours',
         'weekend_ot_pay',
         'total_ot_pay',
+        'holiday_pay',
         'gross_pay',
         'sss_deduction',
         'philhealth_deduction',
@@ -62,6 +63,7 @@ class PayrollItem extends Model
         'weekend_ot_hours' => 'float',
         'weekend_ot_pay' => 'float',
         'total_ot_pay' => 'float',
+        'holiday_pay' => 'float',
         'gross_pay' => 'float',
         'sss_deduction' => 'float',
         'philhealth_deduction' => 'float',
@@ -101,6 +103,7 @@ class PayrollItem extends Model
                 $emp, $isFirst, (float) $this->paid_days_basis, (float) $this->absence_days,
                 (float) $this->weekday_ot_hours, (float) $this->weekend_ot_hours, (float) $this->tardiness_deduction,
                 $this->only(['sss_deduction', 'philhealth_deduction', 'pagibig_deduction', 'tax_deduction', 'loan_deduction', 'capital_contribution_deduction', 'cash_advance_deduction', 'rental_deduction', 'savings_deduction', 'other_deductions']),
+                (float) $this->holiday_pay,
             ));
 
             return;

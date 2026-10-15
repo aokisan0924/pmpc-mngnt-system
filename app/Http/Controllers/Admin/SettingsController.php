@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Holiday;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,6 +26,15 @@ class SettingsController extends Controller
 
         return Inertia::render('Admin/Settings', [
             'settings' => $settings,
+            'holidays' => Holiday::whereYear('date', '>=', now()->year - 1)->orderBy('date')->get()
+                ->map(fn (Holiday $holiday): array => [
+                    'id' => $holiday->id,
+                    'date' => $holiday->date->toDateString(),
+                    'label' => $holiday->date->format('D, M d, Y'),
+                    'name' => $holiday->name,
+                    'type' => $holiday->type,
+                ]),
+            'holidayTypes' => collect(Holiday::TYPES)->map(fn (array $type): string => $type['label']),
         ]);
     }
 
