@@ -96,6 +96,9 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
         savings_deduction:                employee.savings_deduction                ?? '0',
         other_deductions:                 employee.other_deductions                 ?? '0',
         auto_present_weekdays:            !!employee.auto_present_weekdays,
+        work_days:                        employee.work_days ?? [1, 2, 3, 4, 5],
+        shift_start:                      employee.shift?.start ?? '',
+        shift_end:                        employee.shift?.end ?? '',
     })
 
     const passForm = useForm({
@@ -459,12 +462,39 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                             </div>
                         </section>
 
+                        <fieldset className="rounded-xl border border-border bg-field/60 p-4 text-sm text-text">
+                            <legend className="px-1 font-semibold">Work schedule</legend>
+                            <p className="text-xs text-sub">Workdays count for attendance and payroll paid days; other days are rest days. Default is Monday–Friday.</p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((label, day) => (
+                                    <label key={label} className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-panel px-3">
+                                        <input type="checkbox" checked={compForm.data.work_days.includes(day)}
+                                            onChange={e => compForm.setData('work_days', e.target.checked ? [...compForm.data.work_days, day] : compForm.data.work_days.filter(d => d !== day))}
+                                            className="h-4 w-4" />
+                                        {label}
+                                    </label>
+                                ))}
+                            </div>
+                            {compForm.errors.work_days && <p className="mt-1 text-xs text-rose-700">{compForm.errors.work_days}</p>}
+                            <div className="mt-3 grid grid-cols-2 gap-3 sm:max-w-sm">
+                                <label className="text-xs font-medium text-sub">Shift start
+                                    <input type="time" value={compForm.data.shift_start} onChange={e => compForm.setData('shift_start', e.target.value)} className={inputClass} />
+                                    {compForm.errors.shift_start && <span className="mt-1 block text-rose-700">{compForm.errors.shift_start}</span>}
+                                </label>
+                                <label className="text-xs font-medium text-sub">Shift end
+                                    <input type="time" value={compForm.data.shift_end} onChange={e => compForm.setData('shift_end', e.target.value)} className={inputClass} />
+                                    {compForm.errors.shift_end && <span className="mt-1 block text-rose-700">{compForm.errors.shift_end}</span>}
+                                </label>
+                            </div>
+                            <p className="mt-1 text-xs text-sub">Leave the shift blank to use the company shift. A new shift applies from today.</p>
+                        </fieldset>
+
                         <label className="flex min-h-[44px] items-start gap-3 rounded-xl border border-border bg-field/60 p-4 text-sm text-text">
                             <input type="checkbox" checked={compForm.data.auto_present_weekdays}
                                 onChange={e => compForm.setData('auto_present_weekdays', e.target.checked)}
                                 className="mt-0.5 h-5 w-5 shrink-0" />
                             <span>
-                                <span className="font-semibold">Always present Monday–Friday</span>
+                                <span className="font-semibold">Always present on workdays</span>
                                 <span className="mt-1 block text-xs text-sub">Counts every weekday as present and on time without DTR punches (e.g. the president).</span>
                             </span>
                         </label>

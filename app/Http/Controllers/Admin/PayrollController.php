@@ -14,6 +14,7 @@ use App\Models\Payroll;
 use App\Models\PayrollItem;
 use App\Services\OfficePayrollCalculator;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -65,9 +66,12 @@ class PayrollController extends Controller
         );
         $holidays = Holiday::whereBetween('date', [$from->toDateString(), $to->toDateString()])->orderBy('date')->get();
         $employees = $activeEmployees
-            ->map(function (Employee $emp) use ($attendance, $isFirst): array {
+            ->map(function (Employee $emp) use ($attendance, $isFirst, $from, $to): array {
                 $office = $emp->hasVerifiedPayrollOffice() ? $emp->payroll_office : '';
-                $paidDays = OfficePayrollCalculator::OFFICES[$office]['days'] ?? 11;
+                // Custom schedules (e.g. a weekend reliever) start from their workdays in the cutoff instead of the office default.
+                $paidDays = Employee::hasCustomWorkDays($emp->id)
+                    ? collect(CarbonPeriod::create($from, $to))->filter(fn ($day): bool => Employee::isWorkDay($emp->id, $day))->count()
+                    : (OfficePayrollCalculator::OFFICES[$office]['days'] ?? 11);
                 $suggestions = app(OfficePayrollCalculator::class)->calculate($emp, $isFirst, $paidDays, 0);
 
                 return [

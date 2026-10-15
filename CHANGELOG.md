@@ -11,6 +11,8 @@ Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release c
 
 ### Added
 
+- Per-employee work schedule on the Compensation tab: choose workdays (e.g. Saturday–Sunday for a weekend reliever; Monday–Friday stays the default) and a personal shift that applies from the day it is saved. Non-workdays show as rest days on DTR screens, prints and archives; unlogged workdays count as absent; the employee dashboard counts their own workdays; and new payroll starts custom-schedule employees with paid days equal to their workdays in the cutoff.
+
 - Final DTR check for the configured corrector (EMP-0002 by default, `DTR_CORRECTOR_EMPLOYEE_IDS`): the admin DTR page lists every day of the month, and each day can be corrected, added or marked absent with a required reason. Hours and status are recalculated with the normal rules, the change is stored as an approved edit record with before/after times, the employee is not notified, and a pending employee request blocks the correction. "DTR differs" on the payroll table links to the employee's DTR month.
 
 - Holiday calendar in Settings for regular, special non-working and announced holidays. DTR screens, prints and archives show holidays instead of absences, and the payroll form lists each cutoff's holidays. Payroll keeps the workbook formula; holiday pay is entered per employee as a peso amount and shown on payslips and the Excel supplemental detail.

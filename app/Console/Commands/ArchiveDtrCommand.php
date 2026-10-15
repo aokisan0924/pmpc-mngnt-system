@@ -60,7 +60,7 @@ class ArchiveDtrCommand extends Command
                 $calendar[] = [
                     'date' => $current->copy(),
                     'day_name' => $current->format('D'),
-                    'is_weekend' => $current->isWeekend(),
+                    'is_weekend' => ! Employee::isWorkDay($employee->id, $current),
                     'am_time_in' => $log?->am_time_in,
                     'am_time_out' => $log?->am_time_out,
                     'pm_time_in' => $log?->pm_time_in,

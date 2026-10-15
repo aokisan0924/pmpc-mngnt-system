@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Services\OfficePayrollCalculator;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -23,6 +24,7 @@ class Employee extends Authenticatable
         'role',
         'is_staff',
         'auto_present_weekdays',
+        'work_days',
         'department',
         'position',
         'phone',
@@ -87,6 +89,28 @@ class Employee extends Authenticatable
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    public const DEFAULT_WORK_DAYS = [1, 2, 3, 4, 5];
+
+    /** Days of the week the employee works (0 = Sunday … 6 = Saturday), cached per request. */
+    public static function workDaysFor(int $id): array
+    {
+        $custom = once(fn (): array => static::query()->whereNotNull('work_days')->pluck('work_days', 'id')
+            ->map(fn (string $days): array => array_map('intval', array_filter(explode(',', $days), 'strlen')))
+            ->all())[$id] ?? [];
+
+        return $custom !== [] ? $custom : self::DEFAULT_WORK_DAYS;
+    }
+
+    public static function isWorkDay(int $id, CarbonInterface $date): bool
+    {
+        return in_array($date->dayOfWeek, self::workDaysFor($id), true);
+    }
+
+    public static function hasCustomWorkDays(int $id): bool
+    {
+        return self::workDaysFor($id) !== self::DEFAULT_WORK_DAYS;
     }
 
     /** First day an absence can count: hire date, else the account creation date (Y-m-d), cached per request. */

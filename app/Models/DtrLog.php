@@ -169,7 +169,7 @@ class DtrLog extends Model
         if (Holiday::typeOn($date)) {
             return 'holiday';
         }
-        if ($date->isWeekend()) {
+        if (! Employee::isWorkDay($employeeId, $date)) {
             return 'rest_day';
         }
         if ($date->toDateString() >= today()->toDateString()) {
@@ -245,13 +245,13 @@ class DtrLog extends Model
             ->get(['employee_id', 'status', 'date'])
             ->groupBy('employee_id')
             ->map(fn (Collection $logs, int $id): float => Employee::isAlwaysPresent($id)
-                ? self::weightedDaysPresent($logs->filter(fn (self $log): bool => $log->date->isWeekend()))
+                ? self::weightedDaysPresent($logs->filter(fn (self $log): bool => ! Employee::isWorkDay($id, $log->date)))
                 : self::weightedDaysPresent($logs));
 
-        // Always-present employees: every Monday-Friday counts, holidays included.
+        // Always-present employees: every workday counts, holidays included.
         foreach (array_filter($employeeIds, fn ($id): bool => Employee::isAlwaysPresent((int) $id)) as $id) {
             $weekdays = collect(CarbonPeriod::create($from, $to))
-                ->filter(fn (CarbonInterface $day): bool => ! $day->isWeekend())
+                ->filter(fn (CarbonInterface $day): bool => Employee::isWorkDay((int) $id, $day))
                 ->count();
             $days[(int) $id] = ($days[(int) $id] ?? 0.0) + $weekdays;
         }

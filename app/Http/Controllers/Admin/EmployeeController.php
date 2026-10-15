@@ -10,6 +10,7 @@ use App\Http\Requests\Admin\UpdateCompensationRequest;
 use App\Http\Requests\Admin\UpdateEmployeeRequest;
 use App\Models\Employee;
 use App\Models\EmployeeGovernmentId;
+use App\Models\Setting;
 use App\Services\OfficePayrollCalculator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -84,6 +85,8 @@ class EmployeeController extends Controller
                 'savings_deduction' => $employee->savings_deduction,
                 'other_deductions' => $employee->other_deductions,
                 'auto_present_weekdays' => $employee->auto_present_weekdays,
+                'work_days' => Employee::workDaysFor($employee->id),
+                'shift' => Setting::employeeShiftForDate($employee->id, today()),
             ],
             'offices' => OfficePayrollCalculator::OFFICES,
             'setupHistory' => $employee->accountSetupRequests()->latest('id')->get(['id', 'status', 'details', 'review_note', 'reviewed_by', 'reviewed_at']),
@@ -141,7 +144,20 @@ class EmployeeController extends Controller
 
     public function updateCompensation(UpdateCompensationRequest $request, Employee $employee): RedirectResponse
     {
-        $employee->update($request->validated());
+        $validated = $request->validated();
+        if (array_key_exists('work_days', $validated)) {
+            $days = collect($validated['work_days'])->map(fn ($day): int => (int) $day)->unique()->sort()->values()->all();
+            // Monday–Friday is the default, stored as null.
+            $validated['work_days'] = $days === Employee::DEFAULT_WORK_DAYS ? null : implode(',', $days);
+        }
+        $shift = ['start' => $validated['shift_start'] ?? null, 'end' => $validated['shift_end'] ?? null];
+        // Rewrite only on change so re-saving the tab doesn't move the effective date.
+        if (filled($shift['start']) && $shift !== Setting::employeeShiftForDate($employee->id, today())) {
+            // Personal shift applies from today; earlier attendance keeps its status.
+            Setting::set("employee_shift_{$employee->id}", json_encode(['effective_from' => today()->toDateString(), 'start' => $validated['shift_start'], 'end' => $validated['shift_end']]));
+        }
+        unset($validated['shift_start'], $validated['shift_end']);
+        $employee->update($validated);
 
         return back()->with('success', 'Compensation updated.');
     }

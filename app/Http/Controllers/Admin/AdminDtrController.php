@@ -94,7 +94,7 @@ class AdminDtrController extends Controller
                 'week' => $day->copy()->startOfWeek(Carbon::SUNDAY)->format('Y-m-d'),
                 'is_future' => $day->isFuture(),
                 'date_label' => $day->format('M d, D'),
-                'is_weekend' => $day->isWeekend(),
+                'is_weekend' => ! Employee::isWorkDay($employee->id, $day),
                 'am_time_in' => $log?->am_time_in,
                 'am_time_out' => $log?->am_time_out,
                 'pm_time_in' => $log?->pm_time_in,

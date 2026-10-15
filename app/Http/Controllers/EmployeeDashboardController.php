@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DtrEditRequest;
 use App\Models\DtrLog;
+use App\Models\Employee;
 use App\Models\EmployeeNotification;
 use App\Models\PayrollItem;
 use App\Models\Setting;
@@ -34,12 +35,12 @@ class EmployeeDashboardController extends Controller
         // Days remaining until cutoff ends (inclusive of today)
         $daysRemaining = max(0, $now->copy()->startOfDay()->diffInDays($cutoffEnd->copy()->startOfDay(), false));
 
-        // Count workdays (Monday-Friday) in cutoff period
+        // Count the employee's workdays in the cutoff period
         $workdaysInCutoff = 0;
         $cursor = $cutoffStart->copy()->startOfDay();
         $endCursor = $cutoffEnd->copy()->startOfDay();
         while ($cursor->lte($endCursor)) {
-            if (! $cursor->isWeekend()) {
+            if (Employee::isWorkDay((int) $employee->id, $cursor)) {
                 $workdaysInCutoff++;
             }
             $cursor->addDay();
