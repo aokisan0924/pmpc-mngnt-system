@@ -122,4 +122,21 @@ class PayrollCalculationTest extends TestCase
         $response->assertSessionHasErrors(['error' => 'Finalized payroll batches cannot be discarded or deleted.']);
         $this->assertDatabaseHas('payrolls', ['id' => $payroll->id]);
     }
+
+    public function test_payroll_finalization_records_actor_and_time_and_is_idempotent(): void
+    {
+        $admin = Employee::factory()->superAdmin()->create();
+        $payroll = Payroll::factory()->create(['status' => 'draft', 'created_by' => $admin->id]);
+
+        $response = $this->actingAs($admin)->post(route('admin.payroll.finalize', $payroll));
+        $response->assertRedirect()->assertSessionHasNoErrors();
+        $payroll->refresh();
+        $this->assertSame('finalized', $payroll->status);
+        $this->assertSame($admin->id, $payroll->finalized_by);
+        $this->assertNotNull($payroll->finalized_at);
+
+        $originalFinalizedAt = $payroll->finalized_at->toDateTimeString();
+        $this->post(route('admin.payroll.finalize', $payroll))->assertSessionHasErrors('error');
+        $this->assertSame($originalFinalizedAt, $payroll->fresh()->finalized_at->toDateTimeString());
+    }
 }

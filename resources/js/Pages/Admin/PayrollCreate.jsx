@@ -1,324 +1,485 @@
-import { useState, useMemo } from 'react'
-import { router, Link } from '@inertiajs/react'
+import { useMemo, useState, useRef } from 'react'
+import { useForm, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
-import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Button from '@/Components/UI/Button'
 import AdminPageHeader from '@/Components/AdminPageHeader'
+import PayrollSummary from '@/Components/PayrollSummary'
+import { calculateOfficeItem } from './officePayrollMath'
 
-function fmt(num) {
-    return Number(num || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
+const fmt = (value) =>
+    Number(value || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const deductionGroups = [
+    [
+        'Statutory contributions',
+        {
+            sss_deduction: 'SSS',
+            philhealth_deduction: 'PhilHealth',
+            pagibig_deduction: 'Pag-IBIG',
+            tax_deduction: 'Withholding tax',
+        },
+    ],
+    [
+        'Cooperative & other deductions',
+        {
+            loan_deduction: 'Loan',
+            capital_contribution_deduction: 'Capital contribution',
+            cash_advance_deduction: 'Cash advance',
+            rental_deduction: 'Rental',
+            savings_deduction: 'Savings',
+            other_deductions: 'Other deductions',
+        },
+    ],
+]
+const control = 'mt-1 min-h-[44px] w-full min-w-0 rounded-xl border border-border bg-field px-3 py-2 text-sm text-text'
+const dtrMismatch = (item) =>
+    Math.abs(Number(item.paid_days_basis) - Number(item.absence_days) - Number(item.dtr_days_present)) >= 0.005
+const ready = (item) =>
+    item.office_verified && !!item.payroll_office && item.deductions_reviewed &&
+    (!dtrMismatch(item) || Boolean(item.dtr_reconciliation_note?.trim()))
 
-function computeOtPay(item) {
-    const hourlyRate    = (parseFloat(item.daily_rate) || 0) / 8
-    const weekdayOtPay = hourlyRate * 1.25 * (parseFloat(item.weekday_ot_hours) || 0)
-    const weekendOtPay = hourlyRate * 1.30 * (parseFloat(item.weekend_ot_hours) || 0)
-    return { weekdayOtPay, weekendOtPay, totalOtPay: weekdayOtPay + weekendOtPay }
-}
+export default function PayrollCreate({
+    employees = [],
+    period_from,
+    period_to,
+    period_label,
+    cutoff,
+    is_first,
+    offices = {},
+}) {
+    const { data, setData, post, processing, errors } = useForm({
+        period_from,
+        period_to,
+        period_label,
+        cutoff,
+        items: employees.map((employee) => ({
+            ...employee,
+            employee_id: employee.id,
+            employee_code: employee.employee_id,
+        })),
+    })
+    const [selected, setSelected] = useState(employees[0]?.id)
+    const [search, setSearch] = useState('')
+    const [filter, setFilter] = useState('all')
+    const [step, setStep] = useState(0)
+    const editor = useRef(null)
+    const items = useMemo(() => data.items.map(calculateOfficeItem), [data.items])
+    const totals = items.reduce(
+        (sum, item) => ({
+            gross: sum.gross + item.gross_pay,
+            deductions: sum.deductions + item.total_deductions,
+            net: sum.net + item.net_pay,
+        }),
+        { gross: 0, deductions: 0, net: 0 },
+    )
+    const unreviewed = items.filter((item) => !ready(item)).length
+    const visible = items.filter(
+        (item) =>
+            `${item.full_name} ${item.employee_code} ${offices[item.payroll_office]?.label || ''}`
+                .toLowerCase()
+                .includes(search.toLowerCase()) &&
+            (filter === 'all' || !ready(item)),
+    )
+    const index = items.findIndex((item) => item.id === selected)
+    const item = items[index]
 
-function computeGross(item) {
-    const { totalOtPay } = computeOtPay(item)
-    return (parseFloat(item.cutoff_gross) || 0) + totalOtPay
-}
-
-function computeNet(item) {
-    return computeGross(item) - (parseFloat(item.total_deductions) || 0)
-}
-
-export default function PayrollCreate({ employees = [], period_from, period_to, period_label, cutoff, is_first }) {
-    const [items, setItems]           = useState(employees.map(e => ({ ...e })))
-    const [processing, setProcessing] = useState(false)
-
-    function update(index, field, value) {
-        setItems(prev => prev.map((item, i) => i === index ? { ...item, [field]: value } : item))
+    function selectEmployee(id) {
+        setSelected(id)
+        setStep(0)
+        editor.current?.focus()
     }
-
-    function submit() {
-        setProcessing(true)
-        router.post('/admin/payroll', {
-            period_label,
-            period_from,
-            period_to,
-            cutoff,
-            items: items.map(item => ({
-                employee_id:       item.id,
-                days_present:      item.days_present,
-                weekday_ot_hours:  item.weekday_ot_hours || 0,
-                weekend_ot_hours:  item.weekend_ot_hours || 0,
-            })),
-        }, { onError: () => setProcessing(false) })
+    function update(field, value) {
+        setData(
+            'items',
+            data.items.map((entry, i) =>
+                i !== index
+                    ? entry
+                    : {
+                          ...entry,
+                          ...(field === 'payroll_office'
+                              ? { paid_days_basis: offices[value]?.days ?? 11, absence_days: 0 }
+                              : {}),
+                          [field]: value,
+                          deductions_reviewed: field === 'deductions_reviewed' ? value : false,
+                      },
+            ),
+        )
     }
-
-    const { totalGross, totalDed, totalNet } = useMemo(() => {
-        let gross = 0
-        let ded = 0
-        let net = 0
-        for (const item of items) {
-            gross += computeGross(item)
-            ded   += (parseFloat(item.total_deductions) || 0)
-            net   += computeNet(item)
-        }
-        return { totalGross: gross, totalDed: ded, totalNet: net }
-    }, [items])
+    function input(field, label, options = {}, deduction = false) {
+        const key = `items.${index}.${deduction ? 'deductions.' : ''}${field}`
+        return (
+            <label className="block min-w-0 text-xs font-medium text-sub" key={field}>
+                {label}
+                <input
+                    type="number"
+                    min="0"
+                    step={deduction ? '0.01' : '0.5'}
+                    {...options}
+                    value={deduction ? data.items[index].deductions[field] : data.items[index][field]}
+                    onChange={(event) =>
+                        update(
+                            deduction ? 'deductions' : field,
+                            deduction
+                                ? { ...data.items[index].deductions, [field]: event.target.value }
+                                : event.target.value,
+                        )
+                    }
+                    aria-label={`${label} for ${item.full_name}`}
+                    aria-invalid={!!errors[key]}
+                    aria-describedby={errors[key] ? `${field}-error` : undefined}
+                    className={control}
+                />
+                {errors[key] && (
+                    <span id={`${field}-error`} className="mt-1 block text-rose-700">
+                        {errors[key]}
+                    </span>
+                )}
+            </label>
+        )
+    }
+    function submit(event) {
+        event.preventDefault()
+        if (unreviewed || !items.length || processing) return
+        post('/admin/payroll', {
+            onError: (validation) => {
+                const first = Object.keys(validation).find((key) => /^items\.\d+\./.test(key))
+                if (first) {
+                    selectEmployee(data.items[Number(first.split('.')[1])].id)
+                    setStep(first.includes('.deductions.') || first.includes('tardiness') || first.includes('deductions_reviewed') ? 2 : first.includes('_ot_') ? 1 : 0)
+                }
+            },
+        })
+    }
 
     return (
         <AdminLayout>
-            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
-                {/* ── Top Header ────────────────────────────────────── */}
+            <form onSubmit={submit} className="admin-page-shell space-y-5 page-enter">
                 <AdminPageHeader
-                    eyebrow="Payroll batch preparation"
+                    eyebrow="Prepare · Review · Save"
                     title={period_label}
-                    description="Verify DTR days, enter overtime adjustments, and inspect deduction splits before saving this batch."
-                    badge={is_first ? '1st cutoff · full deductions' : '2nd cutoff · deductions waived'}
-                    meta={<Link href="/admin/payroll" className="font-medium text-indigo-100 hover:text-white">← Back to Payroll Ledger</Link>}
-                    action={
-                    <div className="flex flex-wrap items-center gap-3">
-                        <div className="flex items-center gap-4 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs shadow-xs">
-                            <div>
-                                <span className="block text-[10px] font-semibold uppercase text-indigo-200">Gross Pay</span>
-                                <strong className="font-heading text-sm font-bold text-white tnum">₱ {fmt(totalGross)}</strong>
-                            </div>
-                            <div className="h-7 w-px bg-white/20" />
-                            <div>
-                                <span className="block text-[10px] font-semibold uppercase text-rose-200">Deductions</span>
-                                <strong className="font-heading text-sm font-bold text-rose-100 tnum">-₱ {fmt(totalDed)}</strong>
-                            </div>
-                            <div className="h-7 w-px bg-white/20" />
-                            <div>
-                                <span className="block text-[10px] font-semibold uppercase text-emerald-200">Net Payout</span>
-                                <strong className="font-heading text-sm font-bold text-emerald-100 tnum">₱ {fmt(totalNet)}</strong>
-                            </div>
-                        </div>
-
-                        <Button
-                            variant="primary"
-                            size="md"
-                            loading={processing}
-                            onClick={submit}
-                            className="admin-header-primary shadow-xs"
+                    description="Review one employee at a time. Save the batch when every employee is ready."
+                    badge={is_first ? '1st cutoff' : '2nd cutoff'}
+                    meta={
+                        <Link
+                            href="/admin/payroll"
+                            className="inline-flex min-h-[44px] items-center font-medium text-indigo-100 hover:text-white"
                         >
-                            Save Payroll Batch →
-                        </Button>
-                    </div>
+                            Back to payroll
+                        </Link>
                     }
                 />
-
-                {/* ── Formula Reminder ──────────────────────────────── */}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 px-4 py-2.5 rounded-xl bg-field/60 border border-border/80 text-xs text-sub">
-                    <span className="font-semibold text-text">Compensation Formulas:</span>
-                    <span>Monthly Basic = <strong className="text-text font-mono">Daily Rate × 22</strong></span>
-                    <span className="text-dim">•</span>
-                    <span>Cutoff Basic = <strong className="text-text font-mono">Monthly Basic ÷ 2</strong></span>
-                    <span className="text-dim">•</span>
-                    <span>Weekday OT = <strong className="text-text font-mono">Rate/8 × 125% × Hrs</strong></span>
-                    <span className="text-dim">•</span>
-                    <span>Weekend/Rest OT = <strong className="text-text font-mono">Rate/8 × 130% × Hrs</strong></span>
-                </div>
-
-                {/* ── Table Card ────────────────────────────────────── */}
-                <Card className="admin-workspace-card overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="text-xs w-full min-w-[1200px]">
-                            <thead>
-                                <tr className="bg-field/70 border-b border-border/80 text-sub">
-                                    {/* Employee */}
-                                    <th scope="col" rowSpan={2} className="text-left px-5 py-3 font-semibold text-[11px] uppercase" style={{ minWidth: 190, verticalAlign: 'middle' }}>
-                                        Employee
-                                    </th>
-                                    <th scope="col" rowSpan={2} className="text-center px-3 py-3 font-semibold text-[11px] uppercase" style={{ verticalAlign: 'middle' }}>
-                                        Days<br/>Present
-                                    </th>
-
-                                    {/* Gross group */}
-                                    <th scope="colgroup" colSpan={4} className="text-center px-3 py-2 font-semibold text-[11px] uppercase text-indigo-600 dark:text-indigo-400 border-l border-border/80">
-                                        Gross Components (Cutoff)
-                                    </th>
-
-                                    {/* OT group */}
-                                    <th scope="colgroup" colSpan={4} className="text-center px-3 py-2 font-semibold text-[11px] uppercase text-amber-600 dark:text-amber-400 border-l border-border/80">
-                                        Overtime Adjustments
-                                    </th>
-
-                                    {/* Totals */}
-                                    <th scope="col" rowSpan={2} className="text-right px-4 py-2 font-semibold text-[11px] uppercase text-emerald-600 dark:text-emerald-400 border-l border-border/80" style={{ verticalAlign: 'middle' }}>
-                                        Gross Pay
-                                    </th>
-
-                                    {/* Deductions group */}
-                                    <th scope="colgroup" colSpan={is_first ? 5 : 1} className="text-center px-3 py-2 font-semibold text-[11px] uppercase text-rose-600 dark:text-rose-400 border-l border-border/80">
-                                        Deductions
-                                    </th>
-
-                                    <th scope="col" rowSpan={2} className="text-right px-5 py-2 font-semibold text-[11px] uppercase text-text border-l border-border/80" style={{ verticalAlign: 'middle' }}>
-                                        Net Pay
-                                    </th>
-                                </tr>
-                                <tr className="bg-field/50 border-b border-border/80 text-sub text-[11px]">
-                                    {/* Gross sub-headers */}
-                                    <th scope="col" className="text-right px-3 py-2 font-medium border-l border-border/80">Basic</th>
-                                    <th scope="col" className="text-right px-3 py-2 font-medium">Transpo</th>
-                                    <th scope="col" className="text-right px-3 py-2 font-medium">Rep</th>
-                                    <th scope="col" className="text-right px-3 py-2 font-medium">Quarterly</th>
-
-                                    {/* OT sub-headers */}
-                                    <th scope="col" className="text-center px-2 py-2 font-medium border-l border-border/80" style={{ minWidth: 70 }}>WD Hrs</th>
-                                    <th scope="col" className="text-right px-2 py-2 font-medium">WD Pay</th>
-                                    <th scope="col" className="text-center px-2 py-2 font-medium" style={{ minWidth: 70 }}>WE Hrs</th>
-                                    <th scope="col" className="text-right px-2 py-2 font-medium">WE Pay</th>
-
-                                    {/* Deduction sub-headers */}
-                                    {is_first && (
-                                        <>
-                                            <th scope="col" className="text-right px-3 py-2 font-medium border-l border-border/80">SSS</th>
-                                            <th scope="col" className="text-right px-3 py-2 font-medium">PhilHealth</th>
-                                            <th scope="col" className="text-right px-3 py-2 font-medium">Pag-IBIG</th>
-                                            <th scope="col" className="text-right px-3 py-2 font-medium">Tax</th>
-                                        </>
-                                    )}
-                                    <th scope="col" className="text-right px-3 py-2 font-medium border-l border-border/80">Other Ded.</th>
-                                </tr>
-                            </thead>
-
-                            <tbody className="divide-y divide-border/60 tnum">
-                                {items.map((item, index) => {
-                                    const { weekdayOtPay, weekendOtPay } = computeOtPay(item)
-                                    const gross = computeGross(item)
-                                    const net   = computeNet(item)
-                                    const splitDed = (parseFloat(item.loan_deduction) || 0)
-                                        + (parseFloat(item.capital_contribution_deduction) || 0)
-                                        + (parseFloat(item.cash_advance_deduction) || 0)
-                                        + (parseFloat(item.rental_deduction) || 0)
-                                        + (parseFloat(item.savings_deduction) || 0)
-                                        + (parseFloat(item.other_deductions) || 0)
-
-                                    return (
-                                        <tr key={item.id} className="hover:bg-field/40 transition-colors">
-                                            {/* Employee */}
-                                            <td className="px-5 py-3.5">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/60 flex items-center justify-center font-heading font-semibold text-xs flex-shrink-0">
-                                                        {item.initials}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-semibold text-text whitespace-nowrap">{item.full_name}</p>
-                                                        <p className="text-[11px] text-sub font-mono">{item.employee_id} • ₱{fmt(item.daily_rate)}/day</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                            {/* Days present */}
-                                            <td className="px-3 py-3.5 text-center font-semibold text-text">
-                                                {item.days_present}
-                                            </td>
-
-                                            {/* Gross components */}
-                                            <td className="px-3 py-3.5 text-right font-medium text-text border-l border-border/80">₱ {fmt(item.cutoff_basic)}</td>
-                                            <td className="px-3 py-3.5 text-right text-sub">₱ {fmt(item.cutoff_transpo)}</td>
-                                            <td className="px-3 py-3.5 text-right text-sub">₱ {fmt(item.cutoff_rep)}</td>
-                                            <td className="px-3 py-3.5 text-right text-sub">₱ {fmt(item.cutoff_quarterly)}</td>
-
-                                            {/* OT inputs */}
-                                            <td className="px-2 py-2.5 border-l border-border/80">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    step="0.5"
-                                                    value={item.weekday_ot_hours ?? ''}
-                                                    onChange={e => update(index, 'weekday_ot_hours', e.target.value)}
-                                                    placeholder="0"
-                                                    aria-label={`Weekday OT hours for ${item.full_name}`}
-                                                    className="w-full px-2 py-1.5 border border-amber-500/30 rounded-lg text-center font-mono text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300 placeholder:text-dim"
-                                                />
-                                            </td>
-                                            <td className="px-2 py-3.5 text-right font-medium text-amber-600 dark:text-amber-400">₱ {fmt(weekdayOtPay)}</td>
-                                            <td className="px-2 py-2.5">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    step="0.5"
-                                                    value={item.weekend_ot_hours ?? ''}
-                                                    onChange={e => update(index, 'weekend_ot_hours', e.target.value)}
-                                                    placeholder="0"
-                                                    aria-label={`Weekend OT hours for ${item.full_name}`}
-                                                    className="w-full px-2 py-1.5 border border-amber-500/30 rounded-lg text-center font-mono text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300 placeholder:text-dim"
-                                                />
-                                            </td>
-                                            <td className="px-2 py-3.5 text-right font-medium text-amber-600 dark:text-amber-400">₱ {fmt(weekendOtPay)}</td>
-
-                                            {/* Gross pay */}
-                                            <td className="px-4 py-3.5 text-right font-semibold text-text border-l border-border/80">
-                                                ₱ {fmt(gross)}
-                                            </td>
-
-                                            {/* Deductions */}
-                                            {is_first && (
-                                                <>
-                                                    <td className="px-3 py-3.5 text-right text-rose-600 border-l border-border/80">₱ {fmt(item.sss_deduction)}</td>
-                                                    <td className="px-3 py-3.5 text-right text-rose-600">₱ {fmt(item.philhealth_deduction)}</td>
-                                                    <td className="px-3 py-3.5 text-right text-rose-600">₱ {fmt(item.pagibig_deduction)}</td>
-                                                    <td className="px-3 py-3.5 text-right text-rose-600">₱ {fmt(item.tax_deduction)}</td>
-                                                </>
-                                            )}
-                                            <td className="px-3 py-3.5 text-right text-rose-600 border-l border-border/80" title="Loan + CC + Cash advance + Savings + Share capital + Other">
-                                                -₱ {fmt(splitDed)}
-                                            </td>
-
-                                            {/* Net pay */}
-                                            <td className={`px-5 py-3.5 text-right font-heading font-bold text-sm border-l border-border/80 ${net < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                                ₱ {fmt(net)}
-                                            </td>
-                                        </tr>
-                                    )
-                                })}
-                            </tbody>
-
-                            {/* Footer totals */}
-                            <tfoot>
-                                <tr className="border-t-2 border-border/80 bg-field/60 font-semibold tnum">
-                                    <td colSpan={2} className="px-5 py-3.5 text-text font-heading">
-                                        Totals — {items.length} employees
-                                    </td>
-                                    <td colSpan={4} className="px-3 py-3.5 text-right text-text border-l border-border/80">
-                                        ₱ {fmt(items.reduce((s, i) => s + (parseFloat(i.cutoff_gross) || 0), 0))}
-                                    </td>
-                                    <td colSpan={4} className="px-2 py-3.5 text-right text-amber-600 dark:text-amber-400 border-l border-border/80">
-                                        ₱ {fmt(items.reduce((s, i) => { const { totalOtPay } = computeOtPay(i); return s + totalOtPay }, 0))}
-                                    </td>
-                                    <td className="px-4 py-3.5 text-right text-text font-bold border-l border-border/80">
-                                        ₱ {fmt(totalGross)}
-                                    </td>
-                                    <td colSpan={is_first ? 5 : 1} className="px-3 py-3.5 text-right text-rose-600 border-l border-border/80">
-                                        -₱ {fmt(totalDed)}
-                                    </td>
-                                    <td className="px-5 py-3.5 text-right text-emerald-600 font-heading font-bold text-base border-l border-border/80">
-                                        ₱ {fmt(totalNet)}
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
+                {items.some((entry) => !entry.office_verified) && (
+                    <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                        {items.filter((entry) => !entry.office_verified).length} employees need HR office verification. No employees are removed from this batch.
+                        {' '}<Link href="/admin/account-setups" className="underline font-semibold">Review account setups</Link>
+                    </p>
+                )}
+                <PayrollSummary {...totals}>
+                    <p role="status" className="mt-4 border-t border-border pt-3 text-sm text-sub">
+                        <strong className="text-text">
+                            {items.length - unreviewed} of {items.length} reviewed
+                        </strong>{' '}
+                        · {unreviewed ? `${unreviewed} remaining` : 'Ready to save'}
+                    </p>
+                </PayrollSummary>
+                <details className="rounded-xl border border-border bg-field px-4 py-3 text-sm text-sub">
+                    <summary className="min-h-[44px] cursor-pointer font-semibold text-text">
+                        Payroll basis & review guidance
+                    </summary>
+                    <div className="mt-3 max-w-[65ch] space-y-2 leading-relaxed">
+                        <p>
+                            Basic pay = daily rate × (paid days − verified absence days). Fort Magsaysay and
+                            Cubao Satelite Office default to 11 paid days; General Merchandise defaults to 15. Adjust paid days for
+                            individual exceptions.
+                        </p>
+                        <p>
+                            DTR attendance is a reference only. Missing punches do not automatically deduct pay.
+                            Allowances are split in half. Weekday overtime uses 125%; rest-day overtime uses 130%.
+                        </p>
+                        <p>
+                            Deductions are suggestions from employee profiles. Verify actual cutoff amounts, especially
+                            loans and cash advances. Enter tardiness deductions in pesos.
+                        </p>
                     </div>
-                </Card>
-
-                {/* ── Legend ────────────────────────────────────────── */}
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-sub px-1">
-                    <span className="inline-flex items-center gap-1.5">
-                        <span className="inline-block w-2.5 h-2.5 rounded-sm bg-amber-500/20 border border-amber-500/40" />
-                        <span><strong>WD</strong> = Weekday OT (×1.25)</span>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                        <span className="inline-block w-2.5 h-2.5 rounded-sm bg-amber-500/20 border border-amber-500/40" />
-                        <span><strong>WE</strong> = Weekend/Rest Day OT (×1.30)</span>
-                    </span>
-                    {!is_first && (
-                        <span className="inline-flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
-                            <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9.303 3.376c.866 1.5-.217 3.374-1.949 3.374H4.646c-1.732 0-2.815-1.874-1.949-3.374L10.05 3.374c.866-1.5 3.034-1.5 3.9 0l7.353 12.752zM12 15.75h.008v.008H12v-.008z" />
-                            </svg>
-                            <span>2nd Cutoff Notice: Statutory contributions (SSS, PhilHealth, Pag-IBIG, Tax) waived for this cycle.</span>
-                        </span>
+                </details>
+                {Object.entries(errors)
+                    .filter(([key]) => !key.startsWith('items.'))
+                    .map(([key, message]) => (
+                        <p key={key} role="alert" className="text-sm text-rose-700">
+                            {message}
+                        </p>
+                    ))}
+                <div className="grid items-start gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+                    <aside
+                        aria-label="Employee review queue"
+                        className="rounded-2xl border border-border bg-panel lg:sticky lg:top-5"
+                    >
+                        <div className="space-y-3 border-b border-border p-4">
+                            <h2 className="font-heading font-bold text-text">Employee queue</h2>
+                            <label className="block text-xs text-sub">
+                                Search employees
+                                <input
+                                    type="search"
+                                    value={search}
+                                    onChange={(event) => setSearch(event.target.value)}
+                                    placeholder="Name, ID or office"
+                                    className={control}
+                                />
+                            </label>
+                            <label className="block text-xs text-sub">
+                                Review status
+                                <select
+                                    value={filter}
+                                    onChange={(event) => setFilter(event.target.value)}
+                                    className={control}
+                                >
+                                    <option value="all">All employees ({items.length})</option>
+                                    <option value="pending">Needs review ({unreviewed})</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div className="max-h-64 overflow-y-auto divide-y divide-border lg:max-h-[60vh]">
+                            {visible.map((entry) => (
+                                <button
+                                    type="button"
+                                    key={entry.id}
+                                    aria-pressed={entry.id === selected}
+                                    onClick={() => selectEmployee(entry.id)}
+                                    className={`w-full px-4 py-3 text-left ${entry.id === selected ? 'bg-indigo-50 text-[#26215C]' : 'text-text hover:bg-field'}`}
+                                >
+                                    <span className="block text-sm font-semibold">{entry.full_name}</span>
+                                    <span className="mt-1 block text-xs text-sub">
+                                        {entry.employee_code} ·{' '}
+                                        {offices[entry.payroll_office]?.label || 'Office needed'}
+                                    </span>
+                                    <span
+                                        className={`mt-2 inline-block text-xs font-semibold ${ready(entry) ? 'text-emerald-700' : 'text-amber-800'}`}
+                                    >
+                                        {ready(entry) ? 'Reviewed' : 'Needs review'}
+                                    </span>
+                                    {Object.keys(errors).some((key) =>
+                                        key.startsWith(`items.${items.indexOf(entry)}.`),
+                                    ) && <span className="ml-2 text-xs text-rose-700">Check errors</span>}
+                                </button>
+                            ))}
+                            {!visible.length && (
+                                <p className="p-4 text-sm text-sub">
+                                    {items.length
+                                        ? 'No employees match these filters.'
+                                        : 'No active staff available for this batch.'}
+                                </p>
+                            )}
+                        </div>
+                    </aside>
+                    {item && (
+                        <section
+                            ref={editor}
+                            tabIndex={-1}
+                            aria-labelledby="employee-review-title"
+                            className="min-w-0 rounded-2xl border border-border bg-panel"
+                        >
+                            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-5">
+                                <div>
+                                    <p className="text-xs font-semibold text-sub">
+                                        Employee {index + 1} of {items.length}
+                                    </p>
+                                    <h2
+                                        id="employee-review-title"
+                                        className="mt-1 font-heading text-xl font-bold text-text"
+                                    >
+                                        {item.full_name}
+                                    </h2>
+                                    <p className="mt-1 text-sm text-sub">
+                                        {item.employee_code} · ₱{fmt(item.daily_rate)} / day
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-sub">Net pay</p>
+                                    <p
+                                        className={`font-heading text-2xl font-bold tnum ${item.net_pay < 0 ? 'text-rose-700' : 'text-[#26215C]'}`}
+                                    >
+                                        ₱{fmt(item.net_pay)}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="px-5">
+                                <nav aria-label="Employee review steps" className="grid grid-cols-3 gap-2 border-b border-border py-4">
+                                    {['Pay basis', 'Earnings', 'Deductions'].map((label, number) => (
+                                        <button key={label} type="button" aria-current={step === number ? 'step' : undefined}
+                                            onClick={() => setStep(number)}
+                                            className={`min-h-[44px] rounded-xl px-2 py-3 text-sm font-semibold ${step === number ? 'bg-[#26215C] text-white' : 'bg-field text-sub hover:text-text'}`}>
+                                            <span className="mr-1">{number + 1}.</span> {label}
+                                        </button>
+                                    ))}
+                                </nav>
+                                {Object.entries(errors).filter(([key]) => key.startsWith(`items.${index}.`)).length >
+                                    0 && (
+                                    <div role="alert" className="py-4 text-sm text-rose-700">
+                                        {Object.entries(errors)
+                                            .filter(([key]) => key.startsWith(`items.${index}.`))
+                                            .map(([key, message]) => (
+                                                <p key={key}>{message}</p>
+                                            ))}
+                                    </div>
+                                )}
+                                <fieldset hidden={step !== 0} className="py-5">
+                                    <legend className="float-left mb-4 w-full text-sm font-bold text-text">
+                                        01 · Office & attendance basis
+                                    </legend>
+                                    <div className="clear-both grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                        <div className="text-xs font-medium text-sub">
+                                            Payroll office
+                                            <div className={`${control} flex items-center`}>
+                                                {offices[item.payroll_office]?.label || 'Awaiting HR office verification'}
+                                            </div>
+                                            <p className="mt-2 text-xs text-sub">From the HR-verified employee record.</p>
+                                        </div>
+                                        {input('paid_days_basis', 'Paid days before absences', { max: 15 })}
+                                        {input('absence_days', 'Verified absence days', { max: item.paid_days_basis })}
+                                    </div>
+                                    <p className="mt-3 text-xs leading-relaxed text-sub">
+                                        DTR recorded: <strong>{item.dtr_days_present} days</strong>. Pay basis after
+                                        absences: <strong>{item.days_present} days</strong>.
+                                    </p>
+                                    {dtrMismatch(item) && (
+                                        <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                                            <p className="font-semibold">DTR and payroll days differ</p>
+                                            <p className="mt-1">Confirm the difference against the approved office rules. This warning does not change the pay calculation.</p>
+                                            <label className="mt-3 block text-xs font-semibold">
+                                                Reason for the difference
+                                                <textarea
+                                                    value={data.items[index].dtr_reconciliation_note || ''}
+                                                    onChange={(event) => update('dtr_reconciliation_note', event.target.value)}
+                                                    maxLength={500}
+                                                    rows={3}
+                                                    required
+                                                    aria-label={`Reason for DTR difference for ${item.full_name}`}
+                                                    aria-invalid={!!errors[`items.${index}.dtr_reconciliation_note`]}
+                                                    aria-describedby={errors[`items.${index}.dtr_reconciliation_note`] ? `dtr-reconciliation-${item.id}-error` : undefined}
+                                                    className={`${control} resize-y`}
+                                                />
+                                                {errors[`items.${index}.dtr_reconciliation_note`] && (
+                                                    <span id={`dtr-reconciliation-${item.id}-error`} className="mt-1 block text-rose-700">
+                                                        {errors[`items.${index}.dtr_reconciliation_note`]}
+                                                    </span>
+                                                )}
+                                            </label>
+                                        </div>
+                                    )}
+                                </fieldset>
+                                <fieldset hidden={step !== 1} className="py-5">
+                                    <legend className="float-left mb-4 w-full text-sm font-bold text-text">
+                                        02 · Overtime & earnings
+                                    </legend>
+                                    <div className="clear-both grid gap-4 sm:grid-cols-2">
+                                        {input('weekday_ot_hours', 'Weekday OT hours', { max: 999 })}
+                                        {input('weekend_ot_hours', 'Rest-day OT hours', { max: 999 })}
+                                    </div>
+                                    <dl className="mt-4 grid grid-cols-2 gap-x-5 gap-y-3 text-xs sm:grid-cols-3">
+                                        {[
+                                            ['Basic pay', item.cutoff_basic],
+                                            ['Transportation', item.cutoff_transpo],
+                                            ['Representation', item.cutoff_rep],
+                                            ['Quarterly allowance', item.cutoff_quarterly],
+                                            ['Overtime pay', item.weekday_ot_pay + item.weekend_ot_pay],
+                                            ['Gross pay', item.gross_pay],
+                                        ].map(([label, value]) => (
+                                            <div key={label}>
+                                                <dt className="text-sub">{label}</dt>
+                                                <dd className="mt-1 font-semibold text-text tnum">₱{fmt(value)}</dd>
+                                            </div>
+                                        ))}
+                                    </dl>
+                                </fieldset>
+                                <div hidden={step !== 2} className="space-y-5 py-5">
+                                    <h3 className="text-sm font-bold text-text">03 · Cutoff deductions</h3>
+                                    {deductionGroups.map(([title, fields]) => (
+                                        <fieldset key={title}>
+                                            <legend className="mb-3 text-xs font-semibold text-sub">{title}</legend>
+                                            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                                                {Object.entries(fields).map(([field, label]) =>
+                                                    input(field, `${label} (₱)`, { max: 99999999 }, true),
+                                                )}
+                                            </div>
+                                        </fieldset>
+                                    ))}
+                                    <div className="grid items-end gap-4 sm:grid-cols-2">
+                                        {input('tardiness_deduction', 'Tardiness deduction (₱)', { step: '0.01' })}
+                                        <p className="py-2 text-sm text-sub">
+                                            Total deductions{' '}
+                                            <strong className="ml-2 text-rose-700 tnum">
+                                                ₱{fmt(item.total_deductions)}
+                                            </strong>
+                                        </p>
+                                    </div>
+                                </div>
+                                {step < 2 && (
+                                    <div className="flex items-center justify-between gap-3 border-t border-border py-4">
+                                        <p className="text-xs text-sub">Step {step + 1} of 3 · Review each section before confirming.</p>
+                                        <Button onClick={() => setStep(step + 1)} className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]">
+                                            Continue to {step === 0 ? 'earnings' : 'deductions'}
+                                        </Button>
+                                    </div>
+                                )}
+                                <div hidden={step !== 2} className="border-t border-border py-5">
+                                    <label className="flex min-h-[44px] cursor-pointer items-start gap-3 text-sm leading-relaxed text-text">
+                                        <input
+                                            type="checkbox"
+                                            checked={item.deductions_reviewed}
+                                            disabled={!item.office_verified || !item.payroll_office || processing}
+                                            onChange={(event) => update('deductions_reviewed', event.target.checked)}
+                                            className="mt-1 size-5 shrink-0 accent-[#26215C]"
+                                        />
+                                        I reviewed the office, paid days, absences, overtime, and deductions for{' '}
+                                        {item.full_name}.
+                                    </label>
+                                    {!item.payroll_office && (
+                                        <p className="mt-2 text-xs text-amber-800">
+                                            Complete account setup and HR office verification before including this employee in payroll.
+                                        </p>
+                                    )}
+                                    <div className="mt-4 flex flex-wrap justify-between gap-3">
+                                        <Button
+                                            variant="outline"
+                                            disabled={index === 0}
+                                            className="min-h-[44px]"
+                                            onClick={() => selectEmployee(items[index - 1].id)}
+                                        >
+                                            Previous employee
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            disabled={index === items.length - 1}
+                                            className="min-h-[44px]"
+                                            onClick={() => selectEmployee(items[index + 1].id)}
+                                        >
+                                            Next employee
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
                     )}
                 </div>
-            </div>
+                <div className="sticky bottom-3 z-20 rounded-2xl border border-border bg-panel p-4 shadow-[0_8px_30px_-12px_rgba(38,33,92,0.18)]">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <p className="text-xs text-sub">Batch net payout</p>
+                            <p className="font-heading text-xl font-bold text-[#26215C] tnum">₱{fmt(totals.net)}</p>
+                            <p className="text-xs text-sub">
+                                {unreviewed ? `${unreviewed} employees still need review` : 'All employees reviewed'}
+                            </p>
+                        </div>
+                        <Button
+                            type="submit"
+                            loading={processing}
+                            disabled={!items.length || unreviewed > 0}
+                            className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]"
+                        >
+                            Save payroll batch
+                        </Button>
+                    </div>
+                </div>
+            </form>
         </AdminLayout>
     )
 }

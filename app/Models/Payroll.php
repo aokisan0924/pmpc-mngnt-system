@@ -19,11 +19,14 @@ class Payroll extends Model
         'total_deductions',
         'total_net',
         'created_by',
+        'finalized_by',
+        'finalized_at',
     ];
 
     protected $casts = [
         'period_from' => 'date',
         'period_to' => 'date',
+        'finalized_at' => 'datetime',
     ];
 
     public function items()
@@ -34,6 +37,11 @@ class Payroll extends Model
     public function creator()
     {
         return $this->belongsTo(Employee::class, 'created_by');
+    }
+
+    public function finalizer()
+    {
+        return $this->belongsTo(Employee::class, 'finalized_by');
     }
 
     public function isFinalized(): bool
