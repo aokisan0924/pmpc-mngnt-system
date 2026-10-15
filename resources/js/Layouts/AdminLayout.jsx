@@ -1,3 +1,4 @@
+import AccountSetupNotice from '@/Components/AccountSetupNotice'
 import { useState, useEffect } from 'react'
 import { Link, router, usePage, usePoll } from '@inertiajs/react'
 import useTheme from '@/hooks/useTheme'
@@ -40,6 +41,17 @@ const navItems = [
                 <path strokeLinecap="round" strokeLinejoin="round" stroke="currentColor" strokeWidth="1.8" d="M12 7h9" />
                 <rect x="3" y="14" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
                 <path strokeLinecap="round" strokeLinejoin="round" stroke="currentColor" strokeWidth="1.8" d="M12 17h9" />
+            </svg>
+        ),
+    },
+    {
+        label: 'Account setups',
+        href: '/admin/account-setups',
+        section: 'People & attendance',
+        icon: (
+            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <rect x="4" y="3" width="16" height="18" rx="3" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="m8 12 3 3 5-6" />
             </svg>
         ),
     },
@@ -282,6 +294,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
                 </header>
 
                 <main id="main-content" tabIndex="-1" className="flex-1 bg-bg outline-none">
+                    <AccountSetupNotice />
                     {children}
                 </main>
             </div>

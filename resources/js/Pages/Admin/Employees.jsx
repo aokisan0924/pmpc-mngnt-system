@@ -64,6 +64,7 @@ export default function Employees({ employees = [] }) {
                 />
 
                 {/* ── Filters & Search Toolbar ──────────────────────── */}
+                <Link href="/admin/account-setups" className="inline-flex min-h-[44px] items-center rounded-xl border border-border bg-panel px-4 text-sm font-semibold text-[#26215C]">Review employee account setups</Link>
                 <Card className="admin-workspace-card">
                     <CardHeader className="flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                         <div

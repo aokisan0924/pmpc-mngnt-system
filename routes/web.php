@@ -1,10 +1,14 @@
 <?php
 
+use App\Http\Controllers\AccountSetupController;
+use App\Http\Controllers\Admin\AccountSetupReviewController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDtrController;
 use App\Http\Controllers\Admin\DtrArchiveController;
 use App\Http\Controllers\Admin\DtrEditRequestController;
 use App\Http\Controllers\Admin\EmployeeController;
+use App\Http\Controllers\Admin\EmployeeSignatureController;
+use App\Http\Controllers\Admin\ManagementPayrollExportController;
 use App\Http\Controllers\Admin\PayrollAnalyticsController;
 use App\Http\Controllers\Admin\PayrollController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -73,6 +77,12 @@ Route::middleware(['auth'])
     ->prefix('employee')
     ->name('employee.')
     ->group(function () {
+        Route::get('/setup', [AccountSetupController::class, 'show'])->name('setup');
+        Route::post('/setup', [AccountSetupController::class, 'store'])->name('setup.store');
+        Route::post('/setup/signature', [AccountSetupController::class, 'signature'])->name('setup.signature.store');
+        Route::get('/setup/signature', [AccountSetupController::class, 'showSignature'])->name('setup.signature.show');
+        Route::delete('/setup/signature', [AccountSetupController::class, 'removeSignature'])->name('setup.signature.destroy');
+
         // DTR
         Route::get('/dtr', [DtrController::class, 'index'])->name('dtr');
         Route::post('/dtr/punch', [DtrController::class, 'punch'])->name('dtr.punch');
@@ -99,10 +109,17 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::post('/edit-requests/{editRequest}/approve', [DtrEditRequestController::class, 'approve'])->name('edit-requests.approve');
         Route::post('/edit-requests/{editRequest}/decline', [DtrEditRequestController::class, 'decline'])->name('edit-requests.decline');
 
+        Route::get('/account-setups', [AccountSetupReviewController::class, 'index'])->name('account-setups');
+        Route::patch('/account-setups/{submission}', [AccountSetupReviewController::class, 'review'])->name('account-setups.review');
+        Route::patch('/employees/{employee}/payroll-office', [AccountSetupReviewController::class, 'transfer'])->name('employees.payroll-office');
+
         // Employee management
         Route::get('/employees', [EmployeeController::class, 'index'])->name('employees');
         Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
         Route::get('/employees/{employee}', [EmployeeController::class, 'show'])->name('employees.show');
+        Route::post('/employees/{employee}/signature', [EmployeeSignatureController::class, 'store'])->name('employees.signature.store');
+        Route::get('/employees/{employee}/signature', [EmployeeSignatureController::class, 'show'])->name('employees.signature.show');
+        Route::delete('/employees/{employee}/signature', [EmployeeSignatureController::class, 'destroy'])->name('employees.signature.destroy');
         Route::patch('/employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
         Route::patch('/employees/{employee}/password', [EmployeeController::class, 'resetPassword'])->name('employees.password');
         Route::patch('/employees/{employee}/compensation', [EmployeeController::class, 'updateCompensation'])->name('employees.compensation');
@@ -115,6 +132,7 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::get('/payroll/analytics', [PayrollAnalyticsController::class, 'index'])->name('payroll.analytics');
         Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
         Route::get('/payroll/{payroll}', [PayrollController::class, 'show'])->name('payroll.show');
+        Route::get('/payroll/{payroll}/export', ManagementPayrollExportController::class)->name('payroll.export');
         Route::post('/payroll/{payroll}/finalize', [PayrollController::class, 'finalize'])->name('payroll.finalize');
         Route::delete('/payroll/{payroll}', [PayrollController::class, 'destroy'])->name('payroll.destroy');
 

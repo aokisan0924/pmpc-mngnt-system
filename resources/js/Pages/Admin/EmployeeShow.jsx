@@ -1,8 +1,10 @@
+import PayrollOfficeAssignment from '@/Components/PayrollOfficeAssignment'
 import { useState } from 'react'
 import { useForm, usePage, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Button from '@/Components/UI/Button'
 import AdminPageHeader from '@/Components/AdminPageHeader'
+import EmployeeSignatureUpload from '@/Components/EmployeeSignatureUpload'
 
 const inputClass = "w-full px-3 py-2.5 text-sm border border-border rounded-lg bg-panel text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors placeholder:text-dim"
 
@@ -60,12 +62,14 @@ function Field({ label, error, required, children }) {
     )
 }
 
-export default function EmployeeShow({ employee, govIds }) {
+export default function EmployeeShow({ employee, govIds, offices = {}, setupHistory = [] }) {
     const { flash }               = usePage().props
     const [activeTab, setActiveTab] = useState('info')
 
     const infoForm = useForm({
         first_name:  employee.first_name  ?? '',
+        middle_name: employee.middle_name ?? '',
+        name_suffix: employee.name_suffix ?? '',
         last_name:   employee.last_name   ?? '',
         email:       employee.email       ?? '',
         phone:       employee.phone       ?? '',
@@ -181,6 +185,8 @@ export default function EmployeeShow({ employee, govIds }) {
                 />
 
                 {/* Tabs */}
+                <PayrollOfficeAssignment employee={employee} offices={offices} history={setupHistory} />
+                <EmployeeSignatureUpload employee={employee} />
                 <div
                     role="group"
                     aria-label="Employee profile sections"
@@ -221,6 +227,14 @@ export default function EmployeeShow({ employee, govIds }) {
                             </Field>
                         </div>
 
+                        <div className="grid sm:grid-cols-2 gap-4">
+                            <Field label="Middle name (optional)" error={infoForm.errors.middle_name}>
+                                <input type="text" aria-label="Middle name" value={infoForm.data.middle_name} onChange={e => infoForm.setData('middle_name', e.target.value)} className={inputClass} />
+                            </Field>
+                            <Field label="Suffix (optional)" error={infoForm.errors.name_suffix}>
+                                <input type="text" aria-label="Name suffix" value={infoForm.data.name_suffix} onChange={e => infoForm.setData('name_suffix', e.target.value)} className={inputClass} />
+                            </Field>
+                        </div>
                         <Field label="Email" required error={infoForm.errors.email}>
                             <input type="email" value={infoForm.data.email}
                                 onChange={e => infoForm.setData('email', e.target.value)}

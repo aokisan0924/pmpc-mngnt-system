@@ -50,6 +50,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        if ($employee->is_staff && ! $employee->setup_completed_at
+            && ! $employee->accountSetupRequests()->where('status', 'pending')->exists()) {
+            return redirect()->route('employee.setup');
+        }
+
         return redirect()->intended(
             $employee->isSuperAdmin()
                 ? route('admin.dashboard')
