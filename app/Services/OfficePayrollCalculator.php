@@ -20,6 +20,7 @@ class OfficePayrollCalculator
     ];
 
     public const OFFICES = [
+        'main_office' => ['label' => 'Main Office', 'days' => 11],
         'fort_magsaysay' => ['label' => 'Fort Magsaysay', 'days' => 11],
         'gen_mdse' => ['label' => 'General Merchandise', 'days' => 15],
         'cubao' => ['label' => 'Cubao Satelite Office', 'days' => 11],
