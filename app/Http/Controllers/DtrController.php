@@ -158,16 +158,6 @@ class DtrController extends Controller
             return back()->withErrors(['edit' => 'A pending edit request already exists for this entry.']);
         }
 
-        // Block edits older than 7 days
-        $daysOld = $dtrLog->date->diffInDays(today());
-        if ($daysOld > 7) {
-            return back()->withErrors(['edit' => sprintf(
-                'This entry is from %s (%d days ago) — edit requests are only allowed within 7 days of the entry.',
-                $dtrLog->date->format('M d, Y'),
-                $daysOld
-            )]);
-        }
-
         $user = $request->user();
 
         DB::transaction(function () use ($dtrLog, $user, $validated) {
@@ -207,10 +197,8 @@ class DtrController extends Controller
 
     private function formatLog(DtrLog $log): array
     {
-        $daysOld = $log->date->diffInDays(today());
-
-        $status = $log->status;
-        if ($log->date->isToday() && $log->am_time_in && $status === 'absent') {
+        $status = $log->displayStatus();
+        if ($log->date->isToday() && $log->am_time_in && $log->status === 'absent') {
             $status = 'in_progress';
         }
 
@@ -225,11 +213,6 @@ class DtrController extends Controller
             'hours_rendered' => $log->hours_rendered,
             'status' => $status,
             'has_pending_edit' => $log->pendingEditRequest !== null,
-            // Mirrors the 7-day rule enforced in requestEdit() below, so the
-            // UI can hide/disable the button and explain why — instead of
-            // letting the employee fill out the whole form only to hit a
-            // silent rejection.
-            'edit_window_open' => $daysOld <= 7,
             'next_punch' => $log->getNextPunchSlot(),
         ];
     }

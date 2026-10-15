@@ -97,7 +97,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
 
                     <CardContent className="p-0">
                         <div className="overflow-x-auto">
-                            <table className="w-full text-xs min-w-[720px]">
+                            <table className="w-full min-w-[720px] border-collapse border border-border text-xs [&_th]:border [&_th]:border-border [&_td]:border [&_td]:border-border/70">
                                 <thead>
                                     <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[11px]">
                                         <th scope="col" className="text-left px-5 py-3 font-semibold">Date</th>

@@ -102,11 +102,12 @@ class EmployeeDashboardController extends Controller
             'is_payday_today' => $now->isSameDay($paydayDate),
         ];
 
+        $personalShift = Setting::employeeShiftForDate((int) $employee->id, $now);
         $schedule = [
-            'am_time_in' => Setting::get('shift_start', '08:00'),
+            'am_time_in' => $personalShift['start'] ?? Setting::get('shift_start', '08:00'),
             'am_time_out' => Setting::get('lunch_start', '12:00'),
             'pm_time_in' => Setting::get('lunch_end', '13:00'),
-            'pm_time_out' => Setting::get('shift_end', '17:00'),
+            'pm_time_out' => $personalShift['end'] ?? Setting::get('shift_end', '17:00'),
         ];
 
         // Today's DTR log

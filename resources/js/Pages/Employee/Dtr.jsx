@@ -66,6 +66,8 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 return <Badge variant="amber" size="sm">Half Day</Badge>
             case 'absent':
                 return <Badge variant="rose" size="sm">Absent</Badge>
+            case 'rest_day':
+                return <Badge variant="slate" size="sm">Rest Day</Badge>
             default:
                 return <Badge variant="slate" size="sm">{log.status || '—'}</Badge>
         }
@@ -189,7 +191,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <CardContent className="p-0">
                     {/* Desktop Table */}
                     <div className="hidden overflow-x-auto md:block">
-                        <table className="w-full text-xs">
+                        <table className="w-full border-collapse border border-border text-xs [&_th]:border [&_th]:border-border [&_td]:border [&_td]:border-border/70">
                             <thead>
                                 <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold text-[10px]">
                                     <th scope="col" className="text-left px-4 py-2.5">Date</th>
@@ -227,25 +229,17 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                             {getStatusBadge(log)}
                                         </td>
                                         <td className="px-4 py-2 sm:py-2.5 text-right font-sans">
-                                            {!log.has_pending_edit && (
-                                                log.edit_window_open ? (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setEditTarget(log)}
-                                                        aria-label={`Request edit for ${log.date_label}`}
-                                                        className="inline-flex h-7 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
-                                                    >
-                                                        <svg className="mr-1 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m16.86 3.49 3.65 3.65M4 20l4.25-.85L19.49 7.91a2.58 2.58 0 0 0-3.65-3.65L4.6 15.5 4 20Z" />
-                                                        </svg>
-                                                        Edit
-                                                    </button>
-                                                ) : (
-                                                    <span className="text-[11px] text-dim" title="Edits permitted only within 7 days of occurrence">
-                                                        Unavailable
-                                                    </span>
-                                                )
-                                            )}
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditTarget(log)}
+                                                aria-label={`Request edit for ${log.date_label}`}
+                                                className="inline-flex h-7 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+                                            >
+                                                <svg className="mr-1 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m16.86 3.49 3.65 3.65M4 20l4.25-.85L19.49 7.91a2.58 2.58 0 0 0-3.65-3.65L4.6 15.5 4 20Z" />
+                                                </svg>
+                                                Edit
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
@@ -290,16 +284,14 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                     <span className="text-sub font-mono font-medium">
                                         {log.hours_rendered ? `${log.hours_rendered}h rendered` : 'No hours'}
                                     </span>
-                                    {!log.has_pending_edit && log.edit_window_open && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setEditTarget(log)}
-                                            aria-label={`Request edit for ${log.date_label}`}
-                                            className="inline-flex h-8 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-3 font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
-                                        >
-                                            Request Edit
-                                        </button>
-                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditTarget(log)}
+                                        aria-label={`Request edit for ${log.date_label}`}
+                                        className="inline-flex h-8 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-3 font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+                                    >
+                                        Edit
+                                    </button>
                                 </div>
                             </div>
                         ))}

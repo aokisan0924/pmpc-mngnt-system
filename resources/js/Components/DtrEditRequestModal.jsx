@@ -76,7 +76,7 @@ export default function DtrEditRequestModal({ log, onClose }) {
                     </div>
                 )}
 
-                {/* Server-side rejection note (e.g. outside 7-day window) */}
+                {/* Server-side rejection note */}
                 {errors.edit && (
                     <div className="rounded-xl p-3 border border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-medium">
                         {errors.edit}

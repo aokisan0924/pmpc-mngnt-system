@@ -43,6 +43,29 @@ class DtrEditRequestSecurityTest extends TestCase
         ]);
     }
 
+    public function test_employee_can_request_correction_for_an_older_log(): void
+    {
+        $employee = Employee::factory()->create();
+        $log = DtrLog::factory()->create([
+            'employee_id' => $employee->id,
+            'date' => today()->subDays(30)->toDateString(),
+        ]);
+
+        $this->actingAs($employee)->post(route('employee.dtr.edit-request', $log), [
+            'requested_am_time_in' => '08:00',
+            'requested_am_time_out' => '12:00',
+            'requested_pm_time_in' => '12:45',
+            'requested_pm_time_out' => '17:00',
+            'reason' => 'Correcting a historical attendance record',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('dtr_edit_requests', [
+            'dtr_log_id' => $log->id,
+            'employee_id' => $employee->id,
+            'status' => 'pending',
+        ]);
+    }
+
     public function test_employee_cannot_submit_edit_request_for_another_employees_log(): void
     {
         $alice = Employee::factory()->create();

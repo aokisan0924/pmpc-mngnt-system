@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class DtrLog extends Model
 {
@@ -86,8 +87,9 @@ class DtrLog extends Model
 
     public function computeHoursAndStatus(): void
     {
-        $shiftStart = Setting::get('shift_start', '08:00');
-        $shiftEnd = Setting::get('shift_end', '17:00');
+        $personalShift = Setting::employeeShiftForDate((int) $this->employee_id, $this->date);
+        $shiftStart = $personalShift['start'] ?? Setting::get('shift_start', '08:00');
+        $shiftEnd = $personalShift['end'] ?? ($this->date->isFriday() ? '16:00' : Setting::get('shift_end', '17:00'));
         $graceMinutes = (int) Setting::get('late_grace_minutes', '0');
 
         // Normalize all times to H:i (strip seconds if present)
@@ -144,6 +146,27 @@ class DtrLog extends Model
         }
     }
 
+    public function isRestDayAbsence(): bool
+    {
+        return $this->status === 'absent' && $this->punchesCount() === 0 && $this->date->isWeekend();
+    }
+
+    public function displayStatus(): string
+    {
+        if ($this->isRestDayAbsence()) {
+            return 'rest_day';
+        }
+
+        // Historical Friday logs can still have the old 17:00-based status.
+        if ($this->status === 'undertime' && $this->date->isFriday()
+            && $this->pm_time_out && substr($this->pm_time_out, 0, 5) >= '16:00'
+            && Setting::employeeShiftForDate((int) $this->employee_id, $this->date) === null) {
+            return 'on_time';
+        }
+
+        return $this->status;
+    }
+
     // ── Attendance day-weighting ────────────────────────────
 
     /**
@@ -152,10 +175,47 @@ class DtrLog extends Model
      */
     public static function daysPresentBetween(int $employeeId, $from, $to): float
     {
-        return static::where('employee_id', $employeeId)
+        return (float) self::weightedDaysByEmployee([$employeeId], $from, $to)->get($employeeId, 0.0);
+    }
+
+    /**
+     * @param  array<int>  $employeeIds
+     * @return Collection<int, float>
+     */
+    public static function weightedDaysByEmployee(array $employeeIds, $from, $to): Collection
+    {
+        if ($employeeIds === []) {
+            return collect();
+        }
+
+        return static::whereIn('employee_id', $employeeIds)
             ->whereBetween('date', [$from, $to])
             ->whereIn('status', ['on_time', 'late', 'undertime', 'half_day'])
-            ->get()
-            ->sum(fn ($log) => $log->status === 'half_day' ? 0.5 : 1);
+            ->get(['employee_id', 'status'])
+            ->groupBy('employee_id')
+            ->map(fn (Collection $logs): float => self::weightedDaysPresent($logs));
+    }
+
+    public static function presenceWeight(string $status): float
+    {
+        return match ($status) {
+            'on_time', 'late', 'undertime' => 1.0,
+            'half_day' => 0.5,
+            default => 0.0,
+        };
+    }
+
+    /**
+     * @param  iterable<self>  $logs
+     */
+    public static function weightedDaysPresent(iterable $logs): float
+    {
+        $days = 0.0;
+
+        foreach ($logs as $log) {
+            $days += self::presenceWeight($log->status);
+        }
+
+        return $days;
     }
 }
