@@ -34,6 +34,7 @@ class HandleInertiaRequests extends Middleware
                     'first_name' => $request->user()->first_name,
                     'can_manage_dtr_requests' => $request->user()->canManageDtrRequests(),
                     'can_view_dtr_requests' => $request->user()->canViewDtrRequests(),
+                    'can_correct_dtr' => $request->user()->canCorrectDtr(),
                     'can_request_dtr_edits' => $request->user()->canRequestDtrEdits(),
                 ] : null,
             ],

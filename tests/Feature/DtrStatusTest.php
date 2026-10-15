@@ -88,7 +88,7 @@ class DtrStatusTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Admin/DtrShow')
                 ->where('summary.days_absent', 0)
-                ->where('logs.0.status', 'rest_day')
+                ->where('logs', fn ($logs) => collect($logs)->firstWhere('date', '2026-09-26')['status'] === 'rest_day')
                 ->etc());
     }
 }

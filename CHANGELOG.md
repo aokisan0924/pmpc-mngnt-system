@@ -11,6 +11,8 @@ Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release c
 
 ### Added
 
+- Final DTR check for the configured corrector (EMP-0002 by default, `DTR_CORRECTOR_EMPLOYEE_IDS`): the admin DTR page lists every day of the month, and each day can be corrected, added or marked absent with a required reason. Hours and status are recalculated with the normal rules, the change is stored as an approved edit record with before/after times, the employee is not notified, and a pending employee request blocks the correction. "DTR differs" on the payroll table links to the employee's DTR month.
+
 - Holiday calendar in Settings for regular, special non-working and announced holidays. DTR screens, prints and archives show holidays instead of absences, and the payroll form lists each cutoff's holidays. Payroll keeps the workbook formula; holiday pay is entered per employee as a peso amount and shown on payslips and the Excel supplemental detail.
 - "Always present Monday–Friday" employee flag (e.g. the president): every weekday counts as present and on time without punches for DTR reference days and 13th-month attendance.
 

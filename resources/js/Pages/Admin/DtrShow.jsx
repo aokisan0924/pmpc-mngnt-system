@@ -1,12 +1,30 @@
-import { router, Link } from '@inertiajs/react'
-import { useMemo } from 'react'
+import { router, Link, useForm, usePage } from '@inertiajs/react'
+import { useMemo, useState } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import AdminPageHeader from '@/Components/AdminPageHeader'
+import Button from '@/Components/UI/Button'
+
+const SLOTS = [['am_time_in', 'AM in'], ['am_time_out', 'AM out'], ['pm_time_in', 'PM in'], ['pm_time_out', 'PM out']]
+const blank = { date: '', am_time_in: '', am_time_out: '', pm_time_in: '', pm_time_out: '', reason: '' }
 
 
 export default function DtrShow({ employee, logs = [], summary = {}, month }) {
+    const { auth, flash } = usePage().props
+    const canCorrect = !!auth?.employee?.can_correct_dtr
+    const [editing, setEditing] = useState(null)
+    const form = useForm(blank)
+
+    function openCorrection(log) {
+        form.clearErrors()
+        form.setData({ ...blank, date: log.date, ...Object.fromEntries(SLOTS.map(([slot]) => [slot, (log[slot] || '').slice(0, 5)])) })
+        setEditing(log)
+    }
+    function saveCorrection(event) {
+        event.preventDefault()
+        form.post(`/admin/dtr/${employee.id}/corrections`, { preserveScroll: true, onSuccess: () => setEditing(null) })
+    }
     function handleMonthChange(dir) {
         const d = new Date(month + '-02')
         d.setMonth(d.getMonth() + dir)
@@ -70,6 +88,10 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
                     }
                 />
 
+                {flash?.success && (
+                    <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{flash.success}</p>
+                )}
+
                 {/* ── Summary Stats ──────────────────────────────────── */}
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     {[
@@ -107,12 +129,13 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
                                         <th scope="col" className="text-center px-3 py-3 font-semibold border-r border-border/80">PM Out</th>
                                         <th scope="col" className="text-center px-3 py-3 font-semibold">Hours</th>
                                         <th scope="col" className="text-center px-4 py-3 font-semibold">Status</th>
+                                        {canCorrect && <th scope="col" className="text-center px-3 py-3 font-semibold">Final check</th>}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/60 tnum">
                                     {logs.map(log => (
                                         <tr
-                                                key={log.id}
+                                                key={log.date}
                                                 className={`transition-colors ${
                                                     log.is_weekend ? 'bg-field/20' : 'hover:bg-field/40'
                                                 }`}
@@ -150,13 +173,30 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
                                                             {(log.status ?? 'absent').replace('_', ' ')}
                                                         </Badge>
                                                     )}
+                                                    {!log.has_entry && <p className="mt-1 text-[11px] text-dim">No entry</p>}
                                                 </td>
+                                                {canCorrect && (
+                                                    <td className="px-3 py-2 text-center">
+                                                        {log.has_pending_edit ? (
+                                                            <Link href="/admin/edit-requests" className="text-[11px] font-semibold text-amber-800 underline">Review request first</Link>
+                                                        ) : (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openCorrection(log)}
+                                                                aria-label={`${log.has_entry ? 'Correct' : 'Add entry for'} ${log.date_label}`}
+                                                                className="min-h-[44px] rounded-lg border border-border px-3 text-xs font-semibold text-[#26215C] hover:bg-field"
+                                                            >
+                                                                {log.has_entry ? 'Correct' : 'Add entry'}
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                )}
                                             </tr>
                                         )
                                     )}
                                     {logs.length === 0 && (
                                         <tr>
-                                            <td colSpan={7} className="px-5 py-12 text-center text-sub">
+                                            <td colSpan={canCorrect ? 8 : 7} className="px-5 py-12 text-center text-sub">
                                                 No DTR records for this month.
                                             </td>
                                         </tr>
@@ -167,6 +207,60 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
                     </CardContent>
                 </Card>
             </div>
+
+            {editing && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby="dtr-correction-title">
+                    <form onSubmit={saveCorrection} className="w-full max-w-lg space-y-4 rounded-2xl border border-border bg-panel p-5 shadow-xl">
+                        <div>
+                            <h2 id="dtr-correction-title" className="font-heading text-lg font-bold text-text">
+                                {editing.has_entry ? 'Correct' : 'Add entry for'} {editing.date_label}
+                            </h2>
+                            <p className="text-sm text-sub">{employee.full_name}. Hours and status are recalculated with the normal attendance rules. The employee is not notified.</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                            {SLOTS.map(([slot, label]) => (
+                                <label key={slot} className="text-xs font-medium text-sub">
+                                    {label}
+                                    <input
+                                        type="time"
+                                        value={form.data[slot]}
+                                        onChange={(event) => form.setData(slot, event.target.value)}
+                                        aria-invalid={!!form.errors[slot]}
+                                        className="mt-1 min-h-[44px] w-full rounded-lg border border-border bg-field px-2 text-sm text-text"
+                                    />
+                                    {form.errors[slot] && <span className="mt-1 block text-rose-700">{form.errors[slot]}</span>}
+                                </label>
+                            ))}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => form.setData({ ...form.data, am_time_in: '', am_time_out: '', pm_time_in: '', pm_time_out: '' })}
+                            className="min-h-[44px] rounded-lg border border-rose-200 px-3 text-sm font-semibold text-rose-700 hover:bg-rose-50"
+                        >
+                            Mark absent (clear all punches)
+                        </button>
+                        <label className="block text-xs font-medium text-sub">
+                            Reason (required)
+                            <input
+                                type="text"
+                                required
+                                maxLength={500}
+                                value={form.data.reason}
+                                onChange={(event) => form.setData('reason', event.target.value)}
+                                placeholder="e.g. Final DTR check: forgot to punch out"
+                                aria-invalid={!!form.errors.reason}
+                                className="mt-1 min-h-[44px] w-full rounded-lg border border-border bg-field px-3 text-sm text-text"
+                            />
+                            {form.errors.reason && <span className="mt-1 block text-rose-700">{form.errors.reason}</span>}
+                        </label>
+                        {form.errors.date && <p role="alert" className="text-sm text-rose-700">{form.errors.date}</p>}
+                        <div className="flex justify-end gap-3">
+                            <Button type="button" variant="outline" disabled={form.processing} onClick={() => setEditing(null)} className="min-h-[44px]">Cancel</Button>
+                            <Button type="submit" loading={form.processing} disabled={form.processing || !form.data.reason.trim()} className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]">Save correction</Button>
+                        </div>
+                    </form>
+                </div>
+            )}
         </AdminLayout>
     )
 }

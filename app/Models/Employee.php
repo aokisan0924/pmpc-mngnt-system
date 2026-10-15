@@ -190,6 +190,11 @@ class Employee extends Authenticatable
         return str_contains($fullName, 'reynold') && str_contains($fullName, 'valdez');
     }
 
+    public function canCorrectDtr(): bool
+    {
+        return $this->isSuperAdmin() && in_array($this->employee_id, config('pmpc.dtr_correctors', []), true);
+    }
+
     public function canManageDtrRequests(): bool
     {
         // Controls permission to approve or decline DTR edit requests.

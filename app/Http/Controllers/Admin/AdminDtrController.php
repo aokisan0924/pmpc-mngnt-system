@@ -75,30 +75,37 @@ class AdminDtrController extends Controller
         $from = Carbon::parse($month)->startOfMonth();
         $to = Carbon::parse($month)->endOfMonth();
 
-        $logs = DtrLog::where('employee_id', $employee->id)
+        $entries = DtrLog::where('employee_id', $employee->id)
             ->whereBetween('date', [$from, $to])
             ->with('pendingEditRequest')
-            ->orderBy('date', 'desc')
             ->get()
-            ->map(fn ($log) => [
-                'id' => $log->id,
-                'date' => $log->date->format('Y-m-d'),
-                'date_label' => $log->date->format('M d, D'),
-                'is_weekend' => $log->date->isWeekend(),
-                'am_time_in' => $log->am_time_in,
-                'am_time_out' => $log->am_time_out,
-                'pm_time_in' => $log->pm_time_in,
-                'pm_time_out' => $log->pm_time_out,
-                'hours_rendered' => $log->hours_rendered,
-                'status' => $log->displayStatus(),
-                'has_pending_edit' => $log->pendingEditRequest !== null,
+            ->keyBy(fn (DtrLog $log): string => $log->date->format('Y-m-d'));
+
+        // Every day up to today, so a missing day can be added during the final DTR check.
+        $logs = collect();
+        for ($day = $to->copy()->min(today()); $day->gte($from); $day->subDay()) {
+            $log = $entries->get($day->format('Y-m-d'));
+            $logs->push([
+                'id' => $log?->id,
+                'has_entry' => $log !== null,
+                'date' => $day->format('Y-m-d'),
+                'date_label' => $day->format('M d, D'),
+                'is_weekend' => $day->isWeekend(),
+                'am_time_in' => $log?->am_time_in,
+                'am_time_out' => $log?->am_time_out,
+                'pm_time_in' => $log?->pm_time_in,
+                'pm_time_out' => $log?->pm_time_out,
+                'hours_rendered' => $log?->hours_rendered ?? 0,
+                'status' => $log?->displayStatus() ?? DtrLog::fallbackStatus($employee->id, $day),
+                'has_pending_edit' => $log?->pendingEditRequest !== null,
             ]);
+        }
 
         $summary = [
-            'days_present' => collect($logs)->whereIn('status', ['on_time', 'late', 'undertime', 'half_day'])
-                ->sum(fn ($log) => $log['status'] === 'half_day' ? 0.5 : 1),
+            'days_present' => DtrLog::daysPresentBetween($employee->id, $from->toDateString(), $to->toDateString()),
             'days_late' => collect($logs)->where('status', 'late')->count(),
-            'days_absent' => collect($logs)->where('status', 'absent')->count(),
+            // Recorded absences only; days without an entry are listed as "No entry".
+            'days_absent' => collect($logs)->where('has_entry', true)->where('status', 'absent')->count(),
             'half_days' => collect($logs)->where('status', 'half_day')->count(),
             'hours_rendered' => round(collect($logs)->sum('hours_rendered'), 2),
         ];

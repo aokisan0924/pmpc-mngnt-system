@@ -184,9 +184,15 @@ export default function PayrollCreate({
                                                     <span className="block font-semibold text-text">{item.full_name}</span>
                                                     <span className="block text-xs text-sub">₱{fmt(item.daily_rate)}/day · DTR {item.dtr_days_present} days</span>
                                                     {dtrDiffers(item) && (
-                                                        <span className="mt-1 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-semibold text-amber-900">
-                                                            DTR differs{item.dtr_reconciliation_note ? ` · ${item.dtr_reconciliation_note}` : ''}
-                                                        </span>
+                                                        <a
+                                                            href={`/admin/dtr/${item.id}?month=${period_from.slice(0, 7)}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            title="Open this employee's DTR for the cutoff month"
+                                                            className="mt-1 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-semibold text-amber-900 underline-offset-2 hover:underline"
+                                                        >
+                                                            DTR differs{item.dtr_reconciliation_note ? ` · ${item.dtr_reconciliation_note}` : ''} ↗
+                                                        </a>
                                                     )}
                                                 </th>
                                                 {rowFields.map(([field, label, options]) => (

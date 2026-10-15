@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AccountSetupReviewController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminDtrController;
 use App\Http\Controllers\Admin\DtrArchiveController;
+use App\Http\Controllers\Admin\DtrCorrectionController;
 use App\Http\Controllers\Admin\DtrEditRequestController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\EmployeeSignatureController;
@@ -141,6 +142,7 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::get('/dtr/{employee}/print', [DtrPrintController::class, 'adminPrint'])->name('dtr.admin-print');
         Route::get('/dtr', [AdminDtrController::class, 'index'])->name('dtr');
         Route::get('/dtr/{employee}', [AdminDtrController::class, 'show'])->name('dtr.show');
+        Route::post('/dtr/{employee}/corrections', [DtrCorrectionController::class, 'store'])->name('dtr.corrections.store');
 
         // Settings
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
