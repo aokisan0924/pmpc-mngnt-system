@@ -102,7 +102,8 @@ class Employee extends Authenticatable
 
     public function hasVerifiedPayrollOffice(): bool
     {
-        return $this->setup_completed_at !== null && $this->office_verified_at !== null
+        // HR can verify an office before the employee finishes account setup.
+        return $this->office_verified_at !== null
             && isset(OfficePayrollCalculator::OFFICES[$this->payroll_office]);
     }
 

@@ -50,10 +50,9 @@ class AccountSetupService
     {
         DB::transaction(function () use ($employee, $reviewer, $details): void {
             $locked = Employee::whereKey($employee->id)->lockForUpdate()->firstOrFail();
-            if (! $locked->setup_completed_at) {
-                throw ValidationException::withMessages(['setup' => 'Approve employee account setup before changing the verified office.']);
-            }
-            $locked->accountSetupRequests()->create(['details' => ['previous_office' => $locked->payroll_office, 'payroll_office' => $details['payroll_office'], 'type' => 'office_transfer'], 'status' => 'approved', 'review_note' => $details['review_note'], 'reviewed_by' => $reviewer->id, 'reviewed_at' => now()]);
+            // HR may assign an office before account setup is completed; the first one is recorded as an assignment.
+            $type = $locked->office_verified_at ? 'office_transfer' : 'office_assignment';
+            $locked->accountSetupRequests()->create(['details' => ['previous_office' => $locked->payroll_office, 'payroll_office' => $details['payroll_office'], 'type' => $type], 'status' => 'approved', 'review_note' => $details['review_note'], 'reviewed_by' => $reviewer->id, 'reviewed_at' => now()]);
             $locked->forceFill(['payroll_office' => $details['payroll_office'], 'office_verified_at' => now(), 'office_verified_by' => $reviewer->id])->save();
         });
     }

@@ -18,7 +18,7 @@ Employee payslip history, career totals and PDFs include finalized batches only.
 - Clear/rebuild application caches according to the existing deployment procedure.
 - Verify employee setup, HR approval, attendance access, automatic office assignment and draft/finalized payslip behavior on the deployed host before processing real payroll.
 
-Existing employees are deliberately left unverified by the migration. No office is inferred from names, department text, DTR records or an Excel sheet. Payroll cannot be saved until every included employee has a verified office.
+HR can also assign a verified office directly on the employee profile before setup is completed, so payroll is not blocked; the first assignment is recorded in the review history. Existing employees are deliberately left unverified by the migration. No office is inferred from names, department text, DTR records or an Excel sheet. Payroll cannot be saved until every included employee has a verified office.
 
 ## Local verification
 

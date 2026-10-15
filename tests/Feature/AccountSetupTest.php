@@ -90,6 +90,28 @@ class AccountSetupTest extends TestCase
         $this->assertDatabaseCount('payrolls', 0);
     }
 
+    public function test_hr_can_assign_an_office_before_account_setup_and_pay_the_employee(): void
+    {
+        $admin = Employee::factory()->superAdmin()->create(['is_staff' => false]);
+        $employee = Employee::factory()->create(['daily_rate' => 720, 'transpo_allowance' => 0, 'rep_allowance' => 0, 'quarterly_allowance' => 0]);
+        $payload = ['payroll_office' => 'main_office', 'review_note' => 'Assigned by HR for go-live'];
+
+        $this->actingAs(Employee::factory()->create())->patch('/admin/employees/'.$employee->id.'/payroll-office', $payload)->assertRedirect(route('employee.dashboard'));
+        $this->assertNull($employee->fresh()->office_verified_at);
+
+        $this->actingAs($admin)->patch('/admin/employees/'.$employee->id.'/payroll-office', $payload)->assertSessionHasNoErrors();
+        $employee->refresh();
+        $this->assertNull($employee->setup_completed_at);
+        $this->assertTrue($employee->hasVerifiedPayrollOffice());
+        $this->assertSame('office_assignment', AccountSetupRequest::firstOrFail()->details['type']);
+
+        $this->post('/admin/payroll', ['period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'period_label' => 'September first', 'cutoff' => 'first', 'batch_reviewed' => true, 'items' => [[
+            'employee_id' => $employee->id, 'payroll_office' => 'main_office', 'paid_days_basis' => 11, 'absence_days' => 0,
+            'compensation_signature' => app(OfficePayrollCalculator::class)->compensationSignature($employee), 'deductions' => array_fill_keys(OfficePayrollCalculator::DEDUCTIONS, 0),
+        ]]])->assertSessionHasNoErrors();
+        $this->assertEquals(7920, PayrollItem::firstOrFail()->cutoff_basic);
+    }
+
     public function test_only_hr_can_transfer_office_and_saved_payroll_office_is_unchanged(): void
     {
         $employee = Employee::factory()->create();
