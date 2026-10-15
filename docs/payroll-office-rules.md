@@ -25,6 +25,14 @@ The project rules specify 13th-month pay as daily rate × weighted DTR days pres
 
 When the weighted DTR days differ from the reviewed paid-day basis after absences, the payroll form requires an explanation and stores both the DTR snapshot and note. This records the review; it does not change the office pay calculation.
 
+## Holidays
+
+Record holidays under **Settings → Holidays** as regular, special non-working, or announced (proclaimed). The calendar is a reference: DTR shows those days as holidays instead of absences, and the payroll form lists the holidays in each cutoff.
+
+Payroll keeps the workbook formula. Holiday pay is not calculated; staff enter it as a verified peso amount per employee, and it is added to gross pay. Absence days are never pre-filled from holidays.
+
+Employees flagged **Always present Monday–Friday** count every weekday (holidays included) as present and on time without punches. This feeds DTR reference days and 13th-month attendance.
+
 ## Deductions require review
 
 The workbook does not establish one reliable deduction schedule for every office. Some formulas differ between first and second cutoffs, some labels point at different deduction columns, and some references are broken. The application does not copy those formulas or infer a person's office from their name or department.
@@ -56,10 +64,12 @@ Use **Export Management Excel** on a saved payroll batch. It downloads the selec
 
 The original **BASIC PAY** and **ABSENT** headings are preserved. Where an absence column exists, export displays basic pay before absences and the monetary absence reduction; saved gross/net amounts are unchanged. New items store both amounts. Older items with some worked days can reconstruct them from saved basic pay and day inputs; an older all-absent item without these snapshots blocks export. Main Office's second-cutoff section has no absence column, so its basic-pay amount remains net of absences and the day inputs appear in supplemental detail.
 
-Upload a signature through the employee profile's **Signature for payroll sign-off** section. PNG/JPEG uploads are validated, decoded and stored as private PNG files; only super administrators can upload, preview, replace or remove them. Select first- and second-cutoff Prepared by, Certified Correct and Approved by employees on the saved payroll page. Each selection prints that employee's name and signature in the office payroll and overtime sign-off areas. The selected batch's cutoff signatories also appear on the voucher. Leave selections unsigned to omit images. These are selected signature images, not a new electronic approval transaction, and are never printed beside payroll rows.
+The office sheets keep the original formatting, row and column sizes, merges and logos (handwritten signature pictures from the original are not part of the template). Names follow each original sheet's style and are sorted by last name; an employee without pay in a saved cutoff appears with zeros. The journal entry beside each office payroll (Salaries and Wages, payables, Cash in Bank, and the employer contribution block where the original has one) is filled from the month's saved figures. The employer share is shown equal to the employee contributions, as in the original workbook. Status notes and the supplemental detail sit from row 88 down, outside the print area.
 
-The supplemental detail shows paid-day basis, allowances, overtime, savings, other deductions, tardiness and cash advances without fitting them into an incorrectly labeled original column. The PHP GD extension is needed for signature image decoding, alongside DOM and Zip for Excel export.
+Every employee must upload a picture of their signature during account setup; the setup cannot be submitted without one, employees can replace but not delete it, and anyone missing one sees a reminder. PNG/JPEG uploads are validated, decoded and stored as private PNG files; super administrators can also upload, preview, replace or remove them from the employee profile. Select first- and second-cutoff Prepared by, Certified Correct and Approved by employees on the saved payroll page. Any active employee can be selected; each selection prints only that employee's name in the office payroll, overtime and voucher sign-off areas. **Signature pictures are never added to the Excel export.**
 
-The voucher uses the original layout as a **payroll reconciliation for accounting review**, not an automatically posted accounting voucher. Loan principal versus interest and other ledger allocations are not available in this system; no allocation or account code is invented. Credits reconcile saved net pay and every deduction to saved gross pay. Missing cutoffs produce a partial-month label.
+The supplemental detail shows paid-day basis, allowances, overtime, savings, other deductions, tardiness and cash advances without fitting them into an incorrectly labeled original column. The PHP GD extension is needed for signature uploads; DOM and Zip are needed for Excel export.
+
+The voucher uses the original layout, cooperative header, account names and account codes. Credits reconcile saved net pay and every deduction to saved gross pay, so debits equal credits. The system stores one loan amount, so the full loan deduction appears under Loans Receivable and **Interest Income from Loan is left blank for a manual split**. Other deductions, tardiness and cash advances share the Employees' Benefit line, relabeled Other Income / Advances when any are present. Payee, voucher number and date posted are typed in after download.
 
 The sanitized deployment asset is `resources/payroll/management-template.xlsx`; it contains no previous employee payroll data or formulas. Do not deploy the original filled workbook as a public asset. The supplied template supports 3 Main Office, 2 Fort Magsaysay, 2 General Merchandise and 4 Cubao employee rows per month. Export rejects excess employees, duplicate cutoff batches and historical items without an office, rather than silently omitting or guessing rows. An approved expanded template and matching layout configuration are needed when the roster grows.

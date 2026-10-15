@@ -11,9 +11,12 @@ Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release c
 
 ### Added
 
-- One-time employee account confirmation with HR approval, optional government IDs and private self-service signature upload; preserve passwords, employee IDs and attendance access. Record review decisions and HR-controlled office transfers.
+- Holiday calendar in Settings for regular, special non-working and announced holidays. DTR screens, prints and archives show holidays instead of absences, and the payroll form lists each cutoff's holidays. Payroll keeps the workbook formula; holiday pay is entered per employee as a peso amount and shown on payslips and the Excel supplemental detail.
+- "Always present Monday–Friday" employee flag (e.g. the president): every weekday counts as present and on time without punches for DTR reference days and 13th-month attendance.
 
-- Upload, replace, privately preview and remove employee signature images, then choose separate first/second-cutoff Prepared by, Certified Correct and Approved by signatories for management Excel downloads. Images appear only in sign-off areas; unsigned selections stay blank.
+- One-time employee account confirmation with HR approval, optional government IDs and a required private signature picture (submission is blocked until one is uploaded; employees can replace but not delete it, and anyone missing one sees a reminder); preserve passwords, employee IDs and attendance access. Record review decisions and HR-controlled office transfers.
+
+- Upload, replace, privately preview and remove employee signature images, then choose separate first/second-cutoff Prepared by, Certified Correct and Approved by signatories for management Excel downloads. The export prints signatory names only; signature pictures stay on file and are never added to the workbook.
 
 - Download saved monthly payroll as an Excel management workbook using a sanitized September template, with four office sheets, both cutoff sections, supplemental deduction details, and an accounting-review reconciliation. Missing cutoffs stay blank; export rejects duplicate batches, missing offices, or template capacity overflow without silently omitting employees. Payslip PDF downloads remain available.
 
@@ -30,6 +33,8 @@ Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release c
 - Add visible cell outlines to employee and admin DTR tables and keep the employee Edit button visible for every recorded day.
 
 ### Fixed
+
+- Make the management Excel export match the original September workbook: identical formatting below row 40 (no leftover detail styling or merges), names written per sheet as in the original ("LAST, FIRST" for Main Office and Cubao) and sorted by last name, zero rows for employees without pay in a cutoff, monthly journal entries filled beside each office payroll, and the voucher's cooperative header, Payee/Voucher labels, account names and codes restored. Notes and supplemental detail moved below the layout and out of the print area. Signatories print by name only. The voucher now balances; interest income from loans, payee and voucher number remain for manual entry.
 
 - Repair the live payroll PDF download path and verify one-page individual payslips and ten-employee bulk rendering. Replace the redeclared currency helper with a view-local closure, retain visible peso/net-pay output, and keep saved payroll figures and draft status unchanged (2026-10-14).
 
