@@ -22,6 +22,8 @@ Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release c
 
 ### Changed
 
+- Replace the per-employee three-step payroll review with one Excel-style table grouped by office: edit paid days, absences, overtime hours, holiday pay and tardiness per row, open Details for deductions, and confirm the whole batch once. DTR mismatches are flagged with pre-filled notes ("No DTR account", "Always present Mon–Fri") and no longer block saving; pay formulas are unchanged.
+
 - Populate new payroll from verified employee offices and reject unverified or changed office assignments; preserve saved office snapshots.
 
 - Simplify payroll with on-demand new-batch setup and three focused employee review steps (pay basis, earnings, deductions), preserving calculations, all submitted employees, and required review confirmation.
@@ -40,7 +42,7 @@ Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release c
 
 - Apply effective-dated employee shift settings to attendance and personal dashboard schedules. Set Reynold Valdez's live shift to 11:00–20:00 from October 1, 2026, including Fridays, and correct only affected attendance statuses while preserving punches, rendered hours, and payroll figures.
 
-- Limit new payroll office selection and validation to Fort Magsaysay, Cubao Satelite Office, and General Merchandise. Preserve historical Main Office export compatibility and existing pay calculations.
+- Offer Main Office (11 paid days per cutoff) again alongside Fort Magsaysay, Cubao Satelite Office and General Merchandise, matching the September workbook's office sheets (2026-10-15).
 
 - Preserve the original management workbook package's typography, column widths, borders, logos and printer settings; restore original Basic Pay and Absent headings with monetary absence values. Store new basic-before-absence and absence-amount snapshots without changing saved gross/net payroll or deducting absences twice.
 

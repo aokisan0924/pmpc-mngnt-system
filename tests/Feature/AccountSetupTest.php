@@ -29,7 +29,7 @@ class AccountSetupTest extends TestCase
         $employee = Employee::factory()->create();
         $this->post('/login', ['login' => $employee->employee_id, 'password' => 'password123'])->assertRedirect(route('employee.setup'));
         $this->get('/employee/dtr')->assertOk();
-        $this->get('/employee/setup')->assertInertia(fn (AssertableInertia $page) => $page->component('Employee/AccountSetup')->has('offices', 3));
+        $this->get('/employee/setup')->assertInertia(fn (AssertableInertia $page) => $page->component('Employee/AccountSetup')->has('offices', 4));
     }
 
     public function test_setup_requires_hr_approval_and_preserves_identity_password_compensation_and_dtr(): void
@@ -80,8 +80,8 @@ class AccountSetupTest extends TestCase
     {
         $employee = Employee::factory()->create();
         $admin = Employee::factory()->superAdmin()->create();
-        $payload = ['period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'period_label' => 'September first', 'cutoff' => 'first', 'items' => [[
-            'employee_id' => $employee->id, 'payroll_office' => 'cubao', 'paid_days_basis' => 11, 'absence_days' => 0, 'tardiness_deduction' => 0, 'dtr_reconciliation_note' => 'Reviewed for office verification test.', 'deductions_reviewed' => true,
+        $payload = ['period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'period_label' => 'September first', 'cutoff' => 'first', 'batch_reviewed' => true, 'items' => [[
+            'employee_id' => $employee->id, 'payroll_office' => 'cubao', 'paid_days_basis' => 11, 'absence_days' => 0, 'tardiness_deduction' => 0, 'dtr_reconciliation_note' => 'Reviewed for office verification test.',
             'compensation_signature' => app(OfficePayrollCalculator::class)->compensationSignature($employee), 'deductions' => array_fill_keys(OfficePayrollCalculator::DEDUCTIONS, 0),
         ]]];
         $this->actingAs($admin)->post('/admin/payroll', $payload)->assertSessionHasErrors('items');

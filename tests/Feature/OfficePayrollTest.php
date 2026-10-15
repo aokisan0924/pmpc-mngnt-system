@@ -22,13 +22,12 @@ class OfficePayrollTest extends TestCase
 
         return [
             'period_from' => '2026-09-01', 'period_to' => '2026-09-15',
-            'period_label' => 'September first cutoff', 'cutoff' => 'first',
+            'period_label' => 'September first cutoff', 'cutoff' => 'first', 'batch_reviewed' => true,
             'items' => [array_replace([
                 'employee_id' => $employee->id, 'payroll_office' => 'fort_magsaysay',
                 'paid_days_basis' => 11, 'absence_days' => 0, 'tardiness_deduction' => 0,
                 'dtr_reconciliation_note' => 'DTR attendance is retained as a reference; office pay basis was verified.',
                 'weekday_ot_hours' => 0, 'weekend_ot_hours' => 0,
-                'deductions_reviewed' => true,
                 'compensation_signature' => (new OfficePayrollCalculator)->compensationSignature($employee),
                 'deductions' => array_fill_keys(OfficePayrollCalculator::DEDUCTIONS, 0),
             ], $changes)],
@@ -54,14 +53,16 @@ class OfficePayrollTest extends TestCase
             ->where('items.0.payroll_office_label', 'Fort Magsaysay'));
     }
 
-    public function test_main_office_is_rejected_for_new_payroll(): void
+    public function test_main_office_payroll_uses_eleven_paid_days(): void
     {
         $admin = Employee::factory()->superAdmin()->create();
-        $employee = Employee::factory()->create();
-        $this->actingAs($admin)->post('/admin/payroll', $this->payload($employee, ['payroll_office' => 'main_office']))
-            ->assertSessionHasErrors('items.0.payroll_office');
-        $this->assertDatabaseCount('payrolls', 0);
-        $this->assertDatabaseCount('payroll_items', 0);
+        $employee = Employee::factory()->create(['daily_rate' => 720, 'transpo_allowance' => 0, 'rep_allowance' => 0, 'quarterly_allowance' => 0]);
+        $payload = $this->payload($employee, ['payroll_office' => 'main_office']);
+        $employee->forceFill(['payroll_office' => 'main_office'])->save();
+        $this->assertSame(11, OfficePayrollCalculator::OFFICES['main_office']['days']);
+        $this->actingAs($admin)->post('/admin/payroll', $payload)->assertSessionHasNoErrors();
+        $this->assertEquals(7920, PayrollItem::firstOrFail()->cutoff_basic);
+        $this->assertSame('main_office', PayrollItem::firstOrFail()->payroll_office);
     }
 
     public function test_fort_absences_and_general_merchandise_paid_days(): void
@@ -112,22 +113,40 @@ class OfficePayrollTest extends TestCase
     {
         $admin = Employee::factory()->superAdmin()->create();
         $employee = Employee::factory()->create();
-        $this->actingAs($admin)->post('/admin/payroll', $this->payload($employee, [
-            'deductions_reviewed' => false, 'payroll_office' => 'unknown', 'absence_days' => 12, 'deductions' => [],
-        ]))->assertSessionHasErrors(['items.0.deductions_reviewed', 'items.0.payroll_office', 'items.0.absence_days', 'items.0.deductions.sss_deduction']);
+        $payload = $this->payload($employee, ['payroll_office' => 'unknown', 'absence_days' => 12, 'deductions' => []]);
+        $payload['batch_reviewed'] = false;
+        $this->actingAs($admin)->post('/admin/payroll', $payload)
+            ->assertSessionHasErrors(['batch_reviewed', 'items.0.payroll_office', 'items.0.absence_days', 'items.0.deductions.sss_deduction']);
         $this->assertDatabaseCount('payrolls', 0);
     }
 
-    public function test_dtr_difference_requires_a_review_note(): void
+    public function test_dtr_difference_without_a_note_still_saves_the_dtr_snapshot(): void
     {
         $admin = Employee::factory()->superAdmin()->create();
         $employee = Employee::factory()->create();
         $payload = $this->payload($employee);
         unset($payload['items'][0]['dtr_reconciliation_note']);
 
-        $this->actingAs($admin)->post('/admin/payroll', $payload)
-            ->assertSessionHasErrors('items.0.dtr_reconciliation_note');
-        $this->assertDatabaseCount('payrolls', 0);
+        $this->actingAs($admin)->post('/admin/payroll', $payload)->assertSessionHasNoErrors();
+        $item = PayrollItem::firstOrFail();
+        $this->assertEquals(0, $item->dtr_days_present);
+        $this->assertNull($item->dtr_reconciliation_note);
+    }
+
+    public function test_preview_prefills_common_dtr_notes_and_orders_by_office(): void
+    {
+        $admin = Employee::factory()->superAdmin()->create(['is_staff' => false]);
+        $cubao = Employee::factory()->create(['last_name' => 'Aaron', 'auto_present_weekdays' => true]);
+        $cubao->forceFill(['payroll_office' => 'cubao', 'setup_completed_at' => now(), 'office_verified_at' => now()])->save();
+        $main = Employee::factory()->create(['last_name' => 'Zulu']);
+        $main->forceFill(['payroll_office' => 'main_office', 'setup_completed_at' => now(), 'office_verified_at' => now()])->save();
+
+        $this->actingAs($admin)->get(route('admin.payroll.create', ['period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'cutoff' => 'first']))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('employees.0.id', $main->id)
+                ->where('employees.0.dtr_reconciliation_note', 'No DTR account')
+                ->where('employees.1.id', $cubao->id)
+                ->where('employees.1.dtr_reconciliation_note', 'Always present Mon–Fri'));
     }
 
     public function test_employee_cannot_submit_office_payroll(): void

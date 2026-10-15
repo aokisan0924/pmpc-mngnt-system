@@ -53,7 +53,11 @@ class PayrollController extends Controller
         $from = Carbon::parse($validated['period_from']);
         $to = Carbon::parse($validated['period_to']);
         $isFirst = $validated['cutoff'] === 'first';
-        $activeEmployees = Employee::where('is_staff', true)->where('status', 'active')->get();
+        // Excel sheet order, then last name.
+        $officeOrder = array_flip(array_keys(OfficePayrollCalculator::OFFICES));
+        $activeEmployees = Employee::where('is_staff', true)->where('status', 'active')->get()
+            ->sortBy(fn (Employee $emp): string => str_pad((string) ($officeOrder[$emp->hasVerifiedPayrollOffice() ? $emp->payroll_office : ''] ?? 9), 2, '0', STR_PAD_LEFT).mb_strtolower($emp->last_name.' '.$emp->first_name))
+            ->values();
         $attendance = DtrLog::weightedDaysByEmployee(
             $activeEmployees->modelKeys(),
             $from->toDateString(),
@@ -81,11 +85,11 @@ class PayrollController extends Controller
                     'paid_days_basis' => $paidDays,
                     'absence_days' => 0,
                     'holiday_pay' => 0,
-                    'dtr_reconciliation_note' => '',
+                    'dtr_reconciliation_note' => Employee::isAlwaysPresent($emp->id) ? 'Always present Mon–Fri'
+                        : ((float) ($attendance[$emp->id] ?? 0) === 0.0 ? 'No DTR account' : ''),
                     'weekday_ot_hours' => 0,
                     'weekend_ot_hours' => 0,
                     'tardiness_deduction' => 0,
-                    'deductions_reviewed' => false,
                     'deductions' => collect($suggestions)->only(OfficePayrollCalculator::DEDUCTIONS)->all(),
                 ];
             });
@@ -129,7 +133,7 @@ class PayrollController extends Controller
                 'created_by' => $request->user()->id,
             ]);
 
-            foreach ($validated['items'] as $loopIndex => $itemData) {
+            foreach ($validated['items'] as $itemData) {
                 $emp = $employees->get($itemData['employee_id']);
                 if (! $emp) {
                     throw ValidationException::withMessages(['items' => 'An employee is no longer available. Reload the payroll preview.']);
@@ -141,15 +145,9 @@ class PayrollController extends Controller
                     throw ValidationException::withMessages(['items' => 'An employee’s rate or allowances changed. Reload and review the payroll preview.']);
                 }
 
+                // DTR stays a reference: the server snapshot and any note are saved, a mismatch does not block saving.
                 $dtrDays = (float) ($attendanceByEmployee[$emp->id] ?? 0);
-                $payDays = (float) $itemData['paid_days_basis'] - (float) $itemData['absence_days'];
                 $reconciliationNote = trim((string) ($itemData['dtr_reconciliation_note'] ?? ''));
-
-                if (abs($payDays - $dtrDays) >= 0.005 && $reconciliationNote === '') {
-                    throw ValidationException::withMessages([
-                        "items.$loopIndex.dtr_reconciliation_note" => 'Explain the difference between DTR recorded days and payroll days before saving this batch.',
-                    ]);
-                }
 
                 $item = new PayrollItem;
                 $item->payroll_id = $payroll->id;
@@ -201,7 +199,7 @@ class PayrollController extends Controller
                 'position' => $item->employee->position,
                 'days_present' => $item->days_present,
                 'payroll_office' => $item->payroll_office,
-                'payroll_office_label' => OfficePayrollCalculator::OFFICES[$item->payroll_office]['label'] ?? ($item->payroll_office === 'main_office' ? 'Main Office (historical)' : null),
+                'payroll_office_label' => OfficePayrollCalculator::OFFICES[$item->payroll_office]['label'] ?? null,
                 'paid_days_basis' => $item->paid_days_basis,
                 'absence_days' => $item->absence_days,
                 'dtr_days_present' => $item->dtr_days_present,

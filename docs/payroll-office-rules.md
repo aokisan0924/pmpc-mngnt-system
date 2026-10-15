@@ -23,7 +23,7 @@ This document records current preparation behavior and workbook references. It i
 
 The project rules specify 13th-month pay as daily rate × weighted DTR days present in the tranche ÷ 12. The current employee record has one daily rate and no effective-dated rate history; 13th-month drafts therefore snapshot the database rate at save time. Confirm that basis for employees whose rate changed during a tranche before adopting any historical-rate calculation.
 
-When the weighted DTR days differ from the reviewed paid-day basis after absences, the payroll form requires an explanation and stores both the DTR snapshot and note. This records the review; it does not change the office pay calculation.
+When the weighted DTR days differ from the paid-day basis after absences, the payroll form flags the row and offers an optional note (pre-filled with "No DTR account" or "Always present Mon–Fri" where they apply). A mismatch never blocks saving; the server stores the DTR snapshot and any note. This records the review; it does not change the office pay calculation.
 
 ## Holidays
 
@@ -47,10 +47,10 @@ Enter tardiness as a verified peso amount. The workbook uses inconsistent daily 
 2. Select each employee's payroll office and check the default paid days.
 3. Enter verified absences, any individual paid-day exception, overtime, and tardiness.
 4. Review every deduction against office payroll records for this cutoff.
-5. Confirm the employee review checkbox. Changing an input clears that review.
+5. Tick the single "I checked all rows for this cutoff" confirmation.
 6. Save the draft batch. Preview totals and saved amounts use the same component rounding.
 
-The server validates the inputs, rejects unknown offices, excess absences, unreviewed rows, duplicate employees, and inactive/non-staff employees, and calculates earnings itself. A change to rates or allowances after preview requires a reload and review. Batch creation remains transactional. Finalized batches retain the existing edit/delete restrictions.
+The server validates the inputs, rejects unknown offices, excess absences, an unconfirmed batch, duplicate employees, and inactive/non-staff employees, and calculates earnings itself. A change to rates or allowances after preview requires a reload and review. Batch creation remains transactional. Finalized batches retain the existing edit/delete restrictions.
 
 ## Historical payroll and rollout
 

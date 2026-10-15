@@ -82,15 +82,16 @@ Refined operational ledger: preserve Manrope, deep purple `#26215C`, semantic pa
 
 Last updated: 2026-10-02 - Organized payroll review and reporting with the frontend-god-mode skill.
 
-### Payroll progressive review
+### Payroll input table
 
-- Saved batches are the main payroll landing view; new-batch setup opens on demand and is initially visible for an empty ledger.
-- Employee review shows one of three sections at a time: Pay basis, Earnings, Deductions. Numbered buttons allow direct access; Continue advances the review. Confirmation remains in the deductions section and all original fields remain in the form.
-- Switching employees returns to pay basis; server errors select the affected employee and review section.
+- Saved batches are the main payroll landing view; new-batch setup opens on demand.
+- A new batch is one table grouped by office in workbook order (Main Office, Fort Magsaysay, General Merchandise, Cubao) with office subtotals. Each row edits only per-cutoff values: paid days, absent days, weekday/rest-day OT hours, holiday pay and tardiness. Gross and net update as you type.
+- Deductions show the cutoff total; a Details toggle opens the per-type amounts and an optional DTR note. DTR days and an amber "DTR differs" tag are reference only and never block saving; "No DTR account" and "Always present Mon–Fri" notes are pre-filled.
+- A sticky bottom bar holds batch totals, one "I checked all rows" confirmation and Save. On narrow screens the table scrolls inside its card with the employee column fixed.
 
-Last updated: 2026-10-02 - Reduced simultaneous payroll controls with progressive employee review and on-demand batch setup.
+Last updated: 2026-10-15 - Replaced the per-employee three-step review with a single Excel-style input table and batch confirmation.
 
-Last updated: 2026-10-02 - New payroll offers exactly three offices: Fort Magsaysay, Cubao Satelite Office, and General Merchandise. Main Office is historical export compatibility only.
+Last updated: 2026-10-15 - New payroll offers four offices matching the workbook sheets: Main Office, Fort Magsaysay, Cubao Satelite Office, and General Merchandise.
 
 ## Account setup and payroll release
 

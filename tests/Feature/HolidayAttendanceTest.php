@@ -70,13 +70,13 @@ class HolidayAttendanceTest extends TestCase
                 ->has('holidays', 2));
 
         $this->post(route('admin.payroll.store'), [
-            'period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'period_label' => 'September first cutoff', 'cutoff' => 'first',
+            'period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'period_label' => 'September first cutoff', 'cutoff' => 'first', 'batch_reviewed' => true,
             'items' => [[
                 'employee_id' => $employee->id, 'payroll_office' => 'fort_magsaysay',
                 'paid_days_basis' => 11, 'absence_days' => 0, 'tardiness_deduction' => 0,
                 'holiday_pay' => 600,
                 'dtr_reconciliation_note' => 'Office basis verified against DTR.',
-                'weekday_ot_hours' => 0, 'weekend_ot_hours' => 0, 'deductions_reviewed' => true,
+                'weekday_ot_hours' => 0, 'weekend_ot_hours' => 0,
                 'compensation_signature' => (new OfficePayrollCalculator)->compensationSignature($employee),
                 'deductions' => array_fill_keys(OfficePayrollCalculator::DEDUCTIONS, 0),
             ]],

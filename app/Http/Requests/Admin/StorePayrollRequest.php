@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
-use App\Models\DtrLog;
 use App\Models\Payroll;
 use App\Services\OfficePayrollCalculator;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -29,6 +28,7 @@ class StorePayrollRequest extends FormRequest
             'period_from' => ['required', 'date'],
             'period_to' => ['required', 'date', 'after_or_equal:period_from'],
             'cutoff' => ['required', 'in:first,second'],
+            'batch_reviewed' => ['accepted'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.employee_id' => ['required', 'distinct', Rule::exists('employees', 'id')->where('is_staff', true)->where('status', 'active')],
             'items.*.weekday_ot_hours' => ['nullable', 'numeric', 'min:0', 'max:999'],
@@ -40,7 +40,6 @@ class StorePayrollRequest extends FormRequest
             'items.*.holiday_pay' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'items.*.tardiness_deduction' => ['required', 'numeric', 'min:0', 'max:99999999'],
             'items.*.dtr_reconciliation_note' => ['nullable', 'string', 'max:500'],
-            'items.*.deductions_reviewed' => ['accepted'],
             'items.*.compensation_signature' => ['required', 'string', 'size:64'],
             'items.*.deductions' => ['required', 'array:sss_deduction,philhealth_deduction,pagibig_deduction,tax_deduction,loan_deduction,capital_contribution_deduction,cash_advance_deduction,rental_deduction,savings_deduction,other_deductions'],
             ...collect(['sss_deduction', 'philhealth_deduction', 'pagibig_deduction', 'tax_deduction', 'loan_deduction', 'capital_contribution_deduction', 'cash_advance_deduction', 'rental_deduction', 'savings_deduction', 'other_deductions'])->mapWithKeys(fn (string $field): array => ["items.*.deductions.$field" => ['required', 'numeric', 'min:0', 'max:99999999']])->all(),
@@ -64,22 +63,6 @@ class StorePayrollRequest extends FormRequest
                     $validator->errors()->add(
                         'cutoff',
                         'A payroll batch for this period and cutoff already exists.'
-                    );
-                }
-            }
-
-            $items = $this->input('items', []);
-            $employeeIds = collect($items)->pluck('employee_id')->all();
-            $attendance = DtrLog::weightedDaysByEmployee($employeeIds, $this->period_from, $this->period_to);
-
-            foreach ($items as $index => $item) {
-                $payDays = (float) $item['paid_days_basis'] - (float) $item['absence_days'];
-                $dtrDays = (float) ($attendance[$item['employee_id']] ?? 0);
-
-                if (abs($payDays - $dtrDays) >= 0.005 && blank($item['dtr_reconciliation_note'] ?? null)) {
-                    $validator->errors()->add(
-                        "items.$index.dtr_reconciliation_note",
-                        'Explain the difference between DTR recorded days and payroll days before saving this batch.'
                     );
                 }
             }
