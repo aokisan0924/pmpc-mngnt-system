@@ -58,8 +58,8 @@ class AccountSetupController extends Controller
     public function removeSignature(Request $request, EmployeeSignatureService $service): RedirectResponse
     {
         abort_unless($request->user()->isActive() && $request->user()->is_staff, 403);
-        $service->remove($request->user());
 
-        return back()->with('success', 'Your signature was removed.');
+        // A signature picture is required; employees replace it instead of removing it.
+        return back()->withErrors(['signature' => 'A signature picture is required. Upload a new one to replace it.']);
     }
 }

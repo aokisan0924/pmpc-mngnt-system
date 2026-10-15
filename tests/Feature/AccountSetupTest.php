@@ -34,7 +34,7 @@ class AccountSetupTest extends TestCase
 
     public function test_setup_requires_hr_approval_and_preserves_identity_password_compensation_and_dtr(): void
     {
-        $employee = Employee::factory()->create();
+        $employee = Employee::factory()->create(['signature_path' => 'signatures/on-file.png']);
         $admin = Employee::factory()->superAdmin()->create();
         $password = $employee->password;
         $code = $employee->employee_id;
@@ -64,7 +64,7 @@ class AccountSetupTest extends TestCase
 
     public function test_rejected_setup_can_be_corrected_but_pending_submission_cannot_be_duplicated(): void
     {
-        $employee = Employee::factory()->create();
+        $employee = Employee::factory()->create(['signature_path' => 'signatures/on-file.png']);
         $admin = Employee::factory()->superAdmin()->create();
         $this->actingAs($employee)->post('/employee/setup', $this->details($employee))->assertSessionHasNoErrors();
         $this->post('/employee/setup', $this->details($employee))->assertSessionHasErrors('setup');
@@ -103,17 +103,19 @@ class AccountSetupTest extends TestCase
         $this->assertSame('office_transfer', AccountSetupRequest::firstOrFail()->details['type']);
     }
 
-    public function test_employee_signature_is_optional_and_uses_private_owner_endpoint(): void
+    public function test_employee_signature_is_required_and_uses_private_owner_endpoint(): void
     {
         Storage::fake('local');
         $employee = Employee::factory()->create();
-        $this->actingAs($employee)->post('/employee/setup', $this->details($employee))->assertSessionHasNoErrors();
-        $this->assertNull($employee->fresh()->signature_path);
+        $this->actingAs($employee)->post('/employee/setup', $this->details($employee))->assertSessionHasErrors('signature');
+        $this->assertDatabaseCount('account_setup_requests', 0);
         $this->post('/employee/setup/signature', ['signature' => UploadedFile::fake()->image('signature.png', 200, 60)])->assertSessionHasNoErrors();
-        $this->actingAs($employee->fresh())->get('/employee/setup/signature')->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+        $this->actingAs($employee->fresh())->post('/employee/setup', $this->details($employee))->assertSessionHasNoErrors();
+        $this->get('/employee/setup/signature')->assertOk()->assertHeader('Cache-Control', 'no-store, private');
         $this->actingAs(Employee::factory()->create())->get('/employee/setup/signature')->assertNotFound();
-        $this->actingAs($employee)->delete('/employee/setup/signature')->assertSessionHasNoErrors();
-        $this->assertNull($employee->fresh()->signature_path);
+        // The required signature can be replaced, not deleted, by the employee.
+        $this->actingAs($employee->fresh())->delete('/employee/setup/signature')->assertSessionHasErrors('signature');
+        $this->assertNotNull($employee->fresh()->signature_path);
     }
 
     public function test_employee_cannot_bypass_hr_name_review_through_profile_update(): void

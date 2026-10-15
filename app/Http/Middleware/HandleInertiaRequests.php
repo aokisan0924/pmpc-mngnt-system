@@ -22,6 +22,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'employee' => $request->user() ? [
                     'id' => $request->user()->id,
+                    'needs_signature' => $request->user()->is_staff && ! $request->user()->signature_path,
                     'needs_account_setup' => $request->user()->is_staff && ! $request->user()->setup_completed_at,
                     'account_setup_pending' => $request->user()->is_staff && ! $request->user()->setup_completed_at && $request->user()->accountSetupRequests()->where('status', 'pending')->exists(),
                     'employee_id' => $request->user()->employee_id,

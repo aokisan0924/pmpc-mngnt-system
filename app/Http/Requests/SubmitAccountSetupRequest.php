@@ -7,6 +7,7 @@ namespace App\Http\Requests;
 use App\Services\OfficePayrollCalculator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class SubmitAccountSetupRequest extends FormRequest
 {
@@ -30,5 +31,14 @@ class SubmitAccountSetupRequest extends FormRequest
             'employment_note' => ['nullable', 'string', 'max:1000'],
             ...collect(['sss_no', 'philhealth_no', 'tin_no', 'pagibig_no'])->mapWithKeys(fn (string $field): array => [$field => ['nullable', 'string', 'max:50']])->all(),
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if (! $this->user()?->signature_path) {
+                $validator->errors()->add('signature', 'Upload a picture of your signature before submitting your account setup.');
+            }
+        });
     }
 }

@@ -49,9 +49,9 @@ export default function AccountSetup({ employee, submission, govIds, offices }) 
                     {form.errors.employment_confirmed && <p role="alert" className="text-sm text-rose-700">{form.errors.employment_confirmed}</p>}
                 </section>
                 <details open={["sss_no", "philhealth_no", "tin_no", "pagibig_no"].some(key => form.errors[key]) || undefined} className="border-t border-border pt-4"><summary className="min-h-[44px] cursor-pointer text-sm font-semibold text-text">Government IDs (optional)</summary><div className="mt-3 grid gap-4 sm:grid-cols-2">{field('sss_no', 'SSS number')}{field('philhealth_no', 'PhilHealth number')}{field('pagibig_no', 'Pag-IBIG number')}{field('tin_no', 'TIN')}</div></details>
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><p className="max-w-[45ch] text-sm text-sub">HR verifies your submission before applying name and office changes.</p><Button type="submit" variant="emerald" loading={form.processing} className="min-h-[44px]">Submit for HR verification</Button></div>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5"><div className="max-w-[45ch] text-sm text-sub"><p>HR verifies your submission before applying name and office changes.</p>{!employee.signature_url && <p className="mt-1 font-semibold text-amber-800">Upload your signature picture below before submitting.</p>}{form.errors.signature && <p role="alert" className="mt-1 text-rose-700">{form.errors.signature}</p>}</div><Button type="submit" variant="emerald" loading={form.processing} className="min-h-[44px]">Submit for HR verification</Button></div>
             </form>}
-            <EmployeeSignatureUpload employee={employee} endpoint="/employee/setup/signature" optional />
+            <EmployeeSignatureUpload employee={employee} endpoint="/employee/setup/signature" required />
         </div>
     </Layout>
 }

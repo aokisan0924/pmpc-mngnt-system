@@ -1,7 +1,7 @@
 import { useForm } from '@inertiajs/react'
 import { useRef } from 'react'
 
-export default function EmployeeSignatureUpload({ employee, endpoint = `/admin/employees/${employee.id}/signature`, optional = false }) {
+export default function EmployeeSignatureUpload({ employee, endpoint = `/admin/employees/${employee.id}/signature`, required = false }) {
     const form = useForm({ signature: null })
     const remove = useForm({})
     const fileInput = useRef(null)
@@ -14,8 +14,8 @@ export default function EmployeeSignatureUpload({ employee, endpoint = `/admin/e
         })
     }
     return <section className="rounded-2xl border border-border bg-panel p-5 sm:p-6 space-y-3" aria-labelledby="employee-signature-title">
-        <h2 id="employee-signature-title" className="font-semibold text-text">Signature for payroll sign-off{optional ? ' (optional)' : ''}</h2>
-        <p className="text-sm text-sub">Upload a PNG or JPEG, up to 2 MB. A transparent PNG works best. HR can select this signature for Prepared by, Certified Correct or Approved by when exporting payroll. Uploading a signature does not approve a payroll.</p>
+        <h2 id="employee-signature-title" className="font-semibold text-text">Signature for payroll records{required ? ' (required)' : ''}</h2>
+        <p className="text-sm text-sub">Upload a picture of your signature as PNG or JPEG, up to 2 MB. It is kept privately on file and is not printed on payroll exports. Uploading a signature does not approve a payroll.</p>
         {employee.signature_url && <div className="rounded-lg border border-border bg-white p-3 w-fit"><img src={employee.signature_url} alt={`${employee.full_name} signature`} className="h-16 max-w-64 object-contain" /></div>}
         <form onSubmit={submit} className="flex flex-wrap items-end gap-3">
             <div className="min-w-0 flex-1">
@@ -24,7 +24,7 @@ export default function EmployeeSignatureUpload({ employee, endpoint = `/admin/e
                 {form.errors.signature && <p id="signature-error" role="alert" className="mt-2 text-sm text-rose-600">{form.errors.signature}</p>}
             </div>
             <button disabled={form.processing || remove.processing || !form.data.signature} className="min-h-[44px] rounded-lg bg-[#26215C] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{form.processing ? 'Uploading…' : employee.signature_url ? 'Replace signature' : 'Upload signature'}</button>
-            {employee.signature_url && <button type="button" disabled={form.processing || remove.processing} onClick={() => remove.delete(endpoint, { preserveScroll: true })} className="min-h-[44px] rounded-lg border border-border px-4 py-2 text-sm text-rose-600 disabled:opacity-50">Remove signature</button>}
+            {employee.signature_url && !required && <button type="button" disabled={form.processing || remove.processing} onClick={() => remove.delete(endpoint, { preserveScroll: true })} className="min-h-[44px] rounded-lg border border-border px-4 py-2 text-sm text-rose-600 disabled:opacity-50">Remove signature</button>}
         </form>
     </section>
 }
