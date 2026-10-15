@@ -89,6 +89,14 @@ class Employee extends Authenticatable
         return $this->status === 'active';
     }
 
+    /** First day an absence can count: hire date, else the account creation date (Y-m-d), cached per request. */
+    public static function startDateFor(int $id): ?string
+    {
+        return once(fn (): array => static::query()->get(['id', 'date_hired', 'created_at'])
+            ->mapWithKeys(fn (self $employee): array => [$employee->id => ($employee->date_hired ?? $employee->created_at)?->toDateString()])
+            ->all())[$id] ?? null;
+    }
+
     /** Cached per request so DTR status checks do not query once per log. */
     public static function isAlwaysPresent(int $id): bool
     {

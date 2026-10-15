@@ -24,6 +24,7 @@ Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release c
 
 ### Changed
 
+- Show each employee's Attendance records month in full Sunday–Saturday weeks with week headings and present/absent/hours subtotals; days after today appear as upcoming.
 - Enter tardiness as late minutes on the payroll table; the server computes the deduction with the workbook formula using each employee's own rate (daily rate ÷ 8 ÷ 60 × minutes) and stores both minutes and pesos. Minutes appear on the saved batch, payslip and Excel supplemental detail.
 - Let HR assign a verified payroll office from the employee profile before account setup is completed, so payroll can run on go-live; the first assignment is recorded in the review history. Employees still complete setup and the required signature.
 
@@ -40,6 +41,8 @@ Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release c
 - Add visible cell outlines to employee and admin DTR tables and keep the employee Edit button visible for every recorded day.
 
 ### Fixed
+
+- Count days without any login as absent once the day has ended: past weekdays from the employee's hire date with no punches are absent on Attendance records, the employee's My attendance, DTR prints and archives. Today, weekends, holidays, days before hire and always-present employees are not counted; no records are created and pay formulas are unchanged.
 
 - Make the management Excel export match the original September workbook: identical formatting below row 40 (no leftover detail styling or merges), names written per sheet as in the original ("LAST, FIRST" for Main Office and Cubao) and sorted by last name, zero rows for employees without pay in a cutoff, monthly journal entries filled beside each office payroll, and the voucher's cooperative header, Payee/Voucher labels, account names and codes restored. Notes and supplemental detail moved below the layout and out of the print area. Signatories print by name only. The voucher now balances; interest income from loans, payee and voucher number remain for manual entry.
 

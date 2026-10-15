@@ -66,7 +66,7 @@ class DtrPrintController extends Controller
         $summary = [
             'days_present' => DtrLog::daysPresentBetween($employee->id, $from->toDateString(), $to->toDateString()),
             'days_late' => $logs->where('status', 'late')->count(),
-            'days_absent' => $logs->filter(fn ($log) => $log->status === 'absent' && ! $log->isExcusedAbsence())->count(),
+            'days_absent' => DtrLog::absentDaysBetween($employee->id, $from->toDateString(), $to->toDateString(), $logs),
             'half_days' => $logs->where('status', 'half_day')->count(),
             'hours_rendered' => round($logs->sum('hours_rendered'), 2),
         ];

@@ -6,6 +6,8 @@ namespace Tests\Feature;
 
 use App\Models\DtrLog;
 use App\Models\Employee;
+use App\Models\Holiday;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -68,10 +70,43 @@ class DtrStatusTest extends TestCase
         $this->assertEquals(7.52, $log->hours_rendered);
     }
 
+    public function test_unlogged_past_weekdays_count_as_absent_but_not_today_weekends_holidays_or_before_hire(): void
+    {
+        Holiday::create(['date' => '2026-09-08', 'name' => 'Test holiday', 'type' => 'regular']);
+        $employee = Employee::factory()->create(['date_hired' => '2026-09-03']);
+        $president = Employee::factory()->create(['date_hired' => '2026-01-01', 'auto_present_weekdays' => true]);
+
+        $this->assertSame('not_started', DtrLog::fallbackStatus($employee->id, Carbon::parse('2026-09-02')));
+        $this->assertSame('absent', DtrLog::fallbackStatus($employee->id, Carbon::parse('2026-09-03')));
+        $this->assertSame('rest_day', DtrLog::fallbackStatus($employee->id, Carbon::parse('2026-09-05')));
+        $this->assertSame('holiday', DtrLog::fallbackStatus($employee->id, Carbon::parse('2026-09-08')));
+        $this->assertSame('upcoming', DtrLog::fallbackStatus($employee->id, today()));
+        $this->assertSame('on_time', DtrLog::fallbackStatus($president->id, Carbon::parse('2026-09-03')));
+
+        // Sep 3-11: weekdays 3,4,7,9,10,11 (8 is a holiday) = 6; one day logged present.
+        DtrLog::factory()->create(['employee_id' => $employee->id, 'date' => '2026-09-04']);
+        $this->assertSame(5, DtrLog::absentDaysBetween($employee->id, '2026-09-01', '2026-09-11'));
+        $this->assertSame(0, DtrLog::absentDaysBetween($president->id, '2026-09-01', '2026-09-11'));
+    }
+
+    public function test_admin_dtr_page_shows_the_full_month_in_weeks_with_upcoming_days(): void
+    {
+        $admin = Employee::factory()->create(['role' => 'super_admin']);
+        $employee = Employee::factory()->create(['date_hired' => '2026-01-01']);
+
+        $this->actingAs($admin)->get(route('admin.dtr.show', ['employee' => $employee->id, 'month' => today()->format('Y-m')]))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('logs', today()->daysInMonth)
+                ->where('logs', fn ($logs) => collect($logs)->every(fn ($day) => isset($day['week']))
+                    && (collect($logs)->firstWhere('date', today()->toDateString())['status'] !== 'absent')));
+        $this->get(route('admin.dtr', ['month' => '2026-09']))
+            ->assertInertia(fn (Assert $page) => $page->where('dtrSummary', fn ($rows) => collect($rows)->firstWhere('id', $employee->id)['days_absent'] === 22));
+    }
+
     public function test_saturday_absence_is_shown_as_rest_day_and_excluded_from_admin_absence_count(): void
     {
         $admin = Employee::factory()->create(['role' => 'super_admin']);
-        $employee = Employee::factory()->create();
+        $employee = Employee::factory()->create(['date_hired' => '2026-09-26']);
         DtrLog::factory()->create([
             'employee_id' => $employee->id,
             'date' => '2026-09-26',
@@ -87,7 +122,8 @@ class DtrStatusTest extends TestCase
             ->get(route('admin.dtr.show', ['employee' => $employee->id, 'month' => '2026-09']))
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Admin/DtrShow')
-                ->where('summary.days_absent', 0)
+                // Saturday Sep 26 is a rest day; only the unlogged weekdays Sep 28-30 count.
+                ->where('summary.days_absent', 3)
                 ->where('logs', fn ($logs) => collect($logs)->firstWhere('date', '2026-09-26')['status'] === 'rest_day')
                 ->etc());
     }

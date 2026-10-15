@@ -70,6 +70,10 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 return <Badge variant="slate" size="sm">Rest Day</Badge>
             case 'holiday':
                 return <Badge variant="holiday" size="sm">Holiday</Badge>
+            case 'upcoming':
+                return <Badge variant="upcoming" size="sm">Not yet</Badge>
+            case 'not_started':
+                return <Badge variant="not_started" size="sm">Before hire</Badge>
             default:
                 return <Badge variant="slate" size="sm">{log.status || '—'}</Badge>
         }
@@ -116,7 +120,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 />
 
                 {/* Monthly Summary Stats */}
-                <div className="attendance-metrics grid grid-cols-1 gap-px overflow-hidden bg-border sm:grid-cols-3 sm:rounded-xl">
+                <div className="attendance-metrics grid grid-cols-1 gap-px overflow-hidden bg-border sm:grid-cols-2 lg:grid-cols-4 sm:rounded-xl">
                     <StatCard
                         title="Days Present"
                         value={summary.days_present ?? 0}
@@ -125,6 +129,17 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        }
+                    />
+                    <StatCard
+                        title="Days Absent"
+                        value={summary.days_absent ?? 0}
+                        subtitle="Weekdays with no login"
+                        accent="rose"
+                        icon={
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         }
                     />

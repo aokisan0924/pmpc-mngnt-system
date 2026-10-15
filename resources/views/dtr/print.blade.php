@@ -50,6 +50,7 @@
         .badge-absent { background: #fde8e8; color: #a82e2e; }
         .badge-rest_day { background: #e8edeb; color: #66756f; }
         .badge-holiday { background: #efeafc; color: #5b3fa8; }
+        .badge-upcoming, .badge-not_started { background: #f1f3f2; color: #8a9590; }
 
         .signature-section { margin-top: 4px; page-break-inside: avoid; }
         .signature-table td { padding: 0 9px; text-align: center; vertical-align: bottom; width: 33.33%; }

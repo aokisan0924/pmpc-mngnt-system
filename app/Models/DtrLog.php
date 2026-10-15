@@ -153,14 +153,17 @@ class DtrLog extends Model
         }
     }
 
-    /** Absent with no punches on a rest day, a holiday, or a weekday of an always-present employee. */
+    /** Recorded "absent" with no punches that the calendar does not treat as an absence (rest day, holiday, today, before start, always present). */
     public function isExcusedAbsence(): bool
     {
         return $this->status === 'absent' && $this->punchesCount() === 0
             && self::fallbackStatus((int) $this->employee_id, $this->date) !== 'absent';
     }
 
-    /** Status shown for a calendar day that has no recorded punches. */
+    /**
+     * Status for a day without punches. A past weekday from the employee's start date
+     * is absent even when no record exists (no login = absent once the day has ended).
+     */
     public static function fallbackStatus(int $employeeId, CarbonInterface $date): string
     {
         if (Holiday::typeOn($date)) {
@@ -169,14 +172,40 @@ class DtrLog extends Model
         if ($date->isWeekend()) {
             return 'rest_day';
         }
+        if ($date->toDateString() >= today()->toDateString()) {
+            return 'upcoming';
+        }
+        $start = Employee::startDateFor($employeeId);
+        if ($start !== null && $date->toDateString() < $start) {
+            return 'not_started';
+        }
 
         return Employee::isAlwaysPresent($employeeId) ? 'on_time' : 'absent';
+    }
+
+    /** Absent days in the range: recorded absences plus past weekdays with no record at all. */
+    public static function absentDaysBetween(int $employeeId, $from, $to, ?Collection $logs = null): int
+    {
+        $logs = ($logs ?? static::where('employee_id', $employeeId)->whereBetween('date', [$from, $to])->get())
+            ->keyBy(fn (self $log): string => $log->date->toDateString());
+
+        return collect(CarbonPeriod::create($from, $to))
+            ->filter(function (CarbonInterface $day) use ($logs, $employeeId): bool {
+                $log = $logs->get($day->toDateString());
+
+                return $log ? $log->displayStatus() === 'absent' : self::fallbackStatus($employeeId, $day) === 'absent';
+            })
+            ->count();
     }
 
     public function displayStatus(): string
     {
         if ($this->isExcusedAbsence()) {
             return self::fallbackStatus((int) $this->employee_id, $this->date);
+        }
+        // Today's punches without a complete pair yet are still in progress, not an absence.
+        if ($this->status === 'absent' && $this->punchesCount() > 0 && $this->date->isToday()) {
+            return 'in_progress';
         }
 
         // Historical Friday logs can still have the old 17:00-based status.
