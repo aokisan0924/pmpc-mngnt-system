@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\ComputeThirteenthMonthRequest;
+use App\Http\Requests\Admin\FinalizeThirteenthMonthRequest;
 use App\Http\Requests\Admin\StoreThirteenthMonthRequest;
-use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\ThirteenthMonthPay;
-use Carbon\Carbon;
+use App\Services\ThirteenthMonthCalculator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -45,90 +47,95 @@ class ThirteenthMonthController extends Controller
         ]);
     }
 
-    public function compute(Request $request): Response
+    public function compute(ComputeThirteenthMonthRequest $request, ThirteenthMonthCalculator $calculator): Response
     {
-        $year = (int) $request->query('year', now()->year);
-        $tranche = $request->query('tranche', 'year_end');
-
-        if ($tranche === 'mid_year') {
-            $from = Carbon::create($year, 1, 1)->startOfDay();
-            $to = Carbon::create($year, 6, 30)->endOfDay();
-        } else {
-            $from = Carbon::create($year, 7, 1)->startOfDay();
-            $to = Carbon::create($year, 12, 31)->endOfDay();
-        }
-
-        $employees = Employee::where('is_staff', true)
+        $validated = $request->validated();
+        $year = (int) ($validated['year'] ?? now()->year);
+        $tranche = $validated['tranche'] ?? 'year_end';
+        $period = $calculator->period($year, $tranche);
+        $activeEmployees = Employee::where('is_staff', true)
             ->where('status', 'active')
+            ->orderBy('first_name')
+            ->get();
+        $attendance = $calculator->attendanceDays($activeEmployees->modelKeys(), $period['from'], $period['to']);
+        $existingRecords = ThirteenthMonthPay::where('year', $year)
+            ->where('tranche', $tranche)
             ->get()
-            ->map(function ($emp) use ($from, $to, $year, $tranche) {
-                $daysPresent = DtrLog::where('employee_id', $emp->id)
-                    ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
-                    ->whereNotIn('status', ['absent'])
-                    ->sum(DB::raw("CASE WHEN status = 'half_day' THEN 0.5 ELSE 1 END"));
+            ->keyBy('employee_id');
 
-                $totalBasicPay = round($emp->daily_rate * $daysPresent, 2);
-                $thirteenthMonthPay = round($totalBasicPay / 12, 2);
+        $employees = $activeEmployees->map(function (Employee $emp) use ($attendance, $existingRecords, $calculator) {
+            $amounts = $calculator->calculate($emp, (float) ($attendance[$emp->id] ?? 0));
+            $existing = $existingRecords->get($emp->id);
 
-                $existing = ThirteenthMonthPay::where('employee_id', $emp->id)
-                    ->where('year', $year)
-                    ->where('tranche', $tranche)
-                    ->first();
-
-                return [
-                    'id' => $emp->id,
-                    'employee_id' => $emp->employee_id,
-                    'full_name' => $emp->full_name,
-                    'initials' => $emp->initials,
-                    'department' => $emp->department,
-                    'position' => $emp->position,
-                    'daily_rate' => $emp->daily_rate,
-                    'days_present' => $daysPresent,
-                    'total_basic_pay' => $totalBasicPay,
-                    'thirteenth_month_pay' => $thirteenthMonthPay,
-                    'already_processed' => $existing !== null,
-                    'existing_status' => $existing?->status,
-                ];
-            });
+            return [
+                'id' => $emp->id,
+                'employee_id' => $emp->employee_id,
+                'full_name' => $emp->full_name,
+                'initials' => $emp->initials,
+                'department' => $emp->department,
+                'position' => $emp->position,
+                ...$amounts,
+                'already_processed' => $existing !== null,
+                'existing_status' => $existing?->status,
+            ];
+        });
 
         return Inertia::render('Admin/ThirteenthMonthCompute', [
             'employees' => $employees,
             'year' => $year,
             'tranche' => $tranche,
             'tranche_label' => $tranche === 'mid_year' ? 'Mid-year (Jan – Jun)' : 'Year-end (Jul – Dec)',
-            'period_from' => $from->format('M d, Y'),
-            'period_to' => $to->format('M d, Y'),
+            'period_from' => $period['from']->format('M d, Y'),
+            'period_to' => $period['to']->format('M d, Y'),
         ]);
     }
 
-    public function store(StoreThirteenthMonthRequest $request): RedirectResponse
+    public function store(StoreThirteenthMonthRequest $request, ThirteenthMonthCalculator $calculator): RedirectResponse
     {
         $validated = $request->validated();
+        $period = $calculator->period((int) $validated['year'], $validated['tranche']);
+        $employeeIds = collect($validated['items'])->pluck('employee_id')->all();
 
-        $alreadyFinalized = ThirteenthMonthPay::where('year', $validated['year'])
-            ->where('tranche', $validated['tranche'])
-            ->where('status', 'finalized')
-            ->exists();
+        DB::transaction(function () use ($validated, $request, $calculator, $period, $employeeIds): void {
+            $finalized = ThirteenthMonthPay::where('year', $validated['year'])
+                ->where('tranche', $validated['tranche'])
+                ->where('status', 'finalized')
+                ->lockForUpdate()
+                ->first();
 
-        if ($alreadyFinalized) {
-            return back()->withErrors(['error' => 'This 13th month pay batch has already been finalized and is immutable.']);
-        }
+            if ($finalized) {
+                throw ValidationException::withMessages(['error' => 'This 13th month pay batch has already been finalized and is immutable.']);
+            }
 
-        DB::transaction(function () use ($validated, $request) {
-            foreach ($validated['items'] as $item) {
+            $employees = Employee::where('is_staff', true)
+                ->where('status', 'active')
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            $expectedIds = $employees->keys()->map(fn ($id): int => (int) $id)->sort()->values()->all();
+            $submittedIds = collect($employeeIds)->map(fn ($id): int => (int) $id)->sort()->values()->all();
+
+            if ($expectedIds !== $submittedIds) {
+                throw ValidationException::withMessages(['items' => 'The eligible employee list changed or is incomplete. Reload the 13th-month preview before saving.']);
+            }
+
+            $attendance = $calculator->attendanceDays($employeeIds, $period['from'], $period['to']);
+
+            foreach ($employeeIds as $employeeId) {
+                $employee = $employees->get($employeeId);
+                $amounts = $calculator->calculate($employee, (float) ($attendance[$employeeId] ?? 0));
+
                 ThirteenthMonthPay::updateOrCreate(
                     [
-                        'employee_id' => $item['employee_id'],
+                        'employee_id' => $employeeId,
                         'year' => $validated['year'],
                         'tranche' => $validated['tranche'],
                     ],
                     [
-                        'period_from' => $validated['period_from'],
-                        'period_to' => $validated['period_to'],
-                        'days_present' => $item['days_present'],
-                        'daily_rate' => $item['daily_rate'],
-                        'total_basic_pay' => $item['total_basic_pay'],
-                        'thirteenth_month_pay' => $item['thirteenth_month_pay'],
+                        'period_from' => $period['from']->toDateString(),
+                        'period_to' => $period['to']->toDateString(),
+                        ...$amounts,
                         'status' => 'draft',
                         'processed_by' => $request->user()->id,
                     ]
@@ -147,7 +154,7 @@ class ThirteenthMonthController extends Controller
         $year = (int) $request->query('year', now()->year);
         $tranche = $request->query('tranche', 'year_end');
 
-        $records = ThirteenthMonthPay::with('employee')
+        $records = ThirteenthMonthPay::with(['employee', 'finalizer'])
             ->where('year', $year)
             ->where('tranche', $tranche)
             ->get()
@@ -163,9 +170,11 @@ class ThirteenthMonthController extends Controller
                 'total_basic_pay' => $r->total_basic_pay,
                 'thirteenth_month_pay' => $r->thirteenth_month_pay,
                 'status' => $r->status,
+                'finalized_by' => $r->finalizer?->full_name,
+                'finalized_at' => $r->finalized_at?->timezone(config('app.timezone'))->format('M d, Y h:i A'),
             ]);
 
-        $first = ThirteenthMonthPay::where('year', $year)
+        $first = ThirteenthMonthPay::with('finalizer')->where('year', $year)
             ->where('tranche', $tranche)
             ->first();
 
@@ -177,24 +186,33 @@ class ThirteenthMonthController extends Controller
             'period_from' => $first?->period_from->format('M d, Y') ?? '',
             'period_to' => $first?->period_to->format('M d, Y') ?? '',
             'status' => $first?->status ?? 'draft',
+            'finalized_by' => $first?->finalizer?->full_name,
+            'finalized_at' => $first?->finalized_at?->timezone(config('app.timezone'))->format('M d, Y h:i A'),
             'total_payout' => $records->sum('thirteenth_month_pay'),
         ]);
     }
 
-    public function finalize(Request $request): RedirectResponse
+    public function finalize(FinalizeThirteenthMonthRequest $request): RedirectResponse
     {
-        $request->validate([
-            'year' => ['required', 'integer'],
-            'tranche' => ['required', 'in:mid_year,year_end'],
-        ]);
+        $validated = $request->validated();
 
-        $updated = ThirteenthMonthPay::where('year', $request->year)
-            ->where('tranche', $request->tranche)
-            ->where('status', 'draft')
-            ->update([
+        $updated = DB::transaction(function () use ($request, $validated): int {
+            $drafts = ThirteenthMonthPay::where('year', $validated['year'])
+                ->where('tranche', $validated['tranche'])
+                ->where('status', 'draft')
+                ->lockForUpdate()
+                ->get(['id']);
+
+            if ($drafts->isEmpty()) {
+                return 0;
+            }
+
+            return ThirteenthMonthPay::whereIn('id', $drafts->modelKeys())->update([
                 'status' => 'finalized',
                 'finalized_at' => now(),
+                'finalized_by' => $request->user()->id,
             ]);
+        });
 
         if ($updated === 0) {
             return back()->withErrors(['error' => 'No draft records found to finalize.']);

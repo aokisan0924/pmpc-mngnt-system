@@ -14,7 +14,7 @@ function fmt(num) {
 
 export default function ThirteenthMonthShow({
     records = [], year, tranche, tranche_label,
-    period_from, period_to, status, total_payout,
+    period_from, period_to, status, total_payout, finalized_by, finalized_at,
 }) {
     const { flash } = usePage().props
     const [confirmOpen, setConfirmOpen] = useState(false)
@@ -93,6 +93,13 @@ export default function ThirteenthMonthShow({
                         </CardContent>
                     </Card>
                 </div>
+
+                {status === 'finalized' && finalized_by && (
+                    <p className="rounded-xl border border-border bg-panel px-4 py-3 text-xs text-sub">
+                        Finalized by <strong className="text-text">{finalized_by}</strong>
+                        {finalized_at ? ` · ${finalized_at}` : ''}
+                    </p>
+                )}
 
                 {/* Table Card */}
                 <Card className="admin-workspace-card overflow-hidden">

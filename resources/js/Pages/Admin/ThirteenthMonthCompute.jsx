@@ -26,15 +26,7 @@ export default function ThirteenthMonthCompute({
         router.post('/admin/thirteenth-month', {
             year,
             tranche,
-            period_from,
-            period_to,
-            items: employees.map(e => ({
-                employee_id:          e.id,
-                days_present:         e.days_present,
-                daily_rate:           e.daily_rate,
-                total_basic_pay:      e.total_basic_pay,
-                thirteenth_month_pay: e.thirteenth_month_pay,
-            })),
+            items: employees.map(e => ({ employee_id: e.id })),
         }, {
             onError: () => setProcessing(false),
         })

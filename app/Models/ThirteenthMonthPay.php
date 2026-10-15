@@ -19,6 +19,7 @@ class ThirteenthMonthPay extends Model
         'status',
         'processed_by',
         'finalized_at',
+        'finalized_by',
     ];
 
     protected $casts = [
@@ -39,6 +40,11 @@ class ThirteenthMonthPay extends Model
     public function processor()
     {
         return $this->belongsTo(Employee::class, 'processed_by');
+    }
+
+    public function finalizer()
+    {
+        return $this->belongsTo(Employee::class, 'finalized_by');
     }
 
     public function isFinalized(): bool

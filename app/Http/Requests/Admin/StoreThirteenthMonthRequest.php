@@ -6,6 +6,7 @@ namespace App\Http\Requests\Admin;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreThirteenthMonthRequest extends FormRequest
 {
@@ -22,14 +23,8 @@ class StoreThirteenthMonthRequest extends FormRequest
         return [
             'year' => ['required', 'integer', 'min:2000', 'max:2100'],
             'tranche' => ['required', 'in:mid_year,year_end'],
-            'period_from' => ['required', 'date'],
-            'period_to' => ['required', 'date', 'after_or_equal:period_from'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.employee_id' => ['required', 'distinct', 'exists:employees,id'],
-            'items.*.days_present' => ['required', 'numeric', 'min:0'],
-            'items.*.daily_rate' => ['required', 'numeric', 'min:0'],
-            'items.*.total_basic_pay' => ['required', 'numeric', 'min:0'],
-            'items.*.thirteenth_month_pay' => ['required', 'numeric', 'min:0'],
+            'items.*.employee_id' => ['required', 'distinct', Rule::exists('employees', 'id')->where('is_staff', true)->where('status', 'active')],
         ];
     }
 }
