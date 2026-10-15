@@ -19,7 +19,7 @@ class ExportManagementPayrollRequest extends FormRequest
         $rules = ['signatories' => ['sometimes', 'array:first,second'], 'signatories.*' => ['array:prepared,certified,approved']];
         foreach (['first', 'second'] as $cutoff) {
             foreach (['prepared', 'certified', 'approved'] as $role) {
-                $rules["signatories.$cutoff.$role"] = ['nullable', 'integer', Rule::exists('employees', 'id')->whereNotNull('signature_path')];
+                $rules["signatories.$cutoff.$role"] = ['nullable', 'integer', Rule::exists('employees', 'id')];
             }
         }
 

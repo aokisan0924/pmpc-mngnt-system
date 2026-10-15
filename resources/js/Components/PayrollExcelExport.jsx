@@ -12,8 +12,8 @@ export default function PayrollExcelExport({ payroll, employees }) {
                 Management Excel export
             </h3>
             <p className="text-sm text-sub">
-                Choose the uploaded signatures to print in the sign-off areas. Leave a selection blank for an unsigned
-                area. Each cutoff uses its own signatories across all four office sheets.
+                Choose who prepared, certified and approved each cutoff. Only their names print in the sign-off areas;
+                signature pictures are never added to the export. Leave a selection blank for an empty area.
             </p>
             <form action={`/admin/payroll/${payroll.id}/export`} method="get" className="space-y-4">
                 {['first', 'second'].map((cutoff) => (
@@ -58,11 +58,6 @@ export default function PayrollExcelExport({ payroll, employees }) {
                         })}
                     </fieldset>
                 ))}
-                {employees.length === 0 && (
-                    <p className="text-sm text-sub">
-                        No signatures uploaded yet. Upload them from an employee’s profile.
-                    </p>
-                )}
                 <button
                     type="submit"
                     className="min-h-[44px] rounded-xl bg-[#26215C] px-4 py-2 text-sm font-semibold text-white hover:bg-[#201B4D]"

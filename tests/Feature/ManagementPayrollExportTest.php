@@ -72,14 +72,18 @@ class ManagementPayrollExportTest extends TestCase
             $this->assertEquals(6760, $this->value($path, $sheet, $net));
             $this->assertEquals('CUTOFF NOT AVAILABLE', $this->value($path, $sheet, 'B9'));
             $this->assertEmpty($this->value($path, $sheet, 'E11'));
-            $this->assertEquals(30, $this->value($path, $sheet, 'O43'));
+            // Supplemental detail sits below the original layout (header row 90).
+            $this->assertEquals(30, $this->value($path, $sheet, 'O91'));
         }
         $this->assertEquals(6000, $this->value($path, 1, 'R11'));
         $this->assertEquals(375, $this->value($path, 4, 'BJ11'));
-        $this->assertStringContainsString('PARTIAL MONTH', $this->value($path, 5, 'B11'));
+        $this->assertSame('Payee:', $this->value($path, 5, 'B11'));
+        $this->assertStringNotContainsString('first cutoff', $this->value($path, 1, 'B88'));
         $this->assertEquals(28540, $this->value($path, 5, 'H27'));
         $this->assertEquals(28540, $this->value($path, 5, 'I27'));
-        $this->assertEquals(200, $this->value($path, 5, 'I22'));
+        // Interest income is split manually; other deductions, tardiness and cash advances share the Other Income line.
+        $this->assertEmpty($this->value($path, 5, 'I22'));
+        $this->assertEquals(320, $this->value($path, 5, 'I25'));
         // Keep a synthetic export outside the repository for visual verification.
         copy($path, sys_get_temp_dir().'/management-payroll-synthetic.xlsx');
     }
@@ -96,7 +100,8 @@ class ManagementPayrollExportTest extends TestCase
         $this->assertEquals(750, $this->value($path, 4, 'AM11'));
         $this->assertEquals(750, $this->value($path, 4, 'AM15'));
         $this->assertEquals(14270, $this->value($path, 5, 'I27'));
-        $this->assertStringContainsString('BOTH CUTOFFS', $this->value($path, 5, 'B11'));
+        $this->assertStringContainsString('first cutoff', $this->value($path, 4, 'B88'));
+        $this->assertStringContainsString('second cutoff', $this->value($path, 4, 'B88'));
     }
 
     public function test_download_is_admin_only_and_returns_a_real_xlsx(): void
