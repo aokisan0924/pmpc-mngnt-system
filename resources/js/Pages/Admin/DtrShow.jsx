@@ -1,5 +1,5 @@
 import { router, Link, useForm, usePage } from '@inertiajs/react'
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
@@ -32,6 +32,24 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
             month: d.toISOString().slice(0, 7),
         }, { preserveState: true })
     }
+
+    // Sunday–Saturday weeks, newest first, with present/absent/hours subtotals.
+    const weeks = useMemo(() => {
+        const groups = []
+        logs.forEach((log) => {
+            const last = groups[groups.length - 1]
+            if (last && last.key === log.week) last.days.push(log)
+            else groups.push({ key: log.week, days: [log] })
+        })
+        const label = (date) => new Date(date + 'T00:00:00').toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })
+        return groups.map((group) => ({
+            ...group,
+            label: `Week of ${label(group.days[group.days.length - 1].date)} – ${label(group.days[0].date)}`,
+            present: group.days.reduce((sum, d) => sum + (['on_time', 'late', 'undertime'].includes(d.status) ? 1 : d.status === 'half_day' ? 0.5 : 0), 0),
+            absent: group.days.filter((d) => d.status === 'absent').length,
+            hours: Math.round(group.days.reduce((sum, d) => sum + Number(d.hours_rendered || 0), 0) * 100) / 100,
+        }))
+    }, [logs])
 
     const monthLabel = useMemo(() => new Date(month + '-02').toLocaleDateString('en-PH', {
         month: 'long',
@@ -133,11 +151,18 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/60 tnum">
-                                    {logs.map(log => (
+                                    {weeks.map(week => (
+                                        <Fragment key={week.key}>
+                                        <tr className="bg-indigo-50/60">
+                                            <th scope="rowgroup" colSpan={canCorrect ? 8 : 7} className="px-5 py-2 text-left text-[11px] font-bold uppercase tracking-wide text-[#26215C]">
+                                                {week.label}
+                                            </th>
+                                        </tr>
+                                        {week.days.map(log => (
                                         <tr
                                                 key={log.date}
                                                 className={`transition-colors ${
-                                                    log.is_weekend ? 'bg-field/20' : 'hover:bg-field/40'
+                                                    log.is_future ? 'text-dim opacity-60' : log.is_weekend ? 'bg-field/20' : 'hover:bg-field/40'
                                                 }`}
                                             >
                                                 <td className="px-5 py-3.5">
@@ -173,11 +198,13 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
                                                             {(log.status ?? 'absent').replace('_', ' ')}
                                                         </Badge>
                                                     )}
-                                                    {!log.has_entry && <p className="mt-1 text-[11px] text-dim">No entry</p>}
+                                                    {!log.has_entry && !log.is_future && <p className="mt-1 text-[11px] text-dim">No entry</p>}
                                                 </td>
                                                 {canCorrect && (
                                                     <td className="px-3 py-2 text-center">
-                                                        {log.has_pending_edit ? (
+                                                        {log.is_future ? (
+                                                            <span className="text-dim">—</span>
+                                                        ) : log.has_pending_edit ? (
                                                             <Link href="/admin/edit-requests" className="text-[11px] font-semibold text-amber-800 underline">Review request first</Link>
                                                         ) : (
                                                             <button
@@ -192,8 +219,14 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
                                                     </td>
                                                 )}
                                             </tr>
-                                        )
-                                    )}
+                                        ))}
+                                        <tr className="bg-field/40 text-[11px] font-semibold text-sub">
+                                            <td colSpan={canCorrect ? 8 : 7} className="px-5 py-2">
+                                                Week subtotal: {week.present} present · {week.absent} absent · {week.hours}h
+                                            </td>
+                                        </tr>
+                                        </Fragment>
+                                    ))}
                                     {logs.length === 0 && (
                                         <tr>
                                             <td colSpan={canCorrect ? 8 : 7} className="px-5 py-12 text-center text-sub">
