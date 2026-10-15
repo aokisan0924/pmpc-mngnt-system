@@ -28,3 +28,4 @@ Thumbs.db
 /output
 /test-results
 database/*.sqlite*
+/outputs
