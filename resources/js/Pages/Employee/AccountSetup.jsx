@@ -38,7 +38,7 @@ export default function AccountSetup({ employee, submission, govIds, offices }) 
                 <section aria-labelledby="identity-title">
                     <h2 id="identity-title" className="mb-4 font-heading text-lg font-bold text-text">Name & contact details</h2>
                     <p className="mb-4 text-sm text-sub">Employee ID: {employee.employee_id}. If your existing first name includes your middle name, separate it into the fields below.</p>
-                    <div className="grid gap-4 sm:grid-cols-2">{field('first_name', 'First name', true)}{field('middle_name', 'Middle name')}{field('last_name', 'Last name', true)}{field('name_suffix', 'Suffix')}{field('email', 'Email', true, 'email')}{field('phone', 'Contact number', true, 'tel')}{field('address', 'Address')}</div>
+                    <div className="grid gap-4 sm:grid-cols-2">{field('first_name', 'First name', true)}{field('middle_name', 'Middle name')}{field('last_name', 'Last name', true)}{field('name_suffix', 'Suffix')}{field('email', 'Email (optional)', false, 'email')}{field('phone', 'Contact number', true, 'tel')}{field('address', 'Address')}</div>
                 </section>
                 <section aria-labelledby="office-title" className="border-t border-border pt-5">
                     <h2 id="office-title" className="mb-4 font-heading text-lg font-bold text-text">Office & employment record</h2>

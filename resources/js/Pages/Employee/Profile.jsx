@@ -193,7 +193,7 @@ export default function Profile({ employee, govIds }) {
                                         <input
                                             id="profile-email"
                                             type="email"
-                                            value={employee.email}
+                                            value={employee.email ?? ''}
                                             disabled
                                             className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field/60 text-dim cursor-not-allowed pr-10"
                                         />

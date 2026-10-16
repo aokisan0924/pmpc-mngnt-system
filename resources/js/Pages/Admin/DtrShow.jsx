@@ -5,16 +5,18 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import AdminPageHeader from '@/Components/AdminPageHeader'
 import Button from '@/Components/UI/Button'
+import useDtrToday from '@/hooks/useDtrToday'
 
 const SLOTS = [['am_time_in', 'AM in'], ['am_time_out', 'AM out'], ['pm_time_in', 'PM in'], ['pm_time_out', 'PM out']]
 const blank = { date: '', am_time_in: '', am_time_out: '', pm_time_in: '', pm_time_out: '', reason: '' }
 
 
-export default function DtrShow({ employee, logs = [], summary = {}, month }) {
+export default function DtrShow({ employee, logs = [], summary = {}, month, today_date }) {
     const { auth, flash } = usePage().props
     const canCorrect = !!auth?.employee?.can_correct_dtr
     const [editing, setEditing] = useState(null)
     const form = useForm(blank)
+    const todayRef = useDtrToday(month, today_date, employee.id)
 
     function openCorrection(log) {
         form.clearErrors()
@@ -33,7 +35,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
         }, { preserveState: true })
     }
 
-    // Sunday–Saturday weeks, newest first, with present/absent/hours subtotals.
+    // Sunday–Saturday weeks, oldest first, with present/absent/hours subtotals.
     const weeks = useMemo(() => {
         const groups = []
         logs.forEach((log) => {
@@ -44,7 +46,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
         const label = (date) => new Date(date + 'T00:00:00').toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })
         return groups.map((group) => ({
             ...group,
-            label: `Week of ${label(group.days[group.days.length - 1].date)} – ${label(group.days[0].date)}`,
+            label: `Week of ${label(group.days[0].date)} – ${label(group.days[group.days.length - 1].date)}`,
             present: group.days.reduce((sum, d) => sum + (['on_time', 'late', 'undertime'].includes(d.status) ? 1 : d.status === 'half_day' ? 0.5 : 0), 0),
             absent: group.days.filter((d) => d.status === 'absent').length,
             hours: Math.round(group.days.reduce((sum, d) => sum + Number(d.hours_rendered || 0), 0) * 100) / 100,
@@ -58,7 +60,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
 
     return (
         <AdminLayout>
-            <div className="admin-page-shell max-w-6xl space-y-4 sm:space-y-5 page-enter">
+            <div ref={todayRef} className="admin-page-shell max-w-6xl space-y-4 sm:space-y-5 page-enter">
                 {/* ── Top Header ────────────────────────────────────── */}
                 <AdminPageHeader
                     eyebrow="Individual attendance ledger"
@@ -161,12 +163,14 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
                                         {week.days.map(log => (
                                         <tr
                                                 key={log.date}
-                                                className={`transition-colors ${
-                                                    log.is_future ? 'text-dim opacity-60' : log.is_weekend ? 'bg-field/20' : 'hover:bg-field/40'
+                                                data-dtr-today={log.date === today_date ? '' : undefined}
+                                                aria-current={log.date === today_date ? 'date' : undefined}
+                                                className={`scroll-mt-20 scroll-mb-24 transition-colors ${
+                                                    log.date === today_date ? 'bg-indigo-50 hover:bg-indigo-100/80 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60' : log.is_future ? 'text-dim opacity-60' : log.is_weekend ? 'bg-field/20' : 'hover:bg-field/40'
                                                 }`}
                                             >
                                                 <td className="px-5 py-3.5">
-                                                    <p className="font-semibold text-text">{log.date_label}</p>
+                                                    <p className="font-semibold text-text">{log.date_label}{log.date === today_date && <span className="ml-2 inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100">Today</span>}</p>
                                                     {log.is_weekend && (
                                                         <p className="text-[11px] text-dim font-medium">Rest day</p>
                                                     )}
@@ -198,6 +202,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month }) {
                                                             {(log.status ?? 'absent').replace('_', ' ')}
                                                         </Badge>
                                                     )}
+                                                    {log.absence_reason && <p className="mt-1 max-w-64 whitespace-normal text-left text-xs text-sub">{log.absence_reason}</p>}
                                                     {!log.has_entry && !log.is_future && <p className="mt-1 text-[11px] text-dim">No entry</p>}
                                                 </td>
                                                 {canCorrect && (

@@ -23,7 +23,7 @@ class StoreEmployeeRequest extends FormRequest
         return [
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', 'unique:employees,email'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:employees,email'],
             'password' => ['required', 'confirmed', Password::min(8)],
             'department' => ['nullable', 'string', 'max:100'],
             'position' => ['nullable', 'string', 'max:100'],

@@ -105,6 +105,7 @@ export default function Dashboard({
     latestPayslip,
 }) {
     const [punching, setPunching] = useState(false)
+    const [cancelingAbsence, setCancelingAbsence] = useState(false)
     const [togglingTaskId, setTogglingTaskId] = useState(null)
     const [punchFeedback, setPunchFeedback] = useState(null)
     const [activeTab, setActiveTab] = useState('tasks')
@@ -267,13 +268,15 @@ export default function Dashboard({
                         <div className="flex flex-col justify-between rounded-xl bg-[#094738]/90 border border-white/15 p-4 sm:p-5 space-y-4 backdrop-blur-xs">
                             <div>
                                 <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-300">
-                                    {nextSlot ? 'Next required action' : 'Today’s attendance'}
+                                    {today?.has_active_absence ? 'Planned absence' : nextSlot ? 'Next required action' : 'Today’s attendance'}
                                 </span>
                                 <h2 id="next-dtr-action" className="mt-1 font-heading text-xl sm:text-2xl font-bold text-white tracking-tight">
-                                    {nextSlot ? `Punch ${nextSlot.label}` : 'All four punches completed'}
+                                    {today?.has_active_absence ? 'Absence notice active' : nextSlot ? `Punch ${nextSlot.label}` : 'All four punches completed'}
                                 </h2>
                                 <p className="mt-0.5 text-xs sm:text-sm text-emerald-100/80">
-                                    {nextSlot
+                                    {today?.has_active_absence
+                                        ? (today.absence_reason || 'Cancel this notice before clocking in.')
+                                        : nextSlot
                                         ? `Step ${completedPunches + 1} of 4${nextScheduledTime ? ` · Scheduled ${formatPunchTime(nextScheduledTime)}` : ' · Asia/Manila standard time'}`
                                         : 'Daily milestones secured. Shift complete.'}
                                 </p>
@@ -286,17 +289,35 @@ export default function Dashboard({
                             >
                                 <div className="min-w-0 pr-2">
                                     <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 truncate">
-                                        {nextSlot ? `Ready for ${nextSlot.label}` : 'Attendance Complete'}
+                                        {today?.has_active_absence ? 'Clock-in is paused' : nextSlot ? `Ready for ${nextSlot.label}` : 'Attendance Complete'}
                                     </p>
                                     <p className="text-xs text-emerald-100/80 truncate mt-0.5">
-                                        {nextSlot
+                                        {today?.has_active_absence
+                                            ? 'Cancel your notice to resume clocking in.'
+                                            : nextSlot
                                             ? (nextScheduledTime ? `Target: ${formatPunchTime(nextScheduledTime)}` : 'Asia/Manila timestamp')
                                             : 'All logs verified'}
                                     </p>
                                 </div>
 
                                 <div className="flex shrink-0 items-center gap-2">
-                                    {nextSlot ? (
+                                    {today?.has_active_absence ? (
+                                        <button
+                                            type="button"
+                                            disabled={cancelingAbsence}
+                                            onClick={() => {
+                                                if (cancelingAbsence || !today?.id) return
+                                                setCancelingAbsence(true)
+                                                router.post(`/employee/dtr/${today.id}/absence/cancel`, {}, {
+                                                    preserveScroll: true,
+                                                    onFinish: () => setCancelingAbsence(false),
+                                                })
+                                            }}
+                                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white px-5 py-3 text-sm font-extrabold text-[#0F6E56] shadow-md transition-colors hover:bg-emerald-50 disabled:opacity-50"
+                                        >
+                                            {cancelingAbsence ? 'Cancelling…' : 'Cancel absence notice'}
+                                        </button>
+                                    ) : nextSlot ? (
                                         <button
                                             type="button"
                                             onClick={handleQuickPunch}

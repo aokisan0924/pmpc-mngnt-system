@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Employee and individual admin DTR logs highlight today in Manila time and scroll to it on opening the current month, without moving the reading position during background refreshes or correction saves.
+- Shared employee routes now enforce the existing role and active-account checks, while logout remains available to authenticated users.
+- Dashboard attendance and estimated basic pay use half-day weighting; 13th-month automatic attendance is limited to scheduled days from hire/account start through today and inside the selected period.
+- Tasks due today remain on time through the end of the day in Asia/Manila, and opening notifications no longer marks them read.
+- Global shift settings require chronological shift and lunch times and save as one transaction. Payroll previews and saves enforce the 1st–15th and 16th–month-end cutoff boundaries.
+- Login attempts are throttled by normalized login and IP with a retry message. Draft payroll deletion and DTR edit approval/decline reload and lock their records before changing state.
+- The employee dashboard explains an active absence notice and offers a direct cancellation action instead of a clock-in that would fail.
+- Admin attendance tables show the first week at the top and dates from oldest to newest within each week, matching the monthly PDF order.
+- Complete employee DTR calendars and Monday-Sunday weeks show missing past scheduled workdays as absent, and current incomplete attendance as In progress. Admin dashboards, employee screens, individual PDFs and newly generated archives share status rules without rewriting punches or payroll.
+- DTR PDFs use weekly separators, repeating column headers, status definitions, accurate displayed late/half-day counts and absence reasons.
+
+### Added
+- Regression coverage for inactive sessions, attendance weighting, due-date boundaries, notification reads, schedule validation, payroll cutoff dates, login throttling, stale payroll deletion, DTR review races and 13th-month date limits.
+- Optional employee email supports employee-ID login and account setup when a real address is not yet available. Supplied email addresses remain validated and unique; email password recovery requires an address.
+- Employee absence notices for today or the next 90 days, with required reason and confirmation, HR notification, ownership checks and cancellation before clocking in. Future notices show Planned absence and do not count as absences before their date.
+
+### Security
+- Update Composer production packages and the npm lockfile to patched versions that fit the PHP 8.3 runtime; Composer and npm audits now report no advisories or vulnerabilities.
+
 Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release classification: **MINOR**, because office payroll review, management Excel exports, and signature uploads add compatible features. A numbered version will be assigned when a release is explicitly cut.
 
 ### Added

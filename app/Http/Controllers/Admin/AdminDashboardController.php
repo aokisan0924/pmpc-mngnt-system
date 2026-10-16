@@ -31,7 +31,10 @@ class AdminDashboardController extends Controller
 
         // Today's attendance
         $presentToday = DtrLog::where('date', $today)
-            ->whereNotIn('status', ['absent'])
+            ->where(function ($query) {
+                $query->whereNotNull('am_time_in')->orWhereNotNull('am_time_out')
+                    ->orWhereNotNull('pm_time_in')->orWhereNotNull('pm_time_out');
+            })
             ->whereHas('employee', fn ($q) => $q->where('is_staff', true)->where('status', 'active'))
             ->count();
 
@@ -39,8 +42,6 @@ class AdminDashboardController extends Controller
             ->where('status', 'late')
             ->whereHas('employee', fn ($q) => $q->where('is_staff', true)->where('status', 'active'))
             ->count();
-
-        $absentToday = $activeEmployees - $presentToday;
 
         // ── Active Semi-Monthly Cutoff Milestone ────────────
         $now = now();
@@ -107,7 +108,7 @@ class AdminDashboardController extends Controller
                     'am_time_out' => $log?->am_time_out,
                     'pm_time_in' => $log?->pm_time_in,
                     'pm_time_out' => $log?->pm_time_out,
-                    'status' => $log?->status ?? 'absent',
+                    'status' => $log?->displayStatus() ?? DtrLog::fallbackStatus($emp->id, today()),
                     'hours' => $log?->hours_rendered ?? 0,
                 ];
             })
@@ -121,13 +122,17 @@ class AdminDashboardController extends Controller
             })
             ->values();
 
+        $absentToday = $todaySnapshot->where('status', 'absent')->count();
+
         // ── Chart 2: Monthly attendance rate trend (last 6 months) ──
-        $monthlyAttendance = collect(range(5, 0))->map(function ($i) use ($activeEmployees) {
+        $monthlyAttendance = collect(range(5, 0))->map(function ($i) use ($activeEmployees, $activeStaff) {
             $month = now()->subMonths($i);
             $from = $month->copy()->startOfMonth();
             $to = $month->copy()->endOfMonth();
             $workDays = $this->countWeekdays($from, $to);
             $totalPossible = $activeEmployees * $workDays;
+            $monthLogs = DtrLog::whereIn('employee_id', $activeStaff->pluck('id'))
+                ->whereBetween('date', [$from, $to])->get()->groupBy('employee_id');
 
             $daysPresent = DtrLog::whereBetween('date', [$from, $to])
                 ->whereNotIn('status', ['absent'])
@@ -149,7 +154,7 @@ class AdminDashboardController extends Controller
                 'rate' => $rate,
                 'present' => $daysPresent,
                 'late' => $daysLate,
-                'absent' => max(0, $totalPossible - $daysPresent),
+                'absent' => $activeStaff->sum(fn ($employee) => DtrLog::absentDaysBetween($employee->id, $from, $to, $monthLogs->get($employee->id, collect()))),
                 'work_days' => $workDays,
             ];
         })->values();
@@ -157,23 +162,24 @@ class AdminDashboardController extends Controller
         // ── Chart 3: Department attendance comparison (this month + today) ──
         $monthlyDeptLogs = DtrLog::whereBetween('date', [$startOfMonth, $endOfMonth])
             ->whereIn('employee_id', $activeStaffIds)
-            ->get(['employee_id', 'date', 'status']);
+            ->get();
 
         $departmentAttendance = $activeStaff
             ->groupBy(fn ($e) => $e->department ?: 'Unassigned')
-            ->map(function ($members, $department) use ($monthlyDeptLogs, $todayLogs) {
+            ->map(function ($members, $department) use ($monthlyDeptLogs, $todayLogs, $startOfMonth, $endOfMonth) {
                 $memberIds = $members->pluck('id')->flip();
                 $headcount = $members->count();
 
                 $deptLogs = $monthlyDeptLogs->filter(fn ($l) => isset($memberIds[$l->employee_id]));
                 $present = $deptLogs->whereNotIn('status', ['absent'])->count();
                 $late = $deptLogs->where('status', 'late')->count();
-                $absent = $deptLogs->where('status', 'absent')->count();
+                $absent = $members->sum(fn ($employee) => DtrLog::absentDaysBetween($employee->id, $startOfMonth, $endOfMonth,
+                    $deptLogs->where('employee_id', $employee->id)));
 
                 $todayPresent = $members->filter(function ($m) use ($todayLogs) {
                     $log = $todayLogs->get($m->id);
 
-                    return $log && $log->status !== 'absent';
+                    return $log && $log->punchesCount() > 0;
                 })->count();
 
                 $todayTurnout = $headcount > 0 ? round(($todayPresent / $headcount) * 100) : 0;
@@ -334,7 +340,7 @@ class AdminDashboardController extends Controller
             'am_time_out' => $adminTodayLog->am_time_out,
             'pm_time_in' => $adminTodayLog->pm_time_in,
             'pm_time_out' => $adminTodayLog->pm_time_out,
-            'status' => $adminTodayLog->status,
+            'status' => $adminTodayLog->displayStatus(),
             'hours_rendered' => (float) $adminTodayLog->hours_rendered,
             'next_punch' => $adminTodayLog->getNextPunchSlot(),
             'punches_count' => $adminTodayLog->punchesCount(),

@@ -23,10 +23,13 @@ class DtrLog extends Model
         'hours_rendered',
         'status',
         'ip_address',
+        'absence_reason',
+        'absence_cancelled_at',
     ];
 
     protected $casts = [
         'date' => 'date',
+        'absence_cancelled_at' => 'datetime',
     ];
 
     // ── Relationships ──────────────────────────────────────
@@ -172,12 +175,16 @@ class DtrLog extends Model
         if (! Employee::isWorkDay($employeeId, $date)) {
             return 'rest_day';
         }
-        if ($date->toDateString() >= today()->toDateString()) {
+        if ($date->toDateString() > today()->toDateString()) {
             return 'upcoming';
         }
         $start = Employee::startDateFor($employeeId);
         if ($start !== null && $date->toDateString() < $start) {
             return 'not_started';
+        }
+
+        if ($date->isToday()) {
+            return 'in_progress';
         }
 
         return Employee::isAlwaysPresent($employeeId) ? 'on_time' : 'absent';
@@ -200,14 +207,20 @@ class DtrLog extends Model
 
     public function displayStatus(): string
     {
+        if ($this->hasActiveAbsence() && $this->punchesCount() === 0) {
+            $fallback = self::fallbackStatus((int) $this->employee_id, $this->date);
+            if (in_array($fallback, ['holiday', 'rest_day', 'not_started'], true)) {
+                return $fallback;
+            }
+
+            return $this->date->isFuture() && ! $this->date->isToday() ? 'planned_absence' : 'absent';
+        }
+        if ($this->date->isToday() && $this->punchesCount() > 0 && $this->punchesCount() < 4) {
+            return 'in_progress';
+        }
         if ($this->isExcusedAbsence()) {
             return self::fallbackStatus((int) $this->employee_id, $this->date);
         }
-        // Today's punches without a complete pair yet are still in progress, not an absence.
-        if ($this->status === 'absent' && $this->punchesCount() > 0 && $this->date->isToday()) {
-            return 'in_progress';
-        }
-
         // Historical Friday logs can still have the old 17:00-based status.
         if ($this->status === 'undertime' && $this->date->isFriday()
             && $this->pm_time_out && substr($this->pm_time_out, 0, 5) >= '16:00'
@@ -216,6 +229,24 @@ class DtrLog extends Model
         }
 
         return $this->status;
+    }
+
+    public function hasActiveAbsence(): bool
+    {
+        return filled($this->absence_reason) && $this->absence_cancelled_at === null;
+    }
+
+    /** Attendance reports count the statuses actually shown; payroll keeps its existing day-weighting rules. */
+    public static function displayDaysPresentBetween(int $employeeId, $from, $to, ?Collection $logs = null): float
+    {
+        $logs = ($logs ?? static::where('employee_id', $employeeId)->whereBetween('date', [$from, $to])->get())
+            ->keyBy(fn (self $log): string => $log->date->toDateString());
+
+        return (float) collect(CarbonPeriod::create($from, $to))->sum(function (CarbonInterface $day) use ($logs, $employeeId): float {
+            $status = $logs->get($day->toDateString())?->displayStatus() ?? self::fallbackStatus($employeeId, $day);
+
+            return self::presenceWeight($status);
+        });
     }
 
     // ── Attendance day-weighting ────────────────────────────

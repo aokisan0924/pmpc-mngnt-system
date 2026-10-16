@@ -1,5 +1,11 @@
 # PMPC WorkForce Design System
 
+## Attendance update, 2026-10-16
+- Today's DTR row uses a subtle portal accent and a visible Today label, including employee mobile cards. Opening the current month centers today once; background updates preserve the reading position. Scroll respects reduced motion and header spacing.
+- Preserve the existing employee emerald and admin indigo tokens. Attendance records show every calendar day, a seven-day week strip and week separators.
+- Use In progress for today's incomplete attendance, Planned absence for advance notices, and Absent for missed past workdays or a confirmed absence today. Keep status text visible alongside color.
+- Absence reporting uses an expandable native section, labeled fields, explicit confirmation, inline errors and disabled controls during submission. PDF output keeps solid colors and table layout for DomPDF.
+
 ## Direction
 
 Calm operational workspace for recurring HR work. The interface prioritizes the next accountable action, then the supporting records needed to complete it.

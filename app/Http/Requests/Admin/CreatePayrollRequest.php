@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Services\PayrollCutoffPeriod;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class CreatePayrollRequest extends FormRequest
 {
@@ -24,5 +26,18 @@ class CreatePayrollRequest extends FormRequest
             'period_to' => ['required', 'date', 'after_or_equal:period_from'],
             'cutoff' => ['required', 'in:first,second'],
         ];
+    }
+
+    public function after(): array
+    {
+        return [function (Validator $validator): void {
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            if (! PayrollCutoffPeriod::matches($this->period_from, $this->period_to, $this->cutoff)) {
+                $validator->errors()->add('period_from', PayrollCutoffPeriod::message());
+            }
+        }];
     }
 }

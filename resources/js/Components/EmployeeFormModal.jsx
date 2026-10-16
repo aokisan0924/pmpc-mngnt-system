@@ -103,14 +103,13 @@ export default function EmployeeFormModal({ employee, onClose }) {
                         </Field>
                     </div>
 
-                    <Field id="emp-email" label="Email address" required error={errors.email}>
+                    <Field id="emp-email" label="Email address (optional)" error={errors.email}>
                         <input
                             id="emp-email"
                             type="email"
                             value={data.email}
                             onChange={e => setData('email', e.target.value)}
                             className={inputClass}
-                            required
                         />
                     </Field>
 

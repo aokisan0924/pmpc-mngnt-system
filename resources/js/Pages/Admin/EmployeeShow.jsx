@@ -239,10 +239,10 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                                 <input type="text" aria-label="Name suffix" value={infoForm.data.name_suffix} onChange={e => infoForm.setData('name_suffix', e.target.value)} className={inputClass} />
                             </Field>
                         </div>
-                        <Field label="Email" required error={infoForm.errors.email}>
+                        <Field label="Email (optional)" error={infoForm.errors.email}>
                             <input type="email" value={infoForm.data.email}
                                 onChange={e => infoForm.setData('email', e.target.value)}
-                                className={inputClass} required />
+                                className={inputClass} />
                         </Field>
 
                         <div className="grid sm:grid-cols-2 gap-4">

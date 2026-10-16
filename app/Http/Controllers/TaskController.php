@@ -27,7 +27,8 @@ class TaskController extends Controller
                 'category' => $task->category,
                 'priority' => $task->priority,
                 'status' => $task->status,
-                'is_overdue' => $task->due_date->isPast() && $task->status === 'pending',
+                'is_overdue' => $task->due_date->toDateString() < now('Asia/Manila')->toDateString()
+                    && $task->status === 'pending',
             ]);
 
         return Inertia::render('Employee/Planner', [

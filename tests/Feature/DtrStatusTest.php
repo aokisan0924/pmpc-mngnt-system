@@ -80,7 +80,7 @@ class DtrStatusTest extends TestCase
         $this->assertSame('absent', DtrLog::fallbackStatus($employee->id, Carbon::parse('2026-09-03')));
         $this->assertSame('rest_day', DtrLog::fallbackStatus($employee->id, Carbon::parse('2026-09-05')));
         $this->assertSame('holiday', DtrLog::fallbackStatus($employee->id, Carbon::parse('2026-09-08')));
-        $this->assertSame('upcoming', DtrLog::fallbackStatus($employee->id, today()));
+        $this->assertSame(Employee::isWorkDay($employee->id, today()) ? 'in_progress' : 'rest_day', DtrLog::fallbackStatus($employee->id, today()));
         $this->assertSame('on_time', DtrLog::fallbackStatus($president->id, Carbon::parse('2026-09-03')));
 
         // Sep 3-11: weekdays 3,4,7,9,10,11 (8 is a holiday) = 6; one day logged present.
@@ -97,6 +97,8 @@ class DtrStatusTest extends TestCase
         $this->actingAs($admin)->get(route('admin.dtr.show', ['employee' => $employee->id, 'month' => today()->format('Y-m')]))
             ->assertInertia(fn (Assert $page) => $page
                 ->has('logs', today()->daysInMonth)
+                ->where('logs.0.date', today()->startOfMonth()->toDateString())
+                ->where('logs.'.(today()->daysInMonth - 1).'.date', today()->endOfMonth()->toDateString())
                 ->where('logs', fn ($logs) => collect($logs)->every(fn ($day) => isset($day['week']))
                     && (collect($logs)->firstWhere('date', today()->toDateString())['status'] !== 'absent')));
         $this->get(route('admin.dtr', ['month' => '2026-09']))

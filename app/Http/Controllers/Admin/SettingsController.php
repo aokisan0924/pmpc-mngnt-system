@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\UpdateSettingsRequest;
 use App\Models\Holiday;
 use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -38,34 +40,18 @@ class SettingsController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(UpdateSettingsRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            // Cooperative info
-            'coop_name' => ['required', 'string', 'max:200'],
-            'coop_address' => ['nullable', 'string', 'max:500'],
-            'coop_email' => ['nullable', 'email', 'max:100'],
-            'coop_phone' => ['nullable', 'string', 'max:30'],
+        $validated = $request->validated();
 
-            // Signatories
-            'signatory_1_name' => ['required', 'string', 'max:100'],
-            'signatory_1_role' => ['required', 'string', 'max:100'],
-            'signatory_2_name' => ['required', 'string', 'max:100'],
-            'signatory_2_role' => ['required', 'string', 'max:100'],
+        DB::transaction(function () use ($validated): void {
+            foreach ($validated as $key => $value) {
+                Setting::query()->updateOrCreate(['key' => $key], ['value' => $value]);
+            }
+        });
 
-            // Shift
-            'shift_start' => ['required', 'date_format:H:i'],
-            'shift_end' => ['required', 'date_format:H:i'],
-            'lunch_start' => ['required', 'date_format:H:i'],
-            'lunch_end' => ['required', 'date_format:H:i'],
-
-            // Payroll
-            'working_days_month' => ['required', 'integer', 'min:1', 'max:31'],
-            'late_grace_minutes' => ['required', 'integer', 'min:0', 'max:60'],
-        ]);
-
-        foreach ($validated as $key => $value) {
-            Setting::set($key, $value);
+        foreach (array_keys($validated) as $key) {
+            Cache::forget("setting_{$key}");
         }
 
         return back()->with('success', 'Settings saved successfully.');

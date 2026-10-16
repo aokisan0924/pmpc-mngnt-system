@@ -42,11 +42,8 @@ class AdminDtrController extends Controller
             ->get()
             ->groupBy('employee_id');
 
-        // Same weighted count as payroll and 13th month (includes always-present employees).
-        $present = DtrLog::weightedDaysByEmployee($targetStaff->modelKeys(), $from->toDateString(), $to->toDateString());
-
         // Build DTR summary for employees this month
-        $dtrSummary = $targetStaff->map(function ($emp) use ($allLogs, $from, $to, $present) {
+        $dtrSummary = $targetStaff->map(function ($emp) use ($allLogs, $from, $to) {
             $logs = $allLogs->get($emp->id, collect());
 
             return [
@@ -55,10 +52,10 @@ class AdminDtrController extends Controller
                 'full_name' => $emp->full_name,
                 'department' => $emp->department,
                 'initials' => $emp->initials,
-                'days_present' => (float) ($present[$emp->id] ?? 0),
-                'days_late' => $logs->where('status', 'late')->count(),
+                'days_present' => DtrLog::displayDaysPresentBetween($emp->id, $from, $to, $logs),
+                'days_late' => $logs->filter(fn (DtrLog $log): bool => $log->displayStatus() === 'late')->count(),
                 'days_absent' => DtrLog::absentDaysBetween($emp->id, $from->toDateString(), $to->toDateString(), $logs),
-                'half_days' => $logs->where('status', 'half_day')->count(),
+                'half_days' => $logs->filter(fn (DtrLog $log): bool => $log->displayStatus() === 'half_day')->count(),
                 'hours_rendered' => round($logs->sum('hours_rendered'), 2),
             ];
         })->values();
@@ -85,11 +82,12 @@ class AdminDtrController extends Controller
 
         // Every day of the month in Sunday–Saturday weeks; missing past weekdays show as absent.
         $logs = collect();
-        for ($day = $to->copy()->startOfDay(); $day->gte($from); $day->subDay()) {
+        for ($day = $from->copy()->startOfDay(); $day->lte($to); $day->addDay()) {
             $log = $entries->get($day->format('Y-m-d'));
             $logs->push([
                 'id' => $log?->id,
                 'has_entry' => $log !== null,
+                'absence_reason' => $log?->hasActiveAbsence() ? $log->absence_reason : null,
                 'date' => $day->format('Y-m-d'),
                 'week' => $day->copy()->startOfWeek(Carbon::SUNDAY)->format('Y-m-d'),
                 'is_future' => $day->isFuture(),
@@ -106,7 +104,7 @@ class AdminDtrController extends Controller
         }
 
         $summary = [
-            'days_present' => DtrLog::daysPresentBetween($employee->id, $from->toDateString(), $to->toDateString()),
+            'days_present' => DtrLog::displayDaysPresentBetween($employee->id, $from, $to, $entries),
             'days_late' => collect($logs)->where('status', 'late')->count(),
             'days_absent' => collect($logs)->where('status', 'absent')->count(),
             'half_days' => collect($logs)->where('status', 'half_day')->count(),
@@ -114,6 +112,7 @@ class AdminDtrController extends Controller
         ];
 
         return Inertia::render('Admin/DtrShow', [
+            'today_date' => now('Asia/Manila')->toDateString(),
             'employee' => [
                 'id' => $employee->id,
                 'employee_id' => $employee->employee_id,

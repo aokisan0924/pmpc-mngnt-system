@@ -6,6 +6,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\Payroll;
 use App\Services\OfficePayrollCalculator;
+use App\Services\PayrollCutoffPeriod;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -50,6 +51,12 @@ class StorePayrollRequest extends FormRequest
     {
         $validator->after(function (Validator $validator) {
             if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            if (! PayrollCutoffPeriod::matches($this->period_from, $this->period_to, $this->cutoff)) {
+                $validator->errors()->add('period_from', PayrollCutoffPeriod::message());
+
                 return;
             }
 

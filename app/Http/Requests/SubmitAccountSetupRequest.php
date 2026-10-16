@@ -23,7 +23,7 @@ class SubmitAccountSetupRequest extends FormRequest
             'middle_name' => ['nullable', 'string', 'max:100'],
             'last_name' => ['required', 'string', 'max:100'],
             'name_suffix' => ['nullable', 'string', 'max:20'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('employees')->ignore($this->user()->id)],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('employees')->ignore($this->user()->id)],
             'phone' => ['required', 'string', 'max:20'],
             'address' => ['nullable', 'string', 'max:500'],
             'payroll_office' => ['required', Rule::in(array_keys(OfficePayrollCalculator::OFFICES))],

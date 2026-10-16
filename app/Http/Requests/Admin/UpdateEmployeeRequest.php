@@ -26,7 +26,7 @@ class UpdateEmployeeRequest extends FormRequest
             'middle_name' => ['sometimes', 'nullable', 'string', 'max:100'],
             'name_suffix' => ['sometimes', 'nullable', 'string', 'max:20'],
             'last_name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', "unique:employees,email,{$employeeId}"],
+            'email' => ['nullable', 'email', 'max:255', "unique:employees,email,{$employeeId}"],
             'department' => ['nullable', 'string', 'max:100'],
             'position' => ['nullable', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:20'],

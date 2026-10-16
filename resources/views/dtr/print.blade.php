@@ -6,7 +6,7 @@
         @page { margin: 20px 24px 18px; }
 
         * { box-sizing: border-box; }
-        body { color: #16221f; font-family: DejaVu Sans, sans-serif; font-size: 9px; line-height: 1.35; }
+        body { color: #16221f; font-family: Helvetica, sans-serif; font-size: 9px; line-height: 1.25; }
         table { border-collapse: collapse; width: 100%; }
 
         .document-header { border-bottom: 1px solid #b7d8cf; margin-bottom: 14px; padding: 0 0 11px; }
@@ -37,17 +37,22 @@
         .dtr-table thead tr { background: #0f6e56; color: #ffffff; }
         .dtr-table th { border-right: 1px solid rgba(255,255,255,.22); font-size: 7.5px; font-weight: bold; letter-spacing: .45px; padding: 7px 5px; text-align: center; text-transform: uppercase; }
         .dtr-table th:last-child { border-right: 0; }
-        .dtr-table td { border-right: 1px solid #e1ece8; border-top: 1px solid #e1ece8; font-size: 8.5px; padding: 5px; text-align: center; vertical-align: middle; }
+        .dtr-table td { border-right: 1px solid #e1ece8; border-top: 1px solid #e1ece8; font-size: 8.5px; padding: 3.5px 5px; text-align: center; vertical-align: middle; }
         .dtr-table td:last-child { border-right: 0; }
         .dtr-table tbody tr:nth-child(even) { background: #f8fbfa; }
         .dtr-table tbody tr.weekend { background: #f1f5f3; color: #7b8984; }
         .date-cell { font-weight: bold; text-align: left !important; }
-        .time-cell { color: #263a34; font-family: DejaVu Sans Mono, monospace; }
-        .hours-cell { font-family: DejaVu Sans Mono, monospace; font-weight: bold; }
+        .time-cell { color: #263a34; font-family: Courier, monospace; }
+        .hours-cell { font-family: Courier, monospace; font-weight: bold; }
         .status-badge { border-radius: 10px; display: inline-block; font-size: 7.5px; font-weight: bold; line-height: 1; padding: 3px 5px; white-space: nowrap; }
         .badge-on_time { background: #e4f5ee; color: #0a684e; }
         .badge-late, .badge-undertime, .badge-half_day, .badge-in_progress { background: #fff2d6; color: #9a5808; }
         .badge-absent { background: #fde8e8; color: #a82e2e; }
+        .badge-planned_absence { background: #fff2d6; color: #9a5808; }
+        .week-start td { border-top: 2px solid #9ebdb2; }
+        .record-note { color: #5b6c66; font-size: 7.5px; margin: 6px 0 10px; }
+        thead { display: table-header-group; }
+        tr { page-break-inside: avoid; }
         .badge-rest_day { background: #e8edeb; color: #66756f; }
         .badge-holiday { background: #efeafc; color: #5b3fa8; }
         .badge-upcoming, .badge-not_started { background: #f1f3f2; color: #8a9590; }
@@ -127,7 +132,7 @@
         </thead>
         <tbody>
             @foreach($calendar as $row)
-                <tr class="{{ $row['is_weekend'] ? 'weekend' : '' }}">
+                <tr class="{{ $row['is_weekend'] ? 'weekend' : '' }} {{ $row['date']->isMonday() ? 'week-start' : '' }}">
                     <td class="date-cell">{{ $row['date']->format('M d, Y') }}</td>
                     <td>{{ $row['day_name'] }}</td>
                     <td class="time-cell">{{ $row['am_time_in'] ? substr($row['am_time_in'], 0, 5) : '-' }}</td>
@@ -140,6 +145,16 @@
             @endforeach
         </tbody>
     </table>
+
+    <p class="record-note">In progress: today's attendance is not complete. Absent: a past scheduled workday without attendance, or a reported absence today. Planned absence: advance notice, not approved leave. Rest days, holidays and dates before hire are excluded from automatic absences. Half days count as 0.5 present day.</p>
+    @if(collect($calendar)->contains(fn ($row) => filled($row['absence_reason'] ?? null)))
+        <p class="section-label">Reported absence reasons</p>
+        @foreach($calendar as $row)
+            @if(filled($row['absence_reason'] ?? null))
+                <p class="record-note"><strong>{{ $row['date']->format('M d') }}:</strong> {{ $row['absence_reason'] }}</p>
+            @endif
+        @endforeach
+    @endif
 
     <div class="signature-section">
         <p class="section-label">Certification and approval</p>

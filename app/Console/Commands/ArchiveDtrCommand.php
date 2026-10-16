@@ -56,7 +56,7 @@ class ArchiveDtrCommand extends Command
             $calendar = [];
             $current = $from->copy();
             while ($current->lte($to)) {
-                $log = $logs->firstWhere('date', $current->toDateString());
+                $log = $logs->first(fn (DtrLog $entry): bool => $entry->date->toDateString() === $current->toDateString());
                 $calendar[] = [
                     'date' => $current->copy(),
                     'day_name' => $current->format('D'),
@@ -67,15 +67,16 @@ class ArchiveDtrCommand extends Command
                     'pm_time_out' => $log?->pm_time_out,
                     'hours' => $log?->hours_rendered,
                     'status' => $log?->displayStatus() ?? DtrLog::fallbackStatus($employee->id, $current),
+                    'absence_reason' => $log?->hasActiveAbsence() ? $log->absence_reason : null,
                 ];
                 $current->addDay();
             }
 
             $summary = [
-                'days_present' => DtrLog::daysPresentBetween($employee->id, $from->toDateString(), $to->toDateString()),
-                'days_late' => $logs->where('status', 'late')->count(),
+                'days_present' => DtrLog::displayDaysPresentBetween($employee->id, $from, $to, $logs),
+                'days_late' => collect($calendar)->where('status', 'late')->count(),
                 'days_absent' => DtrLog::absentDaysBetween($employee->id, $from->toDateString(), $to->toDateString(), $logs),
-                'half_days' => $logs->where('status', 'half_day')->count(),
+                'half_days' => collect($calendar)->where('status', 'half_day')->count(),
                 'hours_rendered' => round($logs->sum('hours_rendered'), 2),
             ];
 

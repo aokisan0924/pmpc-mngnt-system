@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\DtrLog;
 use App\Models\Employee;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
 
 final class ThirteenthMonthCalculator
@@ -35,7 +36,43 @@ final class ThirteenthMonthCalculator
      */
     public function attendanceDays(array $employeeIds, Carbon $from, Carbon $to): Collection
     {
-        return DtrLog::weightedDaysByEmployee($employeeIds, $from->toDateString(), $to->toDateString());
+        $fromDate = $from->toDateString();
+        $toDate = $to->toDateString();
+        $days = DtrLog::weightedDaysByEmployee($employeeIds, $fromDate, $toDate);
+        $today = Carbon::today('Asia/Manila');
+
+        foreach ($employeeIds as $employeeId) {
+            $employeeId = (int) $employeeId;
+            $days[$employeeId] ??= 0.0;
+
+            if (! Employee::isAlwaysPresent($employeeId)) {
+                continue;
+            }
+
+            $periodStart = Carbon::parse($fromDate)->startOfDay();
+            $periodEnd = Carbon::parse($toDate)->startOfDay();
+            $startDate = Employee::startDateFor($employeeId);
+            $eligibleStart = $startDate !== null && $startDate > $fromDate
+                ? Carbon::parse($startDate)->startOfDay()
+                : $periodStart->copy();
+            $eligibleEnd = $today->lt($periodEnd) ? $today->copy() : $periodEnd->copy();
+
+            $scheduledDaysInPeriod = $this->scheduledWorkdays($employeeId, $periodStart, $periodEnd);
+            $eligibleScheduledDays = $eligibleStart->lte($eligibleEnd)
+                ? $this->scheduledWorkdays($employeeId, $eligibleStart, $eligibleEnd)
+                : 0;
+
+            $days[$employeeId] = max(0.0, (float) $days[$employeeId] - ($scheduledDaysInPeriod - $eligibleScheduledDays));
+        }
+
+        return $days;
+    }
+
+    private function scheduledWorkdays(int $employeeId, Carbon $from, Carbon $to): int
+    {
+        return collect(CarbonPeriod::create($from, $to))
+            ->filter(fn (Carbon $day): bool => Employee::isWorkDay($employeeId, $day))
+            ->count();
     }
 
     /**

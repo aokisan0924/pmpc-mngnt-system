@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\DtrEditRequest;
+use App\Models\DtrLog;
 use App\Models\EmployeeNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,36 +59,47 @@ class DtrEditRequestController extends Controller
             'admin_note' => ['nullable', 'string', 'max:500'],
         ]);
 
-        if (! $editRequest->isPending()) {
-            return back()->withErrors(['error' => 'This request has already been resolved.']);
-        }
+        $resolution = DB::transaction(function () use ($editRequest, $request): ?array {
+            $lockedRequest = DtrEditRequest::query()->lockForUpdate()->findOrFail($editRequest->id);
 
-        DB::transaction(function () use ($editRequest, $request) {
-            $log = $editRequest->dtrLog;
-            $log->am_time_in = $editRequest->requested_am_time_in;
-            $log->am_time_out = $editRequest->requested_am_time_out;
-            $log->pm_time_in = $editRequest->requested_pm_time_in;
-            $log->pm_time_out = $editRequest->requested_pm_time_out;
+            if (! $lockedRequest->isPending()) {
+                return null;
+            }
+
+            $log = DtrLog::query()->lockForUpdate()->findOrFail($lockedRequest->dtr_log_id);
+            $log->am_time_in = $lockedRequest->requested_am_time_in;
+            $log->am_time_out = $lockedRequest->requested_am_time_out;
+            $log->pm_time_in = $lockedRequest->requested_pm_time_in;
+            $log->pm_time_out = $lockedRequest->requested_pm_time_out;
             $log->computeHoursAndStatus();
             $log->save();
 
-            $editRequest->update([
+            $lockedRequest->update([
                 'status' => 'approved',
                 'admin_note' => $request->admin_note,
                 'reviewed_by' => $request->user()->id,
                 'reviewed_at' => now(),
             ]);
 
-            // Notify employee
-            EmployeeNotification::send(
-                employeeId: $editRequest->employee_id,
-                type: 'dtr_edit_approved',
-                title: 'DTR edit request approved',
-                message: "Your DTR edit request for {$log->date->format('M d, Y')} has been approved."
-                    .($request->admin_note ? " Note: {$request->admin_note}" : ''),
-                link: '/employee/dtr',
-            );
+            return [
+                'employee_id' => (int) $lockedRequest->employee_id,
+                'date_label' => $log->date->format('M d, Y'),
+                'note' => $request->admin_note,
+            ];
         });
+
+        if ($resolution === null) {
+            return back()->withErrors(['error' => 'This request has already been resolved.']);
+        }
+
+        EmployeeNotification::send(
+            employeeId: $resolution['employee_id'],
+            type: 'dtr_edit_approved',
+            title: 'DTR edit request approved',
+            message: "Your DTR edit request for {$resolution['date_label']} has been approved."
+                .($resolution['note'] ? " Note: {$resolution['note']}" : ''),
+            link: '/employee/dtr',
+        );
 
         return back()->with('success', 'Edit request approved.');
     }
@@ -100,28 +112,41 @@ class DtrEditRequestController extends Controller
             'admin_note' => ['nullable', 'string', 'max:500'],
         ]);
 
-        if (! $editRequest->isPending()) {
-            return back()->withErrors(['error' => 'This request has already been resolved.']);
-        }
+        $resolution = DB::transaction(function () use ($editRequest, $request): ?array {
+            $lockedRequest = DtrEditRequest::query()->lockForUpdate()->findOrFail($editRequest->id);
 
-        DB::transaction(function () use ($editRequest, $request) {
-            $editRequest->update([
+            if (! $lockedRequest->isPending()) {
+                return null;
+            }
+
+            $lockedRequest->update([
                 'status' => 'declined',
                 'admin_note' => $request->admin_note,
                 'reviewed_by' => $request->user()->id,
                 'reviewed_at' => now(),
             ]);
 
-            // Notify employee
-            EmployeeNotification::send(
-                employeeId: $editRequest->employee_id,
-                type: 'dtr_edit_declined',
-                title: 'DTR edit request declined',
-                message: "Your DTR edit request for {$editRequest->dtrLog->date->format('M d, Y')} was declined."
-                    .($request->admin_note ? " Reason: {$request->admin_note}" : ''),
-                link: '/employee/dtr',
-            );
+            $log = DtrLog::query()->findOrFail($lockedRequest->dtr_log_id);
+
+            return [
+                'employee_id' => (int) $lockedRequest->employee_id,
+                'date_label' => $log->date->format('M d, Y'),
+                'note' => $request->admin_note,
+            ];
         });
+
+        if ($resolution === null) {
+            return back()->withErrors(['error' => 'This request has already been resolved.']);
+        }
+
+        EmployeeNotification::send(
+            employeeId: $resolution['employee_id'],
+            type: 'dtr_edit_declined',
+            title: 'DTR edit request declined',
+            message: "Your DTR edit request for {$resolution['date_label']} was declined."
+                .($resolution['note'] ? " Reason: {$resolution['note']}" : ''),
+            link: '/employee/dtr',
+        );
 
         return back()->with('success', 'Edit request declined.');
     }

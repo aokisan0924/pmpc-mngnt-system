@@ -75,7 +75,7 @@ Route::middleware(['auth', 'role:employee'])
 // Shared employee-facing routes — accessible to both regular employees AND
 // the super admin, since the super admin is also an employee who needs to
 // clock in/out and manage their own tasks.
-Route::middleware(['auth'])
+Route::middleware(['auth', 'role:employee,super_admin'])
     ->prefix('employee')
     ->name('employee.')
     ->group(function () {
@@ -87,6 +87,8 @@ Route::middleware(['auth'])
 
         // DTR
         Route::get('/dtr', [DtrController::class, 'index'])->name('dtr');
+        Route::post('/dtr/absence', [DtrController::class, 'reportAbsence'])->name('dtr.absence');
+        Route::post('/dtr/{dtrLog}/absence/cancel', [DtrController::class, 'cancelAbsence'])->name('dtr.absence.cancel');
         Route::post('/dtr/punch', [DtrController::class, 'punch'])->name('dtr.punch');
         Route::post('/dtr/{dtrLog}/edit-request', [DtrController::class, 'requestEdit'])->name('dtr.edit-request');
         Route::get('/dtr/print', [DtrPrintController::class, 'employeePrint'])->name('dtr.print');

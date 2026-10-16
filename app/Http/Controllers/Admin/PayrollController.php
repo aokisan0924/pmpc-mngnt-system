@@ -286,14 +286,22 @@ class PayrollController extends Controller
 
     public function destroy(Payroll $payroll): RedirectResponse
     {
-        if ($payroll->isFinalized()) {
+        $deleted = DB::transaction(function () use ($payroll): bool {
+            $lockedPayroll = Payroll::query()->lockForUpdate()->findOrFail($payroll->id);
+
+            if ($lockedPayroll->isFinalized()) {
+                return false;
+            }
+
+            $lockedPayroll->items()->delete();
+            $lockedPayroll->delete();
+
+            return true;
+        });
+
+        if (! $deleted) {
             return back()->withErrors(['error' => 'Finalized payroll batches cannot be discarded or deleted.']);
         }
-
-        DB::transaction(function () use ($payroll) {
-            $payroll->items()->delete();
-            $payroll->delete();
-        });
 
         return redirect()->route('admin.payroll')->with('success', 'Draft payroll discarded.');
     }

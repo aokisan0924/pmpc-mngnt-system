@@ -4,14 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Events\DtrEditRequestCreated;
 use App\Http\Requests\DtrEditRequestSubmissionRequest;
+use App\Http\Requests\ReportAbsenceRequest;
 use App\Models\DtrEditRequest;
 use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\EmployeeNotification;
+use App\Services\DtrAbsenceService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -27,12 +30,21 @@ class DtrController extends Controller
         $startOfMonth = Carbon::parse($month)->startOfMonth();
         $endOfMonth = Carbon::parse($month)->endOfMonth();
 
-        $logs = DtrLog::where('employee_id', $employee->id)
+        $entries = DtrLog::where('employee_id', $employee->id)
             ->whereBetween('date', [$startOfMonth, $endOfMonth])
             ->with('pendingEditRequest')
             ->orderBy('date', 'desc')
             ->get()
-            ->map(fn ($log) => $this->formatLog($log));
+            ->keyBy(fn (DtrLog $log): string => $log->date->toDateString());
+
+        $logs = collect();
+        for ($day = $endOfMonth->copy()->startOfDay(); $day->gte($startOfMonth); $day->subDay()) {
+            $log = $entries->get($day->toDateString()) ?? new DtrLog([
+                'employee_id' => $employee->id, 'date' => $day->toDateString(), 'status' => 'absent',
+            ]);
+            $log->setRelation('pendingEditRequest', $log->exists ? $log->pendingEditRequest : null);
+            $logs->push($this->formatLog($log));
+        }
 
         // Today's log
         $today = DtrLog::firstOrCreate(
@@ -42,12 +54,9 @@ class DtrController extends Controller
 
         // Monthly summary
         $summary = [
-            'days_present' => DtrLog::daysPresentBetween($employee->id, $startOfMonth, $endOfMonth),
+            'days_present' => DtrLog::displayDaysPresentBetween($employee->id, $startOfMonth, $endOfMonth, $entries),
             'days_absent' => DtrLog::absentDaysBetween($employee->id, $startOfMonth, $endOfMonth),
-            'days_late' => DtrLog::where('employee_id', $employee->id)
-                ->whereBetween('date', [$startOfMonth, $endOfMonth])
-                ->where('status', 'late')
-                ->count(),
+            'days_late' => $logs->where('status', 'late')->count(),
             'hours_rendered' => DtrLog::where('employee_id', $employee->id)
                 ->whereBetween('date', [$startOfMonth, $endOfMonth])
                 ->sum('hours_rendered'),
@@ -56,21 +65,21 @@ class DtrController extends Controller
                 ->count(),
         ];
 
-        // 5-Day Weekly Attendance Strip (Monday - Friday of current week)
+        // Full Monday-Sunday week, including individual rest days.
         $now = now();
         $weekStart = $now->copy()->startOfWeek(Carbon::MONDAY);
         $weekDates = [];
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 7; $i++) {
             $weekDates[] = $weekStart->copy()->addDays($i)->toDateString();
         }
 
-        $weekEnd = $weekStart->copy()->addDays(4)->endOfDay();
+        $weekEnd = $weekStart->copy()->addDays(6)->endOfDay();
         $weekLogs = DtrLog::where('employee_id', $employee->id)
             ->whereBetween('date', [$weekStart->copy()->startOfDay(), $weekEnd])
             ->get()
             ->keyBy(fn ($log) => Carbon::parse($log->date)->toDateString());
 
-        $weeklyStrip = collect($weekDates)->map(function ($dateStr) use ($weekLogs, $now) {
+        $weeklyStrip = collect($weekDates)->map(function ($dateStr) use ($weekLogs, $now, $employee) {
             $cDate = Carbon::parse($dateStr);
             $log = $weekLogs->get($dateStr);
             $isToday = $cDate->isToday();
@@ -101,7 +110,7 @@ class DtrController extends Controller
                 'is_today' => $isToday,
                 'is_past' => $isPast,
                 'is_future' => $isFuture,
-                'status' => $log ? $log->status : ($isFuture ? 'scheduled' : 'absent'),
+                'status' => $log?->displayStatus() ?? DtrLog::fallbackStatus($employee->id, $cDate),
                 'punches_count' => $punchesCount,
                 'hours_rendered' => $log ? (float) $log->hours_rendered : 0.0,
                 'has_log' => (bool) $log,
@@ -125,24 +134,45 @@ class DtrController extends Controller
     public function punch(Request $request): RedirectResponse
     {
         $employee = $request->user();
+        DB::transaction(function () use ($employee, $request): void {
+            Employee::whereKey($employee->id)->lockForUpdate()->firstOrFail();
+            $log = DtrLog::firstOrCreate(
+                ['employee_id' => $employee->id, 'date' => today()],
+                ['status' => 'absent']
+            );
 
-        $log = DtrLog::firstOrCreate(
-            ['employee_id' => $employee->id, 'date' => today()],
-            ['status' => 'absent']
-        );
+            if ($log->hasActiveAbsence()) {
+                throw ValidationException::withMessages(['punch' => 'Cancel your absence notice in My Attendance before clocking in.']);
+            }
 
-        $slot = $log->getNextPunchSlot();
+            $slot = $log->getNextPunchSlot();
 
-        if (! $slot) {
-            return back()->withErrors(['punch' => 'All punches for today are already recorded.']);
-        }
+            if (! $slot) {
+                throw ValidationException::withMessages(['punch' => 'All punches for today are already recorded.']);
+            }
 
-        $log->$slot = now()->format('H:i:s');
-        $log->ip_address = $request->ip();
-        $log->computeHoursAndStatus();
-        $log->save();
+            $log->$slot = now()->format('H:i:s');
+            $log->ip_address = $request->ip();
+            $log->computeHoursAndStatus();
+            $log->save();
+        });
 
         return back();
+    }
+
+    public function reportAbsence(ReportAbsenceRequest $request, DtrAbsenceService $absences): RedirectResponse
+    {
+        $data = $request->validated();
+        $absences->report($request->user(), $data['date'], $data['reason']);
+
+        return back()->with('success', 'Absence reported. This notice is not an approved leave.');
+    }
+
+    public function cancelAbsence(Request $request, DtrLog $dtrLog, DtrAbsenceService $absences): RedirectResponse
+    {
+        $absences->cancel($request->user(), $dtrLog);
+
+        return back()->with('success', 'Absence notice cancelled. You can clock in normally.');
     }
 
     // ── Edit request ───────────────────────────────────────
@@ -199,14 +229,14 @@ class DtrController extends Controller
     private function formatLog(DtrLog $log): array
     {
         $status = $log->displayStatus();
-        if ($log->date->isToday() && $log->am_time_in && $log->status === 'absent') {
-            $status = 'in_progress';
-        }
 
         return [
             'id' => $log->id,
             'date' => $log->date->format('Y-m-d'),
             'date_label' => $log->date->format('M d, D'),
+            'week' => $log->date->copy()->startOfWeek(Carbon::MONDAY)->toDateString(),
+            'absence_reason' => $log->hasActiveAbsence() ? $log->absence_reason : null,
+            'can_cancel_absence' => $log->hasActiveAbsence() && ! $log->date->lt(today()),
             'am_time_in' => $log->am_time_in,
             'am_time_out' => $log->am_time_out,
             'pm_time_in' => $log->pm_time_in,

@@ -48,10 +48,12 @@ class EmployeeDashboardController extends Controller
         $targetHours = $workdaysInCutoff * 8;
 
         // Cutoff attendance metrics
-        $cutoffDaysPresent = DtrLog::where('employee_id', $employee->id)
-            ->whereBetween('date', [$cutoffStart->toDateString(), $cutoffEnd->toDateString()])
-            ->whereNotIn('status', ['absent'])
-            ->count();
+        $attendanceThrough = $now->copy()->min($cutoffEnd);
+        $cutoffDaysPresent = DtrLog::displayDaysPresentBetween(
+            (int) $employee->id,
+            $cutoffStart->toDateString(),
+            $attendanceThrough->toDateString(),
+        );
 
         $cutoffHoursRendered = round(
             (float) DtrLog::where('employee_id', $employee->id)
@@ -170,20 +172,20 @@ class EmployeeDashboardController extends Controller
             ];
         }
 
-        // 5-Day Weekly Attendance Strip (Monday - Friday of current week)
+        // Full Monday-Sunday attendance week.
         $weekStart = $now->copy()->startOfWeek(Carbon::MONDAY);
         $weekDates = [];
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 7; $i++) {
             $weekDates[] = $weekStart->copy()->addDays($i)->toDateString();
         }
 
-        $weekEnd = $weekStart->copy()->addDays(4)->endOfDay();
+        $weekEnd = $weekStart->copy()->addDays(6)->endOfDay();
         $weekLogs = DtrLog::where('employee_id', $employee->id)
             ->whereBetween('date', [$weekStart->copy()->startOfDay(), $weekEnd])
             ->get()
             ->keyBy(fn ($log) => Carbon::parse($log->date)->toDateString());
 
-        $weeklyStrip = collect($weekDates)->map(function ($dateStr) use ($weekLogs, $now) {
+        $weeklyStrip = collect($weekDates)->map(function ($dateStr) use ($weekLogs, $now, $employee) {
             $cDate = Carbon::parse($dateStr);
             $log = $weekLogs->get($dateStr);
             $isToday = $cDate->isToday();
@@ -200,7 +202,7 @@ class EmployeeDashboardController extends Controller
                 'is_today' => $isToday,
                 'is_past' => $isPast,
                 'is_future' => $isFuture,
-                'status' => $log ? $log->status : ($isFuture ? 'scheduled' : 'absent'),
+                'status' => $log?->displayStatus() ?? DtrLog::fallbackStatus($employee->id, $cDate),
                 'punches_count' => $punchesCount,
                 'hours_rendered' => $log ? (float) $log->hours_rendered : 0.0,
                 'has_log' => (bool) $log,
@@ -231,10 +233,12 @@ class EmployeeDashboardController extends Controller
                 'am_time_out' => $today->am_time_out,
                 'pm_time_in' => $today->pm_time_in,
                 'pm_time_out' => $today->pm_time_out,
-                'status' => $today->status,
+                'status' => $today->displayStatus(),
                 'hours_rendered' => $today->hours_rendered,
                 'next_punch' => $today->getNextPunchSlot(),
                 'punches_count' => $today->punchesCount(),
+                'has_active_absence' => $today->hasActiveAbsence(),
+                'absence_reason' => $today->hasActiveAbsence() ? $today->absence_reason : null,
             ],
             'schedule' => $schedule,
             'weeklyStrip' => $weeklyStrip,

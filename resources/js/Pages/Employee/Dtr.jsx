@@ -1,20 +1,24 @@
-import { useEffect, useState } from 'react'
-import { router, usePage, usePoll } from '@inertiajs/react'
+import { Fragment, useEffect, useState } from 'react'
+import { router, useForm, usePage, usePoll } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import EmployeePageHeader from '@/Components/EmployeePageHeader'
 import DtrEditRequestModal from '@/Components/DtrEditRequestModal'
 import Card, { CardContent, CardHeader, CardTitle } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
+import useDtrToday from '@/hooks/useDtrToday'
 
-export default function Dtr({ logs = [], today = {}, summary = {}, month, next_punch }) {
+export default function Dtr({ logs = [], today = {}, summary = {}, month, next_punch, weeklyStrip = [] }) {
     const { flash, errors } = usePage().props
     const [editTarget, setEditTarget] = useState(null)
     const [loading, setLoading] = useState(false)
+    const absence = useForm({ date: today.date, reason: '', confirmed: false })
+    const cancellation = useForm({})
+    const todayRef = useDtrToday(month, today.date)
 
     // Silent background poll every 15s so employee sees edit approval/status changes and punch updates live
     usePoll(15000, {
-        only: ['logs', 'summary', 'today', 'next_punch'],
+        only: ['logs', 'summary', 'today', 'next_punch', 'weeklyStrip'],
         preserveScroll: true,
         preserveState: true,
     })
@@ -66,6 +70,8 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 return <Badge variant="amber" size="sm">Half Day</Badge>
             case 'absent':
                 return <Badge variant="rose" size="sm">Absent</Badge>
+            case 'planned_absence':
+                return <Badge variant="amber" size="sm">Planned absence</Badge>
             case 'rest_day':
                 return <Badge variant="slate" size="sm">Rest Day</Badge>
             case 'holiday':
@@ -81,7 +87,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
 
     return (
         <EmployeeLayout title="Daily Time Record">
-            <div className="employee-page-shell space-y-5">
+            <div ref={todayRef} className="employee-page-shell space-y-5">
 
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#0F6E56]/10 border border-[#0F6E56]/25 text-[#0F6E56] dark:text-emerald-400 text-xs font-semibold">
@@ -135,7 +141,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <StatCard
                         title="Days Absent"
                         value={summary.days_absent ?? 0}
-                        subtitle="Weekdays with no login"
+                        subtitle="Past workdays without attendance"
                         accent="rose"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -167,12 +173,42 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     />
                 </div>
 
+                <details className="rounded-xl border border-border bg-panel p-4">
+                    <summary className="cursor-pointer font-semibold text-text">Report absence</summary>
+                    <form className="mt-4 space-y-3" onSubmit={(event) => {
+                        event.preventDefault()
+                        absence.post('/employee/dtr/absence', { preserveScroll: true, onSuccess: () => absence.reset('reason', 'confirmed') })
+                    }}>
+                        <p className="text-sm text-sub">Tell HR you will be absent. This records a notice, not approved leave. Cancel the notice here if your plans change before clocking in.</p>
+                        <label className="block text-sm text-text">Date
+                            <input type="date" required min={today.date} value={absence.data.date} onChange={(event) => absence.setData('date', event.target.value)} className="mt-1 block rounded-lg border border-border bg-field p-2" />
+                        </label>
+                        {absence.errors.date && <p role="alert" className="text-sm text-rose-600">{absence.errors.date}</p>}
+                        <label className="block text-sm text-text">Reason
+                            <textarea required minLength={5} maxLength={1000} value={absence.data.reason} onChange={(event) => absence.setData('reason', event.target.value)} className="mt-1 block w-full rounded-lg border border-border bg-field p-2" />
+                        </label>
+                        {absence.errors.reason && <p role="alert" className="text-sm text-rose-600">{absence.errors.reason}</p>}
+                        <label className="flex items-start gap-2 text-sm text-text">
+                            <input type="checkbox" required checked={absence.data.confirmed} onChange={(event) => absence.setData('confirmed', event.target.checked)} />
+                            I confirm I will be absent on the selected date and the reason is correct.
+                        </label>
+                        {absence.errors.confirmed && <p role="alert" className="text-sm text-rose-600">{absence.errors.confirmed}</p>}
+                        <button type="submit" disabled={absence.processing} className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{absence.processing ? 'Reporting…' : 'Confirm absence'}</button>
+                    </form>
+                </details>
+                {cancellation.errors.absence && <p role="alert" className="text-sm text-rose-600">{cancellation.errors.absence}</p>}
+                <section aria-label="This week’s attendance" className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+                    {weeklyStrip.map((day) => <div key={day.date} className={`rounded-lg border p-3 ${day.is_today ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950' : 'border-border bg-panel'}`}>
+                        <p className="text-sm font-semibold text-text">{day.day_name} · {day.day_number}</p>
+                        <div className="mt-2">{getStatusBadge(day)}</div>
+                    </div>)}
+                </section>
                 {/* Monthly DTR Log Card */}
                 <Card className="employee-workspace-card overflow-hidden">
                     <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center border-b border-border/60 px-4 py-3 sm:px-6">
                         <div className="min-w-0">
                             <CardTitle>Monthly Attendance Log</CardTitle>
-                            <p className="text-xs text-sub mt-0.5">Chronological record of verified daily punches and hours rendered</p>
+                            <p className="text-xs text-sub mt-0.5">Every calendar day, including missed workdays and rest days</p>
                         </div>
                         <div className="flex shrink-0 items-center gap-1.5 p-1 bg-field rounded-xl border border-border">
                             <button
@@ -222,10 +258,13 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border/60 font-mono">
-                                {logs?.map((log) => (
-                                    <tr key={log.id} className="hover:bg-hover/60 transition-colors">
+                                {logs?.map((log, index) => (
+                                    <Fragment key={log.date}>
+                                    {(index === 0 || logs[index - 1].week !== log.week) && <tr className="bg-field"><th colSpan={8} scope="rowgroup" className="px-4 py-2 text-left font-sans text-sub">Week of {log.week}</th></tr>}
+                                    <tr data-dtr-today={log.date === today.date ? '' : undefined} aria-current={log.date === today.date ? 'date' : undefined} className={`scroll-mt-20 scroll-mb-24 transition-colors ${log.date === today.date ? 'bg-emerald-50 hover:bg-emerald-100/80 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60' : 'hover:bg-hover/60'}`}>
                                         <td className="px-4 py-2 sm:py-2.5 font-sans font-medium text-text whitespace-nowrap">
                                             {log.date_label}
+                                            {log.date === today.date && <span className="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100">Today</span>}
                                         </td>
                                         <td className="px-2.5 py-2 sm:py-2.5 text-center text-text font-semibold">
                                             {log.am_time_in ? log.am_time_in.slice(0, 5) : <span className="text-dim font-normal">—</span>}
@@ -244,9 +283,11 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                         </td>
                                         <td className="px-3 py-2 sm:py-2.5 text-center font-sans">
                                             {getStatusBadge(log)}
+                                            {log.absence_reason && <p className="mt-1 max-w-56 whitespace-normal text-left text-xs text-sub">{log.absence_reason}</p>}
                                         </td>
                                         <td className="px-4 py-2 sm:py-2.5 text-right font-sans">
-                                            <button
+                                            {log.can_cancel_absence && <button type="button" disabled={cancellation.processing} onClick={() => cancellation.post(`/employee/dtr/${log.id}/absence/cancel`, { preserveScroll: true })} className="mr-2 text-xs font-semibold text-emerald-700">Cancel notice</button>}
+                                            {log.id && <button
                                                 type="button"
                                                 onClick={() => setEditTarget(log)}
                                                 aria-label={`Request edit for ${log.date_label}`}
@@ -256,9 +297,10 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m16.86 3.49 3.65 3.65M4 20l4.25-.85L19.49 7.91a2.58 2.58 0 0 0-3.65-3.65L4.6 15.5 4 20Z" />
                                                 </svg>
                                                 Edit
-                                            </button>
+                                            </button>}
                                         </td>
                                     </tr>
+                                    </Fragment>
                                 ))}
                                 {(!logs || logs.length === 0) && (
                                     <tr>
@@ -274,9 +316,9 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     {/* Mobile Card List */}
                     <div className="space-y-3 p-4 md:hidden">
                         {logs?.map((log) => (
-                            <div key={log.id} className="p-4 rounded-xl border border-border bg-field/60 space-y-3">
+                            <div key={log.date} data-dtr-today={log.date === today.date ? '' : undefined} aria-current={log.date === today.date ? 'date' : undefined} className={`scroll-mt-20 scroll-mb-24 p-4 rounded-xl border space-y-3 ${log.date === today.date ? 'border-emerald-500 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-950/60' : 'border-border bg-field/60'}`}>
                                 <div className="flex items-center justify-between">
-                                    <p className="text-sm font-semibold text-text">{log.date_label}</p>
+                                    <p className="text-sm font-semibold text-text">{log.date_label}{log.date === today.date && <span className="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100">Today</span>}</p>
                                     {getStatusBadge(log)}
                                 </div>
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-border/60 bg-panel p-2.5 font-mono text-xs">
@@ -301,14 +343,16 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                     <span className="text-sub font-mono font-medium">
                                         {log.hours_rendered ? `${log.hours_rendered}h rendered` : 'No hours'}
                                     </span>
-                                    <button
+                                    {log.absence_reason && <p className="text-xs text-sub">{log.absence_reason}</p>}
+                                    {log.can_cancel_absence && <button type="button" disabled={cancellation.processing} onClick={() => cancellation.post(`/employee/dtr/${log.id}/absence/cancel`, { preserveScroll: true })} className="text-xs font-semibold text-emerald-700">Cancel notice</button>}
+                                    {log.id && <button
                                         type="button"
                                         onClick={() => setEditTarget(log)}
                                         aria-label={`Request edit for ${log.date_label}`}
                                         className="inline-flex h-8 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-3 font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
                                     >
                                         Edit
-                                    </button>
+                                    </button>}
                                 </div>
                             </div>
                         ))}

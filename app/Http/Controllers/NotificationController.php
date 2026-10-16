@@ -27,11 +27,6 @@ class NotificationController extends Controller
                 'created_at' => $n->created_at->diffForHumans(),
             ]);
 
-        // Mark all as read when viewing the page
-        EmployeeNotification::where('employee_id', $employee->id)
-            ->whereNull('read_at')
-            ->update(['read_at' => now()]);
-
         return Inertia::render('Employee/Notifications', [
             'notifications' => $notifications,
         ]);

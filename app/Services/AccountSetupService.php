@@ -32,7 +32,7 @@ class AccountSetupService
             }
             if ($decision['decision'] === 'approved') {
                 $details = $locked->details;
-                if (Employee::where('email', $details['email'])->where('id', '!=', $employee->id)->exists()) {
+                if (filled($details['email'] ?? null) && Employee::where('email', $details['email'])->where('id', '!=', $employee->id)->exists()) {
                     throw ValidationException::withMessages(['setup' => 'The proposed email is now used by another employee. Return this setup for correction.']);
                 }
                 $employee->forceFill(collect($details)->only(['first_name', 'middle_name', 'last_name', 'name_suffix', 'email', 'phone', 'address', 'payroll_office'])->all());
