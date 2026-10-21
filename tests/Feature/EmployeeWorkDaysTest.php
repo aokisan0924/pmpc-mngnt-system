@@ -77,7 +77,7 @@ class EmployeeWorkDaysTest extends TestCase
         $this->actingAs($admin)->patch(route('admin.employees.compensation', $employee), $this->compensation($shift))
             ->assertSessionHasNoErrors();
 
-        $this->assertSame(['start' => '07:00', 'end' => '19:00'], Setting::employeeShiftForDate($employee->id, Carbon::parse('2026-10-15')));
+        $this->assertSame(['start' => '07:00', 'end' => '19:00', 'two_punch' => false], Setting::employeeShiftForDate($employee->id, Carbon::parse('2026-10-15')));
         $this->assertNull(Setting::employeeShiftForDate($employee->id, Carbon::parse('2026-10-14')));
     }
 }

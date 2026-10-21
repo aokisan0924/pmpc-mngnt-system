@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Setting;
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -31,6 +33,19 @@ class CorrectDtrRequest extends FormRequest
             if ($validator->errors()->isNotEmpty()) {
                 return;
             }
+            // Two-punch shifts only use time in / time out, and an overnight one ends the next morning.
+            $employee = $this->route('employee');
+            $shift = $employee ? Setting::employeeShiftForDate($employee->id, Carbon::parse($this->input('date'))) : null;
+            if ($shift['two_punch'] ?? false) {
+                foreach (['am_time_out', 'pm_time_in'] as $slot) {
+                    if (filled($this->input($slot))) {
+                        $validator->errors()->add($slot, 'This employee is on a two-punch shift: use time in and time out only.');
+                    }
+                }
+
+                return;
+            }
+
             // Filled punches must follow the day's order: AM in < AM out <= PM in < PM out.
             $previous = null;
             foreach (self::SLOTS as $slot) {

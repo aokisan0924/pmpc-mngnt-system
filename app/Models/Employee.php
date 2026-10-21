@@ -108,6 +108,12 @@ class Employee extends Authenticatable
         return in_array($date->dayOfWeek, self::workDaysFor($id), true);
     }
 
+    /** Whether the employee's current shift is a two-punch (time in / time out) shift. */
+    public static function hasTwoPunchShift(int $id): bool
+    {
+        return Setting::employeeShiftForDate($id, today())['two_punch'] ?? false;
+    }
+
     public static function hasCustomWorkDays(int $id): bool
     {
         return self::workDaysFor($id) !== self::DEFAULT_WORK_DAYS;

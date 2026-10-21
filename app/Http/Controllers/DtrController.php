@@ -47,10 +47,7 @@ class DtrController extends Controller
         }
 
         // Today's log
-        $today = DtrLog::firstOrCreate(
-            ['employee_id' => $employee->id, 'date' => today()],
-            ['status' => 'absent']
-        );
+        $today = DtrLog::forPunch($employee->id);
 
         // Monthly summary
         $summary = [
@@ -125,6 +122,7 @@ class DtrController extends Controller
             'summary' => $summary,
             'month' => $month,
             'next_punch' => $today->getNextPunchSlot(),
+            'two_punch' => DtrLog::twoPunchLayout($employee->id, $entries),
             'weeklyStrip' => $weeklyStrip,
         ]);
     }
@@ -136,10 +134,7 @@ class DtrController extends Controller
         $employee = $request->user();
         DB::transaction(function () use ($employee, $request): void {
             Employee::whereKey($employee->id)->lockForUpdate()->firstOrFail();
-            $log = DtrLog::firstOrCreate(
-                ['employee_id' => $employee->id, 'date' => today()],
-                ['status' => 'absent']
-            );
+            $log = DtrLog::forPunch($employee->id);
 
             if ($log->hasActiveAbsence()) {
                 throw ValidationException::withMessages(['punch' => 'Cancel your absence notice in My Attendance before clocking in.']);

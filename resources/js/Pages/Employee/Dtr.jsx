@@ -8,7 +8,11 @@ import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import useDtrToday from '@/hooks/useDtrToday'
 
-export default function Dtr({ logs = [], today = {}, summary = {}, month, next_punch, weeklyStrip = [] }) {
+const ALL_SLOTS = [['am_time_in', 'AM In'], ['am_time_out', 'AM Out'], ['pm_time_in', 'PM In'], ['pm_time_out', 'PM Out']]
+const TWO_PUNCH_SLOTS = [['am_time_in', 'Time In'], ['pm_time_out', 'Time Out']]
+
+export default function Dtr({ logs = [], today = {}, summary = {}, month, next_punch, weeklyStrip = [], two_punch = false }) {
+    const slots = two_punch ? TWO_PUNCH_SLOTS : ALL_SLOTS
     const { flash, errors } = usePage().props
     const [editTarget, setEditTarget] = useState(null)
     const [loading, setLoading] = useState(false)
@@ -47,10 +51,10 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
     }
 
     const nextLabel = next_punch ? {
-        am_time_in: 'AM In',
+        am_time_in: two_punch ? 'Time In' : 'AM In',
         am_time_out: 'AM Out',
         pm_time_in: 'PM In',
-        pm_time_out: 'PM Out',
+        pm_time_out: two_punch ? 'Time Out' : 'PM Out',
     }[next_punch] : null
 
     function getStatusBadge(log) {
@@ -70,6 +74,8 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 return <Badge variant="amber" size="sm">Half Day</Badge>
             case 'absent':
                 return <Badge variant="rose" size="sm">Absent</Badge>
+            case 'missing_out':
+                return <Badge variant="amber" size="sm">Missing time out</Badge>
             case 'planned_absence':
                 return <Badge variant="amber" size="sm">Planned absence</Badge>
             case 'rest_day':
@@ -248,10 +254,9 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                             <thead>
                                 <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold text-[10px]">
                                     <th scope="col" className="text-left px-4 py-2.5">Date</th>
-                                    <th scope="col" className="text-center px-2.5 py-2.5">AM In</th>
-                                    <th scope="col" className="text-center px-2.5 py-2.5 border-r border-border">AM Out</th>
-                                    <th scope="col" className="text-center px-2.5 py-2.5">PM In</th>
-                                    <th scope="col" className="text-center px-2.5 py-2.5 border-r border-border">PM Out</th>
+                                    {slots.map(([slot, label]) => (
+                                        <th key={slot} scope="col" className={`text-center px-2.5 py-2.5 ${slot.endsWith('out') ? 'border-r border-border' : ''}`}>{label}</th>
+                                    ))}
                                     <th scope="col" className="text-center px-3 py-2.5">Rendered</th>
                                     <th scope="col" className="text-center px-3 py-2.5">Status</th>
                                     <th scope="col" className="text-right px-4 py-2.5">Action</th>
@@ -260,24 +265,17 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                             <tbody className="divide-y divide-border/60 font-mono">
                                 {logs?.map((log, index) => (
                                     <Fragment key={log.date}>
-                                    {(index === 0 || logs[index - 1].week !== log.week) && <tr className="bg-field"><th colSpan={8} scope="rowgroup" className="px-4 py-2 text-left font-sans text-sub">Week of {log.week}</th></tr>}
+                                    {(index === 0 || logs[index - 1].week !== log.week) && <tr className="bg-field"><th colSpan={slots.length + 4} scope="rowgroup" className="px-4 py-2 text-left font-sans text-sub">Week of {log.week}</th></tr>}
                                     <tr data-dtr-today={log.date === today.date ? '' : undefined} aria-current={log.date === today.date ? 'date' : undefined} className={`scroll-mt-20 scroll-mb-24 transition-colors ${log.date === today.date ? 'bg-emerald-50 hover:bg-emerald-100/80 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60' : 'hover:bg-hover/60'}`}>
                                         <td className="px-4 py-2 sm:py-2.5 font-sans font-medium text-text whitespace-nowrap">
                                             {log.date_label}
                                             {log.date === today.date && <span className="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100">Today</span>}
                                         </td>
-                                        <td className="px-2.5 py-2 sm:py-2.5 text-center text-text font-semibold">
-                                            {log.am_time_in ? log.am_time_in.slice(0, 5) : <span className="text-dim font-normal">—</span>}
-                                        </td>
-                                        <td className="px-2.5 py-2 sm:py-2.5 text-center text-text font-semibold border-r border-border/60">
-                                            {log.am_time_out ? log.am_time_out.slice(0, 5) : <span className="text-dim font-normal">—</span>}
-                                        </td>
-                                        <td className="px-2.5 py-2 sm:py-2.5 text-center text-text font-semibold">
-                                            {log.pm_time_in ? log.pm_time_in.slice(0, 5) : <span className="text-dim font-normal">—</span>}
-                                        </td>
-                                        <td className="px-2.5 py-2 sm:py-2.5 text-center text-text font-semibold border-r border-border/60">
-                                            {log.pm_time_out ? log.pm_time_out.slice(0, 5) : <span className="text-dim font-normal">—</span>}
-                                        </td>
+                                        {slots.map(([slot]) => (
+                                            <td key={slot} className={`px-2.5 py-2 sm:py-2.5 text-center text-text font-semibold ${slot.endsWith('out') ? 'border-r border-border/60' : ''}`}>
+                                                {log[slot] ? log[slot].slice(0, 5) : <span className="text-dim font-normal">—</span>}
+                                            </td>
+                                        ))}
                                         <td className="px-3 py-2 sm:py-2.5 text-center text-sub font-semibold">
                                             {log.hours_rendered ? `${log.hours_rendered}h` : <span className="text-dim font-normal">—</span>}
                                         </td>
@@ -322,22 +320,12 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                     {getStatusBadge(log)}
                                 </div>
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-border/60 bg-panel p-2.5 font-mono text-xs">
-                                    <div>
-                                        <span className="text-[10px] text-dim block">AM In</span>
-                                        <strong className="text-text">{log.am_time_in ? log.am_time_in.slice(0, 5) : '—'}</strong>
-                                    </div>
-                                    <div>
-                                        <span className="text-[10px] text-dim block">AM Out</span>
-                                        <strong className="text-text">{log.am_time_out ? log.am_time_out.slice(0, 5) : '—'}</strong>
-                                    </div>
-                                    <div>
-                                        <span className="text-[10px] text-dim block">PM In</span>
-                                        <strong className="text-text">{log.pm_time_in ? log.pm_time_in.slice(0, 5) : '—'}</strong>
-                                    </div>
-                                    <div>
-                                        <span className="text-[10px] text-dim block">PM Out</span>
-                                        <strong className="text-text">{log.pm_time_out ? log.pm_time_out.slice(0, 5) : '—'}</strong>
-                                    </div>
+                                    {slots.map(([slot, label]) => (
+                                        <div key={slot}>
+                                            <span className="text-[10px] text-dim block">{label}</span>
+                                            <strong className="text-text">{log[slot] ? log[slot].slice(0, 5) : '—'}</strong>
+                                        </div>
+                                    ))}
                                 </div>
                                 <div className="flex items-center justify-between text-xs pt-1">
                                     <span className="text-sub font-mono font-medium">
@@ -365,6 +353,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
             {editTarget && (
                 <DtrEditRequestModal
                     log={editTarget}
+                    twoPunch={two_punch}
                     onClose={() => setEditTarget(null)}
                 />
             )}

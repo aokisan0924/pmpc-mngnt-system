@@ -13,6 +13,9 @@ const PUNCH_ROWS = [
     ['PM Out', 'pm_time_out'],
 ]
 
+// Two-punch shifts have no lunch punches: show those rows only when either side has a value.
+const rowsFor = (req) => PUNCH_ROWS.filter(([, key]) => !['am_time_out', 'pm_time_in'].includes(key) || req[`original_${key}`] || req[`requested_${key}`])
+
 export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
     const { flash, auth } = usePage().props
     const canManage = auth?.employee?.can_manage_dtr_requests ?? true
@@ -177,7 +180,7 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                                                     Original DTR Punches
                                                 </p>
                                                 <div className="grid grid-cols-2 gap-y-2.5">
-                                                    {PUNCH_ROWS.map(([label, key]) => (
+                                                    {rowsFor(req).map(([label, key]) => (
                                                         <div key={label}>
                                                             <p className="text-[10px] text-dim">{label}</p>
                                                             <p className="text-xs font-mono font-medium text-sub tnum">
@@ -194,7 +197,7 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                                                     Requested Corrections
                                                 </p>
                                                 <div className="grid grid-cols-2 gap-y-2.5">
-                                                    {PUNCH_ROWS.map(([label, key]) => {
+                                                    {rowsFor(req).map(([label, key]) => {
                                                         const orig = req[`original_${key}`]
                                                         const mod = req[`requested_${key}`]
                                                         const changed = Boolean(mod && mod !== orig)

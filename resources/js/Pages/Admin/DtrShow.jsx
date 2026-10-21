@@ -12,6 +12,7 @@ const blank = { date: '', am_time_in: '', am_time_out: '', pm_time_in: '', pm_ti
 
 
 export default function DtrShow({ employee, logs = [], summary = {}, month, today_date }) {
+    const slots = employee.two_punch ? [['am_time_in', 'Time In'], ['pm_time_out', 'Time Out']] : SLOTS
     const { auth, flash } = usePage().props
     const canCorrect = !!auth?.employee?.can_correct_dtr
     const [editing, setEditing] = useState(null)
@@ -48,7 +49,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
             ...group,
             label: `Week of ${label(group.days[0].date)} – ${label(group.days[group.days.length - 1].date)}`,
             present: group.days.reduce((sum, d) => sum + (['on_time', 'late', 'undertime'].includes(d.status) ? 1 : d.status === 'half_day' ? 0.5 : 0), 0),
-            absent: group.days.filter((d) => d.status === 'absent').length,
+            absent: group.days.filter((d) => ['absent', 'missing_out'].includes(d.status)).length,
             hours: Math.round(group.days.reduce((sum, d) => sum + Number(d.hours_rendered || 0), 0) * 100) / 100,
         }))
     }, [logs])
@@ -143,10 +144,9 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                 <thead>
                                     <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[11px]">
                                         <th scope="col" className="text-left px-5 py-3 font-semibold">Date</th>
-                                        <th scope="col" className="text-center px-3 py-3 font-semibold">AM In</th>
-                                        <th scope="col" className="text-center px-3 py-3 font-semibold border-r border-border/80">AM Out</th>
-                                        <th scope="col" className="text-center px-3 py-3 font-semibold">PM In</th>
-                                        <th scope="col" className="text-center px-3 py-3 font-semibold border-r border-border/80">PM Out</th>
+                                        {slots.map(([slot, label]) => (
+                                            <th key={slot} scope="col" className={`text-center px-3 py-3 font-semibold ${slot.endsWith('out') ? 'border-r border-border/80' : ''}`}>{label}</th>
+                                        ))}
                                         <th scope="col" className="text-center px-3 py-3 font-semibold">Hours</th>
                                         <th scope="col" className="text-center px-4 py-3 font-semibold">Status</th>
                                         {canCorrect && <th scope="col" className="text-center px-3 py-3 font-semibold">Final check</th>}
@@ -156,7 +156,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                     {weeks.map(week => (
                                         <Fragment key={week.key}>
                                         <tr className="bg-indigo-50/60">
-                                            <th scope="rowgroup" colSpan={canCorrect ? 8 : 7} className="px-5 py-2 text-left text-[11px] font-bold uppercase tracking-wide text-[#26215C]">
+                                            <th scope="rowgroup" colSpan={(canCorrect ? 8 : 7) - (4 - slots.length)} className="px-5 py-2 text-left text-[11px] font-bold uppercase tracking-wide text-[#26215C]">
                                                 {week.label}
                                             </th>
                                         </tr>
@@ -175,11 +175,11 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                                         <p className="text-[11px] text-dim font-medium">Rest day</p>
                                                     )}
                                                 </td>
-                                                {['am_time_in', 'am_time_out', 'pm_time_in', 'pm_time_out'].map((slot, i) => (
+                                                {slots.map(([slot]) => (
                                                     <td
                                                         key={slot}
                                                         className={`px-3 py-3.5 text-center font-mono ${
-                                                            i === 1 || i === 3 ? 'border-r border-border/80' : ''
+                                                            slot.endsWith('out') ? 'border-r border-border/80' : ''
                                                         }`}
                                                     >
                                                         {log[slot] ? (
@@ -199,7 +199,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                                         </Badge>
                                                     ) : (
                                                         <Badge variant={log.status ?? 'absent'} size="sm">
-                                                            {(log.status ?? 'absent').replace('_', ' ')}
+                                                            {log.status === 'missing_out' ? 'missing time out' : (log.status ?? 'absent').replace('_', ' ')}
                                                         </Badge>
                                                     )}
                                                     {log.absence_reason && <p className="mt-1 max-w-64 whitespace-normal text-left text-xs text-sub">{log.absence_reason}</p>}
@@ -226,7 +226,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                             </tr>
                                         ))}
                                         <tr className="bg-field/40 text-[11px] font-semibold text-sub">
-                                            <td colSpan={canCorrect ? 8 : 7} className="px-5 py-2">
+                                            <td colSpan={(canCorrect ? 8 : 7) - (4 - slots.length)} className="px-5 py-2">
                                                 Week subtotal: {week.present} present · {week.absent} absent · {week.hours}h
                                             </td>
                                         </tr>
@@ -234,7 +234,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                     ))}
                                     {logs.length === 0 && (
                                         <tr>
-                                            <td colSpan={canCorrect ? 8 : 7} className="px-5 py-12 text-center text-sub">
+                                            <td colSpan={(canCorrect ? 8 : 7) - (4 - slots.length)} className="px-5 py-12 text-center text-sub">
                                                 No DTR records for this month.
                                             </td>
                                         </tr>
@@ -256,7 +256,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                             <p className="text-sm text-sub">{employee.full_name}. Hours and status are recalculated with the normal attendance rules. The employee is not notified.</p>
                         </div>
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                            {SLOTS.map(([slot, label]) => (
+                            {slots.map(([slot, label]) => (
                                 <label key={slot} className="text-xs font-medium text-sub">
                                     {label}
                                     <input

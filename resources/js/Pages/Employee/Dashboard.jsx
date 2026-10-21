@@ -122,9 +122,12 @@ export default function Dashboard({
     const firstName = employee?.first_name ? employee.first_name.trim() : 'Employee'
 
     // Determine current next expected punch index
-    const completedPunches = PUNCH_SLOTS.filter(s => Boolean(today?.[s.key])).length
-    const nextPunchIndex = completedPunches < 4 ? completedPunches : -1
-    const nextSlot = nextPunchIndex !== -1 ? PUNCH_SLOTS[nextPunchIndex] : null
+    const punchSlots = today?.two_punch
+        ? [{ ...PUNCH_SLOTS[0], label: 'Time In', stepNum: 1 }, { ...PUNCH_SLOTS[3], label: 'Time Out', stepNum: 2 }]
+        : PUNCH_SLOTS
+    const completedPunches = punchSlots.filter(s => Boolean(today?.[s.key])).length
+    const nextPunchIndex = completedPunches < punchSlots.length ? completedPunches : -1
+    const nextSlot = nextPunchIndex !== -1 ? punchSlots[nextPunchIndex] : null
     const nextScheduledTime = nextSlot ? schedule?.[nextSlot.key] : null
 
     // 1-Tap Quick Punch Handler
@@ -271,13 +274,13 @@ export default function Dashboard({
                                     {today?.has_active_absence ? 'Planned absence' : nextSlot ? 'Next required action' : 'Today’s attendance'}
                                 </span>
                                 <h2 id="next-dtr-action" className="mt-1 font-heading text-xl sm:text-2xl font-bold text-white tracking-tight">
-                                    {today?.has_active_absence ? 'Absence notice active' : nextSlot ? `Punch ${nextSlot.label}` : 'All four punches completed'}
+                                    {today?.has_active_absence ? 'Absence notice active' : nextSlot ? `Punch ${nextSlot.label}` : `All ${punchSlots.length === 2 ? 'two' : 'four'} punches completed`}
                                 </h2>
                                 <p className="mt-0.5 text-xs sm:text-sm text-emerald-100/80">
                                     {today?.has_active_absence
                                         ? (today.absence_reason || 'Cancel this notice before clocking in.')
                                         : nextSlot
-                                        ? `Step ${completedPunches + 1} of 4${nextScheduledTime ? ` · Scheduled ${formatPunchTime(nextScheduledTime)}` : ' · Asia/Manila standard time'}`
+                                        ? `Step ${completedPunches + 1} of ${punchSlots.length}${nextScheduledTime ? ` · Scheduled ${formatPunchTime(nextScheduledTime)}` : ' · Asia/Manila standard time'}`
                                         : 'Daily milestones secured. Shift complete.'}
                                 </p>
                             </div>
@@ -383,7 +386,7 @@ export default function Dashboard({
                     <div className="relative z-10 pt-4 border-t border-white/15">
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-white">
-                                Today's DTR: 4-Punch Attendance Flow
+                                Today's DTR: {punchSlots.length}-Punch Attendance Flow
                             </h3>
                             <span className="text-[11px] text-emerald-100/75">
                                 Asia/Manila Standard Time
@@ -391,7 +394,7 @@ export default function Dashboard({
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                            {PUNCH_SLOTS.map((slot, index) => {
+                            {punchSlots.map((slot, index) => {
                                 const rawVal = today?.[slot.key]
                                 const isDone = Boolean(rawVal)
                                 const isNext = index === nextPunchIndex

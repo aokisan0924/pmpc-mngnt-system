@@ -114,10 +114,7 @@ class EmployeeDashboardController extends Controller
         ];
 
         // Today's DTR log
-        $today = DtrLog::firstOrCreate(
-            ['employee_id' => $employee->id, 'date' => today()],
-            ['status' => 'absent']
-        );
+        $today = DtrLog::forPunch($employee->id);
 
         // Recent notifications (last 5)
         $recentNotifications = EmployeeNotification::where('employee_id', $employee->id)
@@ -236,6 +233,7 @@ class EmployeeDashboardController extends Controller
                 'status' => $today->displayStatus(),
                 'hours_rendered' => $today->hours_rendered,
                 'next_punch' => $today->getNextPunchSlot(),
+                'two_punch' => $today->isTwoPunch(),
                 'punches_count' => $today->punchesCount(),
                 'has_active_absence' => $today->hasActiveAbsence(),
                 'absence_reason' => $today->hasActiveAbsence() ? $today->absence_reason : null,

@@ -38,7 +38,11 @@ class UpdateCompensationRequest extends FormRequest
             'work_days' => ['sometimes', 'array', 'min:1'],
             'work_days.*' => ['integer', 'between:0,6', 'distinct'],
             'shift_start' => ['nullable', 'date_format:H:i', 'required_with:shift_end'],
-            'shift_end' => ['nullable', 'date_format:H:i', 'required_with:shift_start', 'after:shift_start'],
+            'shift_end' => ['nullable', 'date_format:H:i', 'required_with:shift_start', 'different:shift_start',
+                fn (string $attribute, mixed $value, \Closure $fail) => ! $this->boolean('two_punch') && $value < $this->input('shift_start')
+                    ? $fail('The shift end must be after the shift start unless this is a two-punch (overnight) shift.')
+                    : null],
+            'two_punch' => ['sometimes', 'boolean'],
         ];
     }
 }

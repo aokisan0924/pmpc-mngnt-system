@@ -46,7 +46,7 @@
         .hours-cell { font-family: Courier, monospace; font-weight: bold; }
         .status-badge { border-radius: 10px; display: inline-block; font-size: 7.5px; font-weight: bold; line-height: 1; padding: 3px 5px; white-space: nowrap; }
         .badge-on_time { background: #e4f5ee; color: #0a684e; }
-        .badge-late, .badge-undertime, .badge-half_day, .badge-in_progress { background: #fff2d6; color: #9a5808; }
+        .badge-late, .badge-undertime, .badge-half_day, .badge-in_progress, .badge-missing_out { background: #fff2d6; color: #9a5808; }
         .badge-absent { background: #fde8e8; color: #a82e2e; }
         .badge-planned_absence { background: #fff2d6; color: #9a5808; }
         .week-start td { border-top: 2px solid #9ebdb2; }
@@ -122,10 +122,15 @@
             <tr>
                 <th style="text-align:left; width:17%;">Date</th>
                 <th style="width:7%;">Day</th>
-                <th style="width:13%;">AM In</th>
-                <th style="width:13%;">AM Out</th>
-                <th style="width:13%;">PM In</th>
-                <th style="width:13%;">PM Out</th>
+                @if($twoPunch ?? false)
+                    <th style="width:26%;">Time In</th>
+                    <th style="width:26%;">Time Out</th>
+                @else
+                    <th style="width:13%;">AM In</th>
+                    <th style="width:13%;">AM Out</th>
+                    <th style="width:13%;">PM In</th>
+                    <th style="width:13%;">PM Out</th>
+                @endif
                 <th style="width:10%;">Hours</th>
                 <th style="width:14%;">Status</th>
             </tr>
@@ -136,11 +141,13 @@
                     <td class="date-cell">{{ $row['date']->format('M d, Y') }}</td>
                     <td>{{ $row['day_name'] }}</td>
                     <td class="time-cell">{{ $row['am_time_in'] ? substr($row['am_time_in'], 0, 5) : '-' }}</td>
+                    @unless($twoPunch ?? false)
                     <td class="time-cell">{{ $row['am_time_out'] ? substr($row['am_time_out'], 0, 5) : '-' }}</td>
                     <td class="time-cell">{{ $row['pm_time_in'] ? substr($row['pm_time_in'], 0, 5) : '-' }}</td>
+                    @endunless
                     <td class="time-cell">{{ $row['pm_time_out'] ? substr($row['pm_time_out'], 0, 5) : '-' }}</td>
                     <td class="hours-cell">{{ $row['hours'] ? number_format($row['hours'], 2) : '-' }}</td>
-                    <td><span class="status-badge badge-{{ $row['status'] }}">{{ ucfirst(str_replace('_', ' ', $row['status'])) }}</span></td>
+                    <td><span class="status-badge badge-{{ $row['status'] }}">{{ $row['status'] === 'missing_out' ? 'Missing time out' : ucfirst(str_replace('_', ' ', $row['status'])) }}</span></td>
                 </tr>
             @endforeach
         </tbody>

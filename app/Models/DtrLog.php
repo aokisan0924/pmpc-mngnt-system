@@ -51,8 +51,50 @@ class DtrLog extends Model
 
     // ── Next punch slot ────────────────────────────────────
 
+    /** Two-punch shift (time in / time out, no lunch): only am_time_in and pm_time_out are used. */
+    public function isTwoPunch(): bool
+    {
+        return Setting::employeeShiftForDate((int) $this->employee_id, $this->date)['two_punch'] ?? false;
+    }
+
+    /** The log a punch made now belongs to: an overnight shift's clock-out lands on the log opened yesterday. */
+    public static function forPunch(int $employeeId, bool $create = true): ?self
+    {
+        $open = static::where('employee_id', $employeeId)->whereDate('date', today()->subDay())
+            ->whereNotNull('am_time_in')->whereNull('pm_time_out')->first();
+
+        if ($open?->isOpenOvernightShift()) {
+            return $open;
+        }
+
+        return $create
+            ? static::firstOrCreate(['employee_id' => $employeeId, 'date' => today()], ['status' => 'absent'])
+            : static::where('employee_id', $employeeId)->whereDate('date', today())->first();
+    }
+
+    /** Show Time In / Time Out columns only: a two-punch employee whose displayed logs hold no lunch punches. */
+    public static function twoPunchLayout(int $employeeId, iterable $logs): bool
+    {
+        return Employee::hasTwoPunchShift($employeeId)
+            && collect($logs)->every(fn (self $log): bool => ! $log->am_time_out && ! $log->pm_time_in);
+    }
+
+    /** Yesterday's overnight two-punch shift that is still waiting for this morning's clock-out. */
+    public function isOpenOvernightShift(): bool
+    {
+        if (! $this->date->isYesterday() || ! $this->am_time_in || $this->pm_time_out || ! $this->isTwoPunch()) {
+            return false;
+        }
+        $shift = Setting::employeeShiftForDate((int) $this->employee_id, $this->date);
+
+        return $shift['end'] < $shift['start'];
+    }
+
     public function getNextPunchSlot(): ?string
     {
+        if ($this->isTwoPunch()) {
+            return ! $this->am_time_in ? 'am_time_in' : (! $this->pm_time_out ? 'pm_time_out' : null);
+        }
         if (! $this->am_time_in) {
             return 'am_time_in';
         }
@@ -112,6 +154,12 @@ class DtrLog extends Model
         $amMinutes = 0;
         $pmMinutes = 0;
 
+        if ($this->isTwoPunch()) {
+            $this->computeTwoPunch($shiftStart, $shiftEnd, $graceMinutes);
+
+            return;
+        }
+
         if ($this->am_time_in && $this->am_time_out) {
             $amIn = $normalizeTime($this->am_time_in);
             $amOut = $normalizeTime($this->am_time_out);
@@ -152,6 +200,38 @@ class DtrLog extends Model
 
         // Employees flagged as always present are never late, undertime or half-day.
         if ($this->status !== 'absent' && Employee::isAlwaysPresent((int) $this->employee_id)) {
+            $this->status = 'on_time';
+        }
+    }
+
+    private function computeTwoPunch(string $shiftStart, string $shiftEnd, int $graceMinutes): void
+    {
+        if (! $this->am_time_in || ! $this->pm_time_out) {
+            $this->hours_rendered = 0;
+            $this->status = 'absent';
+
+            return;
+        }
+
+        $toMinutes = fn (string $t): int => (int) substr($t, 0, 2) * 60 + (int) substr($t, 3, 2);
+        $start = $toMinutes($shiftStart);
+        $in = $toMinutes($this->am_time_in);
+        $out = $toMinutes($this->pm_time_out);
+        $shiftLength = ($toMinutes($shiftEnd) - $start + 1440) % 1440;
+
+        // Offsets from shift start, so an overnight shift compares correctly across midnight.
+        $inOffset = ($in - $start + 1440 + 720) % 1440 - 720;
+        $outOffset = ($out - $start + 1440) % 1440;
+
+        $this->hours_rendered = round((($out - $in + 1440) % 1440) / 60, 2);
+
+        $this->status = match (true) {
+            $inOffset > $graceMinutes => 'late',
+            $outOffset < $shiftLength => 'undertime',
+            default => 'on_time',
+        };
+
+        if (Employee::isAlwaysPresent((int) $this->employee_id)) {
             $this->status = 'on_time';
         }
     }
@@ -200,7 +280,7 @@ class DtrLog extends Model
             ->filter(function (CarbonInterface $day) use ($logs, $employeeId): bool {
                 $log = $logs->get($day->toDateString());
 
-                return $log ? $log->displayStatus() === 'absent' : self::fallbackStatus($employeeId, $day) === 'absent';
+                return $log ? in_array($log->displayStatus(), ['absent', 'missing_out'], true) : self::fallbackStatus($employeeId, $day) === 'absent';
             })
             ->count();
     }
@@ -215,8 +295,13 @@ class DtrLog extends Model
 
             return $this->date->isFuture() && ! $this->date->isToday() ? 'planned_absence' : 'absent';
         }
-        if ($this->date->isToday() && $this->punchesCount() > 0 && $this->punchesCount() < 4) {
+        if ($this->punchesCount() > 0 && $this->getNextPunchSlot() !== null
+            && ($this->date->isToday() || $this->isOpenOvernightShift())) {
             return 'in_progress';
+        }
+        // A two-punch day that was never closed: flagged for HR instead of silently counting as absent.
+        if ($this->am_time_in && ! $this->pm_time_out && $this->date->lt(today()) && $this->isTwoPunch()) {
+            return 'missing_out';
         }
         if ($this->isExcusedAbsence()) {
             return self::fallbackStatus((int) $this->employee_id, $this->date);

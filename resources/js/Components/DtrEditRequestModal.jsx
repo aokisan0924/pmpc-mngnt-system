@@ -8,7 +8,9 @@ const PUNCH_LABELS = {
     pm_time_out: 'PM Out',
 }
 
-export default function DtrEditRequestModal({ log, onClose }) {
+export default function DtrEditRequestModal({ log, onClose, twoPunch = false }) {
+    const slots = twoPunch ? ['am_time_in', 'pm_time_out'] : ['am_time_in', 'am_time_out', 'pm_time_in', 'pm_time_out']
+    const labelFor = (slot) => (twoPunch ? { am_time_in: 'Time In', pm_time_out: 'Time Out' }[slot] : PUNCH_LABELS[slot])
     const currentLog = log
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -88,10 +90,10 @@ export default function DtrEditRequestModal({ log, onClose }) {
                     <p className="text-[11px] font-semibold text-dim uppercase tracking-wider mb-2">
                         Current recorded times
                     </p>
-                    <div className="grid grid-cols-4 gap-2">
-                        {['am_time_in', 'am_time_out', 'pm_time_in', 'pm_time_out'].map((slot) => (
+                    <div className={`grid gap-2 ${twoPunch ? 'grid-cols-2' : 'grid-cols-4'}`}>
+                        {slots.map((slot) => (
                             <div key={slot}>
-                                <p className="text-[10px] text-dim">{PUNCH_LABELS[slot]}</p>
+                                <p className="text-[10px] text-dim">{labelFor(slot)}</p>
                                 <p className="text-xs font-mono font-semibold text-text mt-0.5">
                                     {currentLog?.[slot] ? currentLog[slot].slice(0, 5) : '—:—'}
                                 </p>
@@ -105,12 +107,7 @@ export default function DtrEditRequestModal({ log, onClose }) {
                     <div>
                         <p className="text-xs font-medium text-sub mb-2">Requested timestamps</p>
                         <div className="grid grid-cols-2 gap-3">
-                            {[
-                                { slot: 'requested_am_time_in',  label: 'AM In'  },
-                                { slot: 'requested_am_time_out', label: 'AM Out' },
-                                { slot: 'requested_pm_time_in',  label: 'PM In'  },
-                                { slot: 'requested_pm_time_out', label: 'PM Out' },
-                            ].map(({ slot, label }) => (
+                            {slots.map((slot) => ({ slot: `requested_${slot}`, label: labelFor(slot) })).map(({ slot, label }) => (
                                 <div key={slot}>
                                     <label htmlFor={`edit-slot-${slot}`} className="block text-xs font-medium text-sub mb-1">
                                         {label}

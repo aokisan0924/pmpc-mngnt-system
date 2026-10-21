@@ -150,13 +150,14 @@ class EmployeeController extends Controller
             // Monday–Friday is the default, stored as null.
             $validated['work_days'] = $days === Employee::DEFAULT_WORK_DAYS ? null : implode(',', $days);
         }
-        $shift = ['start' => $validated['shift_start'] ?? null, 'end' => $validated['shift_end'] ?? null];
+        $twoPunch = (bool) ($validated['two_punch'] ?? false);
+        $shift = ['start' => $validated['shift_start'] ?? null, 'end' => $validated['shift_end'] ?? null, 'two_punch' => $twoPunch];
         // Rewrite only on change so re-saving the tab doesn't move the effective date.
         if (filled($shift['start']) && $shift !== Setting::employeeShiftForDate($employee->id, today())) {
             // Personal shift applies from today; earlier attendance keeps its status.
-            Setting::set("employee_shift_{$employee->id}", json_encode(['effective_from' => today()->toDateString(), 'start' => $validated['shift_start'], 'end' => $validated['shift_end']]));
+            Setting::set("employee_shift_{$employee->id}", json_encode(['effective_from' => today()->toDateString(), 'start' => $validated['shift_start'], 'end' => $validated['shift_end'], 'two_punch' => $twoPunch]));
         }
-        unset($validated['shift_start'], $validated['shift_end']);
+        unset($validated['shift_start'], $validated['shift_end'], $validated['two_punch']);
         $employee->update($validated);
 
         return back()->with('success', 'Compensation updated.');

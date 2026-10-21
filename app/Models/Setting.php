@@ -33,7 +33,7 @@ class Setting extends Model
     }
 
     /**
-     * @return array{start: string, end: string}|null
+     * @return array{start: string, end: string, two_punch: bool}|null
      */
     public static function employeeShiftForDate(int $employeeId, CarbonInterface $date): ?array
     {
@@ -46,6 +46,8 @@ class Setting extends Model
         $effectiveFrom = $shift['effective_from'] ?? null;
         $start = $shift['start'] ?? null;
         $end = $shift['end'] ?? null;
+        // Two-punch shifts (time in / time out, no lunch) may end after midnight.
+        $twoPunch = ($shift['two_punch'] ?? false) === true;
 
         if (! is_string($effectiveFrom) || ! is_string($start) || ! is_string($end)
             || ! preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/', $effectiveFrom)) {
@@ -56,11 +58,11 @@ class Setting extends Model
         if (! $effectiveDate || $effectiveDate->format('Y-m-d') !== $effectiveFrom
             || ! preg_match('/\A(?:[01][0-9]|2[0-3]):[0-5][0-9]\z/', $start)
             || ! preg_match('/\A(?:[01][0-9]|2[0-3]):[0-5][0-9]\z/', $end)
-            || $start >= $end || $date->toDateString() < $effectiveFrom) {
+            || $start === $end || (! $twoPunch && $start > $end) || $date->toDateString() < $effectiveFrom) {
             return null;
         }
 
-        return ['start' => $start, 'end' => $end];
+        return ['start' => $start, 'end' => $end, 'two_punch' => $twoPunch];
     }
 
     /**

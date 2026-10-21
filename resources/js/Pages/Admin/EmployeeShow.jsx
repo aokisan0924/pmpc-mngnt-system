@@ -98,6 +98,7 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
         auto_present_weekdays:            !!employee.auto_present_weekdays,
         work_days:                        employee.work_days ?? [1, 2, 3, 4, 5],
         shift_start:                      employee.shift?.start ?? '',
+        two_punch:                        employee.shift?.two_punch ?? false,
         shift_end:                        employee.shift?.end ?? '',
     })
 
@@ -486,6 +487,10 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                                     {compForm.errors.shift_end && <span className="mt-1 block text-rose-700">{compForm.errors.shift_end}</span>}
                                 </label>
                             </div>
+                            <label className="mt-3 flex min-h-[44px] items-center gap-2 text-sm text-text sm:max-w-sm">
+                                <input type="checkbox" checked={compForm.data.two_punch} onChange={e => compForm.setData('two_punch', e.target.checked)} className="h-4 w-4" />
+                                Two-punch shift (time in / time out, no lunch; may end after midnight)
+                            </label>
                             <p className="mt-1 text-xs text-sub">Leave the shift blank to use the company shift. A new shift applies from today.</p>
                         </fieldset>
 

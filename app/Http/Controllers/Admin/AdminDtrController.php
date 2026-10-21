@@ -120,6 +120,7 @@ class AdminDtrController extends Controller
                 'department' => $employee->department,
                 'position' => $employee->position,
                 'initials' => $employee->initials,
+                'two_punch' => DtrLog::twoPunchLayout($employee->id, $entries),
             ],
             'logs' => $logs,
             'summary' => $summary,

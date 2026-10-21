@@ -86,6 +86,7 @@ class DtrPrintController extends Controller
             'employee' => $employee,
             'month' => $from->format('F Y'),
             'calendar' => $calendar,
+            'twoPunch' => DtrLog::twoPunchLayout($employee->id, $logs),
             'summary' => $summary,
             'settings' => $settings,
         ])->setPaper('a4', 'portrait');
