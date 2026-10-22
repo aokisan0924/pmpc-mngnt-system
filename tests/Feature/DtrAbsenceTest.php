@@ -28,6 +28,7 @@ class DtrAbsenceTest extends TestCase
         $employee = Employee::factory()->create(['date_hired' => '2026-10-01']);
         $this->actingAs($employee)->get('/employee/dtr?month=2026-10')->assertInertia(fn (Assert $page) => $page
             ->has('logs', 31)->has('weeklyStrip', 7)
+            ->where('logs.0.date', '2026-10-01')->where('logs.30.date', '2026-10-31')
             ->where('logs', fn ($logs) => collect($logs)->firstWhere('date', '2026-10-15')['status'] === 'absent'
                 && collect($logs)->firstWhere('date', '2026-10-16')['status'] === 'in_progress'
                 && collect($logs)->firstWhere('date', '2026-10-17')['status'] === 'rest_day'

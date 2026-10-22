@@ -38,7 +38,8 @@ class DtrController extends Controller
             ->keyBy(fn (DtrLog $log): string => $log->date->toDateString());
 
         $logs = collect();
-        for ($day = $endOfMonth->copy()->startOfDay(); $day->gte($startOfMonth); $day->subDay()) {
+        // Oldest to newest: the 1st at the top, month end at the bottom.
+        for ($day = $startOfMonth->copy(); $day->lte($endOfMonth); $day->addDay()) {
             $log = $entries->get($day->toDateString()) ?? new DtrLog([
                 'employee_id' => $employee->id, 'date' => $day->toDateString(), 'status' => 'absent',
             ]);
