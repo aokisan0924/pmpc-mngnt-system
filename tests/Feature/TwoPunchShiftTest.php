@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\DtrEditRequest;
 use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class TwoPunchShiftTest extends TestCase
@@ -141,5 +143,22 @@ class TwoPunchShiftTest extends TestCase
 
         $this->assertTrue(DtrLog::twoPunchLayout($employee->id, [$plain]));
         $this->assertFalse(DtrLog::twoPunchLayout($employee->id, [$plain, $withLunch]));
+    }
+
+    public function test_edit_requests_flag_only_two_punch_employees(): void
+    {
+        Carbon::setTestNow('2026-10-22 09:00:00');
+        $admin = Employee::factory()->create(['role' => 'super_admin']);
+        $twoPunch = $this->twoPunchEmployee('08:00', '20:00');
+        foreach ([$twoPunch, Employee::factory()->create()] as $employee) {
+            $log = DtrLog::factory()->create(['employee_id' => $employee->id, 'date' => '2026-10-22', 'am_time_in' => '08:02:00', 'am_time_out' => null, 'pm_time_in' => null, 'pm_time_out' => null]);
+            DtrEditRequest::create(['dtr_log_id' => $log->id, 'employee_id' => $employee->id, 'original_am_time_in' => '08:02:00', 'requested_am_time_in' => '07:58:00', 'reason' => 'Clocked in late by mistake', 'status' => 'pending']);
+        }
+
+        $this->actingAs($admin)->get(route('admin.edit-requests'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('requests', fn ($requests) => collect($requests)
+                    ->mapWithKeys(fn ($r) => [$r['employee_id'] => $r['two_punch']])
+                    ->filter()->keys()->all() === [$twoPunch->employee_id]));
     }
 }

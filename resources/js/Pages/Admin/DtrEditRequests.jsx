@@ -13,8 +13,8 @@ const PUNCH_ROWS = [
     ['PM Out', 'pm_time_out'],
 ]
 
-// Two-punch shifts have no lunch punches: show those rows only when either side has a value.
-const rowsFor = (req) => PUNCH_ROWS.filter(([, key]) => !['am_time_out', 'pm_time_in'].includes(key) || req[`original_${key}`] || req[`requested_${key}`])
+// Two-punch shifts have no lunch punches: for them, show those rows only when either side has a value.
+const rowsFor = (req) => PUNCH_ROWS.filter(([, key]) => !req.two_punch || !['am_time_out', 'pm_time_in'].includes(key) || req[`original_${key}`] || req[`requested_${key}`])
 
 export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
     const { flash, auth } = usePage().props

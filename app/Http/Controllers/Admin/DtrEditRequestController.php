@@ -29,6 +29,7 @@ class DtrEditRequestController extends Controller
                 'employee_name' => $r->employee->full_name,
                 'employee_id' => $r->employee->employee_id,
                 'date' => $r->dtrLog->date->format('M d, Y'),
+                'two_punch' => $r->dtrLog->isTwoPunch(),
                 'original_am_time_in' => $r->original_am_time_in,
                 'original_am_time_out' => $r->original_am_time_out,
                 'original_pm_time_in' => $r->original_pm_time_in,
