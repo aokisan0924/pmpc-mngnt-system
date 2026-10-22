@@ -63,6 +63,10 @@ class DtrPunchIntegrityTest extends TestCase
         $this->assertSame('half_day', $this->log(['07:56:59', '12:00:17', '12:00:21', '12:00:43'])->displayStatus());
         // Skipped lunch punches and tapped them at the end of the day: still a full day.
         $this->assertSame('on_time', $this->log(['07:52:16', '17:07:17', '17:07:19', '17:07:20'])->displayStatus());
+        // Forgot PM In and tapped both after the shift ended: stayed the whole afternoon.
+        $this->assertSame('on_time', $this->log(['07:36:00', '11:59:00', '17:13:00', '17:13:02'])->displayStatus());
+        // Worked through lunch and left exactly at lunch end: still a half day.
+        $this->assertSame('half_day', $this->log(['07:39:35', '13:00:55', '13:00:58', null])->displayStatus());
         // A normal day with a quick lunch tap stays a full day.
         $this->assertSame('on_time', $this->log(['07:55:00', '12:00:10', '12:00:12', '17:00:00'])->displayStatus());
     }

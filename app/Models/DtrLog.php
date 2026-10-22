@@ -192,15 +192,17 @@ class DtrLog extends Model
 
         $this->hours_rendered = round(($amMinutes + $pmMinutes) / 60, 2);
 
-        // A pair tapped through in under a minute was not worked.
+        // A pair tapped through in under a minute was not worked...
         $worked = fn (?string $in, ?string $out): bool => $in && $out
             && Carbon::parse($in)->diffInSeconds(Carbon::parse($out), false) >= 60;
         $hasAm = $worked($this->am_time_in, $this->am_time_out);
-        $hasPm = $worked($this->pm_time_in, $this->pm_time_out);
-        // One real pair that runs across lunch (lunch punches skipped) is still a full day.
+        // ...unless the PM pair was tapped at or after shift end: the employee stayed and forgot PM In.
+        $hasPm = $worked($this->pm_time_in, $this->pm_time_out)
+            || ($this->pm_time_in && $this->pm_time_out && $normalizeTime($this->pm_time_in) >= $shiftEnd);
+        // One real pair that runs past lunch on both sides (lunch punches skipped) is still a full day.
         $lunchStart = $normalizeTime((string) Setting::get('lunch_start', '12:00'));
         $lunchEnd = $normalizeTime((string) Setting::get('lunch_end', '13:00'));
-        $acrossLunch = fn (?string $in, ?string $out): bool => $normalizeTime($in) <= $lunchStart && $normalizeTime($out) >= $lunchEnd;
+        $acrossLunch = fn (?string $in, ?string $out): bool => $normalizeTime($in) <= $lunchStart && $normalizeTime($out) > $lunchEnd;
         $fullDay = ($hasAm && $hasPm)
             || ($hasAm && $acrossLunch($this->am_time_in, $this->am_time_out))
             || ($hasPm && $acrossLunch($this->pm_time_in, $this->pm_time_out));
