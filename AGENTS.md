@@ -162,3 +162,14 @@ When performing specialized workflows, activate the corresponding skill:
 - **MAJOR (`+1.0.0`)**: Breaking changes, such as changing the employee-ID format or an API response shape on which existing frontend code depends.
 
 Every code change from either Codex or Antigravity must be logged under `## [Unreleased]` in `CHANGELOG.md`, categorized as Added, Changed, Fixed, or Security, before it is committed. Version numbers are assigned only when the user explicitly says “cut a release”; do not assign a version automatically for a commit.
+
+---
+
+## 7. Live Deployments
+
+The live site is https://peoplescoopdtr.online (Hostinger). The server checkout is `~/domains/peoplescoopdtr.online/pmpc_mngnt`.
+
+1. **Deploy only through git.** Push to `main`, then on the server run `git pull --ff-only origin main`. Never copy files onto the server by hand, upload archives, or edit code on the server: the checkout must always match a commit. Built assets in `public/build` are committed, so the server needs no npm build.
+2. **Standard deploy:** check `git status --short` is clean, back up the database first when migrations or data changes are involved, then `php artisan down --retry=60`, `git pull --ff-only origin main`, `php artisan migrate --force`, `php artisan optimize:clear && php artisan optimize`, `php artisan up`. Stop and investigate if the server has uncommitted changes.
+3. **Log every deploy and every live-data change in `DEPLOYMENTS.md`**, newest first, using its template: time (Asia/Manila), who ran it, commit range, migrations, backup, data changes with how to undo them, and how it was verified. Commit the entry right after the deploy. Live-data changes include scripts, artisan data commands, SQL, and corrections made on someone's behalf. Routine HR approvals in the app are not logged.
+4. **Data commands run as a dry run first.** Review the list before saving with `--apply`, and leave out records whose saved times are themselves wrong.

@@ -55,6 +55,7 @@ Payroll update: **2026-10-02 (Asia/Manila)**. Version: **Unreleased**. Release c
 - Download saved monthly payroll as an Excel management workbook using a sanitized September template, with four office sheets, both cutoff sections, supplemental deduction details, and an accounting-review reconciliation. Missing cutoffs stay blank; export rejects duplicate batches, missing offices, or template capacity overflow without silently omitting employees. Payslip PDF downloads remain available.
 
 ### Changed
+- Added `DEPLOYMENTS.md`, a log of live-site deploys and live-data changes backfilled from 2026-10-17. AGENTS.md now requires deploying only with `git pull` on the server and logging every deploy or live-data change there.
 - The employee Monthly Attendance Log lists days from the 1st of the month down to the 30th or 31st, matching the admin DTR and the PDF.
 
 - Management Excel export: the Main Office sheet now holds four employees (TOTAL, sign-off, overtime and journal blocks move down one row, same styling), so the export no longer rejects the current Main Office staff.
