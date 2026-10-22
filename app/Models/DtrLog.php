@@ -192,16 +192,26 @@ class DtrLog extends Model
 
         $this->hours_rendered = round(($amMinutes + $pmMinutes) / 60, 2);
 
-        $hasAm = $this->am_time_in && $this->am_time_out;
-        $hasPm = $this->pm_time_in && $this->pm_time_out;
+        // A pair tapped through in under a minute was not worked.
+        $worked = fn (?string $in, ?string $out): bool => $in && $out
+            && Carbon::parse($in)->diffInSeconds(Carbon::parse($out), false) >= 60;
+        $hasAm = $worked($this->am_time_in, $this->am_time_out);
+        $hasPm = $worked($this->pm_time_in, $this->pm_time_out);
+        // One real pair that runs across lunch (lunch punches skipped) is still a full day.
+        $lunchStart = $normalizeTime((string) Setting::get('lunch_start', '12:00'));
+        $lunchEnd = $normalizeTime((string) Setting::get('lunch_end', '13:00'));
+        $acrossLunch = fn (?string $in, ?string $out): bool => $normalizeTime($in) <= $lunchStart && $normalizeTime($out) >= $lunchEnd;
+        $fullDay = ($hasAm && $hasPm)
+            || ($hasAm && $acrossLunch($this->am_time_in, $this->am_time_out))
+            || ($hasPm && $acrossLunch($this->pm_time_in, $this->pm_time_out));
 
         if (! $hasAm && ! $hasPm) {
             $this->status = 'absent';
-        } elseif (! $hasAm || ! $hasPm) {
+        } elseif (! $fullDay) {
             $this->status = 'half_day';
         } else {
-            $amTimeIn = $normalizeTime($this->am_time_in);
-            $pmTimeOut = $normalizeTime($this->pm_time_out);
+            $amTimeIn = $normalizeTime($this->am_time_in ?? $this->pm_time_in);
+            $pmTimeOut = $normalizeTime($this->pm_time_out ?? $this->am_time_out);
 
             // gte: clocking in AT shift start (or grace cutoff) is on time
             $isLate = $amTimeIn > $graceTime;
@@ -319,6 +329,10 @@ class DtrLog extends Model
         }
         // A two-punch day that was never closed: flagged for HR instead of silently counting as absent.
         if ($this->am_time_in && ! $this->pm_time_out && $this->date->lt(today()) && $this->isTwoPunch()) {
+            return 'missing_out';
+        }
+        // A past four-punch day with a clock-in but no worked pair: the employee came in but never clocked out.
+        if ($this->status === 'absent' && ($this->am_time_in || $this->pm_time_in) && $this->date->lt(today())) {
             return 'missing_out';
         }
         if ($this->isExcusedAbsence()) {

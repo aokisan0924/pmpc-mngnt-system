@@ -117,8 +117,13 @@ export default function DtrEditRequestModal({ log, onClose, twoPunch = false }) 
                                         type="time"
                                         value={data[slot]}
                                         onChange={e => setData(slot, e.target.value)}
+                                        aria-invalid={!!errors[slot]}
+                                        aria-describedby={errors[slot] ? `edit-slot-${slot}-error` : undefined}
                                         className="w-full px-3 py-2 text-xs font-mono rounded-lg border border-border bg-panel text-text outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
                                     />
+                                    {errors[slot] && (
+                                        <p id={`edit-slot-${slot}-error`} role="alert" className="mt-1 text-xs text-rose-600 dark:text-rose-400">{errors[slot]}</p>
+                                    )}
                                 </div>
                             ))}
                         </div>
