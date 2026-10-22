@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Afternoon-only half days: a four-punch employee's first punch at or after lunch start (12:00 by default) is saved as PM In, and the next as PM Out. The AM pair is skipped, and the day shows Half day as soon as PM Out is recorded. Employees whose own shift starts after lunch keep the normal order.
 - DTR log rows (employee DTR page and the admin's per-employee DTR) show the day's latest edit request: its status, the employee's reason, each changed punch as original → edited time, and any admin note.
 - Per-employee two-punch shifts (time in / time out, no lunch, may end after midnight), set in the employee compensation tab; an overnight clock-out closes the log opened the evening before. Two-punch days show Time In/Time Out in DTR tables, print and archive, an unclosed day is flagged "Missing time out" (pays 0 until HR corrects it), and HR corrections accept overnight times.
 

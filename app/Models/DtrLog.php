@@ -100,8 +100,12 @@ class DtrLog extends Model
         if ($this->isTwoPunch()) {
             return ! $this->am_time_in ? 'am_time_in' : (! $this->pm_time_out ? 'pm_time_out' : null);
         }
+        if (! $this->am_time_in && ! $this->pm_time_in) {
+            return $this->date?->isToday() && self::afternoonStartNow((int) $this->employee_id) ? 'pm_time_in' : 'am_time_in';
+        }
+        // Afternoon-only half day: the AM pair is skipped.
         if (! $this->am_time_in) {
-            return 'am_time_in';
+            return $this->pm_time_out ? null : 'pm_time_out';
         }
         if (! $this->am_time_out) {
             return 'am_time_out';
@@ -114,6 +118,15 @@ class DtrLog extends Model
         }
 
         return null;
+    }
+
+    /** A first punch at or after lunch start begins an afternoon-only half day, unless the shift itself starts after lunch. */
+    public static function afternoonStartNow(int $employeeId): bool
+    {
+        $lunchStart = substr((string) Setting::get('lunch_start', '12:00'), 0, 5);
+        $shiftStart = substr((string) (Setting::employeeShiftForDate($employeeId, today())['start'] ?? Setting::get('shift_start', '08:00')), 0, 5);
+
+        return $shiftStart < $lunchStart && now()->format('H:i') >= $lunchStart;
     }
 
     public function punchesCount(): int

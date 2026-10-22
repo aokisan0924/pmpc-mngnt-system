@@ -98,8 +98,8 @@ export default function Dashboard({
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
     // Determine current next expected punch index for administrator
-    const completedPunches = PUNCH_SLOTS.filter(s => Boolean(admin_dtr?.[s.key])).length
-    const nextPunchIndex = completedPunches < 4 ? completedPunches : -1
+    // The server picks the slot: an afternoon-only half day skips the AM pair.
+    const nextPunchIndex = PUNCH_SLOTS.findIndex(s => s.key === admin_dtr?.next_punch)
     const nextSlot = nextPunchIndex !== -1 ? PUNCH_SLOTS[nextPunchIndex] : null
     const nextScheduledTime = nextSlot ? schedule?.[nextSlot.key] : null
 
@@ -287,7 +287,7 @@ export default function Dashboard({
                                     </h2>
                                     <p className="text-xs text-indigo-100/80">
                                         {nextSlot
-                                            ? `Step ${completedPunches + 1} of 4 · Shift ${schedule?.am_time_in || '08:00'}–${schedule?.pm_time_out || '17:00'} (Asia/Manila standard time)`
+                                            ? `Step ${nextPunchIndex + 1} of 4 · Shift ${schedule?.am_time_in || '08:00'}–${schedule?.pm_time_out || '17:00'} (Asia/Manila standard time)`
                                             : 'Daily attendance milestones secured. Shift logged.'}
                                     </p>
 

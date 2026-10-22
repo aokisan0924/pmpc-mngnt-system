@@ -125,8 +125,8 @@ export default function Dashboard({
     const punchSlots = today?.two_punch
         ? [{ ...PUNCH_SLOTS[0], label: 'Time In', stepNum: 1 }, { ...PUNCH_SLOTS[3], label: 'Time Out', stepNum: 2 }]
         : PUNCH_SLOTS
-    const completedPunches = punchSlots.filter(s => Boolean(today?.[s.key])).length
-    const nextPunchIndex = completedPunches < punchSlots.length ? completedPunches : -1
+    // The server picks the slot: an afternoon-only half day skips the AM pair.
+    const nextPunchIndex = punchSlots.findIndex(s => s.key === today?.next_punch)
     const nextSlot = nextPunchIndex !== -1 ? punchSlots[nextPunchIndex] : null
     const nextScheduledTime = nextSlot ? schedule?.[nextSlot.key] : null
 
@@ -274,13 +274,13 @@ export default function Dashboard({
                                     {today?.has_active_absence ? 'Planned absence' : nextSlot ? 'Next required action' : 'Today’s attendance'}
                                 </span>
                                 <h2 id="next-dtr-action" className="mt-1 font-heading text-xl sm:text-2xl font-bold text-white tracking-tight">
-                                    {today?.has_active_absence ? 'Absence notice active' : nextSlot ? `Punch ${nextSlot.label}` : `All ${punchSlots.length === 2 ? 'two' : 'four'} punches completed`}
+                                    {today?.has_active_absence ? 'Absence notice active' : nextSlot ? `Punch ${nextSlot.label}` : !today?.two_punch && !today?.am_time_in && today?.pm_time_out ? 'Afternoon half day completed' : `All ${punchSlots.length === 2 ? 'two' : 'four'} punches completed`}
                                 </h2>
                                 <p className="mt-0.5 text-xs sm:text-sm text-emerald-100/80">
                                     {today?.has_active_absence
                                         ? (today.absence_reason || 'Cancel this notice before clocking in.')
                                         : nextSlot
-                                        ? `Step ${completedPunches + 1} of ${punchSlots.length}${nextScheduledTime ? ` · Scheduled ${formatPunchTime(nextScheduledTime)}` : ' · Asia/Manila standard time'}`
+                                        ? `Step ${nextPunchIndex + 1} of ${punchSlots.length}${nextScheduledTime ? ` · Scheduled ${formatPunchTime(nextScheduledTime)}` : ' · Asia/Manila standard time'}`
                                         : 'Daily milestones secured. Shift complete.'}
                                 </p>
                             </div>

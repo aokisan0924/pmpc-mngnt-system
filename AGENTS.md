@@ -32,7 +32,7 @@ Welcome to the **PMPC WorkForce** (People's Workforce Management System) reposit
 
 ### Domain Compliance (Philippine HR & Labor Standards)
 1. **Timezone**: All timestamps must adhere to `Asia/Manila`.
-2. **DTR Punch Flow**: Strict 4-punch sequence (`am_in` -> `am_out` -> `pm_in` -> `pm_out`). Locked once submitted.
+2. **DTR Punch Flow**: Strict 4-punch sequence (`am_in` -> `am_out` -> `pm_in` -> `pm_out`). Locked once submitted. Exceptions: a first punch at or after lunch start begins an afternoon-only half day (`pm_in` -> `pm_out`), and two-punch shifts use `am_in` -> `pm_out`.
 3. **Payroll Cutoffs**:
    - 1st Cutoff (1st–15th): Base pay + full statutory deductions (SSS, PhilHealth, Pag-IBIG).
    - 2nd Cutoff (16th–EOM): Base pay + waived statutory deductions + split loans.

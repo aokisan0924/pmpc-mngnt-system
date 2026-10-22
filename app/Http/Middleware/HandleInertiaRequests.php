@@ -46,7 +46,7 @@ class HandleInertiaRequests extends Middleware
                 ? EmployeeNotification::unreadCount($request->user()->id)
                 : 0,
             'dtr_today' => $request->user() ? [
-                'next_slot' => DtrLog::forPunch($request->user()->id, false)?->getNextPunchSlot() ?? 'am_time_in',
+                'next_slot' => DtrLog::forPunch($request->user()->id, false)?->getNextPunchSlot() ?? (DtrLog::afternoonStartNow($request->user()->id) ? 'pm_time_in' : 'am_time_in'),
                 'punches_count' => DtrLog::forPunch($request->user()->id, false)?->punchesCount() ?? 0,
             ] : null,
         ]);
