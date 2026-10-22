@@ -76,7 +76,7 @@ class AdminDtrController extends Controller
 
         $entries = DtrLog::where('employee_id', $employee->id)
             ->whereBetween('date', [$from, $to])
-            ->with('pendingEditRequest')
+            ->with(['pendingEditRequest', 'latestEditRequest'])
             ->get()
             ->keyBy(fn (DtrLog $log): string => $log->date->format('Y-m-d'));
 
@@ -100,6 +100,7 @@ class AdminDtrController extends Controller
                 'hours_rendered' => $log?->hours_rendered ?? 0,
                 'status' => $log?->displayStatus() ?? DtrLog::fallbackStatus($employee->id, $day),
                 'has_pending_edit' => $log?->pendingEditRequest !== null,
+                'edit_request' => $log?->latestEditRequest?->logSummary(),
             ]);
         }
 

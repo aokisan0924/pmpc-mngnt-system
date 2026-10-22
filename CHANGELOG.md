@@ -8,9 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- DTR log rows (employee DTR page and the admin's per-employee DTR) show the day's latest edit request: its status, the employee's reason, each changed punch as original → edited time, and any admin note.
 - Per-employee two-punch shifts (time in / time out, no lunch, may end after midnight), set in the employee compensation tab; an overnight clock-out closes the log opened the evening before. Two-punch days show Time In/Time Out in DTR tables, print and archive, an unclosed day is flagged "Missing time out" (pays 0 until HR corrects it), and HR corrections accept overnight times.
 
 ### Fixed
+- Super admins can open My attendance and My tasks again. The `role` middleware only read the first role of `role:employee,super_admin`, because Laravel passes comma-separated middleware parameters as separate arguments, so admins were redirected to the dashboard.
 - Employee and individual admin DTR logs highlight today in Manila time and scroll to it on opening the current month, without moving the reading position during background refreshes or correction saves.
 - Shared employee routes now enforce the existing role and active-account checks, while logout remains available to authenticated users.
 - Dashboard attendance and estimated basic pay use half-day weighting; 13th-month automatic attendance is limited to scheduled days from hire/account start through today and inside the selected period.

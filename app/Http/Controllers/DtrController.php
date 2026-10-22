@@ -32,7 +32,7 @@ class DtrController extends Controller
 
         $entries = DtrLog::where('employee_id', $employee->id)
             ->whereBetween('date', [$startOfMonth, $endOfMonth])
-            ->with('pendingEditRequest')
+            ->with(['pendingEditRequest', 'latestEditRequest'])
             ->orderBy('date', 'desc')
             ->get()
             ->keyBy(fn (DtrLog $log): string => $log->date->toDateString());
@@ -43,6 +43,7 @@ class DtrController extends Controller
                 'employee_id' => $employee->id, 'date' => $day->toDateString(), 'status' => 'absent',
             ]);
             $log->setRelation('pendingEditRequest', $log->exists ? $log->pendingEditRequest : null);
+            $log->setRelation('latestEditRequest', $log->exists ? $log->latestEditRequest : null);
             $logs->push($this->formatLog($log));
         }
 
@@ -239,6 +240,7 @@ class DtrController extends Controller
             'hours_rendered' => $log->hours_rendered,
             'status' => $status,
             'has_pending_edit' => $log->pendingEditRequest !== null,
+            'edit_request' => $log->latestEditRequest?->logSummary(),
             'next_punch' => $log->getNextPunchSlot(),
         ];
     }

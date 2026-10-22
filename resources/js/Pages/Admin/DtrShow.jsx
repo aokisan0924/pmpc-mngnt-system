@@ -5,6 +5,7 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import AdminPageHeader from '@/Components/AdminPageHeader'
 import Button from '@/Components/UI/Button'
+import DtrEditRequestNote from '@/Components/DtrEditRequestNote'
 import useDtrToday from '@/hooks/useDtrToday'
 
 const SLOTS = [['am_time_in', 'AM in'], ['am_time_out', 'AM out'], ['pm_time_in', 'PM in'], ['pm_time_out', 'PM out']]
@@ -203,6 +204,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                                         </Badge>
                                                     )}
                                                     {log.absence_reason && <p className="mt-1 max-w-64 whitespace-normal text-left text-xs text-sub">{log.absence_reason}</p>}
+                                                    <DtrEditRequestNote request={log.edit_request} slots={slots} />
                                                     {!log.has_entry && !log.is_future && <p className="mt-1 text-[11px] text-dim">No entry</p>}
                                                 </td>
                                                 {canCorrect && (

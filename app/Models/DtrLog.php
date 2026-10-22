@@ -49,6 +49,11 @@ class DtrLog extends Model
         return $this->hasOne(DtrEditRequest::class)->where('status', 'pending');
     }
 
+    public function latestEditRequest()
+    {
+        return $this->hasOne(DtrEditRequest::class)->latestOfMany();
+    }
+
     // ── Next punch slot ────────────────────────────────────
 
     /** Two-punch shift (time in / time out, no lunch): only am_time_in and pm_time_out are used. */

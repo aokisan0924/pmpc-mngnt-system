@@ -46,6 +46,31 @@ class DtrEditRequest extends Model
         return $this->belongsTo(Employee::class, 'reviewed_by');
     }
 
+    /** Reason, status and the punches that changed (original -> requested), for DTR log rows. */
+    public function logSummary(): array
+    {
+        $time = fn (?string $value): ?string => $value ? substr($value, 0, 5) : null;
+
+        $changes = collect(['am_time_in' => 'AM In', 'am_time_out' => 'AM Out', 'pm_time_in' => 'PM In', 'pm_time_out' => 'PM Out'])
+            ->map(fn (string $label, string $slot): array => [
+                'slot' => $slot,
+                'label' => $label,
+                'original' => $time($this->{"original_{$slot}"}),
+                'requested' => $time($this->{"requested_{$slot}"}),
+            ])
+            ->filter(fn (array $change): bool => $change['original'] !== $change['requested'])
+            ->values()
+            ->all();
+
+        return [
+            'status' => $this->status,
+            'reason' => $this->reason,
+            'admin_note' => $this->admin_note,
+            'changes' => $changes,
+            'submitted_at' => $this->created_at?->timezone('Asia/Manila')->format('M d, Y g:i A'),
+        ];
+    }
+
     public function isPending(): bool
     {
         return $this->status === 'pending';

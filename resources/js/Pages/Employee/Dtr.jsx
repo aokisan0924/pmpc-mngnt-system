@@ -3,6 +3,7 @@ import { router, useForm, usePage, usePoll } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import EmployeePageHeader from '@/Components/EmployeePageHeader'
 import DtrEditRequestModal from '@/Components/DtrEditRequestModal'
+import DtrEditRequestNote from '@/Components/DtrEditRequestNote'
 import Card, { CardContent, CardHeader, CardTitle } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
@@ -282,6 +283,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                         <td className="px-3 py-2 sm:py-2.5 text-center font-sans">
                                             {getStatusBadge(log)}
                                             {log.absence_reason && <p className="mt-1 max-w-56 whitespace-normal text-left text-xs text-sub">{log.absence_reason}</p>}
+                                            <DtrEditRequestNote request={log.edit_request} slots={slots} />
                                         </td>
                                         <td className="px-4 py-2 sm:py-2.5 text-right font-sans">
                                             {log.can_cancel_absence && <button type="button" disabled={cancellation.processing} onClick={() => cancellation.post(`/employee/dtr/${log.id}/absence/cancel`, { preserveScroll: true })} className="mr-2 text-xs font-semibold text-emerald-700">Cancel notice</button>}
@@ -327,6 +329,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                         </div>
                                     ))}
                                 </div>
+                                <DtrEditRequestNote request={log.edit_request} slots={slots} />
                                 <div className="flex items-center justify-between text-xs pt-1">
                                     <span className="text-sub font-mono font-medium">
                                         {log.hours_rendered ? `${log.hours_rendered}h rendered` : 'No hours'}

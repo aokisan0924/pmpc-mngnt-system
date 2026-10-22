@@ -9,12 +9,12 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureRole
 {
-    public function handle(Request $request, Closure $next, string $roles): Response
+    // Laravel passes "role:a,b" as separate arguments, so collect them all.
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         $employee = $request->user();
-        $allowedRoles = explode(',', $roles);
 
-        if (! $employee || ! in_array($employee->role, $allowedRoles, true)) {
+        if (! $employee || ! in_array($employee->role, $roles, true)) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Forbidden.'], 403);
             }
