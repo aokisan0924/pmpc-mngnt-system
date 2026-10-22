@@ -21,6 +21,14 @@ Entry template:
 
 ---
 
+## 2026-10-22 13:46 — data only — Ricalde two-punch shift backdated, tap-through punches cleared
+- By: Claude Code (SSH key), requested by Kurt
+- Code: none
+- Migrations: none
+- Backup: `~/backups/ricalde-2punch-20261022.json` (setting `employee_shift_14`, `dtr_logs` 552 and 555)
+- Data changes: Princess Kynna Ricalde (employee 14) two-punch shift `effective_from` 2026-10-21 → 2026-10-17, since she worked it from Oct 17 but had to tap through AM Out / PM In. Cleared those tap-through punches: Oct 17 (552) AM Out 19:45:57 and PM In 19:45:59; Oct 18 (555) AM Out 07:49:15 and PM In 07:49:16. AM In, PM Out, hours (12.38, 12.87) and status (on_time) unchanged. Undo: restore the values from the backup file and `Cache::forget('setting_employee_shift_14')`.
+- Verified: database shows both days as In/Out only with the same hours and status; `Employee::hasTwoPunchShift(14)` is true for today. Dry run in a rolled-back transaction first.
+
 ## 2026-10-22 09:13 — c410db5 — Employee monthly log oldest → newest
 - By: Claude Code (SSH key), requested by Kurt
 - Code: e9b631b → c410db5
