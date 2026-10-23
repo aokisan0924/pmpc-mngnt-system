@@ -40,7 +40,7 @@ class EmployeeScheduleHistoryTest extends TestCase
         $this->schedule($e, '2026-10-01', 'two_punch', '1,2,3,4,5', '07:00', '19:00');
         $this->schedule($e, '2026-10-20', 'standard', '1,2,3,4,5');
 
-        $old = DtrLog::factory()->create(['employee_id' => $e->id, 'date' => '2026-10-10', 'status' => 'absent',
+        $old = DtrLog::factory()->create(['employee_id' => $e->id, 'date' => '2026-10-09', 'status' => 'absent',
             'am_time_in' => '07:00:00', 'am_time_out' => null, 'pm_time_in' => null, 'pm_time_out' => null]);
         $new = DtrLog::factory()->create(['employee_id' => $e->id, 'date' => '2026-10-21', 'status' => 'on_time',
             'am_time_in' => '08:00:00', 'am_time_out' => '12:00:00', 'pm_time_in' => '13:00:00', 'pm_time_out' => '17:00:00']);
@@ -53,7 +53,7 @@ class EmployeeScheduleHistoryTest extends TestCase
 
         $admin = Employee::factory()->superAdmin()->create(['employee_id' => 'EMP-0002', 'is_staff' => false]);
         $this->actingAs($admin)->post(route('admin.dtr.corrections.store', $e), [
-            'date' => '2026-10-10', 'am_time_in' => '07:00', 'am_time_out' => '12:00', 'pm_time_out' => '19:00', 'reason' => 'x',
+            'date' => '2026-10-09', 'am_time_in' => '07:00', 'am_time_out' => '12:00', 'pm_time_out' => '19:00', 'reason' => 'x',
         ])->assertSessionHasErrors('am_time_out');
     }
 

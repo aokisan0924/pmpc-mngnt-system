@@ -152,21 +152,23 @@ class EmployeeController extends Controller
         // A request that sends no hours leaves the shift alone; blank hours mean the standard shift.
         $shift = ! array_key_exists('shift_start', $validated) ? $current
             : (filled($validated['shift_start']) ? ['start' => $validated['shift_start'], 'end' => $validated['shift_end'], 'two_punch' => $twoPunch] : null);
-        // Save a schedule row only on change so re-saving the tab doesn't move the effective date.
-        if ($shift !== $current || $days !== Employee::workDaysFor($employee->id, today())) {
-            EmployeeSchedule::updateOrCreate(
-                ['employee_id' => $employee->id, 'effective_from' => today()->toDateString()],
-                [
-                    'type' => $shift === null ? 'standard' : ($shift['two_punch'] ? 'two_punch' : 'custom'),
-                    'shift_start' => $shift['start'] ?? null,
-                    'shift_end' => $shift['end'] ?? null,
-                    'work_days' => implode(',', $days),
-                    'created_by' => $request->user()->id,
-                ],
-            );
-        }
-        unset($validated['shift_start'], $validated['shift_end'], $validated['two_punch'], $validated['work_days']);
-        $employee->update($validated);
+        DB::transaction(function () use ($request, $employee, $validated, $shift, $current, $days): void {
+            // Save a schedule row only on change so re-saving the tab doesn't move the effective date.
+            if ($shift !== $current || $days !== Employee::workDaysFor($employee->id, today())) {
+                EmployeeSchedule::updateOrCreate(
+                    ['employee_id' => $employee->id, 'effective_from' => today()->toDateString()],
+                    [
+                        'type' => $shift === null ? 'standard' : ($shift['two_punch'] ? 'two_punch' : 'custom'),
+                        'shift_start' => $shift['start'] ?? null,
+                        'shift_end' => $shift['end'] ?? null,
+                        'work_days' => implode(',', $days),
+                        'created_by' => $request->user()->id,
+                    ],
+                );
+            }
+            unset($validated['shift_start'], $validated['shift_end'], $validated['two_punch'], $validated['work_days']);
+            $employee->update($validated);
+        });
 
         return back()->with('success', 'Compensation updated.');
     }
