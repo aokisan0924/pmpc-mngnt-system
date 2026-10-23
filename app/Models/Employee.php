@@ -150,6 +150,11 @@ class Employee extends Authenticatable
         return $this->hasOne(EmployeeGovernmentId::class);
     }
 
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(EmployeeSchedule::class)->orderBy('effective_from');
+    }
+
     public function dtrLogs()
     {
         return $this->hasMany(DtrLog::class);
