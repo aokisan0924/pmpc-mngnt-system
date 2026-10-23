@@ -21,6 +21,14 @@ Entry template:
 
 ---
 
+## 2026-10-23 15:07 — dfd9891 — Dated schedule history for shifts and workdays
+- By: Claude Code (SSH key), requested by Kurt
+- Code: c410db5 → dfd9891
+- Migrations: `2026_10_23_000001_create_employee_schedules_table`, `2026_10_23_000002_move_shifts_and_work_days_to_employee_schedules`
+- Backup: `~/backups/pre-schedule-history-20261023-1506.sql.gz` (full database, taken just before the deploy)
+- Data changes: the four personal shifts (`employee_shift_11`, `_14`, `_15`, `_16` settings) and the `employees.work_days` values moved into 5 `employee_schedules` rows; those settings and the `work_days` column were removed. Undo: restore the backup and redeploy c410db5 (`php artisan migrate:rollback --step=2` also restores them, but drops any schedule history saved after this deploy).
+- Verified: before deploying, ran the migration on a local copy of the live database and compared 3,757 values for all 17 employees (Sep 1 – Oct 23). Absences, days present, hours and DTR layouts were identical; only labels on days before Ricalde, Malana and Sibal started changed between Not started and Rest day (accepted). On live: 5 schedule rows as expected, no shift settings left, `work_days` column gone, Ricalde Oct 18 still on time with the Time In / Time Out layout, `/login` returns 200.
+
 ## 2026-10-22 13:46 — data only — Ricalde two-punch shift backdated, tap-through punches cleared
 - By: Claude Code (SSH key), requested by Kurt
 - Code: none
