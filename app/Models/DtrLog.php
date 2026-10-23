@@ -59,7 +59,7 @@ class DtrLog extends Model
     /** Two-punch shift (time in / time out, no lunch): only am_time_in and pm_time_out are used. */
     public function isTwoPunch(): bool
     {
-        return Setting::employeeShiftForDate((int) $this->employee_id, $this->date)['two_punch'] ?? false;
+        return EmployeeSchedule::shiftFor((int) $this->employee_id, $this->date)['two_punch'] ?? false;
     }
 
     /** The log a punch made now belongs to: an overnight shift's clock-out lands on the log opened yesterday. */
@@ -80,8 +80,13 @@ class DtrLog extends Model
     /** Show Time In / Time Out columns only: a two-punch employee whose displayed logs hold no lunch punches. */
     public static function twoPunchLayout(int $employeeId, iterable $logs): bool
     {
-        return Employee::hasTwoPunchShift($employeeId)
-            && collect($logs)->every(fn (self $log): bool => ! $log->am_time_out && ! $log->pm_time_in);
+        $logs = collect($logs);
+        if ($logs->isEmpty()) {
+            return Employee::hasTwoPunchShift($employeeId);
+        }
+
+        // Judged by each log's own date, so a later shift change doesn't relabel old days.
+        return $logs->every(fn (self $log): bool => $log->isTwoPunch() && ! $log->am_time_out && ! $log->pm_time_in);
     }
 
     /** Yesterday's overnight two-punch shift that is still waiting for this morning's clock-out. */
@@ -90,7 +95,7 @@ class DtrLog extends Model
         if (! $this->date->isYesterday() || ! $this->am_time_in || $this->pm_time_out || ! $this->isTwoPunch()) {
             return false;
         }
-        $shift = Setting::employeeShiftForDate((int) $this->employee_id, $this->date);
+        $shift = EmployeeSchedule::shiftFor((int) $this->employee_id, $this->date);
 
         return $shift['end'] < $shift['start'];
     }
@@ -124,7 +129,7 @@ class DtrLog extends Model
     public static function afternoonStartNow(int $employeeId): bool
     {
         $lunchStart = substr((string) Setting::get('lunch_start', '12:00'), 0, 5);
-        $shiftStart = substr((string) (Setting::employeeShiftForDate($employeeId, today())['start'] ?? Setting::get('shift_start', '08:00')), 0, 5);
+        $shiftStart = substr((string) (EmployeeSchedule::shiftFor($employeeId, today())['start'] ?? Setting::get('shift_start', '08:00')), 0, 5);
 
         return $shiftStart < $lunchStart && now()->format('H:i') >= $lunchStart;
     }
@@ -152,7 +157,7 @@ class DtrLog extends Model
 
     public function computeHoursAndStatus(): void
     {
-        $personalShift = Setting::employeeShiftForDate((int) $this->employee_id, $this->date);
+        $personalShift = EmployeeSchedule::shiftFor((int) $this->employee_id, $this->date);
         $shiftStart = $personalShift['start'] ?? Setting::get('shift_start', '08:00');
         $shiftEnd = $personalShift['end'] ?? ($this->date->isFriday() ? '16:00' : Setting::get('shift_end', '17:00'));
         $graceMinutes = (int) Setting::get('late_grace_minutes', '0');
@@ -343,7 +348,7 @@ class DtrLog extends Model
         // Historical Friday logs can still have the old 17:00-based status.
         if ($this->status === 'undertime' && $this->date->isFriday()
             && $this->pm_time_out && substr($this->pm_time_out, 0, 5) >= '16:00'
-            && Setting::employeeShiftForDate((int) $this->employee_id, $this->date) === null) {
+            && EmployeeSchedule::shiftFor((int) $this->employee_id, $this->date) === null) {
             return 'on_time';
         }
 

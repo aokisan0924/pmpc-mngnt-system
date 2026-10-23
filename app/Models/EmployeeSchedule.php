@@ -14,7 +14,7 @@ class EmployeeSchedule extends Model
         'employee_id', 'effective_from', 'type', 'shift_start', 'shift_end', 'work_days', 'created_by',
     ];
 
-    protected $casts = ['effective_from' => 'date'];
+    protected $casts = ['effective_from' => 'date:Y-m-d'];
 
     protected static function booted(): void
     {

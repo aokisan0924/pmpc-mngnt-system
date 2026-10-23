@@ -10,7 +10,7 @@ use App\Http\Requests\Admin\UpdateCompensationRequest;
 use App\Http\Requests\Admin\UpdateEmployeeRequest;
 use App\Models\Employee;
 use App\Models\EmployeeGovernmentId;
-use App\Models\Setting;
+use App\Models\EmployeeSchedule;
 use App\Services\OfficePayrollCalculator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -85,8 +85,8 @@ class EmployeeController extends Controller
                 'savings_deduction' => $employee->savings_deduction,
                 'other_deductions' => $employee->other_deductions,
                 'auto_present_weekdays' => $employee->auto_present_weekdays,
-                'work_days' => Employee::workDaysFor($employee->id),
-                'shift' => Setting::employeeShiftForDate($employee->id, today()),
+                'work_days' => Employee::workDaysFor($employee->id, today()),
+                'shift' => EmployeeSchedule::shiftFor($employee->id, today()),
             ],
             'offices' => OfficePayrollCalculator::OFFICES,
             'setupHistory' => $employee->accountSetupRequests()->latest('id')->get(['id', 'status', 'details', 'review_note', 'reviewed_by', 'reviewed_at']),
@@ -145,19 +145,27 @@ class EmployeeController extends Controller
     public function updateCompensation(UpdateCompensationRequest $request, Employee $employee): RedirectResponse
     {
         $validated = $request->validated();
-        if (array_key_exists('work_days', $validated)) {
-            $days = collect($validated['work_days'])->map(fn ($day): int => (int) $day)->unique()->sort()->values()->all();
-            // Monday–Friday is the default, stored as null.
-            $validated['work_days'] = $days === Employee::DEFAULT_WORK_DAYS ? null : implode(',', $days);
-        }
+        $days = collect($validated['work_days'] ?? Employee::workDaysFor($employee->id, today()))
+            ->map(fn ($day): int => (int) $day)->unique()->sort()->values()->all();
+        $current = EmployeeSchedule::shiftFor($employee->id, today());
         $twoPunch = (bool) ($validated['two_punch'] ?? false);
-        $shift = ['start' => $validated['shift_start'] ?? null, 'end' => $validated['shift_end'] ?? null, 'two_punch' => $twoPunch];
-        // Rewrite only on change so re-saving the tab doesn't move the effective date.
-        if (filled($shift['start']) && $shift !== Setting::employeeShiftForDate($employee->id, today())) {
-            // Personal shift applies from today; earlier attendance keeps its status.
-            Setting::set("employee_shift_{$employee->id}", json_encode(['effective_from' => today()->toDateString(), 'start' => $validated['shift_start'], 'end' => $validated['shift_end'], 'two_punch' => $twoPunch]));
+        // A request that sends no hours leaves the shift alone; blank hours mean the standard shift.
+        $shift = ! array_key_exists('shift_start', $validated) ? $current
+            : (filled($validated['shift_start']) ? ['start' => $validated['shift_start'], 'end' => $validated['shift_end'], 'two_punch' => $twoPunch] : null);
+        // Save a schedule row only on change so re-saving the tab doesn't move the effective date.
+        if ($shift !== $current || $days !== Employee::workDaysFor($employee->id, today())) {
+            EmployeeSchedule::updateOrCreate(
+                ['employee_id' => $employee->id, 'effective_from' => today()->toDateString()],
+                [
+                    'type' => $shift === null ? 'standard' : ($shift['two_punch'] ? 'two_punch' : 'custom'),
+                    'shift_start' => $shift['start'] ?? null,
+                    'shift_end' => $shift['end'] ?? null,
+                    'work_days' => implode(',', $days),
+                    'created_by' => $request->user()->id,
+                ],
+            );
         }
-        unset($validated['shift_start'], $validated['shift_end'], $validated['two_punch']);
+        unset($validated['shift_start'], $validated['shift_end'], $validated['two_punch'], $validated['work_days']);
         $employee->update($validated);
 
         return back()->with('success', 'Compensation updated.');

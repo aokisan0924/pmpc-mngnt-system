@@ -6,7 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\DtrLog;
 use App\Models\Employee;
-use App\Models\Setting;
+use App\Models\EmployeeSchedule;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -65,7 +65,7 @@ class AfternoonHalfDayTest extends TestCase
     public function test_a_personal_shift_starting_after_lunch_keeps_the_normal_order(): void
     {
         $employee = Employee::factory()->create();
-        Setting::set("employee_shift_{$employee->id}", json_encode(['effective_from' => '2026-10-01', 'start' => '13:00', 'end' => '22:00', 'two_punch' => false]));
+        EmployeeSchedule::create(['employee_id' => $employee->id, 'effective_from' => '2026-10-01', 'type' => 'custom', 'shift_start' => '13:00', 'shift_end' => '22:00', 'work_days' => '1,2,3,4,5']);
         $this->punchAt($employee, '13:00:00');
 
         $log = DtrLog::where('employee_id', $employee->id)->firstOrFail();

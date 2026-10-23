@@ -6,6 +6,7 @@ use App\Models\DtrEditRequest;
 use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\EmployeeNotification;
+use App\Models\EmployeeSchedule;
 use App\Models\PayrollItem;
 use App\Models\Setting;
 use App\Models\Task;
@@ -105,7 +106,7 @@ class EmployeeDashboardController extends Controller
             'is_payday_today' => $now->isSameDay($paydayDate),
         ];
 
-        $personalShift = Setting::employeeShiftForDate((int) $employee->id, $now);
+        $personalShift = EmployeeSchedule::shiftFor((int) $employee->id, $now);
         $schedule = [
             'am_time_in' => $personalShift['start'] ?? Setting::get('shift_start', '08:00'),
             'am_time_out' => Setting::get('lunch_start', '12:00'),

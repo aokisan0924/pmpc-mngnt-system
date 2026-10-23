@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Models\DtrEditRequest;
 use App\Models\DtrLog;
 use App\Models\Employee;
+use App\Models\EmployeeSchedule;
 use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,9 +21,7 @@ class TwoPunchShiftTest extends TestCase
     private function twoPunchEmployee(string $start, string $end): Employee
     {
         $employee = Employee::factory()->create();
-        Setting::set("employee_shift_{$employee->id}", json_encode([
-            'effective_from' => '2026-10-01', 'start' => $start, 'end' => $end, 'two_punch' => true,
-        ], JSON_THROW_ON_ERROR));
+        EmployeeSchedule::create(['employee_id' => $employee->id, 'effective_from' => '2026-10-01', 'type' => 'two_punch', 'shift_start' => $start, 'shift_end' => $end, 'work_days' => '1,2,3,4,5']);
 
         return $employee;
     }

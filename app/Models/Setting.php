@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use Carbon\CarbonInterface;
-use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -30,39 +28,6 @@ class Setting extends Model
     {
         static::updateOrCreate(['key' => $key], ['value' => $value]);
         Cache::forget("setting_{$key}");
-    }
-
-    /**
-     * @return array{start: string, end: string, two_punch: bool}|null
-     */
-    public static function employeeShiftForDate(int $employeeId, CarbonInterface $date): ?array
-    {
-        $shift = json_decode((string) static::get("employee_shift_{$employeeId}", ''), true);
-
-        if (! is_array($shift)) {
-            return null;
-        }
-
-        $effectiveFrom = $shift['effective_from'] ?? null;
-        $start = $shift['start'] ?? null;
-        $end = $shift['end'] ?? null;
-        // Two-punch shifts (time in / time out, no lunch) may end after midnight.
-        $twoPunch = ($shift['two_punch'] ?? false) === true;
-
-        if (! is_string($effectiveFrom) || ! is_string($start) || ! is_string($end)
-            || ! preg_match('/\A[0-9]{4}-[0-9]{2}-[0-9]{2}\z/', $effectiveFrom)) {
-            return null;
-        }
-
-        $effectiveDate = DateTimeImmutable::createFromFormat('!Y-m-d', $effectiveFrom);
-        if (! $effectiveDate || $effectiveDate->format('Y-m-d') !== $effectiveFrom
-            || ! preg_match('/\A(?:[01][0-9]|2[0-3]):[0-5][0-9]\z/', $start)
-            || ! preg_match('/\A(?:[01][0-9]|2[0-3]):[0-5][0-9]\z/', $end)
-            || $start === $end || (! $twoPunch && $start > $end) || $date->toDateString() < $effectiveFrom) {
-            return null;
-        }
-
-        return ['start' => $start, 'end' => $end, 'two_punch' => $twoPunch];
     }
 
     /**

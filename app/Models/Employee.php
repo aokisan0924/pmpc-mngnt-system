@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Services\OfficePayrollCalculator;
 use Carbon\CarbonInterface;
+use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -24,7 +25,6 @@ class Employee extends Authenticatable
         'role',
         'is_staff',
         'auto_present_weekdays',
-        'work_days',
         'department',
         'position',
         'phone',
@@ -93,30 +93,33 @@ class Employee extends Authenticatable
 
     public const DEFAULT_WORK_DAYS = [1, 2, 3, 4, 5];
 
-    /** Days of the week the employee works (0 = Sunday … 6 = Saturday), cached per request. */
-    public static function workDaysFor(int $id): array
+    /** Days of the week the employee works on the date (0 = Sunday … 6 = Saturday). */
+    public static function workDaysFor(int $id, CarbonInterface $date): array
     {
-        $custom = once(fn (): array => static::query()->whereNotNull('work_days')->pluck('work_days', 'id')
-            ->map(fn (string $days): array => array_map('intval', array_filter(explode(',', $days), 'strlen')))
-            ->all())[$id] ?? [];
-
-        return $custom !== [] ? $custom : self::DEFAULT_WORK_DAYS;
+        return EmployeeSchedule::workDaysFor($id, $date);
     }
 
     public static function isWorkDay(int $id, CarbonInterface $date): bool
     {
-        return in_array($date->dayOfWeek, self::workDaysFor($id), true);
+        return in_array($date->dayOfWeek, self::workDaysFor($id, $date), true);
     }
 
     /** Whether the employee's current shift is a two-punch (time in / time out) shift. */
     public static function hasTwoPunchShift(int $id): bool
     {
-        return Setting::employeeShiftForDate($id, today())['two_punch'] ?? false;
+        return EmployeeSchedule::shiftFor($id, today())['two_punch'] ?? false;
     }
 
-    public static function hasCustomWorkDays(int $id): bool
+    /** Whether any day in the range follows non-default workdays. */
+    public static function hasCustomWorkDays(int $id, CarbonInterface $from, CarbonInterface $to): bool
     {
-        return self::workDaysFor($id) !== self::DEFAULT_WORK_DAYS;
+        foreach (CarbonPeriod::create($from, $to) as $day) {
+            if (self::workDaysFor($id, $day) !== self::DEFAULT_WORK_DAYS) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** First day an absence can count: hire date, else the account creation date (Y-m-d), cached per request. */

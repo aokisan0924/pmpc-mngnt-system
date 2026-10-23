@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\Concerns\ValidatesPunchOrder;
-use App\Models\Setting;
+use App\Models\EmployeeSchedule;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -37,7 +37,7 @@ class CorrectDtrRequest extends FormRequest
                 return;
             }
             $employee = $this->route('employee');
-            $shift = $employee ? Setting::employeeShiftForDate($employee->id, Carbon::parse($this->input('date'))) : null;
+            $shift = $employee ? EmployeeSchedule::shiftFor($employee->id, Carbon::parse($this->input('date'))) : null;
             $this->validatePunchOrder($validator, array_combine(self::SLOTS, self::SLOTS), $shift['two_punch'] ?? false);
         });
     }

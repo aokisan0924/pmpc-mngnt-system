@@ -6,7 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\DtrLog;
 use App\Models\Employee;
-use App\Models\Setting;
+use App\Models\EmployeeSchedule;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
@@ -21,9 +21,15 @@ class EmployeeWorkDaysTest extends TestCase
         return array_replace(['daily_rate' => 600, 'work_days' => [1, 2, 3, 4, 5]], $changes);
     }
 
+    private function weekendSchedule(Employee $employee): void
+    {
+        EmployeeSchedule::create(['employee_id' => $employee->id, 'effective_from' => '2026-01-01', 'type' => 'standard', 'work_days' => '0,6']);
+    }
+
     public function test_weekend_worker_rests_on_weekdays_and_is_absent_on_unlogged_weekends(): void
     {
-        $employee = Employee::factory()->create(['date_hired' => '2026-09-01', 'work_days' => '0,6']);
+        $employee = Employee::factory()->create(['date_hired' => '2026-09-01']);
+        $this->weekendSchedule($employee);
 
         $this->assertSame('rest_day', DtrLog::fallbackStatus($employee->id, Carbon::parse('2026-09-02')));
         $this->assertSame('absent', DtrLog::fallbackStatus($employee->id, Carbon::parse('2026-09-05')));
@@ -37,7 +43,8 @@ class EmployeeWorkDaysTest extends TestCase
     public function test_payroll_preview_paid_days_equal_weekend_days_in_cutoff(): void
     {
         $admin = Employee::factory()->superAdmin()->create(['is_staff' => false]);
-        $employee = Employee::factory()->create(['work_days' => '0,6']);
+        $employee = Employee::factory()->create();
+        $this->weekendSchedule($employee);
         $employee->forceFill(['payroll_office' => 'main_office', 'setup_completed_at' => now(), 'office_verified_at' => now()])->save();
 
         $this->actingAs($admin)->get(route('admin.payroll.create', ['period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'cutoff' => 'first']))
@@ -46,18 +53,25 @@ class EmployeeWorkDaysTest extends TestCase
                 ->where('employees.0.paid_days_basis', 4));
     }
 
-    public function test_compensation_stores_work_days_and_monday_to_friday_as_null(): void
+    public function test_compensation_writes_a_schedule_row_for_today_and_only_on_change(): void
     {
         $admin = Employee::factory()->superAdmin()->create();
         $employee = Employee::factory()->create();
 
         $this->actingAs($admin)->patch(route('admin.employees.compensation', $employee), $this->compensation(['work_days' => [6, 0]]))
             ->assertSessionHasNoErrors();
-        $this->assertSame('0,6', $employee->fresh()->work_days);
+        $row = EmployeeSchedule::where('employee_id', $employee->id)->sole();
+        $this->assertSame('0,6', $row->work_days);
+        $this->assertSame('standard', $row->type);
+        $this->assertSame($admin->id, $row->created_by);
+        $this->assertSame(today()->toDateString(), $row->effective_from->toDateString());
 
+        // Saving again with the same workdays changes nothing; going back to Mon-Fri rewrites today's row.
+        $this->actingAs($admin)->patch(route('admin.employees.compensation', $employee), $this->compensation(['work_days' => [0, 6]]));
+        $this->assertSame(1, EmployeeSchedule::where('employee_id', $employee->id)->count());
         $this->actingAs($admin)->patch(route('admin.employees.compensation', $employee), $this->compensation())
             ->assertSessionHasNoErrors();
-        $this->assertNull($employee->fresh()->work_days);
+        $this->assertSame('1,2,3,4,5', EmployeeSchedule::where('employee_id', $employee->id)->sole()->work_days);
 
         $this->actingAs($admin)->patch(route('admin.employees.compensation', $employee), $this->compensation(['work_days' => []]))
             ->assertSessionHasErrors('work_days');
@@ -77,7 +91,8 @@ class EmployeeWorkDaysTest extends TestCase
         $this->actingAs($admin)->patch(route('admin.employees.compensation', $employee), $this->compensation($shift))
             ->assertSessionHasNoErrors();
 
-        $this->assertSame(['start' => '07:00', 'end' => '19:00', 'two_punch' => false], Setting::employeeShiftForDate($employee->id, Carbon::parse('2026-10-15')));
-        $this->assertNull(Setting::employeeShiftForDate($employee->id, Carbon::parse('2026-10-14')));
+        $this->assertSame(['start' => '07:00', 'end' => '19:00', 'two_punch' => false], EmployeeSchedule::shiftFor($employee->id, Carbon::parse('2026-10-15')));
+        $this->assertNull(EmployeeSchedule::shiftFor($employee->id, Carbon::parse('2026-10-14')));
+        $this->assertSame(1, EmployeeSchedule::where('employee_id', $employee->id)->count());
     }
 }

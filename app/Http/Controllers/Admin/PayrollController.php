@@ -69,7 +69,7 @@ class PayrollController extends Controller
             ->map(function (Employee $emp) use ($attendance, $isFirst, $from, $to): array {
                 $office = $emp->hasVerifiedPayrollOffice() ? $emp->payroll_office : '';
                 // Custom schedules (e.g. a weekend reliever) start from their workdays in the cutoff instead of the office default.
-                $paidDays = Employee::hasCustomWorkDays($emp->id)
+                $paidDays = Employee::hasCustomWorkDays($emp->id, $from, $to)
                     ? collect(CarbonPeriod::create($from, $to))->filter(fn ($day): bool => Employee::isWorkDay($emp->id, $day))->count()
                     : (OfficePayrollCalculator::OFFICES[$office]['days'] ?? 11);
                 $suggestions = app(OfficePayrollCalculator::class)->calculate($emp, $isFirst, $paidDays, 0);

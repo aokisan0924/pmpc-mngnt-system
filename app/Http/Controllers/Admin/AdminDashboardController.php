@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DtrEditRequest;
 use App\Models\DtrLog;
 use App\Models\Employee;
+use App\Models\EmployeeSchedule;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
 use App\Models\Setting;
@@ -346,7 +347,7 @@ class AdminDashboardController extends Controller
             'punches_count' => $adminTodayLog->punchesCount(),
         ];
 
-        $personalShift = Setting::employeeShiftForDate((int) $admin->id, $today);
+        $personalShift = EmployeeSchedule::shiftFor((int) $admin->id, $today);
         $schedule = [
             'am_time_in' => $personalShift['start'] ?? Setting::get('shift_start', '08:00'),
             'am_time_out' => Setting::get('lunch_start', '12:00'),

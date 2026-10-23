@@ -296,7 +296,6 @@ class AuditFixRegressionTest extends TestCase
         $employee = Employee::factory()->create([
             'date_hired' => '2026-08-10',
             'auto_present_weekdays' => true,
-            'work_days' => '1,2,3,4,5',
         ]);
 
         $days = app(ThirteenthMonthCalculator::class)->attendanceDays(

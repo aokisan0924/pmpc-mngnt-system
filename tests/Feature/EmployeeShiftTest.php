@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Models\DtrEditRequest;
 use App\Models\DtrLog;
 use App\Models\Employee;
+use App\Models\EmployeeSchedule;
 use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,9 +21,7 @@ class EmployeeShiftTest extends TestCase
     private function employeeWithShift(array $attributes = []): Employee
     {
         $employee = Employee::factory()->create($attributes);
-        Setting::set("employee_shift_{$employee->id}", json_encode([
-            'effective_from' => '2026-10-01', 'start' => '11:00', 'end' => '20:00',
-        ], JSON_THROW_ON_ERROR));
+        EmployeeSchedule::create(['employee_id' => $employee->id, 'effective_from' => '2026-10-01', 'type' => 'custom', 'shift_start' => '11:00', 'shift_end' => '20:00', 'work_days' => '1,2,3,4,5']);
 
         return $employee;
     }
@@ -104,19 +103,12 @@ class EmployeeShiftTest extends TestCase
         $this->assertSame('rest_day', $absent->displayStatus());
     }
 
-    public function test_malformed_or_inactive_shift_settings_fall_back_to_existing_rules(): void
+    public function test_a_schedule_row_starting_after_the_date_does_not_apply(): void
     {
         $employee = Employee::factory()->create();
-        foreach ([
-            'invalid json',
-            '{"effective_from":"2026-02-30","start":"11:00","end":"20:00"}',
-            '{"effective_from":"2026-10-01","start":"25:00","end":"20:00"}',
-            '{"effective_from":"2026-10-01","start":"20:00","end":"11:00"}',
-            '{"effective_from":"2026-10-15","start":"11:00","end":"20:00"}',
-        ] as $setting) {
-            Setting::set("employee_shift_{$employee->id}", $setting);
-            $this->assertNull(Setting::employeeShiftForDate($employee->id, Carbon::parse('2026-10-14')));
-        }
+        EmployeeSchedule::create(['employee_id' => $employee->id, 'effective_from' => '2026-10-15', 'type' => 'custom', 'shift_start' => '11:00', 'shift_end' => '20:00', 'work_days' => '1,2,3,4,5']);
+
+        $this->assertNull(EmployeeSchedule::shiftFor($employee->id, Carbon::parse('2026-10-14')));
     }
 
     public function test_both_dashboards_show_the_personal_shift_without_changing_lunch_times(): void
