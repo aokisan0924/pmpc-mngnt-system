@@ -515,7 +515,7 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                             <fieldset className="space-y-2">
                                 <legend className="text-xs font-semibold text-sub mb-2 uppercase tracking-wide">Shift</legend>
                                 {[
-                                    ['standard', 'Standard (8\–5, 4 punches)'],
+                                    ['standard', 'Standard (8–5, 4 punches)'],
                                     ['two_punch', '2 punches (own hours)'],
                                     ['custom', 'Custom (4 punches, own hours)'],
                                 ].map(([value, label]) => (
@@ -583,7 +583,7 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                         <div>
                             <p className="text-xs font-semibold text-sub mb-2 uppercase tracking-wide">Schedule history</p>
                             {schedules.length === 0 ? (
-                                <p className="text-sm text-sub">No saved schedule. The standard shift, Monday\–Friday, applies.</p>
+                                <p className="text-sm text-sub">No saved schedule. The standard shift, Monday–Friday, applies.</p>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-sm text-left">
@@ -602,9 +602,9 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                                                 <tr key={row.id} className="border-t border-border">
                                                     <td className="py-2 pr-4 whitespace-nowrap">{row.effective_from}</td>
                                                     <td className="py-2 pr-4">{typeLabels[row.type]}</td>
-                                                    <td className="py-2 pr-4 whitespace-nowrap">{row.type === 'standard' ? 'Company hours' : `${row.shift_start}\–${row.shift_end}`}</td>
+                                                    <td className="py-2 pr-4 whitespace-nowrap">{row.type === 'standard' ? 'Company hours' : `${row.shift_start}–${row.shift_end}`}</td>
                                                     <td className="py-2 pr-4">{row.work_days.map(d => dayNames[d]).join(', ')}</td>
-                                                    <td className="py-2 pr-4">{row.created_by_name ?? '\—'}</td>
+                                                    <td className="py-2 pr-4">{row.created_by_name ?? '—'}</td>
                                                     <td className="py-2 text-right">
                                                         {row.effective_from > todayManila && (
                                                             <button type="button" onClick={() => setDeleteRow(row)}
