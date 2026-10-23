@@ -31,6 +31,9 @@ class EmployeeScheduleService
     public function save(Employee $employee, array $data, ?Employee $admin): EmployeeSchedule
     {
         return DB::transaction(function () use ($employee, $data, $admin): EmployeeSchedule {
+            // Serialise with DtrController::punch so the recompute can't overwrite a concurrent punch.
+            Employee::whereKey($employee->id)->lockForUpdate()->first();
+
             $standard = $data['schedule_type'] === 'standard';
             $days = collect($data['work_days'])->map(fn ($d): int => (int) $d)->unique()->sort()->values()->all();
 

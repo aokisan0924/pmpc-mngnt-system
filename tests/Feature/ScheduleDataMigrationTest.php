@@ -38,6 +38,7 @@ class ScheduleDataMigrationTest extends TestCase
         DB::table('settings')->insert([
             ['key' => "employee_shift_{$c->id}", 'value' => json_encode(['effective_from' => '2026-10-17', 'start' => '19:00', 'end' => '07:00', 'two_punch' => true])],
             ['key' => "employee_shift_{$d->id}", 'value' => '{"effective_from": "2026-10-17", "start": '],
+            ['key' => 'employee_shift_notes', 'value' => 'keep me'],
         ]);
         Setting::get("employee_shift_{$c->id}"); // warm the settings cache the migration must clear
 
@@ -56,7 +57,7 @@ class ScheduleDataMigrationTest extends TestCase
         ], $rows($c));
         $this->assertSame([], $rows($d));
         $this->assertFalse(Schema::hasColumn('employees', 'work_days'));
-        $this->assertSame(0, DB::table('settings')->where('key', 'like', 'employee_shift_%')->count());
+        $this->assertSame(['employee_shift_notes'], DB::table('settings')->where('key', 'like', 'employee_shift_%')->pluck('key')->all());
         $this->assertFalse(Cache::has("setting_employee_shift_{$c->id}"));
 
         // (c): a four-punch Saturday before the shift change, a closed overnight shift, and an unclosed one.

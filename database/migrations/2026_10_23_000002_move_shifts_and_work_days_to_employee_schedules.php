@@ -90,9 +90,9 @@ return new class extends Migration
     /** @return Collection<string, ?string> key => value */
     private function shiftSettings(): Collection
     {
-        // LIKE treats "_" as a wildcard, so confirm the exact prefix.
+        // LIKE narrows the query; the regex is the exact key shape ("_" is a LIKE wildcard).
         return DB::table('settings')->where('key', 'like', 'employee_shift_%')->pluck('value', 'key')
-            ->filter(fn (?string $value, string $key): bool => str_starts_with($key, 'employee_shift_'));
+            ->filter(fn (?string $value, string $key): bool => preg_match('/^employee_shift_\d+$/', $key) === 1);
     }
 
     /** Old reader: comma list of ints; null or nothing usable means Monday–Friday. */

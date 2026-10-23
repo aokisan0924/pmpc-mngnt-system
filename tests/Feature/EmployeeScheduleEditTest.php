@@ -76,6 +76,14 @@ class EmployeeScheduleEditTest extends TestCase
         $this->assertSame('late', $after->refresh()->status);
     }
 
+    public function test_missing_shift_end_gives_one_error(): void
+    {
+        $response = $this->save(['shift_end' => '']);
+
+        $response->assertSessionHasErrors('shift_end');
+        $this->assertCount(1, session('errors')->get('shift_end'));
+    }
+
     public function test_same_start_date_replaces_the_row(): void
     {
         $this->save()->assertSessionHasNoErrors();

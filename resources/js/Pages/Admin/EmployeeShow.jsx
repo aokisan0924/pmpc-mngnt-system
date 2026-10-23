@@ -527,7 +527,7 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                                         {label}
                                     </label>
                                 ))}
-                                {scheduleForm.errors.schedule_type && <p className="text-xs text-red">{scheduleForm.errors.schedule_type}</p>}
+                                {scheduleForm.errors.schedule_type && <p role="alert" className="text-xs text-red">{scheduleForm.errors.schedule_type}</p>}
                             </fieldset>
 
                             {scheduleForm.data.schedule_type !== 'standard' && (

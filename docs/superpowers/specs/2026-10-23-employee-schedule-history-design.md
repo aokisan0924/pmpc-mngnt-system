@@ -89,7 +89,7 @@ One cached-per-request lookup, e.g. `EmployeeSchedule::forDate(int $employeeId, 
 
 ### Backdated recalculation
 
-When Starts on is before today, in one `DB::transaction`: save the row, then run `computeHoursAndStatus()` on that employee's logs from Starts on through yesterday (the same rule as `dtr:recompute-status --apply`), saving only hours and status. No preview, no notification.
+When Starts on is today or earlier, in one `DB::transaction`: save the row, then run `computeHoursAndStatus()` on that employee's logs from Starts on through today, ending before the next schedule row (the same rule as `dtr:recompute-status --apply`), saving only hours and status. No preview, no notification.
 
 ### Add-employee form
 
