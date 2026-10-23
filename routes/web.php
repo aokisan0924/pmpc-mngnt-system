@@ -127,6 +127,8 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::patch('/employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
         Route::patch('/employees/{employee}/password', [EmployeeController::class, 'resetPassword'])->name('employees.password');
         Route::patch('/employees/{employee}/compensation', [EmployeeController::class, 'updateCompensation'])->name('employees.compensation');
+        Route::put('/employees/{employee}/schedule', [EmployeeController::class, 'saveSchedule'])->name('employees.schedule');
+        Route::delete('/employees/{employee}/schedule/{schedule}', [EmployeeController::class, 'destroySchedule'])->name('employees.schedule.destroy');
         Route::patch('/employees/{employee}/government-ids', [EmployeeController::class, 'updateGovIds'])->name('employees.government-ids');
         Route::get('/employees/{employee}/dtr/print', [DtrPrintController::class, 'adminPrint'])->name('employees.dtr.print');
 

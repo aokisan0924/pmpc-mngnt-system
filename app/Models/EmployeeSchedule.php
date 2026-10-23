@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Once;
 
 class EmployeeSchedule extends Model
@@ -21,6 +22,11 @@ class EmployeeSchedule extends Model
         // The lookup is memoized per request; drop it whenever a row changes.
         static::saved(fn () => Once::flush());
         static::deleted(fn () => Once::flush());
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class, 'created_by');
     }
 
     /** @return array<int> */

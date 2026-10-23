@@ -1,8 +1,9 @@
 import PayrollOfficeAssignment from '@/Components/PayrollOfficeAssignment'
 import { useState } from 'react'
-import { useForm, usePage, Link } from '@inertiajs/react'
+import { useForm, usePage, Link, router } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Button from '@/Components/UI/Button'
+import ConfirmModal from '@/Components/ConfirmModal'
 import AdminPageHeader from '@/Components/AdminPageHeader'
 import EmployeeSignatureUpload from '@/Components/EmployeeSignatureUpload'
 
@@ -62,7 +63,7 @@ function Field({ label, error, required, children }) {
     )
 }
 
-export default function EmployeeShow({ employee, govIds, offices = {}, setupHistory = [] }) {
+export default function EmployeeShow({ employee, govIds, offices = {}, setupHistory = [], schedules = [], earliestScheduleDate = null }) {
     const { flash }               = usePage().props
     const [activeTab, setActiveTab] = useState('info')
 
@@ -96,11 +97,33 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
         savings_deduction:                employee.savings_deduction                ?? '0',
         other_deductions:                 employee.other_deductions                 ?? '0',
         auto_present_weekdays:            !!employee.auto_present_weekdays,
-        work_days:                        employee.work_days ?? [1, 2, 3, 4, 5],
-        shift_start:                      employee.shift?.start ?? '',
-        two_punch:                        employee.shift?.two_punch ?? false,
-        shift_end:                        employee.shift?.end ?? '',
     })
+
+    const scheduleForm = useForm({
+        schedule_type: employee.shift ? (employee.shift.two_punch ? 'two_punch' : 'custom') : 'standard',
+        shift_start:   employee.shift?.start ?? '',
+        shift_end:     employee.shift?.end ?? '',
+        work_days:     employee.work_days ?? [1, 2, 3, 4, 5],
+        effective_from: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' }),
+    })
+    const [deleteRow, setDeleteRow] = useState(null)
+    const [deleting, setDeleting]   = useState(false)
+    const todayManila = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' })
+    const dayNames    = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const typeLabels  = { standard: 'Standard', two_punch: '2 punches', custom: 'Custom' }
+
+    function submitSchedule(e) {
+        e.preventDefault()
+        scheduleForm.put(`/admin/employees/${employee.id}/schedule`, { preserveScroll: true })
+    }
+
+    function confirmDelete() {
+        setDeleting(true)
+        router.delete(`/admin/employees/${employee.id}/schedule/${deleteRow.id}`, {
+            preserveScroll: true,
+            onFinish: () => { setDeleting(false); setDeleteRow(null) },
+        })
+    }
 
     const passForm = useForm({
         password:              '',
@@ -153,6 +176,7 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
         { key: 'info',         label: 'Profile',        Icon: IconUser   },
         { key: 'gov_ids',      label: 'Government IDs', Icon: IconId     },
         { key: 'compensation', label: 'Compensation',   Icon: IconWallet },
+        { key: 'schedule',     label: 'Schedule',       Icon: IconWallet },
         { key: 'password',     label: 'Reset password', Icon: IconLock   },
     ]
 
@@ -463,37 +487,6 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                             </div>
                         </section>
 
-                        <fieldset className="rounded-xl border border-border bg-field/60 p-4 text-sm text-text">
-                            <legend className="px-1 font-semibold">Work schedule</legend>
-                            <p className="text-xs text-sub">Workdays count for attendance and payroll paid days; other days are rest days. Default is Monday–Friday.</p>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((label, day) => (
-                                    <label key={label} className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-panel px-3">
-                                        <input type="checkbox" checked={compForm.data.work_days.includes(day)}
-                                            onChange={e => compForm.setData('work_days', e.target.checked ? [...compForm.data.work_days, day] : compForm.data.work_days.filter(d => d !== day))}
-                                            className="h-4 w-4" />
-                                        {label}
-                                    </label>
-                                ))}
-                            </div>
-                            {compForm.errors.work_days && <p className="mt-1 text-xs text-rose-700">{compForm.errors.work_days}</p>}
-                            <div className="mt-3 grid grid-cols-2 gap-3 sm:max-w-sm">
-                                <label className="text-xs font-medium text-sub">Shift start
-                                    <input type="time" value={compForm.data.shift_start} onChange={e => compForm.setData('shift_start', e.target.value)} className={inputClass} />
-                                    {compForm.errors.shift_start && <span className="mt-1 block text-rose-700">{compForm.errors.shift_start}</span>}
-                                </label>
-                                <label className="text-xs font-medium text-sub">Shift end
-                                    <input type="time" value={compForm.data.shift_end} onChange={e => compForm.setData('shift_end', e.target.value)} className={inputClass} />
-                                    {compForm.errors.shift_end && <span className="mt-1 block text-rose-700">{compForm.errors.shift_end}</span>}
-                                </label>
-                            </div>
-                            <label className="mt-3 flex min-h-[44px] items-center gap-2 text-sm text-text sm:max-w-sm">
-                                <input type="checkbox" checked={compForm.data.two_punch} onChange={e => compForm.setData('two_punch', e.target.checked)} className="h-4 w-4" />
-                                Two-punch shift (time in / time out, no lunch; may end after midnight)
-                            </label>
-                            <p className="mt-1 text-xs text-sub">Leave the shift blank to use the company shift. A new shift applies from today.</p>
-                        </fieldset>
-
                         <label className="flex min-h-[44px] items-start gap-3 rounded-xl border border-border bg-field/60 p-4 text-sm text-text">
                             <input type="checkbox" checked={compForm.data.auto_present_weekdays}
                                 onChange={e => compForm.setData('auto_present_weekdays', e.target.checked)}
@@ -513,6 +506,131 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                             )}
                         </div>
                     </form>
+                )}
+
+                {/* Schedule tab */}
+                {activeTab === 'schedule' && (
+                    <div className="bg-panel rounded-2xl border border-border shadow-sm p-5 sm:p-6 space-y-6">
+                        <form onSubmit={submitSchedule} className="space-y-5">
+                            <fieldset className="space-y-2">
+                                <legend className="text-xs font-semibold text-sub mb-2 uppercase tracking-wide">Shift</legend>
+                                {[
+                                    ['standard', 'Standard (8\–5, 4 punches)'],
+                                    ['two_punch', '2 punches (own hours)'],
+                                    ['custom', 'Custom (4 punches, own hours)'],
+                                ].map(([value, label]) => (
+                                    <label key={value} className="flex min-h-[44px] items-center gap-2 text-sm text-text">
+                                        <input type="radio" name="schedule_type" value={value}
+                                            checked={scheduleForm.data.schedule_type === value}
+                                            onChange={() => scheduleForm.setData('schedule_type', value)}
+                                            className="h-4 w-4" />
+                                        {label}
+                                    </label>
+                                ))}
+                                {scheduleForm.errors.schedule_type && <p className="text-xs text-red">{scheduleForm.errors.schedule_type}</p>}
+                            </fieldset>
+
+                            {scheduleForm.data.schedule_type !== 'standard' && (
+                                <div className="grid grid-cols-2 gap-3 sm:max-w-sm">
+                                    <Field label="Shift start" required error={scheduleForm.errors.shift_start}>
+                                        <input type="time" value={scheduleForm.data.shift_start}
+                                            onChange={e => scheduleForm.setData('shift_start', e.target.value)} className={inputClass} />
+                                    </Field>
+                                    <Field label="Shift end" required error={scheduleForm.errors.shift_end}>
+                                        <input type="time" value={scheduleForm.data.shift_end}
+                                            onChange={e => scheduleForm.setData('shift_end', e.target.value)} className={inputClass} />
+                                    </Field>
+                                </div>
+                            )}
+
+                            <div>
+                                <p className="text-xs font-semibold text-sub mb-2 uppercase tracking-wide">Workdays</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {dayNames.map((label, day) => (
+                                        <label key={label} className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-panel px-3 text-sm text-text">
+                                            <input type="checkbox" checked={scheduleForm.data.work_days.includes(day)}
+                                                onChange={e => scheduleForm.setData('work_days', e.target.checked ? [...scheduleForm.data.work_days, day] : scheduleForm.data.work_days.filter(d => d !== day))}
+                                                className="h-4 w-4" />
+                                            {label}
+                                        </label>
+                                    ))}
+                                </div>
+                                {scheduleForm.errors.work_days && <p className="mt-1 text-xs text-red">{scheduleForm.errors.work_days}</p>}
+                            </div>
+
+                            <div className="sm:max-w-xs">
+                                <Field label="Starts on" required error={scheduleForm.errors.effective_from}>
+                                    <input type="date" value={scheduleForm.data.effective_from}
+                                        min={earliestScheduleDate ?? undefined}
+                                        onChange={e => scheduleForm.setData('effective_from', e.target.value)} className={inputClass} />
+                                </Field>
+                                <p className="mt-1 text-xs text-sub">
+                                    A past date updates the status and hours of attendance from that day; punches are never changed.
+                                    {earliestScheduleDate && ` Earlier dates are locked by finalized payroll.`}
+                                </p>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <Button type="submit" variant="primary" size="md" loading={scheduleForm.processing} disabled={scheduleForm.processing}>
+                                    Save schedule
+                                </Button>
+                                {scheduleForm.recentlySuccessful && (
+                                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Saved</span>
+                                )}
+                            </div>
+                        </form>
+
+                        <div>
+                            <p className="text-xs font-semibold text-sub mb-2 uppercase tracking-wide">Schedule history</p>
+                            {schedules.length === 0 ? (
+                                <p className="text-sm text-sub">No saved schedule. The standard shift, Monday\–Friday, applies.</p>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="text-xs text-sub">
+                                            <tr>
+                                                <th className="py-2 pr-4 font-medium">Starts on</th>
+                                                <th className="py-2 pr-4 font-medium">Type</th>
+                                                <th className="py-2 pr-4 font-medium">Hours</th>
+                                                <th className="py-2 pr-4 font-medium">Days</th>
+                                                <th className="py-2 pr-4 font-medium">Saved by</th>
+                                                <th className="py-2"><span className="sr-only">Actions</span></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="text-text">
+                                            {schedules.map(row => (
+                                                <tr key={row.id} className="border-t border-border">
+                                                    <td className="py-2 pr-4 whitespace-nowrap">{row.effective_from}</td>
+                                                    <td className="py-2 pr-4">{typeLabels[row.type]}</td>
+                                                    <td className="py-2 pr-4 whitespace-nowrap">{row.type === 'standard' ? 'Company hours' : `${row.shift_start}\–${row.shift_end}`}</td>
+                                                    <td className="py-2 pr-4">{row.work_days.map(d => dayNames[d]).join(', ')}</td>
+                                                    <td className="py-2 pr-4">{row.created_by_name ?? '\—'}</td>
+                                                    <td className="py-2 text-right">
+                                                        {row.effective_from > todayManila && (
+                                                            <button type="button" onClick={() => setDeleteRow(row)}
+                                                                className="min-h-[44px] px-2 text-xs font-medium text-rose-700 hover:underline">
+                                                                Delete
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+
+                        <ConfirmModal
+                            open={deleteRow !== null}
+                            title="Delete scheduled change"
+                            message={deleteRow ? `Remove the schedule that starts on ${deleteRow.effective_from}?` : ''}
+                            confirmLabel="Delete"
+                            onConfirm={confirmDelete}
+                            onCancel={() => setDeleteRow(null)}
+                            processing={deleting}
+                        />
+                    </div>
                 )}
 
                 {/* Reset password tab */}

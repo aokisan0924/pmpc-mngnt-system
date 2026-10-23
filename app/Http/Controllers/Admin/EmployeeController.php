@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\SaveEmployeeScheduleRequest;
 use App\Http\Requests\Admin\StoreEmployeeRequest;
 use App\Http\Requests\Admin\UpdateCompensationRequest;
 use App\Http\Requests\Admin\UpdateEmployeeRequest;
 use App\Models\Employee;
 use App\Models\EmployeeGovernmentId;
 use App\Models\EmployeeSchedule;
+use App\Services\EmployeeScheduleService;
 use App\Services\OfficePayrollCalculator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,7 +46,7 @@ class EmployeeController extends Controller
         ]);
     }
 
-    public function show(Employee $employee): Response
+    public function show(Employee $employee, EmployeeScheduleService $service): Response
     {
         $employee->loadMissing('governmentIds');
 
@@ -88,6 +90,17 @@ class EmployeeController extends Controller
                 'work_days' => Employee::workDaysFor($employee->id, today()),
                 'shift' => EmployeeSchedule::shiftFor($employee->id, today()),
             ],
+            'schedules' => EmployeeSchedule::with('creator')->where('employee_id', $employee->id)->orderByDesc('effective_from')->get()
+                ->map(fn (EmployeeSchedule $s): array => [
+                    'id' => $s->id,
+                    'effective_from' => $s->effective_from->toDateString(),
+                    'type' => $s->type,
+                    'shift_start' => $s->shift_start,
+                    'shift_end' => $s->shift_end,
+                    'work_days' => $s->workDays(),
+                    'created_by_name' => $s->creator?->full_name,
+                ])->all(),
+            'earliestScheduleDate' => $service->earliestEditableDate($employee)?->toDateString(),
             'offices' => OfficePayrollCalculator::OFFICES,
             'setupHistory' => $employee->accountSetupRequests()->latest('id')->get(['id', 'status', 'details', 'review_note', 'reviewed_by', 'reviewed_at']),
             'govIds' => $employee->governmentIds ? [
@@ -144,33 +157,24 @@ class EmployeeController extends Controller
 
     public function updateCompensation(UpdateCompensationRequest $request, Employee $employee): RedirectResponse
     {
-        $validated = $request->validated();
-        $days = collect($validated['work_days'] ?? Employee::workDaysFor($employee->id, today()))
-            ->map(fn ($day): int => (int) $day)->unique()->sort()->values()->all();
-        $current = EmployeeSchedule::shiftFor($employee->id, today());
-        $twoPunch = (bool) ($validated['two_punch'] ?? false);
-        // A request that sends no hours leaves the shift alone; blank hours mean the standard shift.
-        $shift = ! array_key_exists('shift_start', $validated) ? $current
-            : (filled($validated['shift_start']) ? ['start' => $validated['shift_start'], 'end' => $validated['shift_end'], 'two_punch' => $twoPunch] : null);
-        DB::transaction(function () use ($request, $employee, $validated, $shift, $current, $days): void {
-            // Save a schedule row only on change so re-saving the tab doesn't move the effective date.
-            if ($shift !== $current || $days !== Employee::workDaysFor($employee->id, today())) {
-                EmployeeSchedule::updateOrCreate(
-                    ['employee_id' => $employee->id, 'effective_from' => today()->toDateString()],
-                    [
-                        'type' => $shift === null ? 'standard' : ($shift['two_punch'] ? 'two_punch' : 'custom'),
-                        'shift_start' => $shift['start'] ?? null,
-                        'shift_end' => $shift['end'] ?? null,
-                        'work_days' => implode(',', $days),
-                        'created_by' => $request->user()->id,
-                    ],
-                );
-            }
-            unset($validated['shift_start'], $validated['shift_end'], $validated['two_punch'], $validated['work_days']);
-            $employee->update($validated);
-        });
+        $employee->update($request->validated());
 
         return back()->with('success', 'Compensation updated.');
+    }
+
+    public function saveSchedule(SaveEmployeeScheduleRequest $request, Employee $employee, EmployeeScheduleService $service): RedirectResponse
+    {
+        $service->save($employee, $request->validated(), $request->user());
+
+        return back()->with('success', 'Schedule saved.');
+    }
+
+    public function destroySchedule(Employee $employee, EmployeeSchedule $schedule): RedirectResponse
+    {
+        abort_if($schedule->employee_id !== $employee->id || $schedule->effective_from->toDateString() <= today()->toDateString(), 403);
+        $schedule->delete();
+
+        return back()->with('success', 'Schedule removed.');
     }
 
     public function updateGovIds(Request $request, Employee $employee): RedirectResponse
