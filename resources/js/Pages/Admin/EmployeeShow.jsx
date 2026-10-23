@@ -51,14 +51,14 @@ function fmt(num) {
 }
 
 /* ---------- reusable field ---------- */
-function Field({ label, error, required, children }) {
+function Field({ label, error, required, children, id }) {
     return (
         <div>
-            <label className="block text-xs font-medium text-sub mb-1.5">
+            <label htmlFor={id} className="block text-xs font-medium text-sub mb-1.5">
                 {label} {required && <span className="text-red">*</span>}
             </label>
             {children}
-            {error && <p className="mt-1 text-xs text-red">{error}</p>}
+            {error && <p id={id ? `${id}-error` : undefined} role="alert" className="mt-1 text-xs text-red">{error}</p>}
         </div>
     )
 }
@@ -532,19 +532,19 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
 
                             {scheduleForm.data.schedule_type !== 'standard' && (
                                 <div className="grid grid-cols-2 gap-3 sm:max-w-sm">
-                                    <Field label="Shift start" required error={scheduleForm.errors.shift_start}>
-                                        <input type="time" value={scheduleForm.data.shift_start}
+                                    <Field label="Shift start" required error={scheduleForm.errors.shift_start} id="sched-shift-start">
+                                        <input id="sched-shift-start" aria-invalid={!!scheduleForm.errors.shift_start} aria-describedby={scheduleForm.errors.shift_start ? 'sched-shift-start-error' : undefined} type="time" value={scheduleForm.data.shift_start}
                                             onChange={e => scheduleForm.setData('shift_start', e.target.value)} className={inputClass} />
                                     </Field>
-                                    <Field label="Shift end" required error={scheduleForm.errors.shift_end}>
-                                        <input type="time" value={scheduleForm.data.shift_end}
+                                    <Field label="Shift end" required error={scheduleForm.errors.shift_end} id="sched-shift-end">
+                                        <input id="sched-shift-end" aria-invalid={!!scheduleForm.errors.shift_end} aria-describedby={scheduleForm.errors.shift_end ? 'sched-shift-end-error' : undefined} type="time" value={scheduleForm.data.shift_end}
                                             onChange={e => scheduleForm.setData('shift_end', e.target.value)} className={inputClass} />
                                     </Field>
                                 </div>
                             )}
 
-                            <div>
-                                <p className="text-xs font-semibold text-sub mb-2 uppercase tracking-wide">Workdays</p>
+                            <fieldset>
+                                <legend className="text-xs font-semibold text-sub mb-2 uppercase tracking-wide">Workdays</legend>
                                 <div className="flex flex-wrap gap-2">
                                     {dayNames.map((label, day) => (
                                         <label key={label} className="flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-panel px-3 text-sm text-text">
@@ -555,12 +555,12 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                                         </label>
                                     ))}
                                 </div>
-                                {scheduleForm.errors.work_days && <p className="mt-1 text-xs text-red">{scheduleForm.errors.work_days}</p>}
-                            </div>
+                                {scheduleForm.errors.work_days && <p role="alert" className="mt-1 text-xs text-red">{scheduleForm.errors.work_days}</p>}
+                            </fieldset>
 
                             <div className="sm:max-w-xs">
-                                <Field label="Starts on" required error={scheduleForm.errors.effective_from}>
-                                    <input type="date" value={scheduleForm.data.effective_from}
+                                <Field label="Starts on" required error={scheduleForm.errors.effective_from} id="sched-starts-on">
+                                    <input id="sched-starts-on" aria-invalid={!!scheduleForm.errors.effective_from} aria-describedby={scheduleForm.errors.effective_from ? 'sched-starts-on-error' : undefined} type="date" value={scheduleForm.data.effective_from}
                                         min={earliestScheduleDate ?? undefined}
                                         onChange={e => scheduleForm.setData('effective_from', e.target.value)} className={inputClass} />
                                 </Field>

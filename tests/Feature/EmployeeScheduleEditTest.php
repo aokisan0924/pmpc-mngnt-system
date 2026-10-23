@@ -126,4 +126,26 @@ class EmployeeScheduleEditTest extends TestCase
         $this->assertSame(0, EmployeeSchedule::count());
         $this->assertEquals(700, $this->employee->refresh()->daily_rate);
     }
+
+    public function test_saving_today_recomputes_todays_log(): void
+    {
+        $this->travelTo(Carbon::parse('2026-10-23 14:00'));
+        $log = $this->log('2026-10-23', 'undertime');
+
+        $this->save(['effective_from' => '2026-10-23'])->assertSessionHasNoErrors();
+
+        $log->refresh();
+        $this->assertSame('on_time', $log->status);
+        $this->assertSame('07:00:00', $log->am_time_in);
+        $this->assertSame('16:00:00', $log->pm_time_out);
+    }
+
+    public function test_future_start_recomputes_nothing(): void
+    {
+        $log = $this->log('2026-10-23', 'undertime');
+
+        $this->save(['effective_from' => '2026-10-24'])->assertSessionHasNoErrors();
+
+        $this->assertSame('undertime', $log->refresh()->status);
+    }
 }

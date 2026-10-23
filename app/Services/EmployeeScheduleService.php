@@ -45,7 +45,7 @@ class EmployeeScheduleService
                 ],
             );
 
-            if ($data['effective_from'] < today()->toDateString()) {
+            if ($data['effective_from'] <= today()->toDateString()) {
                 $this->recompute($employee, $data['effective_from']);
             }
 
@@ -53,14 +53,14 @@ class EmployeeScheduleService
         });
     }
 
-    /** Re-derive hours and status (never punches) up to the next schedule row or yesterday. */
+    /** Re-derive hours and status (never punches) up to the next schedule row or today. */
     private function recompute(Employee $employee, string $from): void
     {
         Once::flush();
         $next = EmployeeSchedule::where('employee_id', $employee->id)->where('effective_from', '>', $from)->min('effective_from');
-        $to = min(today()->subDay()->toDateString(), $next ? CarbonImmutable::parse($next)->subDay()->toDateString() : '9999-12-31');
+        $to = min(today()->toDateString(), $next ? CarbonImmutable::parse($next)->subDay()->toDateString() : '9999-12-31');
 
-        DtrLog::where('employee_id', $employee->id)->whereBetween('date', [$from, $to])->get()->each(function (DtrLog $log): void {
+        DtrLog::where('employee_id', $employee->id)->whereDate('date', '>=', $from)->whereDate('date', '<=', $to)->get()->each(function (DtrLog $log): void {
             $log->computeHoursAndStatus();
             $log->save();
         });
