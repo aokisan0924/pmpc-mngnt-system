@@ -57,6 +57,23 @@ class EmployeeScheduleHistoryTest extends TestCase
         ])->assertSessionHasErrors('am_time_out');
     }
 
+    public function test_punch_less_days_before_a_two_punch_shift_keep_the_two_column_layout(): void
+    {
+        $this->travelTo(Carbon::parse('2026-10-23 10:00', 'Asia/Manila'));
+        $e = Employee::factory()->create(['date_hired' => '2026-10-10']);
+        $this->schedule($e, '2026-10-10', 'standard', '0,6');
+        $this->schedule($e, '2026-10-17', 'two_punch', '0,6', '08:00', '20:00');
+
+        $absence = DtrLog::factory()->create(['employee_id' => $e->id, 'date' => '2026-10-15', 'status' => 'absent',
+            'am_time_in' => null, 'am_time_out' => null, 'pm_time_in' => null, 'pm_time_out' => null]);
+        $worked = DtrLog::factory()->create(['employee_id' => $e->id, 'date' => '2026-10-17', 'status' => 'on_time',
+            'am_time_in' => '07:42:00', 'am_time_out' => null, 'pm_time_in' => null, 'pm_time_out' => '20:05:00']);
+
+        $this->assertTrue(DtrLog::twoPunchLayout($e->id, [$absence, $worked]));
+        // Only punch-less days: fall back to today's schedule.
+        $this->assertTrue(DtrLog::twoPunchLayout($e->id, [$absence]));
+    }
+
     public function test_payroll_paid_days_follow_the_schedule_in_the_cutoff(): void
     {
         $admin = Employee::factory()->superAdmin()->create(['is_staff' => false]);

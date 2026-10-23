@@ -80,7 +80,8 @@ class DtrLog extends Model
     /** Show Time In / Time Out columns only: a two-punch employee whose displayed logs hold no lunch punches. */
     public static function twoPunchLayout(int $employeeId, iterable $logs): bool
     {
-        $logs = collect($logs);
+        // Days without punches (absences) show nothing in either layout, so they don't decide it.
+        $logs = collect($logs)->filter(fn (self $log): bool => $log->punchesCount() > 0);
         if ($logs->isEmpty()) {
             return Employee::hasTwoPunchShift($employeeId);
         }
