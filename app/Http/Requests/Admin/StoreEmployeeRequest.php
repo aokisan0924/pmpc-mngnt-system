@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Concerns\ValidatesSchedule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
 class StoreEmployeeRequest extends FormRequest
 {
+    use ValidatesSchedule;
+
     public function authorize(): bool
     {
         return $this->user()?->isSuperAdmin() ?? false;
@@ -31,6 +34,7 @@ class StoreEmployeeRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:500'],
             'date_hired' => ['nullable', 'date'],
             'status' => ['required', 'in:active,inactive'],
+            ...$this->scheduleRules(),
         ];
     }
 }

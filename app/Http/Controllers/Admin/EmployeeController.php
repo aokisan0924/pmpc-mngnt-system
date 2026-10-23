@@ -16,6 +16,7 @@ use App\Services\EmployeeScheduleService;
 use App\Services\OfficePayrollCalculator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -112,11 +113,13 @@ class EmployeeController extends Controller
         ]);
     }
 
-    public function store(StoreEmployeeRequest $request): RedirectResponse
+    public function store(StoreEmployeeRequest $request, EmployeeScheduleService $service): RedirectResponse
     {
         $validated = $request->validated();
+        $schedule = Arr::only($validated, ['schedule_type', 'shift_start', 'shift_end', 'work_days']);
+        $validated = Arr::except($validated, array_keys($schedule));
 
-        $employee = DB::transaction(function () use ($validated) {
+        $employee = DB::transaction(function () use ($validated, $schedule, $service, $request) {
             $employee = Employee::create([
                 ...$validated,
                 'employee_id' => Employee::generateEmployeeId(),
@@ -127,6 +130,11 @@ class EmployeeController extends Controller
             EmployeeGovernmentId::create([
                 'employee_id' => $employee->id,
             ]);
+
+            $service->save($employee, [
+                ...$schedule,
+                'effective_from' => $employee->date_hired?->toDateString() ?? today()->toDateString(),
+            ], $request->user());
 
             return $employee;
         });

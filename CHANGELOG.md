@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Adding an employee now asks for the schedule: Standard, 2 punches or Custom hours, and the workdays (Monday to Friday by default, with a Sat–Sun shortcut). The schedule starts on the date hired, or today if none is entered, and shows in the employee's schedule history.
 - A Schedule tab on the employee page lets HR choose the shift type, hours, workdays and the date the change starts (past or future). A past start date quietly updates the status and hours of attendance from that day, without changing any punches, and stops at finalized payroll. The tab lists the schedule history and lets HR delete scheduled changes that have not started.
 - Afternoon-only half days: a four-punch employee's first punch at or after lunch start (12:00 by default) is saved as PM In, and the next as PM Out. The AM pair is skipped, and the day shows Half day as soon as PM Out is recorded. Employees whose own shift starts after lunch keep the normal order.
 - DTR log rows (employee DTR page and the admin's per-employee DTR) show the day's latest edit request: its status, the employee's reason, each changed punch as original → edited time, and any admin note.

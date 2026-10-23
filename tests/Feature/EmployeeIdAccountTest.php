@@ -22,6 +22,7 @@ class EmployeeIdAccountTest extends TestCase
                 'first_name' => 'Store Keeper', 'last_name' => $lastName, 'email' => '',
                 'password' => 'TemporaryPass123!', 'password_confirmation' => 'TemporaryPass123!',
                 'department' => 'General Merchandise', 'position' => 'Store Keeper', 'status' => 'active',
+                'schedule_type' => 'standard', 'work_days' => [1, 2, 3, 4, 5],
             ])->assertSessionHasNoErrors()->assertRedirect(route('admin.employees'));
         }
         $employees = Employee::whereNull('email')->get();

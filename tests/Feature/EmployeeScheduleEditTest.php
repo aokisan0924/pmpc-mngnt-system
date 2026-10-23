@@ -148,4 +148,52 @@ class EmployeeScheduleEditTest extends TestCase
 
         $this->assertSame('undertime', $log->refresh()->status);
     }
+
+    /** @param array<string, mixed> $changes */
+    private function create(array $changes = [])
+    {
+        return $this->actingAs($this->admin)->post(route('admin.employees.store'), array_replace([
+            'first_name' => 'Nina', 'last_name' => 'Cruz', 'status' => 'active',
+            'password' => 'secret-pass-1', 'password_confirmation' => 'secret-pass-1',
+            'schedule_type' => 'standard', 'work_days' => [1, 2, 3, 4, 5],
+        ], $changes));
+    }
+
+    public function test_new_weekend_two_punch_employee_gets_a_first_schedule_row(): void
+    {
+        $this->create([
+            'date_hired' => '2026-10-24', 'schedule_type' => 'two_punch',
+            'shift_start' => '19:00', 'shift_end' => '07:00', 'work_days' => [0, 6],
+        ])->assertSessionHasNoErrors();
+
+        $employee = Employee::where('first_name', 'Nina')->firstOrFail();
+        $rows = EmployeeSchedule::where('employee_id', $employee->id)->get();
+        $this->assertCount(1, $rows);
+        $this->assertSame('2026-10-24', $rows[0]->effective_from->toDateString());
+        $this->assertSame('two_punch', $rows[0]->type);
+        $this->assertSame('19:00', $rows[0]->shift_start);
+        $this->assertSame('07:00', $rows[0]->shift_end);
+        $this->assertSame('0,6', $rows[0]->getRawOriginal('work_days'));
+    }
+
+    public function test_new_employee_defaults_to_standard_from_today_without_hire_date(): void
+    {
+        $this->create()->assertSessionHasNoErrors();
+
+        $employee = Employee::where('first_name', 'Nina')->firstOrFail();
+        $rows = EmployeeSchedule::where('employee_id', $employee->id)->get();
+        $this->assertCount(1, $rows);
+        $this->assertSame('2026-10-23', $rows[0]->effective_from->toDateString());
+        $this->assertSame('standard', $rows[0]->type);
+        $this->assertNull($rows[0]->shift_start);
+        $this->assertNull($rows[0]->shift_end);
+    }
+
+    public function test_custom_schedule_needs_hours_on_create(): void
+    {
+        $this->create(['schedule_type' => 'custom'])->assertSessionHasErrors('shift_start');
+
+        $this->assertNull(Employee::where('first_name', 'Nina')->first());
+        $this->assertSame(0, EmployeeSchedule::count());
+    }
 }
