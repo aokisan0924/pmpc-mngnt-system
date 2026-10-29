@@ -48,7 +48,7 @@ export default function PayrollCreate({
         period_to,
         period_label,
         cutoff,
-        batch_reviewed: false,
+        batch_reviewed: true, // the review dialog is the confirmation
         items: employees.map((employee) => ({
             ...employee,
             employee_id: employee.id,
@@ -56,6 +56,7 @@ export default function PayrollCreate({
         })),
     })
     const [open, setOpen] = useState(null)
+    const [reviewing, setReviewing] = useState(false)
     const items = useMemo(() => data.items.map(calculateOfficeItem), [data.items])
     const sum = (list) =>
         list.reduce(
@@ -84,10 +85,15 @@ export default function PayrollCreate({
     }
     function submit(event) {
         event.preventDefault()
-        if (!items.length || unverified || !data.batch_reviewed || processing) return
+        if (!items.length || unverified || processing) return
+        setReviewing(true)
+    }
+    // Nothing is written until this runs; discarding from the review just leaves the page.
+    function save() {
         post('/admin/payroll', {
             preserveScroll: true,
             onError: (validation) => {
+                setReviewing(false)
                 const first = Object.keys(validation).find((key) => /^items\.\d+\./.test(key))
                 if (first) {
                     const index = Number(first.split('.')[1])
@@ -275,29 +281,53 @@ export default function PayrollCreate({
                             <div><dt className="text-xs text-sub">Net payout</dt><dd className="font-heading text-lg font-bold tnum text-[#26215C]">₱{fmt(totals.net)}</dd></div>
                         </dl>
                         <div className="flex flex-wrap items-center gap-3">
-                            <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm text-text">
-                                <input
-                                    type="checkbox"
-                                    checked={data.batch_reviewed}
-                                    disabled={processing}
-                                    onChange={(event) => setData('batch_reviewed', event.target.checked)}
-                                    className="size-5 shrink-0 accent-[#26215C]"
-                                />
-                                I checked all rows for this cutoff
-                            </label>
                             <Button
                                 type="submit"
                                 loading={processing}
-                                disabled={!items.length || unverified > 0 || !data.batch_reviewed || processing}
+                                disabled={!items.length || unverified > 0 || processing}
                                 className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]"
                             >
-                                Save payroll batch
+                                Review payroll
                             </Button>
                         </div>
                     </div>
                     {errors.batch_reviewed && <p role="alert" className="mt-2 text-sm text-rose-700">{errors.batch_reviewed}</p>}
                 </div>
             </form>
+            {reviewing && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="review-title">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !processing && setReviewing(false)} />
+                    <div className="relative flex max-h-[90vh] w-full max-w-md flex-col rounded-2xl border border-border bg-panel p-6 shadow-2xl">
+                        <h2 id="review-title" className="font-heading text-lg font-bold text-text">Save this payroll?</h2>
+                        <p className="text-sm text-sub">{period_label} · {items.length} employees</p>
+                        <p className="mt-5 text-xs text-sub">Net payout</p>
+                        <p className="font-heading text-3xl font-bold tnum text-[#26215C]">₱{fmt(totals.net)}</p>
+                        <p className="mt-1 text-sm text-sub tnum">Gross ₱{fmt(totals.gross)} · Deductions ₱{fmt(totals.deductions)}</p>
+                        <details className="mt-4 min-h-0 overflow-auto text-sm">
+                            <summary className="min-h-[44px] cursor-pointer font-semibold text-text">See each employee</summary>
+                            <ul className="divide-y divide-border">
+                                {items.map((item, index) => (
+                                    <li key={data.items[index].employee_id} className="flex justify-between gap-3 py-2">
+                                        <span className="text-text">{item.full_name}</span>
+                                        <span className="font-semibold tnum">₱{fmt(item.net_pay)}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </details>
+                        <Button type="button" loading={processing} disabled={processing} onClick={save} className="mt-5 min-h-[44px] w-full bg-[#26215C] hover:bg-[#201B4D]">
+                            Save as draft
+                        </Button>
+                        <div className="mt-2 flex justify-between">
+                            <button type="button" disabled={processing} onClick={() => setReviewing(false)} className="min-h-[44px] px-2 text-sm font-medium text-sub hover:text-text">
+                                Keep editing
+                            </button>
+                            <Link href="/admin/payroll" className="inline-flex min-h-[44px] items-center px-2 text-sm font-medium text-rose-700 hover:underline">
+                                Discard
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AdminLayout>
     )
 }
