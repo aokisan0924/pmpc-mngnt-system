@@ -12,10 +12,12 @@ use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Feature\Concerns\PunchesAttendance;
 use Tests\TestCase;
 
 class TwoPunchShiftTest extends TestCase
 {
+    use PunchesAttendance;
     use RefreshDatabase;
 
     private function twoPunchEmployee(string $start, string $end): Employee
@@ -36,10 +38,10 @@ class TwoPunchShiftTest extends TestCase
     {
         $employee = $this->twoPunchEmployee('08:00', '20:00');
         Carbon::setTestNow('2026-10-20 08:00:00');
-        $this->actingAs($employee)->post('/employee/dtr/punch')->assertSessionHasNoErrors();
+        $this->postAttendancePunch($employee)->assertSessionHasNoErrors();
         Carbon::setTestNow('2026-10-20 20:00:00');
-        $this->actingAs($employee)->post('/employee/dtr/punch')->assertSessionHasNoErrors();
-        $this->actingAs($employee)->post('/employee/dtr/punch')->assertSessionHasErrors('punch');
+        $this->postAttendancePunch($employee)->assertSessionHasNoErrors();
+        $this->postAttendancePunch($employee)->assertSessionHasErrors('punch');
 
         $log = DtrLog::where('employee_id', $employee->id)->firstOrFail();
         $this->assertNull($log->am_time_out);
@@ -51,9 +53,9 @@ class TwoPunchShiftTest extends TestCase
     {
         $employee = $this->twoPunchEmployee('20:00', '08:00');
         Carbon::setTestNow('2026-10-20 19:58:00');
-        $this->actingAs($employee)->post('/employee/dtr/punch');
+        $this->postAttendancePunch($employee);
         Carbon::setTestNow('2026-10-21 08:02:00');
-        $this->actingAs($employee)->post('/employee/dtr/punch')->assertSessionHasNoErrors();
+        $this->postAttendancePunch($employee)->assertSessionHasNoErrors();
 
         $this->assertSame(1, DtrLog::where('employee_id', $employee->id)->count());
         $log = DtrLog::where('employee_id', $employee->id)->firstOrFail();

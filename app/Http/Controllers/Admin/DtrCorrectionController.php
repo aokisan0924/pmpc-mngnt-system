@@ -21,8 +21,9 @@ class DtrCorrectionController extends Controller
         $validated = $request->validated();
 
         DB::transaction(function () use ($validated, $employee, $request): void {
-            $log = DtrLog::where('employee_id', $employee->id)->whereDate('date', $validated['date'])->lockForUpdate()->first()
-                ?? DtrLog::create(['employee_id' => $employee->id, 'date' => $validated['date'], 'status' => 'absent']);
+            $lockedEmployee = Employee::query()->whereKey($employee->id)->lockForUpdate()->firstOrFail();
+            $log = DtrLog::where('employee_id', $lockedEmployee->id)->whereDate('date', $validated['date'])->lockForUpdate()->first()
+                ?? DtrLog::create(['employee_id' => $lockedEmployee->id, 'date' => $validated['date'], 'status' => 'absent']);
 
             if ($log->pendingEditRequest()->exists()) {
                 throw ValidationException::withMessages(['date' => 'This day has a pending employee edit request. Approve or decline it first.']);

@@ -3,18 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Events\DtrEditRequestCreated;
+use App\Exceptions\AttendanceConflict;
 use App\Http\Requests\DtrEditRequestSubmissionRequest;
+use App\Http\Requests\PunchAttendanceRequest;
 use App\Http\Requests\ReportAbsenceRequest;
 use App\Models\DtrEditRequest;
 use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\EmployeeNotification;
+use App\Services\AttendancePunchService;
 use App\Services\DtrAbsenceService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,7 +24,7 @@ class DtrController extends Controller
 {
     // ── DTR page ───────────────────────────────────────────
 
-    public function index(Request $request): Response
+    public function index(Request $request, AttendancePunchService $punches): Response
     {
         $employee = $request->user();
         $month = $request->get('month', now()->format('Y-m'));
@@ -49,7 +51,7 @@ class DtrController extends Controller
         }
 
         // Today's log
-        $today = DtrLog::forPunch($employee->id);
+        $today = $punches->currentLog($employee);
 
         // Monthly summary
         $summary = [
@@ -124,6 +126,7 @@ class DtrController extends Controller
             'summary' => $summary,
             'month' => $month,
             'next_punch' => $today->getNextPunchSlot(),
+            'punch_version' => $punches->version($employee, $today),
             'two_punch' => DtrLog::twoPunchLayout($employee->id, $entries),
             'weeklyStrip' => $weeklyStrip,
         ]);
@@ -131,28 +134,14 @@ class DtrController extends Controller
 
     // ── Clock in / out ─────────────────────────────────────
 
-    public function punch(Request $request): RedirectResponse
+    public function punch(PunchAttendanceRequest $request, AttendancePunchService $punches): RedirectResponse
     {
         $employee = $request->user();
-        DB::transaction(function () use ($employee, $request): void {
-            Employee::whereKey($employee->id)->lockForUpdate()->firstOrFail();
-            $log = DtrLog::forPunch($employee->id);
-
-            if ($log->hasActiveAbsence()) {
-                throw ValidationException::withMessages(['punch' => 'Cancel your absence notice in My Attendance before clocking in.']);
-            }
-
-            $slot = $log->getNextPunchSlot();
-
-            if (! $slot) {
-                throw ValidationException::withMessages(['punch' => 'All punches for today are already recorded.']);
-            }
-
-            $log->$slot = now()->format('H:i:s');
-            $log->ip_address = $request->ip();
-            $log->computeHoursAndStatus();
-            $log->save();
-        });
+        try {
+            $punches->punch($employee, $request->validated(), $request->ip());
+        } catch (AttendanceConflict $conflict) {
+            return back()->withErrors(['punch' => $conflict->getMessage()]);
+        }
 
         return back();
     }

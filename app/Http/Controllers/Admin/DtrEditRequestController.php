@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\DtrEditRequest;
 use App\Models\DtrLog;
+use App\Models\Employee;
 use App\Models\EmployeeNotification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,7 +62,9 @@ class DtrEditRequestController extends Controller
         ]);
 
         $resolution = DB::transaction(function () use ($editRequest, $request): ?array {
+            $lockedEmployee = Employee::query()->whereKey($editRequest->employee_id)->lockForUpdate()->firstOrFail();
             $lockedRequest = DtrEditRequest::query()->lockForUpdate()->findOrFail($editRequest->id);
+            abort_unless((int) $lockedRequest->employee_id === (int) $lockedEmployee->id, 409);
 
             if (! $lockedRequest->isPending()) {
                 return null;

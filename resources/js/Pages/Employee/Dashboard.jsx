@@ -6,6 +6,8 @@ import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 import pmpcLogo from '@images/pmpc_ems.png'
+import useAttendancePunch from '@/hooks/useAttendancePunch'
+import { attendancePunchAction, attendancePunchRetryMessage, attendancePunchSuccessMessage } from '@/hooks/attendancePunchFlow'
 
 function formatPunchTime(timeString) {
     if (!timeString) return '--:--'
@@ -110,6 +112,7 @@ export default function Dashboard({
     const [punchFeedback, setPunchFeedback] = useState(null)
     const [activeTab, setActiveTab] = useState('tasks')
     const actionTabRefs = useRef({})
+    const { punch: punchAttendance, pendingPunch } = useAttendancePunch('/employee/dtr/punch')
 
     usePoll(30000, {
         only: ['summary', 'today', 'pendingEditRequests', 'recentNotifications', 'recentTasks'],
@@ -129,25 +132,20 @@ export default function Dashboard({
     const nextPunchIndex = punchSlots.findIndex(s => s.key === today?.next_punch)
     const nextSlot = nextPunchIndex !== -1 ? punchSlots[nextPunchIndex] : null
     const nextScheduledTime = nextSlot ? schedule?.[nextSlot.key] : null
+    const punchAction = attendancePunchAction(pendingPunch, nextSlot)
 
     // 1-Tap Quick Punch Handler
     function handleQuickPunch() {
-        if (punching || nextPunchIndex === -1 || !nextSlot) return
-        const slotLabel = nextSlot.label
-        const punchTime = new Date().toLocaleTimeString('en-PH', {
-            timeZone: 'Asia/Manila',
-            hour: '2-digit',
-            minute: '2-digit',
-        })
+        if (punching || !punchAction) return
         setPunching(true)
         setPunchFeedback(null)
 
-        router.post('/employee/dtr/punch', {}, {
-            preserveScroll: true,
+        punchAttendance(punchAction.slot, today?.punch_version, {
+            onRetry: (request) => setPunchFeedback({ type: 'error', message: attendancePunchRetryMessage(request) }),
             onSuccess: () => {
                 setPunchFeedback({
                     type: 'success',
-                    message: `Recorded ${slotLabel} successfully at ${punchTime}.`,
+                    message: attendancePunchSuccessMessage(),
                 })
                 setTimeout(() => setPunchFeedback(null), 5000)
             },
@@ -157,6 +155,10 @@ export default function Dashboard({
                     message: err?.punch || 'Punch recording failed. Please try again.',
                 })
                 setTimeout(() => setPunchFeedback(null), 6000)
+            },
+            onNetworkError: (request) => setPunchFeedback({ type: 'error', message: attendancePunchRetryMessage(request) }),
+            onHttpException: (response, request) => {
+                if (response.status >= 500) setPunchFeedback({ type: 'error', message: attendancePunchRetryMessage(request) })
             },
             onFinish: () => {
                 setPunching(false)
@@ -271,13 +273,15 @@ export default function Dashboard({
                         <div className="flex flex-col justify-between rounded-xl bg-[#094738]/90 border border-white/15 p-4 sm:p-5 space-y-4 backdrop-blur-xs">
                             <div>
                                 <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-300">
-                                    {today?.has_active_absence ? 'Planned absence' : nextSlot ? 'Next required action' : 'Today’s attendance'}
+                                    {pendingPunch ? 'Unresolved attendance request' : today?.has_active_absence ? 'Planned absence' : nextSlot ? 'Next required action' : 'Today’s attendance'}
                                 </span>
                                 <h2 id="next-dtr-action" className="mt-1 font-heading text-xl sm:text-2xl font-bold text-white tracking-tight">
-                                    {today?.has_active_absence ? 'Absence notice active' : nextSlot ? `Punch ${nextSlot.label}` : !today?.two_punch && !today?.am_time_in && today?.pm_time_out ? 'Afternoon half day completed' : `All ${punchSlots.length === 2 ? 'two' : 'four'} punches completed`}
+                                    {pendingPunch ? punchAction.label : today?.has_active_absence ? 'Absence notice active' : nextSlot ? `Punch ${nextSlot.label}` : !today?.two_punch && !today?.am_time_in && today?.pm_time_out ? 'Afternoon half day completed' : `All ${punchSlots.length === 2 ? 'two' : 'four'} punches completed`}
                                 </h2>
                                 <p className="mt-0.5 text-xs sm:text-sm text-emerald-100/80">
-                                    {today?.has_active_absence
+                                    {pendingPunch
+                                        ? attendancePunchRetryMessage(pendingPunch)
+                                        : today?.has_active_absence
                                         ? (today.absence_reason || 'Cancel this notice before clocking in.')
                                         : nextSlot
                                         ? `Step ${nextPunchIndex + 1} of ${punchSlots.length}${nextScheduledTime ? ` · Scheduled ${formatPunchTime(nextScheduledTime)}` : ' · Asia/Manila standard time'}`
@@ -292,10 +296,12 @@ export default function Dashboard({
                             >
                                 <div className="min-w-0 pr-2">
                                     <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 truncate">
-                                        {today?.has_active_absence ? 'Clock-in is paused' : nextSlot ? `Ready for ${nextSlot.label}` : 'Attendance Complete'}
+                                        {pendingPunch ? punchAction.label : today?.has_active_absence ? 'Clock-in is paused' : nextSlot ? `Ready for ${nextSlot.label}` : 'Attendance Complete'}
                                     </p>
                                     <p className="text-xs text-emerald-100/80 truncate mt-0.5">
-                                        {today?.has_active_absence
+                                        {pendingPunch
+                                            ? 'Retry this request before starting another punch.'
+                                            : today?.has_active_absence
                                             ? 'Cancel your notice to resume clocking in.'
                                             : nextSlot
                                             ? (nextScheduledTime ? `Target: ${formatPunchTime(nextScheduledTime)}` : 'Asia/Manila timestamp')
@@ -304,7 +310,7 @@ export default function Dashboard({
                                 </div>
 
                                 <div className="flex shrink-0 items-center gap-2">
-                                    {today?.has_active_absence ? (
+                                    {today?.has_active_absence && !pendingPunch ? (
                                         <button
                                             type="button"
                                             disabled={cancelingAbsence}
@@ -320,12 +326,12 @@ export default function Dashboard({
                                         >
                                             {cancelingAbsence ? 'Cancelling…' : 'Cancel absence notice'}
                                         </button>
-                                    ) : nextSlot ? (
+                                    ) : punchAction ? (
                                         <button
                                             type="button"
                                             onClick={handleQuickPunch}
                                             disabled={punching}
-                                            aria-label={punching ? 'Recording punch...' : `Punch ${nextSlot.label}`}
+                                            aria-label={punching ? 'Recording attendance request...' : punchAction.label}
                                             className="group inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-extrabold text-[#0F6E56] bg-white hover:bg-emerald-50 active:bg-emerald-100 disabled:opacity-50 disabled:pointer-events-none transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white shadow-md cursor-pointer"
                                         >
                                             {punching ? (
@@ -341,7 +347,7 @@ export default function Dashboard({
                                                     <svg className="w-4 h-4 text-[#0F6E56]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                     </svg>
-                                                    <span>Punch {nextSlot.label}</span>
+                                                    <span>{punchAction.label}</span>
                                                 </>
                                             )}
                                         </button>

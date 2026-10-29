@@ -10,6 +10,7 @@ use App\Models\EmployeeSchedule;
 use App\Models\PayrollItem;
 use App\Models\Setting;
 use App\Models\Task;
+use App\Services\AttendancePunchService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,7 +18,7 @@ use Inertia\Response;
 
 class EmployeeDashboardController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, AttendancePunchService $punches): Response
     {
         $employee = $request->user();
 
@@ -115,7 +116,7 @@ class EmployeeDashboardController extends Controller
         ];
 
         // Today's DTR log
-        $today = DtrLog::forPunch($employee->id);
+        $today = $punches->currentLog($employee);
 
         // Recent notifications (last 5)
         $recentNotifications = EmployeeNotification::where('employee_id', $employee->id)
@@ -234,6 +235,7 @@ class EmployeeDashboardController extends Controller
                 'status' => $today->displayStatus(),
                 'hours_rendered' => $today->hours_rendered,
                 'next_punch' => $today->getNextPunchSlot(),
+                'punch_version' => $punches->version($employee, $today),
                 'two_punch' => $today->isTwoPunch(),
                 'punches_count' => $today->punchesCount(),
                 'has_active_absence' => $today->hasActiveAbsence(),

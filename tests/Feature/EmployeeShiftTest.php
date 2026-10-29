@@ -12,10 +12,12 @@ use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Feature\Concerns\PunchesAttendance;
 use Tests\TestCase;
 
 class EmployeeShiftTest extends TestCase
 {
+    use PunchesAttendance;
     use RefreshDatabase;
 
     private function employeeWithShift(array $attributes = []): Employee
@@ -132,7 +134,7 @@ class EmployeeShiftTest extends TestCase
         $this->travelTo(Carbon::parse('2026-10-01 11:00:00', 'Asia/Manila'));
         foreach (['11:00', '12:00', '13:00', '20:00'] as $time) {
             $this->travelTo(Carbon::parse('2026-10-01 '.$time, 'Asia/Manila'));
-            $this->actingAs($employee)->post(route('employee.dtr.punch'))->assertSessionHasNoErrors();
+            $this->postAttendancePunch($employee)->assertSessionHasNoErrors();
         }
         $log = DtrLog::where('employee_id', $employee->id)->firstOrFail();
         $this->assertSame('on_time', $log->status);

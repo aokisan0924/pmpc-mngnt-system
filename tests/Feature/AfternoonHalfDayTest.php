@@ -9,10 +9,12 @@ use App\Models\Employee;
 use App\Models\EmployeeSchedule;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Feature\Concerns\PunchesAttendance;
 use Tests\TestCase;
 
 class AfternoonHalfDayTest extends TestCase
 {
+    use PunchesAttendance;
     use RefreshDatabase;
 
     protected function tearDown(): void
@@ -24,7 +26,7 @@ class AfternoonHalfDayTest extends TestCase
     private function punchAt(Employee $employee, string $time): void
     {
         Carbon::setTestNow("2026-10-20 {$time}");
-        $this->actingAs($employee)->post('/employee/dtr/punch')->assertSessionHasNoErrors();
+        $this->postAttendancePunch($employee)->assertSessionHasNoErrors();
     }
 
     public function test_afternoon_start_fills_pm_in_and_pm_out_and_completes_as_half_day(): void
@@ -46,7 +48,7 @@ class AfternoonHalfDayTest extends TestCase
         $this->assertSame(4.0, (float) $log->hours_rendered);
 
         Carbon::setTestNow('2026-10-20 17:05:00');
-        $this->actingAs($employee)->post('/employee/dtr/punch')->assertSessionHasErrors('punch');
+        $this->postAttendancePunch($employee)->assertSessionHasErrors('punch');
     }
 
     public function test_morning_start_keeps_the_four_punch_order(): void

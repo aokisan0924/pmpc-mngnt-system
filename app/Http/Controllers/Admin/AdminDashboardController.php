@@ -10,6 +10,7 @@ use App\Models\EmployeeSchedule;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
 use App\Models\Setting;
+use App\Services\AttendancePunchService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,7 @@ use Inertia\Response;
 
 class AdminDashboardController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, AttendancePunchService $punches): Response
     {
         $today = today();
         $startOfMonth = now()->startOfMonth();
@@ -329,10 +330,7 @@ class AdminDashboardController extends Controller
 
         // ── Admin Personal DTR status ──────────────────────
         $admin = $request->user();
-        $adminTodayLog = DtrLog::firstOrCreate(
-            ['employee_id' => $admin->id, 'date' => $today],
-            ['status' => 'absent']
-        );
+        $adminTodayLog = $punches->currentLog($admin);
 
         $adminDtr = [
             'id' => $adminTodayLog->id,
@@ -344,6 +342,7 @@ class AdminDashboardController extends Controller
             'status' => $adminTodayLog->displayStatus(),
             'hours_rendered' => (float) $adminTodayLog->hours_rendered,
             'next_punch' => $adminTodayLog->getNextPunchSlot(),
+            'punch_version' => $punches->version($admin, $adminTodayLog),
             'punches_count' => $adminTodayLog->punchesCount(),
         ];
 

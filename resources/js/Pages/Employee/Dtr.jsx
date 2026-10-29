@@ -12,7 +12,7 @@ import useDtrToday from '@/hooks/useDtrToday'
 const ALL_SLOTS = [['am_time_in', 'AM In'], ['am_time_out', 'AM Out'], ['pm_time_in', 'PM In'], ['pm_time_out', 'PM Out']]
 const TWO_PUNCH_SLOTS = [['am_time_in', 'Time In'], ['pm_time_out', 'Time Out']]
 
-export default function Dtr({ logs = [], today = {}, summary = {}, month, next_punch, weeklyStrip = [], two_punch = false }) {
+export default function Dtr({ logs = [], today = {}, summary = {}, month, next_punch, punch_version, weeklyStrip = [], two_punch = false }) {
     const slots = two_punch ? TWO_PUNCH_SLOTS : ALL_SLOTS
     const { flash, errors } = usePage().props
     const [editTarget, setEditTarget] = useState(null)
@@ -23,7 +23,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
 
     // Silent background poll every 15s so employee sees edit approval/status changes and punch updates live
     usePoll(15000, {
-        only: ['logs', 'summary', 'today', 'next_punch', 'weeklyStrip'],
+        only: ['logs', 'summary', 'today', 'next_punch', 'punch_version', 'weeklyStrip'],
         preserveScroll: true,
         preserveState: true,
     })

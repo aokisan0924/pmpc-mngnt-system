@@ -63,18 +63,28 @@ class DtrLog extends Model
     }
 
     /** The log a punch made now belongs to: an overnight shift's clock-out lands on the log opened yesterday. */
-    public static function forPunch(int $employeeId, bool $create = true): ?self
+    public static function forPunch(int $employeeId, bool $create = true, bool $lock = false): ?self
     {
-        $open = static::where('employee_id', $employeeId)->whereDate('date', today()->subDay())
-            ->whereNotNull('am_time_in')->whereNull('pm_time_out')->first();
+        $openQuery = static::where('employee_id', $employeeId)->whereDate('date', today()->subDay())
+            ->whereNotNull('am_time_in')->whereNull('pm_time_out');
+        if ($lock) {
+            $openQuery->lockForUpdate();
+        }
+        $open = $openQuery->first();
 
         if ($open?->isOpenOvernightShift()) {
             return $open;
         }
 
-        return $create
+        $todayQuery = static::where('employee_id', $employeeId)->whereDate('date', today());
+        if ($lock) {
+            $todayQuery->lockForUpdate();
+        }
+        $todayLog = $todayQuery->first();
+
+        return $todayLog ?? ($create
             ? static::firstOrCreate(['employee_id' => $employeeId, 'date' => today()], ['status' => 'absent'])
-            : static::where('employee_id', $employeeId)->whereDate('date', today())->first();
+            : null);
     }
 
     /** Show Time In / Time Out columns only: a two-punch employee whose displayed logs hold no lunch punches. */

@@ -6,6 +6,8 @@ import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 import pmpcLogo from '@images/pmpc_ems.png'
+import useAttendancePunch from '@/hooks/useAttendancePunch'
+import { attendancePunchAction, attendancePunchRetryMessage, attendancePunchSuccessMessage } from '@/hooks/attendancePunchFlow'
 
 const PUNCH_SLOTS = [
     { key: 'am_time_in', label: 'AM In', period: 'Morning', targetTime: '08:00' },
@@ -86,6 +88,7 @@ export default function Dashboard({
     const [punching, setPunching] = useState(false)
     const [punchFeedback, setPunchFeedback] = useState(null)
     const processingRef = useRef(false)
+    const { punch: punchAttendance, pendingPunch } = useAttendancePunch('/admin/dtr/punch')
 
     // Silent background poll every 12s for real-time triage and attendance updates
     usePoll(12000, {
@@ -102,24 +105,19 @@ export default function Dashboard({
     const nextPunchIndex = PUNCH_SLOTS.findIndex(s => s.key === admin_dtr?.next_punch)
     const nextSlot = nextPunchIndex !== -1 ? PUNCH_SLOTS[nextPunchIndex] : null
     const nextScheduledTime = nextSlot ? schedule?.[nextSlot.key] : null
+    const punchAction = attendancePunchAction(pendingPunch, nextSlot)
 
     function handleAdminPunch() {
-        if (punching || nextPunchIndex === -1 || !nextSlot) return
-        const slotLabel = nextSlot.label
-        const punchTime = new Date().toLocaleTimeString('en-PH', {
-            timeZone: 'Asia/Manila',
-            hour: '2-digit',
-            minute: '2-digit',
-        })
+        if (punching || !punchAction) return
         setPunching(true)
         setPunchFeedback(null)
 
-        router.post('/admin/dtr/punch', {}, {
-            preserveScroll: true,
+        punchAttendance(punchAction.slot, admin_dtr?.punch_version, {
+            onRetry: (request) => setPunchFeedback({ type: 'error', message: attendancePunchRetryMessage(request) }),
             onSuccess: () => {
                 setPunchFeedback({
                     type: 'success',
-                    message: `Recorded ${slotLabel} successfully at ${punchTime}.`,
+                    message: attendancePunchSuccessMessage(),
                 })
                 setTimeout(() => setPunchFeedback(null), 5000)
             },
@@ -129,6 +127,10 @@ export default function Dashboard({
                     message: err?.punch || 'Punch recording failed. Please try again.',
                 })
                 setTimeout(() => setPunchFeedback(null), 6000)
+            },
+            onNetworkError: (request) => setPunchFeedback({ type: 'error', message: attendancePunchRetryMessage(request) }),
+            onHttpException: (response, request) => {
+                if (response.status >= 500) setPunchFeedback({ type: 'error', message: attendancePunchRetryMessage(request) })
             },
             onFinish: () => {
                 setPunching(false)
@@ -268,12 +270,12 @@ export default function Dashboard({
                                             Administrator Attendance · DTR Punch Station
                                         </span>
                                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                                            nextSlot
+                                            punchAction
                                                 ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
                                                 : 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
                                         }`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${nextSlot ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
-                                            {nextSlot ? `Ready for ${nextSlot.label}` : 'All 4 Punches Complete'}
+                                            <span className={`w-1.5 h-1.5 rounded-full ${punchAction ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
+                                            {pendingPunch ? punchAction.label : punchAction ? `Ready for ${nextSlot.label}` : 'All 4 Punches Complete'}
                                         </span>
                                         {(admin_dtr?.hours_rendered ?? 0) > 0 && (
                                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-white/90 border border-white/15">
@@ -283,10 +285,12 @@ export default function Dashboard({
                                     </div>
 
                                     <h2 className="font-heading text-lg sm:text-xl font-bold text-white tracking-tight">
-                                        {nextSlot ? `Next required action: Punch ${nextSlot.label}` : 'Daily attendance complete for today'}
+                                        {pendingPunch ? punchAction.label : nextSlot ? `Next required action: Punch ${nextSlot.label}` : 'Daily attendance complete for today'}
                                     </h2>
                                     <p className="text-xs text-indigo-100/80">
-                                        {nextSlot
+                                        {pendingPunch
+                                            ? attendancePunchRetryMessage(pendingPunch)
+                                            : nextSlot
                                             ? `Step ${nextPunchIndex + 1} of 4 · Shift ${schedule?.am_time_in || '08:00'}–${schedule?.pm_time_out || '17:00'} (Asia/Manila standard time)`
                                             : 'Daily attendance milestones secured. Shift logged.'}
                                     </p>
@@ -296,7 +300,9 @@ export default function Dashboard({
                                         {PUNCH_SLOTS.map((slot, idx) => {
                                             const punchValue = admin_dtr?.[slot.key]
                                             const isRecorded = Boolean(punchValue)
-                                            const isCurrentNext = nextPunchIndex === idx
+                                            const isCurrentNext = pendingPunch
+                                                ? pendingPunch.expected_slot === slot.key
+                                                : nextPunchIndex === idx
 
                                             return (
                                                 <div
@@ -330,12 +336,12 @@ export default function Dashboard({
 
                                 {/* Tactile Punch Controller */}
                                 <div className="flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end justify-center gap-2.5 shrink-0 pt-2 lg:pt-0 border-t border-white/10 lg:border-t-0">
-                                    {nextSlot ? (
+                                    {punchAction ? (
                                         <button
                                             type="button"
                                             onClick={handleAdminPunch}
                                             disabled={punching}
-                                            aria-label={punching ? 'Recording punch...' : `Punch ${nextSlot.label}`}
+                                            aria-label={punching ? 'Recording attendance request...' : punchAction.label}
                                             className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-extrabold text-[#26215C] bg-white hover:bg-indigo-50 active:bg-indigo-100 disabled:opacity-50 disabled:pointer-events-none transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white shadow-lg cursor-pointer whitespace-nowrap"
                                         >
                                             {punching ? (
@@ -351,7 +357,7 @@ export default function Dashboard({
                                                     <svg className="w-4 h-4 text-[#26215C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                     </svg>
-                                                    <span>Punch {nextSlot.label}</span>
+                                                    <span>{punchAction.label}</span>
                                                 </>
                                             )}
                                         </button>

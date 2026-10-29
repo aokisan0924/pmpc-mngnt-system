@@ -11,10 +11,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Feature\Concerns\PunchesAttendance;
 use Tests\TestCase;
 
 class DtrAbsenceTest extends TestCase
 {
+    use PunchesAttendance;
     use RefreshDatabase;
 
     protected function setUp(): void
@@ -46,11 +48,11 @@ class DtrAbsenceTest extends TestCase
         ])->assertSessionHasNoErrors();
         $log = DtrLog::where('employee_id', $employee->id)->firstOrFail();
         $this->assertSame('absent', $log->displayStatus());
-        $this->post('/employee/dtr/punch')->assertSessionHasErrors('punch');
+        $this->postAttendancePunch($employee)->assertSessionHasErrors('punch');
         $this->post("/employee/dtr/{$log->id}/absence/cancel")->assertSessionHasNoErrors();
         $this->assertSame('Personal appointment', $log->fresh()->absence_reason);
         $this->assertFalse($log->fresh()->hasActiveAbsence());
-        $this->post('/employee/dtr/punch')->assertSessionHasNoErrors();
+        $this->postAttendancePunch($employee)->assertSessionHasNoErrors();
         $this->assertSame('in_progress', $log->fresh()->displayStatus());
         $this->assertSame(2, $admin->notifications()->where('type', 'absence_notice')->count());
     }
