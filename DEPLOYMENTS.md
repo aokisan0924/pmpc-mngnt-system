@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-10-29 17:57 — 6c6e15a — Whole-site redundancy cleanup
+- By: Codex, requested by Kurt
+- Code: `b2af756` → `6c6e15a`
+- Migrations: none
+- Backup: none
+- Data changes: none
+- Verified: server checkout was clean before deployment and is now at `6c6e15a`; Laravel caches rebuilt and maintenance mode cleared; live `/login` returned HTTP 200 with the expected page title and the new CSS asset returned HTTP 200.
+
 - Times are Asia/Manila.
 - The server checkout is `~/domains/peoplescoopdtr.online/pmpc_mngnt` and runs the `main` commit shown in the latest entry.
 - Commits that only change documentation (such as this file) don't need a deploy.
