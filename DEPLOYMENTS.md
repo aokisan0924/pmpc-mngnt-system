@@ -21,6 +21,14 @@ Entry template:
 
 ---
 
+## 2026-10-29 09:30 — 7276f3c — Final review step when creating a payroll
+- By: Claude Code (SSH key), requested by Kurt
+- Code: dfd9891 → 7276f3c
+- Migrations: none
+- Backup: none (no migrations or data changes)
+- Data changes: none
+- Verified: server checkout was clean before the pull and is at 7276f3c after; `php artisan up` done; `/login` returns 200 and the new PayrollCreate bundle is served. Backend payroll tests (57) passed locally. The new dialog itself was not clicked through in a browser (the test browser could not load the local app).
+
 ## 2026-10-23 15:07 — dfd9891 — Dated schedule history for shifts and workdays
 - By: Claude Code (SSH key), requested by Kurt
 - Code: c410db5 → dfd9891
