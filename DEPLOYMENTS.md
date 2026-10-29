@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-10-29 18:14 — e667c38 — Portal typography and spacing polish
+- By: Codex, requested by Kurt
+- Code: `10afda2` → `e667c38`
+- Migrations: none
+- Backup: none
+- Data changes: none
+- Verified: server checkout was clean before deployment and is now at `e667c38`; Laravel caches rebuilt and maintenance mode cleared; live `/login` returned HTTP 200 with the expected page title and the current CSS asset returned HTTP 200.
+
 ## 2026-10-29 17:57 — 6c6e15a — Whole-site redundancy cleanup
 - By: Codex, requested by Kurt
 - Code: `b2af756` → `6c6e15a`
