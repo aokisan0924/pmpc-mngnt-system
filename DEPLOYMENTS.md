@@ -21,6 +21,16 @@ Entry template:
 
 ---
 
+## 2026-10-29 17:20 — 3b56cc7 — DTR-fed payroll attendance and overrides
+- By: Codex, requested by Kurt
+- Code: `edf3717` → `3b56cc7`
+- Migrations: `2026_10_29_000001_add_dtr_payroll_attendance_snapshots_to_payroll_items_table`
+- Backup: `/home/u512373751/backups/pmpc_mngnt_20261029_pre_dtr_payroll.sql`
+- Data changes: none; the migration adds nullable payroll-item DTR snapshot and override-reason columns. Undo by restoring the backup if needed and rolling back this migration.
+- Verified: local Laravel suite passed (172 tests, 1,293 assertions), Vite build and Pint checks passed. Live migration dry run listed only the five intended nullable columns; migration completed, app returned from maintenance mode, `/login` returned HTTP 200, PayrollCreate asset returned HTTP 200, and migration status shows it as Ran.
+
+---
+
 ## 2026-10-29 16:20 — ae23acd — Gen Mdse attendance API integration
 - By: Codex, requested by Kurt
 - Code: `7276f3c09cb215164c59d8aa01cd5a587fabbf56` → `ae23acde0d0fcaac867e234eb8ee8c588151efd4`
