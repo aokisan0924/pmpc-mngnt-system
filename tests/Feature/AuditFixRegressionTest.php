@@ -155,6 +155,7 @@ class AuditFixRegressionTest extends TestCase
 
     public function test_cutoff_periods_are_exact_for_preview_and_payroll_save(): void
     {
+        $this->travelTo(Carbon::parse('2026-11-01 12:00:00'));
         $this->assertTrue(PayrollCutoffPeriod::matches('2024-02-01', '2024-02-15', 'first'));
         $this->assertTrue(PayrollCutoffPeriod::matches('2024-02-16', '2024-02-29', 'second'));
         $this->assertFalse(PayrollCutoffPeriod::matches('2024-02-01', '2024-02-15', 'second'));
@@ -350,6 +351,12 @@ class AuditFixRegressionTest extends TestCase
                 'payroll_office' => 'fort_magsaysay',
                 'paid_days_basis' => 11,
                 'absence_days' => 0,
+                'default_paid_days_basis' => 11,
+                'dtr_days_present' => 0,
+                'dtr_absence_days' => 11,
+                'dtr_tardiness_minutes' => 0,
+                'dtr_unresolved_dates' => [],
+                'attendance_override_reason' => 'Reviewed the DTR and confirmed the payroll days for this test.',
                 'dtr_reconciliation_note' => 'Reviewed for audit regression coverage.',
                 'weekday_ot_hours' => 0,
                 'weekend_ot_hours' => 0,

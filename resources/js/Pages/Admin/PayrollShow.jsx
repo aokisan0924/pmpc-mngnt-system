@@ -184,7 +184,20 @@ export default function PayrollShow({ payroll, items = [], signatureEmployees = 
                                     <div className="grid gap-6 border-t border-border bg-field/60 p-5 md:grid-cols-2">
                                     {item.dtr_days_present !== null && item.dtr_days_present !== undefined && (
                                         <div className="md:col-span-2 rounded-xl border border-border bg-panel p-4 text-xs text-sub">
-                                            <p>DTR recorded: <strong className="text-text">{item.dtr_days_present} weighted days</strong></p>
+                                            {item.default_paid_days_basis !== null && item.default_paid_days_basis !== undefined ? (
+                                                <>
+                                                    <p>DTR source: <strong className="text-text">{item.dtr_days_present} present · {item.dtr_absence_days} absent · {item.dtr_tardiness_minutes} late minutes</strong></p>
+                                                    <p className="mt-1">Used in payroll: <strong className="text-text">{item.paid_days_basis} workdays · {item.absence_days} absent · {item.tardiness_minutes} late minutes</strong></p>
+                                                    {(item.dtr_unresolved_dates || []).length > 0 && (
+                                                        <p className="mt-2 text-amber-700">DTR entries reviewed: {(item.dtr_unresolved_dates || []).join(', ')}</p>
+                                                    )}
+                                                    {item.attendance_override_reason && (
+                                                        <p className="mt-2"><strong className="text-text">Attendance override reason:</strong> {item.attendance_override_reason}</p>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <p>DTR recorded: <strong className="text-text">{item.dtr_days_present} weighted days</strong></p>
+                                            )}
                                             {item.dtr_reconciliation_note && (
                                                 <p className="mt-2"><strong className="text-text">DTR reconciliation:</strong> {item.dtr_reconciliation_note}</p>
                                             )}

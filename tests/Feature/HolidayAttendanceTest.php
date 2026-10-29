@@ -60,12 +60,15 @@ class HolidayAttendanceTest extends TestCase
         $employee = Employee::factory()->create(['daily_rate' => 600, 'transpo_allowance' => 0, 'rep_allowance' => 0, 'quarterly_allowance' => 0]);
         $employee->forceFill(['payroll_office' => 'fort_magsaysay', 'setup_completed_at' => now(), 'office_verified_at' => now()])->save();
         DtrLog::factory()->create(['employee_id' => $employee->id, 'date' => '2026-09-08']);
-
         $this->actingAs($admin)->get(route('admin.payroll.create', ['period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'cutoff' => 'first']))
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('employees.0.id', $employee->id)
                 ->where('employees.0.holiday_pay', 0)
-                ->where('employees.0.absence_days', 0)
+                ->where('employees.0.absence_days', 9)
+                ->where('employees.0.dtr_days_present', 1)
+                ->where('employees.0.dtr_absence_days', 9)
+                ->where('employees.0.dtr_tardiness_minutes', 0)
+                ->where('employees.0.dtr_unresolved_dates', [])
                 ->where('employees.0.paid_days_basis', 11)
                 ->has('holidays', 2));
 
@@ -74,6 +77,8 @@ class HolidayAttendanceTest extends TestCase
             'items' => [[
                 'employee_id' => $employee->id, 'payroll_office' => 'fort_magsaysay',
                 'paid_days_basis' => 11, 'absence_days' => 0, 'tardiness_deduction' => 0,
+                'default_paid_days_basis' => 11, 'dtr_days_present' => 1, 'dtr_absence_days' => 9, 'dtr_tardiness_minutes' => 0, 'dtr_unresolved_dates' => [],
+                'attendance_override_reason' => 'Reviewed the DTR and confirmed the payroll days for this test.',
                 'holiday_pay' => 600,
                 'dtr_reconciliation_note' => 'Office basis verified against DTR.',
                 'weekday_ot_hours' => 0, 'weekend_ot_hours' => 0,

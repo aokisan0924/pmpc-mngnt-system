@@ -82,6 +82,8 @@ class AccountSetupTest extends TestCase
         $admin = Employee::factory()->superAdmin()->create();
         $payload = ['period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'period_label' => 'September first', 'cutoff' => 'first', 'batch_reviewed' => true, 'items' => [[
             'employee_id' => $employee->id, 'payroll_office' => 'cubao', 'paid_days_basis' => 11, 'absence_days' => 0, 'tardiness_deduction' => 0, 'dtr_reconciliation_note' => 'Reviewed for office verification test.',
+            'default_paid_days_basis' => 11, 'dtr_days_present' => 0, 'dtr_absence_days' => 11, 'dtr_tardiness_minutes' => 0, 'dtr_unresolved_dates' => [],
+            'attendance_override_reason' => 'Reviewed the DTR and confirmed the payroll days for this test.',
             'compensation_signature' => app(OfficePayrollCalculator::class)->compensationSignature($employee), 'deductions' => array_fill_keys(OfficePayrollCalculator::DEDUCTIONS, 0),
         ]]];
         $this->actingAs($admin)->post('/admin/payroll', $payload)->assertSessionHasErrors('items');
@@ -107,6 +109,8 @@ class AccountSetupTest extends TestCase
 
         $this->post('/admin/payroll', ['period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'period_label' => 'September first', 'cutoff' => 'first', 'batch_reviewed' => true, 'items' => [[
             'employee_id' => $employee->id, 'payroll_office' => 'main_office', 'paid_days_basis' => 11, 'absence_days' => 0,
+            'default_paid_days_basis' => 11, 'dtr_days_present' => 0, 'dtr_absence_days' => 11, 'dtr_tardiness_minutes' => 0, 'dtr_unresolved_dates' => [],
+            'attendance_override_reason' => 'Reviewed the DTR and confirmed the payroll days for this test.',
             'compensation_signature' => app(OfficePayrollCalculator::class)->compensationSignature($employee), 'deductions' => array_fill_keys(OfficePayrollCalculator::DEDUCTIONS, 0),
         ]]])->assertSessionHasNoErrors();
         $this->assertEquals(7920, PayrollItem::firstOrFail()->cutoff_basic);

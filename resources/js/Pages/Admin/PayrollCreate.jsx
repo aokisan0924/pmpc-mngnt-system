@@ -30,8 +30,11 @@ const rowFields = [
     ['tardiness_minutes', 'Late mins', { max: 9999, step: '0.5' }],
 ]
 const cell = 'min-h-[44px] w-24 rounded-lg border border-border bg-field px-2 py-1.5 text-right text-sm text-text tnum'
-const dtrDiffers = (item) =>
-    Math.abs(Number(item.paid_days_basis) - Number(item.absence_days) - Number(item.dtr_days_present)) >= 0.005
+const attendanceDiffers = (item) =>
+    Math.abs(Number(item.paid_days_basis) - Number(item.default_paid_days_basis)) >= 0.005 ||
+    Math.abs(Number(item.absence_days) - Number(item.dtr_absence_days)) >= 0.005 ||
+    Math.abs(Number(item.tardiness_minutes) - Number(item.dtr_tardiness_minutes)) >= 0.005
+const hasUnresolvedDtr = (item) => (item.dtr_unresolved_dates || []).length > 0
 
 export default function PayrollCreate({
     employees = [],
@@ -69,6 +72,9 @@ export default function PayrollCreate({
         )
     const totals = sum(items)
     const unverified = items.filter((item) => !item.office_verified).length
+    const missingOverrideReasons = items.findIndex((item, index) =>
+        (attendanceDiffers(item) || hasUnresolvedDtr(item)) && !data.items[index].attendance_override_reason?.trim(),
+    )
     const groups = Object.keys(offices)
         .concat('')
         .map((office) => [office, items.map((item, index) => ({ item, index })).filter(({ item }) => (item.office_verified ? item.payroll_office : '') === office)])
@@ -76,6 +82,7 @@ export default function PayrollCreate({
 
     function update(index, field, value) {
         setData('items', data.items.map((entry, i) => (i === index ? { ...entry, [field]: value } : entry)))
+        if (['paid_days_basis', 'absence_days', 'tardiness_minutes'].includes(field)) setOpen(index)
     }
     function updateDeduction(index, field, value) {
         update(index, 'deductions', { ...data.items[index].deductions, [field]: value })
@@ -86,6 +93,11 @@ export default function PayrollCreate({
     function submit(event) {
         event.preventDefault()
         if (!items.length || unverified || processing) return
+        if (missingOverrideReasons !== -1) {
+            setOpen(missingOverrideReasons)
+            document.getElementById(`payroll-row-${missingOverrideReasons}`)?.scrollIntoView({ block: 'center' })
+            return
+        }
         setReviewing(true)
     }
     // Nothing is written until this runs; discarding from the review just leaves the page.
@@ -125,7 +137,7 @@ export default function PayrollCreate({
                 <AdminPageHeader
                     eyebrow="Payroll input"
                     title={period_label}
-                    description="Enter this cutoff's absences, overtime and adjustments in one table. Pay recalculates as you type."
+                    description="Attendance comes from DTR for this cutoff. Review the workdays, absences and late minutes, then enter any overtime or adjustments."
                     badge={is_first ? '1st cutoff' : '2nd cutoff'}
                     meta={
                         <Link href="/admin/payroll" className="inline-flex min-h-[44px] items-center font-medium text-indigo-100 hover:text-white">
@@ -149,10 +161,10 @@ export default function PayrollCreate({
                 <details className="rounded-xl border border-border bg-field px-4 py-3 text-sm text-sub">
                     <summary className="min-h-[44px] cursor-pointer font-semibold text-text">How pay is calculated</summary>
                     <ul className="mt-2 max-w-[70ch] list-disc space-y-1 pl-5 leading-relaxed">
-                        <li>Basic pay = daily rate × (paid days − absent days). Paid days start at the office default (11; 15 for General Merchandise).</li>
+                        <li>Basic pay = daily rate × (paid days − absent days). DTR fills present days, absences and late minutes; paid days start at the office default (11; 15 for General Merchandise).</li>
                         <li>Allowances are half the monthly amount. Weekday overtime is daily rate ÷ 8 × 125%; rest-day overtime × 130%.</li>
-                        <li>Holiday pay is typed in pesos. Late minutes are deducted at daily rate ÷ 8 ÷ 60 per minute. Deductions start from employee profiles; open Details to change them.</li>
-                        <li>DTR days are shown for reference only and never block saving.</li>
+                        <li>Late minutes are counted after the configured grace period and deducted at daily rate ÷ 8 ÷ 60 per minute. Holiday pay and overtime are entered separately; deductions start from employee profiles.</li>
+                        <li>Correct DTR mistakes here with a reason. Incomplete DTR dates also need a reason before saving or finalizing.</li>
                     </ul>
                 </details>
                 {Object.entries(errors)
@@ -188,8 +200,8 @@ export default function PayrollCreate({
                                             <tr id={`payroll-row-${index}`} className="align-top">
                                                 <th scope="row" className="sticky left-0 z-10 min-w-[200px] bg-panel px-4 py-3 text-left font-normal">
                                                     <span className="block font-semibold text-text">{item.full_name}</span>
-                                                    <span className="block text-xs text-sub">₱{fmt(item.daily_rate)}/day · DTR {item.dtr_days_present} days</span>
-                                                    {dtrDiffers(item) && (
+                                                    <span className="block text-xs text-sub">₱{fmt(item.daily_rate)}/day · DTR {item.dtr_days_present} present · {item.dtr_absence_days} absent · {item.dtr_tardiness_minutes} late min</span>
+                                                    {(attendanceDiffers(item) || hasUnresolvedDtr(item)) && (
                                                         <a
                                                             href={`/admin/dtr/${item.id}?month=${period_from.slice(0, 7)}`}
                                                             target="_blank"
@@ -197,7 +209,7 @@ export default function PayrollCreate({
                                                             title="Open this employee's DTR for the cutoff month"
                                                             className="mt-1 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-semibold text-amber-900 underline-offset-2 hover:underline"
                                                         >
-                                                            DTR differs{item.dtr_reconciliation_note ? ` · ${item.dtr_reconciliation_note}` : ''} ↗
+                                                            {hasUnresolvedDtr(item) ? `DTR needs review · ${item.dtr_unresolved_dates.join(', ')}` : 'Attendance overridden'} ↗
                                                         </a>
                                                     )}
                                                 </th>
@@ -253,6 +265,25 @@ export default function PayrollCreate({
                                                                 className="mt-1 min-h-[44px] w-full rounded-lg border border-border bg-panel px-3 text-sm text-text"
                                                             />
                                                         </label>
+                                                        {(attendanceDiffers(item) || hasUnresolvedDtr(item)) && (
+                                                            <label className="mt-3 block max-w-xl text-xs font-semibold text-rose-700">
+                                                                Reason for attendance override or unresolved DTR <span aria-hidden="true">*</span>
+                                                                <input
+                                                                    type="text"
+                                                                    maxLength={1000}
+                                                                    required
+                                                                    value={data.items[index].attendance_override_reason || ''}
+                                                                    onChange={(event) => update(index, 'attendance_override_reason', event.target.value)}
+                                                                    aria-invalid={!data.items[index].attendance_override_reason?.trim() || !!errors[`items.${index}.attendance_override_reason`]}
+                                                                    className="mt-1 min-h-[44px] w-full rounded-lg border border-border bg-panel px-3 text-sm font-normal text-text"
+                                                                />
+                                                                {(!data.items[index].attendance_override_reason?.trim() || errors[`items.${index}.attendance_override_reason`]) && (
+                                                                    <span role="alert" className="mt-1 block font-normal">
+                                                                        {errors[`items.${index}.attendance_override_reason`] || 'Enter a reason before reviewing this payroll.'}
+                                                                    </span>
+                                                                )}
+                                                            </label>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             )}

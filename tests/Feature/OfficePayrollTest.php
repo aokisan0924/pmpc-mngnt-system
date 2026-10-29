@@ -26,6 +26,9 @@ class OfficePayrollTest extends TestCase
             'items' => [array_replace([
                 'employee_id' => $employee->id, 'payroll_office' => 'fort_magsaysay',
                 'paid_days_basis' => 11, 'absence_days' => 0, 'tardiness_deduction' => 0,
+                'default_paid_days_basis' => 11, 'dtr_days_present' => 0, 'dtr_absence_days' => 11,
+                'dtr_tardiness_minutes' => 0, 'dtr_unresolved_dates' => [],
+                'attendance_override_reason' => 'Reviewed and corrected the DTR attendance for this payroll test.',
                 'dtr_reconciliation_note' => 'DTR attendance is retained as a reference; office pay basis was verified.',
                 'weekday_ot_hours' => 0, 'weekend_ot_hours' => 0,
                 'compensation_signature' => (new OfficePayrollCalculator)->compensationSignature($employee),
@@ -123,7 +126,7 @@ class OfficePayrollTest extends TestCase
         $this->assertDatabaseCount('payrolls', 0);
     }
 
-    public function test_dtr_difference_without_a_note_still_saves_the_dtr_snapshot(): void
+    public function test_dtr_difference_without_a_reconciliation_note_still_saves_the_dtr_snapshot(): void
     {
         $admin = Employee::factory()->superAdmin()->create();
         $employee = Employee::factory()->create();
@@ -133,6 +136,7 @@ class OfficePayrollTest extends TestCase
         $this->actingAs($admin)->post('/admin/payroll', $payload)->assertSessionHasNoErrors();
         $item = PayrollItem::firstOrFail();
         $this->assertEquals(0, $item->dtr_days_present);
+        $this->assertEquals(11, $item->dtr_absence_days);
         $this->assertNull($item->dtr_reconciliation_note);
     }
 
@@ -147,7 +151,7 @@ class OfficePayrollTest extends TestCase
         $this->actingAs($admin)->get(route('admin.payroll.create', ['period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'cutoff' => 'first']))
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('employees.0.id', $main->id)
-                ->where('employees.0.dtr_reconciliation_note', 'No DTR account')
+                ->where('employees.0.dtr_reconciliation_note', '')
                 ->where('employees.1.id', $cubao->id)
                 ->where('employees.1.dtr_reconciliation_note', 'Always present Mon–Fri'));
     }

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Payroll attendance now defaults to DTR-derived present days, absences, and late minutes after the configured grace period. Super admins can override these values in the payroll preview with a recorded reason; the saved batch retains the DTR snapshot and flags unresolved dates.
 - Payroll creation now ends with a final review step: "Review payroll" opens a short summary (net payout, gross, deductions, and a list of each employee) before anything is saved. HR can save as draft, keep editing, or discard (nothing is written). The "I checked all rows" tick box is replaced by this step.
 - Disabled-by-default authenticated attendance API for Gen Mdse, with an explicit active employee allowlist, attendance-only responses, repeat-safe request IDs, expected-state conflicts, and shared punch handling across API and WorkForce screens.
 - Setup and credential-rotation instructions for the Gen Mdse attendance integration.

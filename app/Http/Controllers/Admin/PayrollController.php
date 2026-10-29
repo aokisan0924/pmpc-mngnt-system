@@ -7,11 +7,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CreatePayrollRequest;
 use App\Http\Requests\Admin\StorePayrollRequest;
-use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\Holiday;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
+use App\Services\DtrPayrollAttendanceCalculator;
 use App\Services\OfficePayrollCalculator;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -59,20 +59,17 @@ class PayrollController extends Controller
         $activeEmployees = Employee::where('is_staff', true)->where('status', 'active')->get()
             ->sortBy(fn (Employee $emp): string => str_pad((string) ($officeOrder[$emp->hasVerifiedPayrollOffice() ? $emp->payroll_office : ''] ?? 9), 2, '0', STR_PAD_LEFT).mb_strtolower($emp->last_name.' '.$emp->first_name))
             ->values();
-        $attendance = DtrLog::weightedDaysByEmployee(
-            $activeEmployees->modelKeys(),
-            $from->toDateString(),
-            $to->toDateString(),
-        );
+        $paidDaysByEmployee = $activeEmployees->mapWithKeys(fn (Employee $employee): array => [
+            $employee->id => $this->paidDaysBasisFor($employee, $from, $to),
+        ])->all();
+        $attendance = app(DtrPayrollAttendanceCalculator::class)->calculateMany($activeEmployees, $from, $to, $paidDaysByEmployee);
         $holidays = Holiday::whereBetween('date', [$from->toDateString(), $to->toDateString()])->orderBy('date')->get();
         $employees = $activeEmployees
-            ->map(function (Employee $emp) use ($attendance, $isFirst, $from, $to): array {
+            ->map(function (Employee $emp) use ($attendance, $isFirst, $paidDaysByEmployee): array {
                 $office = $emp->hasVerifiedPayrollOffice() ? $emp->payroll_office : '';
-                // Custom schedules (e.g. a weekend reliever) start from their workdays in the cutoff instead of the office default.
-                $paidDays = Employee::hasCustomWorkDays($emp->id, $from, $to)
-                    ? collect(CarbonPeriod::create($from, $to))->filter(fn ($day): bool => Employee::isWorkDay($emp->id, $day))->count()
-                    : (OfficePayrollCalculator::OFFICES[$office]['days'] ?? 11);
-                $suggestions = app(OfficePayrollCalculator::class)->calculate($emp, $isFirst, $paidDays, 0);
+                $dtr = $attendance->get((int) $emp->id);
+                $paidDays = (float) $paidDaysByEmployee[$emp->id];
+                $suggestions = app(OfficePayrollCalculator::class)->calculate($emp, $isFirst, $paidDays, (float) $dtr['absence_days']);
 
                 return [
                     'id' => $emp->id,
@@ -83,17 +80,21 @@ class PayrollController extends Controller
                     'rep_allowance' => $emp->rep_allowance,
                     'quarterly_allowance' => $emp->quarterly_allowance,
                     'compensation_signature' => app(OfficePayrollCalculator::class)->compensationSignature($emp),
-                    'dtr_days_present' => (float) ($attendance[$emp->id] ?? 0),
+                    'default_paid_days_basis' => $dtr['default_paid_days_basis'],
+                    'dtr_days_present' => $dtr['days_present'],
+                    'dtr_absence_days' => $dtr['absence_days'],
+                    'dtr_tardiness_minutes' => $dtr['tardiness_minutes'],
+                    'dtr_unresolved_dates' => $dtr['unresolved_dates'],
                     'payroll_office' => $office,
                     'office_verified' => $emp->hasVerifiedPayrollOffice(),
                     'paid_days_basis' => $paidDays,
-                    'absence_days' => 0,
+                    'absence_days' => $dtr['absence_days'],
                     'holiday_pay' => 0,
-                    'dtr_reconciliation_note' => Employee::isAlwaysPresent($emp->id) ? 'Always present Mon–Fri'
-                        : ((float) ($attendance[$emp->id] ?? 0) === 0.0 ? 'No DTR account' : ''),
+                    'dtr_reconciliation_note' => Employee::isAlwaysPresent($emp->id) ? 'Always present Mon–Fri' : '',
                     'weekday_ot_hours' => 0,
                     'weekend_ot_hours' => 0,
-                    'tardiness_minutes' => 0,
+                    'tardiness_minutes' => $dtr['tardiness_minutes'],
+                    'attendance_override_reason' => '',
                     'deductions' => collect($suggestions)->only(OfficePayrollCalculator::DEDUCTIONS)->all(),
                 ];
             });
@@ -123,11 +124,12 @@ class PayrollController extends Controller
         $employeeIds = collect($validated['items'])->pluck('employee_id')->all();
         $payroll = DB::transaction(function () use ($validated, $employeeIds, $isFirst, $request) {
             $employees = Employee::whereIn('id', $employeeIds)->where('is_staff', true)->where('status', 'active')->lockForUpdate()->get()->keyBy('id');
-            $attendanceByEmployee = DtrLog::weightedDaysByEmployee(
-                $employeeIds,
-                Carbon::parse($validated['period_from'])->toDateString(),
-                Carbon::parse($validated['period_to'])->toDateString(),
-            );
+            $from = Carbon::parse($validated['period_from']);
+            $to = Carbon::parse($validated['period_to']);
+            $paidDaysByEmployee = $employees->mapWithKeys(fn (Employee $employee): array => [
+                $employee->id => $this->paidDaysBasisFor($employee, $from, $to),
+            ])->all();
+            $attendanceByEmployee = app(DtrPayrollAttendanceCalculator::class)->calculateMany($employees->values(), $from, $to, $paidDaysByEmployee);
             $payroll = Payroll::create([
                 'period_label' => $validated['period_label'],
                 'period_from' => $validated['period_from'],
@@ -137,7 +139,7 @@ class PayrollController extends Controller
                 'created_by' => $request->user()->id,
             ]);
 
-            foreach ($validated['items'] as $itemData) {
+            foreach ($validated['items'] as $index => $itemData) {
                 $emp = $employees->get($itemData['employee_id']);
                 if (! $emp) {
                     throw ValidationException::withMessages(['items' => 'An employee is no longer available. Reload the payroll preview.']);
@@ -149,8 +151,28 @@ class PayrollController extends Controller
                     throw ValidationException::withMessages(['items' => 'An employee’s rate or allowances changed. Reload and review the payroll preview.']);
                 }
 
-                // DTR stays a reference: the server snapshot and any note are saved, a mismatch does not block saving.
-                $dtrDays = (float) ($attendanceByEmployee[$emp->id] ?? 0);
+                $dtr = $attendanceByEmployee->get((int) $emp->id);
+                $postedUnresolvedDates = array_values($itemData['dtr_unresolved_dates']);
+                sort($postedUnresolvedDates);
+                $currentUnresolvedDates = $dtr['unresolved_dates'];
+                sort($currentUnresolvedDates);
+                $snapshotMatches = abs((float) $itemData['default_paid_days_basis'] - $dtr['default_paid_days_basis']) < 0.005
+                    && abs((float) $itemData['dtr_days_present'] - $dtr['days_present']) < 0.005
+                    && abs((float) $itemData['dtr_absence_days'] - $dtr['absence_days']) < 0.005
+                    && abs((float) $itemData['dtr_tardiness_minutes'] - $dtr['tardiness_minutes']) < 0.005
+                    && $postedUnresolvedDates === $currentUnresolvedDates;
+                if (! $snapshotMatches) {
+                    throw ValidationException::withMessages(["items.$index.dtr_days_present" => 'DTR changed after this preview. Reload payroll and review the updated attendance.']);
+                }
+
+                $attendanceOverridden = abs((float) $itemData['paid_days_basis'] - $dtr['default_paid_days_basis']) >= 0.005
+                    || abs((float) $itemData['absence_days'] - $dtr['absence_days']) >= 0.005
+                    || abs((float) ($itemData['tardiness_minutes'] ?? 0) - $dtr['tardiness_minutes']) >= 0.005;
+                $overrideReason = trim((string) ($itemData['attendance_override_reason'] ?? ''));
+                if (($attendanceOverridden || $dtr['unresolved_dates'] !== []) && $overrideReason === '') {
+                    throw ValidationException::withMessages(["items.$index.attendance_override_reason" => 'Explain the attendance override or how the unresolved DTR was reviewed.']);
+                }
+
                 $reconciliationNote = trim((string) ($itemData['dtr_reconciliation_note'] ?? ''));
 
                 $item = new PayrollItem;
@@ -161,7 +183,12 @@ class PayrollController extends Controller
                 $item->payroll_office = $itemData['payroll_office'];
                 $item->paid_days_basis = $itemData['paid_days_basis'];
                 $item->absence_days = $itemData['absence_days'];
-                $item->dtr_days_present = $dtrDays;
+                $item->default_paid_days_basis = $dtr['default_paid_days_basis'];
+                $item->dtr_days_present = $dtr['days_present'];
+                $item->dtr_absence_days = $dtr['absence_days'];
+                $item->dtr_tardiness_minutes = $dtr['tardiness_minutes'];
+                $item->dtr_unresolved_dates = $dtr['unresolved_dates'];
+                $item->attendance_override_reason = $overrideReason !== '' ? $overrideReason : null;
                 $item->dtr_reconciliation_note = $reconciliationNote !== '' ? $reconciliationNote : null;
                 // Pesos are always computed here from minutes; a client-sent peso amount is ignored.
                 $item->tardiness_minutes = (float) ($itemData['tardiness_minutes'] ?? 0);
@@ -208,7 +235,12 @@ class PayrollController extends Controller
                 'payroll_office_label' => OfficePayrollCalculator::OFFICES[$item->payroll_office]['label'] ?? null,
                 'paid_days_basis' => $item->paid_days_basis,
                 'absence_days' => $item->absence_days,
+                'default_paid_days_basis' => $item->default_paid_days_basis,
                 'dtr_days_present' => $item->dtr_days_present,
+                'dtr_absence_days' => $item->dtr_absence_days,
+                'dtr_tardiness_minutes' => $item->dtr_tardiness_minutes,
+                'dtr_unresolved_dates' => $item->dtr_unresolved_dates ?? [],
+                'attendance_override_reason' => $item->attendance_override_reason,
                 'dtr_reconciliation_note' => $item->dtr_reconciliation_note,
                 'tardiness_deduction' => $item->tardiness_deduction,
                 'tardiness_minutes' => $item->tardiness_minutes,
@@ -268,6 +300,16 @@ class PayrollController extends Controller
                 return false;
             }
 
+            $unreviewedDtr = $lockedPayroll->items()
+                ->whereNotNull('dtr_unresolved_dates')
+                ->get(['dtr_unresolved_dates', 'attendance_override_reason'])
+                ->contains(fn (PayrollItem $item): bool => (is_array($item->dtr_unresolved_dates) && $item->dtr_unresolved_dates !== [])
+                    && blank($item->attendance_override_reason));
+
+            if ($unreviewedDtr) {
+                return false;
+            }
+
             $lockedPayroll->forceFill([
                 'status' => 'finalized',
                 'finalized_by' => $request->user()->id,
@@ -278,7 +320,11 @@ class PayrollController extends Controller
         });
 
         if (! $finalized) {
-            return back()->withErrors(['error' => 'Payroll is already finalized.']);
+            $payroll->refresh();
+
+            return back()->withErrors(['error' => $payroll->isFinalized()
+                ? 'Payroll is already finalized.'
+                : 'Review unresolved DTR entries and record an override reason before finalizing payroll.']);
         }
 
         return back()->with('success', 'Payroll finalized.');
@@ -304,5 +350,18 @@ class PayrollController extends Controller
         }
 
         return redirect()->route('admin.payroll')->with('success', 'Draft payroll discarded.');
+    }
+
+    private function paidDaysBasisFor(Employee $employee, Carbon $from, Carbon $to): float
+    {
+        if (Employee::hasCustomWorkDays((int) $employee->id, $from, $to)) {
+            return (float) collect(CarbonPeriod::create($from, $to))
+                ->filter(fn ($day): bool => Employee::isWorkDay((int) $employee->id, $day))
+                ->count();
+        }
+
+        $office = $employee->hasVerifiedPayrollOffice() ? $employee->payroll_office : '';
+
+        return (float) (OfficePayrollCalculator::OFFICES[$office]['days'] ?? 11);
     }
 }
