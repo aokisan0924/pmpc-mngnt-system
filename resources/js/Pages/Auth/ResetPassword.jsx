@@ -41,22 +41,13 @@ export default function ResetPassword({ email, token }) {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-bg px-4 py-8 sm:py-12 swiss-grid">
+        <div className="min-h-screen flex items-center justify-center bg-bg px-4 py-8 sm:py-12">
             <div className="w-full max-w-4xl overflow-hidden shadow-xl border border-border bg-panel flex flex-col md:flex-row">
 
                 <div
                     className="relative md:w-64 flex-shrink-0 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-between gap-4 md:gap-0 px-5 py-4 md:p-7 overflow-hidden"
                     style={{ background: 'var(--color-brand)' }}
                 >
-                    <svg
-                        className="pointer-events-none absolute -right-10 -bottom-10 w-40 h-40 md:w-56 md:h-56 opacity-[0.08]"
-                        viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <circle cx="9" cy="9" r="5.5" stroke="white" strokeWidth="0.6" />
-                        <circle cx="15" cy="9" r="5.5" stroke="white" strokeWidth="0.6" />
-                        <circle cx="12" cy="14.5" r="5.5" stroke="white" strokeWidth="0.6" />
-                    </svg>
-
                     <div className="flex items-center gap-2.5 md:mb-8 relative">
                         <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
                             style={{ background: 'rgba(255,255,255,0.15)' }}>
@@ -68,16 +59,10 @@ export default function ResetPassword({ email, token }) {
                         </div>
                     </div>
 
-                    <p className="hidden md:block relative" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, lineHeight: 1.5 }}>
-                        Employee Management System v2.0<br />
-                        People&apos;s Multi-Purpose Cooperative
-                    </p>
                 </div>
 
                 <div className="flex-1 flex flex-col justify-center px-5 py-7 sm:px-8 sm:py-8 md:px-10 md:py-10 bg-bg">
-                    <h1 className="text-xl sm:text-2xl font-bold text-text mb-1">Set a new password</h1>
-                    <p className="text-sm text-sub mb-6">Choose a new password for your account.</p>
-
+                    <h1 className="text-xl sm:text-2xl font-bold text-text mb-6">Set a new password</h1>
                     <form onSubmit={submit} className="space-y-4" noValidate>
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-text mb-2">Email address</label>

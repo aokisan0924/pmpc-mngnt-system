@@ -3,7 +3,6 @@ import { router, usePage, Link } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import EmployeePageHeader from '@/Components/EmployeePageHeader'
 import Card from '@/Components/UI/Card'
-import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 
 export default function Notifications({ notifications = [] }) {
@@ -89,10 +88,8 @@ export default function Notifications({ notifications = [] }) {
                 )}
 
                 <EmployeePageHeader
-                    eyebrow="Updates & Directives"
-                    title="Notification Center"
-                    description="Review DTR correction decisions, administrative updates, and cooperative announcements."
-                    badge={`${unread.length} unread`}
+                    eyebrow="Updates"
+                    title="Notifications"
                     action={unread.length > 0 ? (
                         <button
                             type="button"
@@ -107,54 +104,6 @@ export default function Notifications({ notifications = [] }) {
                         </button>
                     ) : null}
                 />
-
-                {/* Stat Grid */}
-                <div className="attendance-metrics grid grid-cols-2 gap-px overflow-hidden bg-border sm:grid-cols-4 sm:rounded-xl">
-                    <StatCard
-                        title="Unread Alerts"
-                        value={unread.length}
-                        subtitle="Awaiting review"
-                        accent="amber"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="DTR Approved"
-                        value={approved.length}
-                        subtitle="Edits accepted"
-                        accent="emerald"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="DTR Declined"
-                        value={declined.length}
-                        subtitle="Corrections rejected"
-                        accent="rose"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        }
-                    />
-                    <StatCard
-                        title="Total History"
-                        value={notifications.length}
-                        subtitle="All received updates"
-                        accent="slate"
-                        icon={
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
-                        }
-                    />
-                </div>
 
                 {/* Filter Tabs */}
                 <div className="employee-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2.5 rounded-2xl border">
@@ -187,9 +136,6 @@ export default function Notifications({ notifications = [] }) {
                             </button>
                         ))}
                     </div>
-                    <span className="text-xs text-sub hidden sm:inline-block pr-2">
-                        Showing <strong className="text-text font-semibold">{filteredNotifications.length}</strong> {filteredNotifications.length === 1 ? 'alert' : 'alerts'}
-                    </span>
                 </div>
 
                 {/* Notifications List */}
@@ -272,19 +218,8 @@ export default function Notifications({ notifications = [] }) {
                                         ? 'No Notifications Yet'
                                         : `No ${filter} notifications found`}
                                 </p>
-                                <p className="text-xs text-dim mt-1">
-                                    {notifications.length === 0
-                                        ? 'You will receive notifications here whenever your DTR edit requests or submissions are reviewed.'
-                                        : 'Try selecting a different filter tab or check back later for updates.'}
-                                </p>
-                                {filter !== 'all' && notifications.length > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setFilter('all')}
-                                        className="mt-4 px-3.5 py-1.5 rounded-xl text-xs font-semibold border border-border bg-field text-emerald-600 dark:text-emerald-400 hover:bg-panel transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
-                                    >
-                                        View All Notifications
-                                    </button>
+                                {notifications.length === 0 && (
+                                    <p className="text-xs text-dim mt-1">DTR review decisions and other updates will appear here.</p>
                                 )}
                             </div>
                         </Card>

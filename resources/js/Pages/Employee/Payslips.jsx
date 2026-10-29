@@ -140,8 +140,7 @@ export default function Payslips({ payslips = [] }) {
                 <EmployeePageHeader
                     eyebrow="Compensation Archive"
                     title="My Payslips"
-                    description="Review finalized semi-monthly payroll vouchers, verify earnings breakdowns, and export official payslips."
-                    badge={finalizedPayslips.length > 0 ? `${finalizedPayslips.length} finalized periods` : 'Payroll in progress'}
+                    description="Finalized pay periods and payslip downloads."
                 />
 
                 {/* Career summary stats */}
@@ -351,7 +350,6 @@ export default function Payslips({ payslips = [] }) {
                                                 backgroundImage: 'radial-gradient(ellipse 90% 70% at 20% 20%, rgba(20, 138, 108, 0.45), transparent 75%), radial-gradient(ellipse 70% 60% at 85% 85%, rgba(6, 46, 36, 0.65), transparent)'
                                             }}
                                         >
-                                            <div className="absolute inset-0 opacity-[0.06] swiss-grid pointer-events-none" aria-hidden="true" />
                                             <div className="relative z-10">
                                                 <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-emerald-300">
                                                     {active.status === 'complete' ? 'Net compensation received' : 'Projected net compensation'}

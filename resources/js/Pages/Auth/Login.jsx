@@ -16,13 +16,6 @@ function EyeIcon({ off }) {
     )
 }
 
-const FEATURES = [
-    ['Daily time record', <path key="dtr" strokeLinecap="round" strokeLinejoin="round" d="M12 7v5l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />],
-    ['Tasks and schedules', <path key="tasks" strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12h14V7a2 2 0 00-2-2h-2M9 5a3 3 0 006 0M8 13l2 2 5-5" />],
-    ['Payroll and payslips', <path key="pay" strokeLinecap="round" strokeLinejoin="round" d="M7 3h10a2 2 0 012 2v16l-3-2-4 2-4-2-3 2V5a2 2 0 012-2zm2 6h6m-6 4h6" />],
-    ['Employee records', <path key="records" strokeLinecap="round" strokeLinejoin="round" d="M16 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2m6.5-10a4 4 0 100-8 4 4 0 000 8zm7-1 2 2 4-4" />],
-]
-
 export default function Login() {
     const { errors } = usePage().props
     useTheme()
@@ -61,25 +54,6 @@ export default function Login() {
                 }}
                 aria-label="About PMPC WorkForce"
             >
-                <div className="absolute inset-0 opacity-[0.08] swiss-grid pointer-events-none" aria-hidden="true" />
-
-                {/* Subtle Watermark Emblem Background */}
-                <div
-                    className="absolute right-[-12%] sm:right-[-8%] top-1/2 -translate-y-1/2 w-[340px] h-[340px] sm:w-[460px] sm:h-[460px] lg:w-[560px] lg:h-[560px] pointer-events-none select-none opacity-[0.08] dark:opacity-[0.06] [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_80%)]"
-                    aria-hidden="true"
-                >
-                    <img
-                        src={pmpcLogo}
-                        alt=""
-                        className="w-full h-full object-contain filter grayscale brightness-200 contrast-125"
-                        onError={(e) => {
-                            if (e.currentTarget.src !== window.location.origin + '/pmpc_ems.png') {
-                                e.currentTarget.src = '/pmpc_ems.png'
-                            }
-                        }}
-                    />
-                </div>
-
                 {/* Top Brand Identity with Authentic Emblem */}
                 <div className="relative flex items-center gap-3.5 border-b border-white/20 pb-6">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white p-1.5 shadow-sm border border-white/30 shrink-0">
@@ -104,51 +78,16 @@ export default function Login() {
                 <div className="relative flex-1 flex flex-col justify-center py-10 lg:py-16">
                     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/70 mb-4">Employee management system</p>
                     <h1 className="font-display text-[clamp(2.6rem,6vw,6.6rem)] leading-[0.88] font-bold tracking-[-0.07em] max-w-2xl">Work,<br />clearly.</h1>
-                    <p className="mt-6 text-sm sm:text-base leading-relaxed text-white/85 max-w-md">Attendance, employee records, payroll, and personal tasks in one cooperative workspace.</p>
-                </div>
-
-                {/* Feature Grid */}
-                <div className="relative hidden sm:grid grid-cols-2 border-t border-l border-white/20">
-                    {FEATURES.map(([label, icon]) => (
-                        <div key={label} className="flex items-center gap-3 px-4 py-3 border-r border-b border-white/20 text-xs text-white/90">
-                            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">{icon}</svg>
-                            <span>{label}</span>
-                        </div>
-                    ))}
+                    <p className="mt-6 text-sm sm:text-base leading-relaxed text-white/85 max-w-md">Attendance, payroll, tasks, and employee records in one workspace.</p>
                 </div>
             </section>
 
             {/* ── Right Form Section with Elevated Card Container ── */}
             <section className="relative flex items-center justify-center px-4 py-10 sm:px-8 lg:px-12 bg-bg">
-                {/* Ambient Radial Vignette */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(15,110,86,0.06),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(38,33,92,0.04),transparent_50%)] pointer-events-none" aria-hidden="true" />
-
-
                 {/* Elevated Form Card Container */}
                 <div className={`w-full max-w-md page-enter ${hasErrors ? 'animate-shake' : ''}`}>
                     <div className="relative rounded-2xl border border-border/80 bg-panel/95 backdrop-blur-md p-7 sm:p-9 shadow-xl shadow-slate-900/5 dark:shadow-black/25">
-                        {/* Compact Mobile Brand Header */}
-                        <div className="lg:hidden flex items-center gap-3 pb-6 border-b border-border/60 mb-6">
-                            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white p-1 border border-border/60 shadow-2xs shrink-0">
-                                <img
-                                    src={pmpcLogo}
-                                    alt="PMPC"
-                                    className="w-full h-full object-contain"
-                                    onError={(e) => {
-                                        if (e.currentTarget.src !== window.location.origin + '/pmpc_ems.png') {
-                                            e.currentTarget.src = '/pmpc_ems.png'
-                                        }
-                                    }}
-                                />
-                            </div>
-                            <div>
-                                <h2 className="text-sm font-semibold text-text tracking-tight">PMPC WorkForce</h2>
-                                <p className="text-xs text-sub">People&apos;s Multi-Purpose Cooperative</p>
-                            </div>
-                        </div>
-
                         <div className="mb-7">
-                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0F6E56] dark:text-emerald-400 mb-2">Secure access</p>
                             <h2 className="font-display text-2xl sm:text-3xl font-bold text-text tracking-tight">Sign in</h2>
                         </div>
 

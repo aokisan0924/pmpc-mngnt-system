@@ -109,7 +109,7 @@ export default function PayrollAnalytics({
                 <AdminPageHeader
                     eyebrow="Financial intelligence"
                     title="Payroll Analytics"
-                    description="Track organizational payroll cost, statutory deductions, and compensation movement across finalized periods."
+                    description="Compare payroll costs and deductions across finalized periods."
                     badge="Executive view"
                     action={latestPayroll && (
                         <div className="flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-4 py-2 shadow-xs">

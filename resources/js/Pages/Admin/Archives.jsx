@@ -44,7 +44,7 @@ export default function Archives({ archives = [], last_month }) {
                 <AdminPageHeader
                     eyebrow="Records retention"
                     title="DTR Archives"
-                    description="Generate and retrieve consolidated monthly packages of employee DTR certificates."
+                    description="Download monthly DTR archives."
                     badge="ZIP and PDF"
                 />
 

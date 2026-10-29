@@ -117,7 +117,6 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                 <EmployeePageHeader
                     eyebrow="Attendance Archive"
                     title="Daily Time Record"
-                    description="Review historical monthly attendance logs, audit verified time stamps, and export official DTR vouchers."
                     badge={nextLabel ? `Next: ${nextLabel}` : 'Shift Logged'}
                     action={<a
                         href={`/employee/dtr/print?month=${month}`}

@@ -24,7 +24,7 @@ function Review({ submission, offices }) {
 export default function AccountSetupReviews({ submissions, offices }) {
     const { flash } = usePage().props
     return <AdminLayout><div className="admin-page-shell space-y-5">
-        <AdminPageHeader eyebrow="People operations" title="Account setup verification" description="Check employee identity and office before payroll uses the assignment." />
+        <AdminPageHeader eyebrow="People operations" title="Account setup verification" description="Review employee identity and payroll office." />
         {flash?.success && <p role="status" className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">{flash.success}</p>}
         <p className="text-sm text-sub">{submissions.length} pending submissions. Check employment corrections in the employee record before approving.</p>
         {submissions.map(submission => <Review key={submission.id} submission={submission} offices={offices} />)}

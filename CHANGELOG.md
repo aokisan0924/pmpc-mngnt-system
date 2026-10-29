@@ -18,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DTR log rows (employee DTR page and the admin's per-employee DTR) show the day's latest edit request: its status, the employee's reason, each changed punch as original → edited time, and any admin note.
 - Per-employee two-punch shifts (time in / time out, no lunch, may end after midnight), set in the employee compensation tab; an overnight clock-out closes the log opened the evening before. Two-punch days show Time In/Time Out in DTR tables, print and archive, an unclosed day is flagged "Missing time out" (pays 0 until HR corrects it), and HR corrections accept overnight times.
 
+### Changed
+- Removed repeated notification totals, redundant account identity in the admin header, duplicate sign-in and password-reset copy, and decorative grid/watermark layers. Shortened page descriptions while keeping the actions, filters, and payroll/DTR context.
+
 ### Fixed
 - Changing an employee's shift or workdays no longer changes past attendance: absences, rest days, two-punch rules, and payroll paid days now follow the schedule that was in effect on each date. Existing personal shifts and workdays carry over into the schedule history. A month keeps the Time In / Time Out layout when its only four-punch days are absences with no punches.
 - Employee DTR edit requests must list times in order (AM in, AM out, PM in, PM out), the same rule HR corrections use. Out-of-order requests such as a PM In of 01:00 can no longer be submitted and inflate hours.

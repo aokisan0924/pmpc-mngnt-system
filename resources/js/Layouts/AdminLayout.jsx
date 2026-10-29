@@ -270,27 +270,16 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
                         <span className="text-text font-semibold">{activeItem?.label}</span>
                     </nav>
 
-                    {/* Right Tools: Notification counter, Profile pill */}
-                    <div className="flex items-center gap-3">
-                        {canViewRequests && pendingEditCount > 0 && (
-                            <Link
-                                href="/admin/edit-requests"
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60 hover:bg-amber-100 transition-colors shadow-2xs"
-                            >
-                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                                {pendingEditCount} Pending Request{pendingEditCount > 1 ? 's' : ''}
-                            </Link>
-                        )}
-                        <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-[#26215C] text-white flex items-center justify-center font-heading font-semibold text-xs shadow-xs ring-2 ring-[#26215C]/15">
-                                {employee?.initials ?? 'SA'}
-                            </div>
-                            <div className="hidden lg:block text-left">
-                                <p className="text-xs font-semibold text-text leading-tight">{employee?.full_name ?? 'Super Admin'}</p>
-                                <p className="text-[10px] text-sub leading-tight">{employee?.position ?? 'HR Administrator'}</p>
-                            </div>
-                        </div>
-                    </div>
+                    {/* Pending work */}
+                    {canViewRequests && pendingEditCount > 0 && (
+                        <Link
+                            href="/admin/edit-requests"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60 hover:bg-amber-100 transition-colors shadow-2xs"
+                        >
+                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                            {pendingEditCount} Pending Request{pendingEditCount > 1 ? 's' : ''}
+                        </Link>
+                    )}
                 </header>
 
                 <main id="main-content" tabIndex="-1" className="flex-1 bg-bg outline-none">

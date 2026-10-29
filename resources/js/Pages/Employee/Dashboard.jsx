@@ -5,7 +5,6 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import StatCard from '@/Components/UI/StatCard'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
-import pmpcLogo from '@images/pmpc_ems.png'
 import useAttendancePunch from '@/hooks/useAttendancePunch'
 import { attendancePunchAction, attendancePunchRetryMessage, attendancePunchSuccessMessage } from '@/hooks/attendancePunchFlow'
 
@@ -218,24 +217,6 @@ export default function Dashboard({
                         backgroundImage: 'radial-gradient(ellipse 90% 70% at 20% 20%, rgba(20, 138, 108, 0.45), transparent 75%), radial-gradient(ellipse 70% 60% at 85% 85%, rgba(6, 46, 36, 0.65), transparent)'
                     }}
                 >
-                    {/* Background swiss-grid & watermark emblem from landing page */}
-                    <div className="absolute inset-0 opacity-[0.08] swiss-grid pointer-events-none" aria-hidden="true" />
-                    <div
-                        className="absolute right-[-10%] sm:right-[-6%] top-1/2 -translate-y-1/2 w-[340px] h-[340px] sm:w-[440px] sm:h-[440px] pointer-events-none select-none opacity-[0.08] [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_80%)]"
-                        aria-hidden="true"
-                    >
-                        <img
-                            src={pmpcLogo}
-                            alt=""
-                            className="w-full h-full object-contain filter grayscale brightness-200 contrast-125"
-                            onError={(e) => {
-                                if (e.currentTarget.src !== window.location.origin + '/pmpc_ems.png') {
-                                    e.currentTarget.src = '/pmpc_ems.png'
-                                }
-                            }}
-                        />
-                    </div>
-
                     {/* Console Header Bar */}
                     <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                         <div className="max-w-2xl space-y-1.5">
@@ -255,11 +236,8 @@ export default function Dashboard({
                                 </div>
                             )}
                             <h1 className="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight">
-                                {greeting}, {firstName}. Daily Time Record Console.
+                                {greeting}, {firstName}.
                             </h1>
-                            <p className="text-xs sm:text-sm text-emerald-100/85">
-                                Precision attendance recording compliant with PMPC Philippine labor standards.
-                            </p>
                         </div>
 
                         {/* Manila Precision Live Clock */}
@@ -392,7 +370,7 @@ export default function Dashboard({
                     <div className="relative z-10 pt-4 border-t border-white/15">
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-white">
-                                Today's DTR: {punchSlots.length}-Punch Attendance Flow
+                                Today’s punches
                             </h3>
                             <span className="text-[11px] text-emerald-100/75">
                                 Asia/Manila Standard Time
@@ -483,7 +461,6 @@ export default function Dashboard({
                                     </svg>
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300">DTR Correction Review</p>
                                     <h3 id="dtr-attention-heading" className="text-xs sm:text-sm font-bold text-text">Pending DTR Edit Requests</h3>
                                 </div>
                             </div>

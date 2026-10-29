@@ -45,7 +45,7 @@ export default function Employees({ employees = [] }) {
                 <AdminPageHeader
                     eyebrow="People operations"
                     title="Employee Management"
-                    description="Maintain employee records, employment status, compensation details, and access to individual workforce files."
+                    description="Manage employee records, status, and compensation."
                     badge={`${counts.active} active staff`}
                     action={
                     <Button

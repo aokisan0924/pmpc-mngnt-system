@@ -23,7 +23,7 @@ export default function ForgotPassword() {
     }
 
     return (
-        <main id="main-content" tabIndex="-1" className="min-h-screen flex items-center justify-center bg-bg px-4 py-8 sm:py-12 swiss-grid outline-none">
+        <main id="main-content" tabIndex="-1" className="min-h-screen flex items-center justify-center bg-bg px-4 py-8 sm:py-12 outline-none">
             <a href="#email" className="skip-link">Skip to reset form</a>
             <div className="w-full max-w-4xl overflow-hidden shadow-xl border border-border bg-panel flex flex-col md:flex-row">
 
@@ -31,15 +31,6 @@ export default function ForgotPassword() {
                     className="relative md:w-64 flex-shrink-0 flex flex-row md:flex-col items-center md:items-stretch justify-between md:justify-between gap-4 md:gap-0 px-5 py-4 md:p-7 overflow-hidden"
                     style={{ background: 'var(--color-brand)' }}
                 >
-                    <svg
-                        className="pointer-events-none absolute -right-10 -bottom-10 w-40 h-40 md:w-56 md:h-56 opacity-[0.08]"
-                        viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <circle cx="9" cy="9" r="5.5" stroke="white" strokeWidth="0.6" />
-                        <circle cx="15" cy="9" r="5.5" stroke="white" strokeWidth="0.6" />
-                        <circle cx="12" cy="14.5" r="5.5" stroke="white" strokeWidth="0.6" />
-                    </svg>
-
                     <div className="flex items-center gap-2.5 md:mb-8 relative">
                         <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
                             style={{ background: 'rgba(255,255,255,0.15)' }}>
@@ -51,10 +42,6 @@ export default function ForgotPassword() {
                         </div>
                     </div>
 
-                    <p className="hidden md:block relative text-[11px] leading-relaxed text-white/70">
-                        Employee Management System v2.0<br />
-                        People&apos;s Multi-Purpose Cooperative
-                    </p>
                 </div>
 
                 <div className="flex-1 flex flex-col justify-center px-5 py-7 sm:px-8 sm:py-8 md:px-10 md:py-10 bg-bg">

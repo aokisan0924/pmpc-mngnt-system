@@ -37,7 +37,7 @@ export default function ThirteenthMonth({ records = [] }) {
                 <AdminPageHeader
                     eyebrow="Statutory compensation"
                     title="13th Month Pay"
-                    description="Compute and manage mandatory 13th month pay using verified DTR days and current employee rates."
+                    description="Compute 13th month pay from verified DTR days and current rates."
                     badge="PD 851"
                 />
 

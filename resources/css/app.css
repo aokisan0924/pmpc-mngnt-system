@@ -555,15 +555,6 @@
         box-shadow: 0 20px 44px rgba(38, 33, 92, 0.2);
     }
 
-    .admin-page-header-grid {
-        opacity: 0.15;
-        background-image:
-            linear-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px);
-        background-size: 32px 32px;
-        mask-image: linear-gradient(90deg, transparent 18%, #000 100%);
-    }
-
     .admin-page-actions > a,
     .admin-page-actions > button {
         min-height: 2.5rem;

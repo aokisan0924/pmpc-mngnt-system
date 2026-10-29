@@ -38,7 +38,7 @@ The next required DTR punch remains persistently available above the employee bo
 
 ### 1. DTR Hero Workstation & Employee Page Headers
 - **Theme & Surface**: Signature `#0F6E56` pine emerald surface (`bg-[#0F6E56] border border-[#0D5C48] text-white`) with targeted radial depth lighting (`radial-gradient(ellipse 90% 70% at 20% 20%, rgba(20, 138, 108, 0.45), transparent 75%), radial-gradient(ellipse 70% 60% at 85% 85%, rgba(6, 46, 36, 0.65), transparent)`).
-- **Emblem & Texture**: Authentic grayscale brightness-boosted PMPC watermark emblem (`opacity-[0.08] filter grayscale brightness-200 contrast-125`) with soft radial edge masking, accompanied by a subtle swiss-grid texture overlay (`opacity-[0.08]`).
+- **Surface**: Keep the employee header emerald and use a restrained gradient. Avoid oversized watermarks and grid textures behind page content.
 - **Precision Typography**: Compact operational Manrope headings (`font-heading font-bold tracking-tight text-white`), uppercase tracking badges (`tracking-[0.16em] text-emerald-300`), and tabular figures (`tnum`).
 - **Tactile Primary Actions**: High-contrast crisp white action buttons (`bg-white hover:bg-emerald-50 active:bg-emerald-100 text-[#0F6E56] font-extrabold shadow-md cursor-pointer transition-all`) with clear semantic SVG icons (never emojis).
 
@@ -53,13 +53,13 @@ The next required DTR punch remains persistently available above the employee bo
 - **Task Planner (`/employee/planner`)**: Standardized shell, signature emerald page header, white "New Task" button, toolbar filter tabs, brand emerald date numerals, and day agenda.
 - **Payslips (`/employee/payslips`)**: Standardized shell, signature emerald page header, career metrics, pay period list with active emerald indicators, and net compensation highlight banner.
 - **Profile (`/employee/profile`)**: Standardized max-5xl shell, signature emerald page header with white/emerald avatar and daily rate pill, toolbar tabs, and emerald input focus states.
-- **Notifications (`/employee/notifications`)**: Standardized shell, signature emerald page header, white "Mark All Read" button, 4-column metric grid, and unread cards with brand emerald pulse beacons.
+- **Notifications (`/employee/notifications`)**: Standardized shell, concise page header, filter tabs with result counts, and unread cards with brand emerald status markers.
 
 ## Admin Portal Visual Architecture & Tokens
 
 ### 1. Operations Command Workstation & Admin Page Headers
 - **Theme & Surface**: Signature `#26215C` deep purple surface (`bg-[#26215C] border border-[#201B4D] text-white`) with targeted dual radial depth lighting (`radial-gradient(ellipse 90% 70% at 20% 20%, rgba(64, 56, 120, 0.45), transparent 75%), radial-gradient(ellipse 70% 60% at 85% 85%, rgba(19, 16, 47, 0.65), transparent)`).
-- **Emblem & Texture**: Authentic grayscale brightness-boosted PMPC watermark emblem (`opacity-[0.08] filter grayscale brightness-200 contrast-125`) with soft radial edge masking, accompanied by a subtle swiss-grid texture overlay (`opacity-[0.08]`).
+- **Surface**: Keep the admin header indigo and use a restrained gradient. Avoid oversized watermarks and grid textures behind page content.
 - **Precision Telemetry**: Integrated Asia/Manila live clock (`LiveClock`) with live seconds and date, synchronized with standard Philippine labor operational time.
 - **Tactile Direct Actions**: High-contrast crisp white action buttons (`bg-white hover:bg-indigo-50 active:bg-indigo-100 text-[#26215C] font-extrabold shadow-md cursor-pointer transition-all`) with clear semantic SVG icons (never emojis).
 - **Tactical Command Deck**: Embedded within the operations console to provide instant cycle management, cutoff progress, days remaining, and direct payroll actions.
