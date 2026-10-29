@@ -21,6 +21,13 @@ Entry template:
 
 ---
 
+## 2026-10-29 16:20 — ae23acd — Gen Mdse attendance API integration
+- By: Codex, requested by Kurt
+- Code: `7276f3c09cb215164c59d8aa01cd5a587fabbf56` → `ae23acde0d0fcaac867e234eb8ee8c588151efd4`
+- Migrations: `2026_10_28_120000_create_attendance_integration_requests_table`
+- Backup: private server directory `/home/u512373751/backups/workforce-20261029-161442`; database dump, runtime archive and source bundle passed gzip/tar/Git bundle checks and SHA-256 recording.
+- Data changes: configured the private Gen Mdse integration token and employee allowlist (`15,16`) in `.env`; token value is intentionally not recorded. No DTR attendance records or punches were written. Undo by removing `WORKFORCE_GENMDSE_TOKEN` and `WORKFORCE_GENMDSE_EMPLOYEE_IDS` from `.env` and rebuilding the config cache.
+- Verified: local PHP test suite passed (170 tests, 1,276 assertions), Vite production build passed, and Node DTR retry test passed. On live: migration is recorded as run; API attendance/punch routes are present; `/login` returned HTTP 200; Owner mapping requests from Gen Mdse successfully validated both allowlisted WorkForce employee records. No test punch was submitted.
 ## 2026-10-29 09:30 — 7276f3c — Final review step when creating a payroll
 - By: Claude Code (SSH key), requested by Kurt
 - Code: dfd9891 → 7276f3c
