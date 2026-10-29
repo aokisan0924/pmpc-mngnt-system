@@ -69,7 +69,7 @@ export default function ThirteenthMonthShow({
                         <CardContent className="p-4 sm:p-5">
                             <p className="text-xs font-semibold text-sub uppercase tracking-wider mb-1">Employees Covered</p>
                             <p className="text-2xl font-heading font-bold text-text tnum">{records.length}</p>
-                            <p className="text-[11px] text-dim mt-1">Eligible cooperative personnel</p>
+                            <p className="text-[12px] text-dim mt-1">Eligible cooperative personnel</p>
                         </CardContent>
                     </Card>
 
@@ -79,7 +79,7 @@ export default function ThirteenthMonthShow({
                             <p className="text-2xl font-heading font-bold text-text tnum">
                                 ₱ {fmt(records.reduce((s, r) => s + (parseFloat(r.total_basic_pay) || 0), 0))}
                             </p>
-                            <p className="text-[11px] text-dim mt-1">Cumulative qualifying earnings</p>
+                            <p className="text-[12px] text-dim mt-1">Cumulative qualifying earnings</p>
                         </CardContent>
                     </Card>
 
@@ -89,7 +89,7 @@ export default function ThirteenthMonthShow({
                             <p className="text-2xl font-heading font-bold text-emerald-600 dark:text-emerald-400 tnum">
                                 ₱ {fmt(total_payout)}
                             </p>
-                            <p className="text-[11px] text-dim mt-1">Total statutory disbursement</p>
+                            <p className="text-[12px] text-dim mt-1">Total statutory disbursement</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -111,7 +111,7 @@ export default function ThirteenthMonthShow({
                     <div className="overflow-x-auto">
                         <table className="w-full text-xs min-w-[720px]">
                             <thead>
-                                <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[11px]">
+                                <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[12px]">
                                     <th scope="col" className="text-left px-5 py-3 font-semibold">Employee</th>
                                     <th scope="col" className="text-center px-4 py-3 font-semibold">Days Present</th>
                                     <th scope="col" className="text-right px-4 py-3 font-semibold">Daily Rate</th>
@@ -129,7 +129,7 @@ export default function ThirteenthMonthShow({
                                                 </div>
                                                 <div>
                                                     <p className="font-semibold text-text">{r.full_name}</p>
-                                                    <p className="text-[11px] text-sub font-mono">{r.employee_id} · {r.department}</p>
+                                                    <p className="text-[12px] text-sub font-mono">{r.employee_id} · {r.department}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -141,13 +141,13 @@ export default function ThirteenthMonthShow({
                                         </td>
                                         <td className="px-4 py-3.5 text-right font-medium text-text">
                                             ₱ {fmt(r.total_basic_pay)}
-                                            <p className="text-[10px] text-dim font-mono">
+                                            <p className="text-[12px] text-dim font-mono">
                                                 ₱{fmt(r.daily_rate)} × {r.days_present}d
                                             </p>
                                         </td>
                                         <td className="px-5 py-3.5 text-right font-heading font-bold text-emerald-600 dark:text-emerald-400 text-sm">
                                             ₱ {fmt(r.thirteenth_month_pay)}
-                                            <p className="text-[10px] text-dim font-mono">÷ 12</p>
+                                            <p className="text-[12px] text-dim font-mono">÷ 12</p>
                                         </td>
                                     </tr>
                                 ))}

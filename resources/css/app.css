@@ -547,7 +547,7 @@
     .admin-page-shell {
         width: min(100%, 90rem);
         margin-inline: auto;
-        padding: 0.875rem;
+        padding: 1rem;
     }
 
     .admin-page-header {
@@ -586,7 +586,7 @@
     .employee-page-shell {
         width: min(100%, 90rem);
         margin-inline: auto;
-        padding: 0.875rem;
+        padding: 1rem;
     }
 
     .employee-page-header {
@@ -625,14 +625,14 @@
 
     @media (min-width: 640px) {
         .page-shell { padding: 1.75rem; }
-        .admin-page-shell { padding: 1.25rem; }
-        .employee-page-shell { padding: 1.25rem; }
+        .admin-page-shell { padding: 1.5rem; }
+        .employee-page-shell { padding: 1.5rem; }
     }
 
     @media (min-width: 1024px) {
         .page-shell { padding: 2rem; }
-        .admin-page-shell { padding: 1.5rem; }
-        .employee-page-shell { padding: 1.5rem; }
+        .admin-page-shell { padding: 1.75rem; }
+        .employee-page-shell { padding: 1.75rem; }
     }
 
     .skip-link {

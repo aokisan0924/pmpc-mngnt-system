@@ -75,7 +75,7 @@ export function Badge({
     const dotColor = dotColorMap[variant] || 'bg-current'
 
     const sizeClasses = {
-        sm: 'text-[11px] px-2 py-0.5 font-medium',
+        sm: 'text-[12px] px-2 py-0.5 font-medium',
         md: 'text-xs px-2.5 py-0.75 font-medium',
         lg: 'text-xs px-3 py-1 font-semibold',
     }[size] || 'text-xs px-2.5 py-0.75 font-medium'

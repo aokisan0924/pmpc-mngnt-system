@@ -126,7 +126,7 @@ export default function Notifications({ notifications = [] }) {
                                 }`}
                             >
                                 <span>{tab.label}</span>
-                                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-medium ${
+                                <span className={`text-[12px] px-1.5 py-0.2 rounded-full font-mono font-medium ${
                                     filter === tab.key
                                         ? 'bg-[#0F6E56]/15 text-[#0F6E56] dark:text-emerald-300'
                                         : 'bg-field text-dim'
@@ -173,7 +173,7 @@ export default function Notifications({ notifications = [] }) {
                                         <p className="text-xs text-sub leading-relaxed">{notif.message}</p>
 
                                         <div className="flex items-center gap-4 mt-3 pt-2 border-t border-border/50 text-xs">
-                                            <span className="font-mono text-dim text-[11px]">{notif.created_at}</span>
+                                            <span className="font-mono text-dim text-[12px]">{notif.created_at}</span>
                                             {notif.link && (
                                                 <Link
                                                     href={notif.link}

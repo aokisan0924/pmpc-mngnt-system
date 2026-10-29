@@ -45,7 +45,7 @@ export default function ThirteenthMonthCompute({
                     action={
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-right shadow-xs">
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-200">Total 13th Month Payout</p>
+                            <p className="text-[12px] font-semibold uppercase tracking-wider text-indigo-200">Total 13th Month Payout</p>
                             <p className="font-heading text-lg font-bold text-emerald-100 tnum">₱ {fmt(total13th)}</p>
                         </div>
                         <Button
@@ -85,7 +85,7 @@ export default function ThirteenthMonthCompute({
                     <div className="overflow-x-auto">
                         <table className="w-full text-xs min-w-[820px]">
                             <thead>
-                                <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[11px]">
+                                <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[12px]">
                                     <th scope="col" className="text-left px-5 py-3 font-semibold">Employee</th>
                                     <th scope="col" className="text-center px-4 py-3 font-semibold">Days Present</th>
                                     <th scope="col" className="text-right px-4 py-3 font-semibold">Daily Rate</th>
@@ -105,14 +105,14 @@ export default function ThirteenthMonthCompute({
                                                 </div>
                                                 <div>
                                                     <p className="font-semibold text-text">{emp.full_name}</p>
-                                                    <p className="text-[11px] text-sub font-mono">{emp.employee_id} · {emp.department}</p>
+                                                    <p className="text-[12px] text-sub font-mono">{emp.employee_id} · {emp.department}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-4 py-3.5 text-center font-semibold text-text">
                                             {emp.days_present}
                                             {emp.days_present === 0 && (
-                                                <span className="ml-1 text-[10px] text-amber-600 font-normal">(No DTR)</span>
+                                                <span className="ml-1 text-[12px] text-amber-600 font-normal">(No DTR)</span>
                                             )}
                                         </td>
                                         <td className="px-4 py-3.5 text-right font-medium text-sub">
@@ -120,7 +120,7 @@ export default function ThirteenthMonthCompute({
                                         </td>
                                         <td className="px-4 py-3.5 text-right font-semibold text-text bg-indigo-50/30 dark:bg-indigo-950/20">
                                             ₱ {fmt(emp.total_basic_pay)}
-                                            <p className="text-[10px] text-dim font-normal font-mono">
+                                            <p className="text-[12px] text-dim font-normal font-mono">
                                                 ₱{fmt(emp.daily_rate)} × {emp.days_present}d
                                             </p>
                                         </td>
@@ -140,7 +140,7 @@ export default function ThirteenthMonthCompute({
                                                     {emp.existing_status}
                                                 </Badge>
                                             ) : (
-                                                <span className="text-dim text-[11px]">Ready</span>
+                                                <span className="text-dim text-[12px]">Ready</span>
                                             )}
                                         </td>
                                     </tr>

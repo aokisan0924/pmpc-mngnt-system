@@ -371,7 +371,7 @@ export default function PayrollAnalytics({
                                             <tr key={r.name} className="hover:bg-hover/60 transition-colors">
                                                 <td className="px-6 py-3.5 font-sans">
                                                     <p className="font-semibold text-text">{r.name}</p>
-                                                    <p className="text-[11px] text-dim">{r.department}</p>
+                                                    <p className="text-[12px] text-dim">{r.department}</p>
                                                 </td>
                                                 {dedKeys.map(k => (
                                                     <td key={k} className="px-3 py-3.5 text-right text-rose-600 dark:text-rose-400">

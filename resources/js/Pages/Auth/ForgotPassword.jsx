@@ -38,7 +38,7 @@ export default function ForgotPassword() {
                         </div>
                         <div>
                             <p className="text-white text-sm md:text-xs font-semibold leading-tight">PMPC EMS</p>
-                            <p className="text-[11px] text-white/80">People&apos;s Multi-Purpose Cooperative</p>
+                            <p className="text-[12px] text-white/80">People&apos;s Multi-Purpose Cooperative</p>
                         </div>
                     </div>
 

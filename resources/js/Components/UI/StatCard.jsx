@@ -52,7 +52,7 @@ export function StatCard({
         >
             <div className="flex items-start justify-between gap-2.5">
                 <div className="min-w-0">
-                    <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.08em] leading-tight text-sub min-h-4 truncate select-none">
+                    <p className="text-[12px] sm:text-[12px] font-semibold uppercase tracking-[0.08em] leading-tight text-sub min-h-4 truncate select-none">
                         {title}
                     </p>
                     <div className="mt-1 flex items-baseline gap-2">
@@ -60,7 +60,7 @@ export function StatCard({
                             {value}
                         </span>
                         {trend && (
-                            <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium px-1.5 py-0.2 rounded-full border select-none ${trendColor}`}>
+                            <span className={`inline-flex items-center gap-0.5 text-[12px] font-medium px-1.5 py-0.2 rounded-full border select-none ${trendColor}`}>
                                 {trendDirection === 'up' && '↑'}
                                 {trendDirection === 'down' && '↓'}
                                 {trend}
@@ -76,7 +76,7 @@ export function StatCard({
             </div>
             {progressPercent !== null && (
                 <div className="mt-2.5 space-y-1 select-none">
-                    <div className="flex items-center justify-between text-[10px] text-sub font-medium">
+                    <div className="flex items-center justify-between text-[12px] text-sub font-medium">
                         <span className="truncate">{typeof progress === 'object' && progress?.label ? progress.label : 'Period progress'}</span>
                         <span className="font-semibold text-text tnum">{progressPercent}%</span>
                     </div>
@@ -89,7 +89,7 @@ export function StatCard({
                 </div>
             )}
             {subtitle && (
-                <div className="mt-2.5 pt-2.5 border-t border-border/60 text-[11px] text-sub flex items-center gap-1.5 select-none truncate">
+                <div className="mt-2.5 pt-2.5 border-t border-border/60 text-[12px] text-sub flex items-center gap-1.5 select-none truncate">
                     {subtitle}
                 </div>
             )}

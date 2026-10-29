@@ -13,7 +13,7 @@ export default function DtrEditRequestNote({ request, slots }) {
     const labelFor = (change) => slots?.find(([slot]) => slot === change.slot)?.[1] ?? change.label
 
     return (
-        <div className={`mt-1.5 max-w-64 whitespace-normal rounded-lg border px-2.5 py-1.5 text-left font-sans text-[11px] leading-snug ${STATUS_STYLES[request.status] ?? STATUS_STYLES.pending}`}>
+        <div className={`mt-1.5 max-w-64 whitespace-normal rounded-lg border px-2.5 py-1.5 text-left font-sans text-[12px] leading-snug ${STATUS_STYLES[request.status] ?? STATUS_STYLES.pending}`}>
             <p className="font-bold">{STATUS_LABELS[request.status] ?? 'Edit requested'}</p>
             {request.changes.length > 0 && (
                 <ul className="mt-1 space-y-0.5 font-mono">

@@ -61,7 +61,7 @@ function LiveClock() {
                 <p className="font-heading font-bold text-lg sm:text-xl tracking-tight text-white tnum leading-none">
                     {timeStr}
                 </p>
-                <p className="text-[11px] font-medium text-indigo-200/80 mt-1 leading-none">{dateStr}</p>
+                <p className="text-[12px] font-medium text-indigo-200/80 mt-1 leading-none">{dateStr}</p>
             </div>
         </div>
     )
@@ -225,7 +225,7 @@ export default function Dashboard({
                                     </Link>
                                 )}
                             </div>
-                            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.16em] text-indigo-300 mb-1">
+                            <p className="text-[12px] sm:text-[12px] font-bold uppercase tracking-[0.16em] text-indigo-300 mb-1">
                                 {greeting}
                             </p>
                             <h1 className="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight">
@@ -244,10 +244,10 @@ export default function Dashboard({
                             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                                 <div className="min-w-0 space-y-2">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-indigo-300">
+                                        <span className="text-[12px] font-bold uppercase tracking-[0.14em] text-indigo-300">
                                             Administrator Attendance · DTR Punch Station
                                         </span>
-                                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[12px] font-bold uppercase tracking-wider ${
                                             punchAction
                                                 ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
                                                 : 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
@@ -256,7 +256,7 @@ export default function Dashboard({
                                             {pendingPunch ? punchAction.label : punchAction ? `Ready for ${nextSlot.label}` : 'All 4 Punches Complete'}
                                         </span>
                                         {(admin_dtr?.hours_rendered ?? 0) > 0 && (
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white/10 text-white/90 border border-white/15">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-semibold bg-white/10 text-white/90 border border-white/15">
                                                 {admin_dtr.hours_rendered} hrs rendered
                                             </span>
                                         )}
@@ -293,13 +293,13 @@ export default function Dashboard({
                                                                 : 'bg-white/5 border-white/10 text-indigo-200/60'
                                                     }`}
                                                 >
-                                                    <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">
+                                                    <span className="text-[12px] font-bold uppercase tracking-wider opacity-80">
                                                         {slot.label}
                                                     </span>
                                                     <span className="font-mono text-sm font-bold mt-0.5 text-white">
                                                         {isRecorded ? formatPunchTime(punchValue) : '--:--'}
                                                     </span>
-                                                    <span className="text-[9px] text-indigo-200/70 mt-0.5 truncate">
+                                                    <span className="text-[12px] text-indigo-200/70 mt-0.5 truncate">
                                                         {isRecorded
                                                             ? 'Recorded'
                                                             : isCurrentNext
@@ -378,10 +378,10 @@ export default function Dashboard({
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 rounded-xl bg-[#17123F]/85 border border-white/15 p-4 sm:p-5 backdrop-blur-xs shadow-xs">
                             <div className="min-w-0">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-indigo-300">
+                                    <span className="text-[12px] font-bold uppercase tracking-[0.14em] text-indigo-300">
                                         Payroll Cycle Control
                                     </span>
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-bold uppercase tracking-wider ${
                                         active_cutoff?.status === 'finalized'
                                             ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
                                             : active_cutoff?.status === 'draft'
@@ -427,7 +427,7 @@ export default function Dashboard({
                                             </svg>
                                             <span>Edit Queue</span>
                                             {stats.pending_edits > 0 && (
-                                                <span className="px-1.5 py-0.25 rounded-full text-[10px] font-bold bg-amber-400 text-[#26215C]">
+                                                <span className="px-1.5 py-0.25 rounded-full text-[12px] font-bold bg-amber-400 text-[#26215C]">
                                                     {stats.pending_edits}
                                                 </span>
                                             )}
@@ -536,7 +536,7 @@ export default function Dashboard({
                                                 </div>
                                                 <div className="mt-2 flex flex-wrap gap-1.5">
                                                     {changeLabels(request).map(([label, original, requested]) => (
-                                                        <span key={label} className="inline-flex items-center gap-1 rounded-lg border border-border bg-field px-2.5 py-1 font-mono text-[11px] text-sub">
+                                                        <span key={label} className="inline-flex items-center gap-1 rounded-lg border border-border bg-field px-2.5 py-1 font-mono text-[12px] text-sub">
                                                             <strong className="text-text font-semibold">{label}:</strong> {original || '--:--'} <span className="text-indigo-600 dark:text-indigo-400 font-bold">→ {requested}</span>
                                                         </span>
                                                     ))}
@@ -566,7 +566,7 @@ export default function Dashboard({
                                                         </Button>
                                                     </>
                                                 ) : (
-                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                                                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[12px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
                                                         Read-Only
                                                     </span>
                                                 )}

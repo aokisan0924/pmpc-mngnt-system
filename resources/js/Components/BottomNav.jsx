@@ -99,13 +99,13 @@ export default function BottomNav({ unreadCount = 0 }) {
                             <div className="relative">
                                 {tab.icon(active)}
                                 {tab.badge && unreadCount > 0 && (
-                                    <span className="absolute -top-1 -right-1.5 min-w-4 h-4 px-1 rounded-full flex items-center justify-center font-bold text-[9px] bg-rose-500 text-white shadow-2xs">
+                                    <span className="absolute -top-1 -right-1.5 min-w-4 h-4 px-1 rounded-full flex items-center justify-center font-bold text-[12px] bg-rose-500 text-white shadow-2xs">
                                         {unreadCount > 9 ? '9+' : unreadCount}
                                     </span>
                                 )}
                             </div>
 
-                            <span className={`mt-1 text-[10px] ${active ? 'font-bold text-emerald-700 dark:text-emerald-300' : 'font-medium text-dim'}`}>
+                            <span className={`mt-1 text-[12px] ${active ? 'font-bold text-emerald-700 dark:text-emerald-300' : 'font-medium text-dim'}`}>
                                 {tab.label}
                             </span>
 

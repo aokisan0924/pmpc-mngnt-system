@@ -215,7 +215,7 @@ export default function Payslips({ payslips = [] }) {
                             <p className="text-sm text-sub mt-1 max-w-md">Your itemized vouchers will appear here after HR finalizes a payroll period.</p>
                         </div>
                         <div className="border-t border-border bg-field/70 px-6 py-8 md:border-l md:border-t-0 md:px-8">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">What happens next</p>
+                            <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">What happens next</p>
                             <ol className="mt-3 space-y-3 text-xs text-sub">
                                 <li className="flex gap-2"><span className="font-bold text-emerald-700 dark:text-emerald-300">1.</span><span>HR completes and finalizes the payroll period.</span></li>
                                 <li className="flex gap-2"><span className="font-bold text-emerald-700 dark:text-emerald-300">2.</span><span>Your official payslip becomes available here.</span></li>
@@ -231,7 +231,7 @@ export default function Payslips({ payslips = [] }) {
                         <aside className="space-y-3 lg:col-span-2 lg:sticky lg:top-4 lg:self-start">
                             <div className="flex items-center justify-between px-0.5">
                                 <h2 className="text-sm font-bold font-display text-text">Pay periods</h2>
-                                <span className="text-[11px] font-medium text-dim">{filtered.length} {filtered.length === 1 ? 'period' : 'periods'}</span>
+                                <span className="text-[12px] font-medium text-dim">{filtered.length} {filtered.length === 1 ? 'period' : 'periods'}</span>
                             </div>
                             {/* Year filter */}
                             <div className="flex gap-1.5 overflow-x-auto rounded-xl border border-border bg-field p-1">
@@ -286,12 +286,12 @@ export default function Payslips({ payslips = [] }) {
                                             </div>
                                             <div className="flex items-center justify-between font-mono text-xs">
                                                 <div className="flex gap-1">
-                                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                                    <span className={`px-1.5 py-0.5 rounded text-[12px] font-semibold ${
                                                         p.has_first ? 'bg-[#0F6E56]/10 text-[#0F6E56] dark:text-emerald-300' : 'bg-field text-dim'
                                                     }`}>
                                                         1st Cutoff
                                                     </span>
-                                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                                    <span className={`px-1.5 py-0.5 rounded text-[12px] font-semibold ${
                                                         p.has_second ? 'bg-[#0F6E56]/10 text-[#0F6E56] dark:text-emerald-300' : 'bg-field text-dim'
                                                     }`}>
                                                         2nd Cutoff
@@ -351,7 +351,7 @@ export default function Payslips({ payslips = [] }) {
                                             }}
                                         >
                                             <div className="relative z-10">
-                                                <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-emerald-300">
+                                                <p className="text-[12px] uppercase tracking-[0.14em] font-bold text-emerald-300">
                                                     {active.status === 'complete' ? 'Net compensation received' : 'Projected net compensation'}
                                                 </p>
                                                 <p className="mt-2 text-4xl font-mono font-bold tracking-tight sm:text-5xl text-white">

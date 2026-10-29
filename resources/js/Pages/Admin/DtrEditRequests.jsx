@@ -176,13 +176,13 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {/* Original */}
                                             <div className="p-4 rounded-xl bg-panel border border-border/80">
-                                                <p className="text-[11px] font-semibold text-sub uppercase tracking-wider mb-3">
+                                                <p className="text-[12px] font-semibold text-sub uppercase tracking-wider mb-3">
                                                     Original DTR Punches
                                                 </p>
                                                 <div className="grid grid-cols-2 gap-y-2.5">
                                                     {rowsFor(req).map(([label, key]) => (
                                                         <div key={label}>
-                                                            <p className="text-[10px] text-dim">{label}</p>
+                                                            <p className="text-[12px] text-dim">{label}</p>
                                                             <p className="text-xs font-mono font-medium text-sub tnum">
                                                                 {req[`original_${key}`] ? req[`original_${key}`].slice(0, 5) : '—:—'}
                                                             </p>
@@ -193,7 +193,7 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
 
                                             {/* Requested Corrections */}
                                             <div className="p-4 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/60">
-                                                <p className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider mb-3">
+                                                <p className="text-[12px] font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider mb-3">
                                                     Requested Corrections
                                                 </p>
                                                 <div className="grid grid-cols-2 gap-y-2.5">
@@ -204,11 +204,11 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
 
                                                         return (
                                                             <div key={label}>
-                                                                <p className="text-[10px] text-emerald-600/80">{label}</p>
+                                                                <p className="text-[12px] text-emerald-600/80">{label}</p>
                                                                 <p className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 tnum flex items-center gap-1">
                                                                     {mod ? mod.slice(0, 5) : '—:—'}
                                                                     {changed && (
-                                                                        <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-200/60 text-emerald-800">
+                                                                        <span className="text-[12px] px-1 py-0.2 rounded bg-emerald-200/60 text-emerald-800">
                                                                             Edited
                                                                         </span>
                                                                     )}

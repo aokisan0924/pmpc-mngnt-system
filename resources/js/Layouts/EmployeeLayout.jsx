@@ -115,7 +115,7 @@ export default function EmployeeLayout({ children, title }) {
                         <p className="font-heading font-bold text-xs text-white tracking-tight truncate">PMPC WorkForce</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
-                            <p className="text-[9px] text-emerald-100 font-bold tracking-wider uppercase">Employee Portal</p>
+                            <p className="text-[12px] text-emerald-100 font-bold tracking-wider uppercase">Employee Portal</p>
                         </div>
                     </div>
                 </div>
@@ -124,7 +124,7 @@ export default function EmployeeLayout({ children, title }) {
                 {/* Navigation Links */}
                 <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto" aria-label="Employee navigation">
                     <div>
-                        <p className="text-[10px] font-bold text-white/80 px-3 mb-1.5 tracking-wider uppercase">
+                        <p className="text-[12px] font-bold text-white/80 px-3 mb-1.5 tracking-wider uppercase">
                             {isSuperAdmin ? 'Personal workspace' : 'My workday'}
                         </p>
                         <div className="space-y-0.5">
@@ -150,7 +150,7 @@ export default function EmployeeLayout({ children, title }) {
                                         <span>Notifications</span>
                                     </div>
                                     {unreadCount > 0 && (
-                                        <span className={`text-[10px] px-1.5 py-0.25 rounded-full font-bold shadow-2xs ${
+                                        <span className={`text-[12px] px-1.5 py-0.25 rounded-full font-bold shadow-2xs ${
                                             currentUrl.startsWith('/employee/notifications')
                                                 ? 'bg-rose-600 text-white'
                                                 : 'bg-rose-500 text-white'
@@ -177,7 +177,7 @@ export default function EmployeeLayout({ children, title }) {
                         </div>
                     ) : (
                         <div>
-                            <p className="text-[10px] font-bold text-white/80 px-3 mb-1.5 tracking-wider uppercase">
+                            <p className="text-[12px] font-bold text-white/80 px-3 mb-1.5 tracking-wider uppercase">
                                 Account
                             </p>
                             <div className="space-y-0.5">
@@ -198,7 +198,7 @@ export default function EmployeeLayout({ children, title }) {
                             </div>
                             <div className="min-w-0">
                                 <p className="font-semibold text-xs text-white truncate leading-tight">{employee?.full_name}</p>
-                                <p className="text-[10px] text-emerald-200 truncate leading-tight font-mono mt-0.5">{employee?.employee_id}</p>
+                                <p className="text-[12px] text-emerald-200 truncate leading-tight font-mono mt-0.5">{employee?.employee_id}</p>
                             </div>
                         </div>
                         <button
@@ -232,7 +232,7 @@ export default function EmployeeLayout({ children, title }) {
                             </div>
                             <div className="hidden lg:block text-left">
                                 <p className="text-xs font-semibold text-text leading-tight">{employee?.full_name}</p>
-                                <p className="text-[10px] text-sub leading-tight">{employee?.position ?? 'Cooperative Employee'}</p>
+                                <p className="text-[12px] text-sub leading-tight">{employee?.position ?? 'Cooperative Employee'}</p>
                             </div>
                         </div>
                     </div>

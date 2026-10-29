@@ -116,7 +116,7 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                         <div className="overflow-x-auto">
                             <table className="w-full text-xs min-w-[760px]">
                                 <thead>
-                                    <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[11px]">
+                                    <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[12px]">
                                         <th scope="col" className="text-left px-5 py-3 font-semibold">Employee</th>
                                         <th scope="col" className="text-center px-4 py-3 font-semibold text-emerald-700 dark:text-emerald-400">Present</th>
                                         <th scope="col" className="text-center px-4 py-3 font-semibold text-amber-700 dark:text-amber-400">Late</th>
@@ -136,7 +136,7 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                                                     </div>
                                                     <div>
                                                         <p className="font-semibold text-text">{emp.full_name}</p>
-                                                        <p className="text-[11px] text-sub font-mono">{emp.employee_id} • {emp.department}</p>
+                                                        <p className="text-[12px] text-sub font-mono">{emp.employee_id} • {emp.department}</p>
                                                     </div>
                                                 </div>
                                             </td>

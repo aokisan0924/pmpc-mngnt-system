@@ -394,20 +394,20 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                         {/* Live preview */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl border border-indigo-200/80 dark:border-indigo-800/60 bg-indigo-50/40 dark:bg-indigo-950/20">
                             <div>
-                                <p className="text-[11px] text-dim mb-0.5">Monthly basic</p>
+                                <p className="text-[12px] text-dim mb-0.5">Monthly basic</p>
                                 <p className="text-sm font-semibold text-text">₱ {fmt(monthlyBasic)}</p>
-                                <p className="text-[10px] text-dim">rate × 22 days</p>
+                                <p className="text-[12px] text-dim">rate × 22 days</p>
                             </div>
                             <div>
-                                <p className="text-[11px] text-dim mb-0.5">Allowances</p>
+                                <p className="text-[12px] text-dim mb-0.5">Allowances</p>
                                 <p className="text-sm font-semibold text-text">₱ {fmt(allowanceTotal)}</p>
                             </div>
                             <div>
-                                <p className="text-[11px] text-dim mb-0.5">Total deductions</p>
+                                <p className="text-[12px] text-dim mb-0.5">Total deductions</p>
                                 <p className="text-sm font-semibold text-rose-600 dark:text-rose-400">₱ {fmt(totalDed)}</p>
                             </div>
                             <div>
-                                <p className="text-[11px] text-dim mb-0.5">Est. net / month</p>
+                                <p className="text-[12px] text-dim mb-0.5">Est. net / month</p>
                                 <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">₱ {fmt(netMonthly)}</p>
                             </div>
                         </div>

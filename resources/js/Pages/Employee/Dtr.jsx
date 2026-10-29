@@ -252,7 +252,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <div className="hidden overflow-x-auto md:block">
                         <table className="w-full border-collapse border border-border text-xs [&_th]:border [&_th]:border-border [&_td]:border [&_td]:border-border/70">
                             <thead>
-                                <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold text-[10px]">
+                                <tr className="bg-field/70 border-b border-border text-dim uppercase tracking-wider font-semibold text-[12px]">
                                     <th scope="col" className="text-left px-4 py-2.5">Date</th>
                                     {slots.map(([slot, label]) => (
                                         <th key={slot} scope="col" className={`text-center px-2.5 py-2.5 ${slot.endsWith('out') ? 'border-r border-border' : ''}`}>{label}</th>
@@ -269,7 +269,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                     <tr data-dtr-today={log.date === today.date ? '' : undefined} aria-current={log.date === today.date ? 'date' : undefined} className={`scroll-mt-20 scroll-mb-24 transition-colors ${log.date === today.date ? 'bg-emerald-50 hover:bg-emerald-100/80 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60' : 'hover:bg-hover/60'}`}>
                                         <td className="px-4 py-2 sm:py-2.5 font-sans font-medium text-text whitespace-nowrap">
                                             {log.date_label}
-                                            {log.date === today.date && <span className="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100">Today</span>}
+                                            {log.date === today.date && <span className="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[12px] font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100">Today</span>}
                                         </td>
                                         {slots.map(([slot]) => (
                                             <td key={slot} className={`px-2.5 py-2 sm:py-2.5 text-center text-text font-semibold ${slot.endsWith('out') ? 'border-r border-border/60' : ''}`}>
@@ -290,7 +290,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                                 type="button"
                                                 onClick={() => setEditTarget(log)}
                                                 aria-label={`Request edit for ${log.date_label}`}
-                                                className="inline-flex h-7 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
+                                                className="inline-flex h-7 items-center justify-center whitespace-nowrap rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 text-[12px] font-semibold text-emerald-700 shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/60"
                                             >
                                                 <svg className="mr-1 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="m16.86 3.49 3.65 3.65M4 20l4.25-.85L19.49 7.91a2.58 2.58 0 0 0-3.65-3.65L4.6 15.5 4 20Z" />
@@ -317,13 +317,13 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                         {logs?.map((log) => (
                             <div key={log.date} data-dtr-today={log.date === today.date ? '' : undefined} aria-current={log.date === today.date ? 'date' : undefined} className={`scroll-mt-20 scroll-mb-24 p-4 rounded-xl border space-y-3 ${log.date === today.date ? 'border-emerald-500 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-950/60' : 'border-border bg-field/60'}`}>
                                 <div className="flex items-center justify-between">
-                                    <p className="text-sm font-semibold text-text">{log.date_label}{log.date === today.date && <span className="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100">Today</span>}</p>
+                                    <p className="text-sm font-semibold text-text">{log.date_label}{log.date === today.date && <span className="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[12px] font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100">Today</span>}</p>
                                     {getStatusBadge(log)}
                                 </div>
                                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-border/60 bg-panel p-2.5 font-mono text-xs">
                                     {slots.map(([slot, label]) => (
                                         <div key={slot}>
-                                            <span className="text-[10px] text-dim block">{label}</span>
+                                            <span className="text-[12px] text-dim block">{label}</span>
                                             <strong className="text-text">{log[slot] ? log[slot].slice(0, 5) : '—'}</strong>
                                         </div>
                                     ))}

@@ -122,7 +122,7 @@ export default function Archives({ archives = [], last_month }) {
                                                 </div>
                                                 <div>
                                                     <p className="font-sans font-semibold text-text text-sm">{a.month_label}</p>
-                                                    <p className="text-[11px] text-dim">{a.month}</p>
+                                                    <p className="text-[12px] text-dim">{a.month}</p>
                                                 </div>
                                             </div>
                                         </td>

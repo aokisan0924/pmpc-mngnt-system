@@ -267,7 +267,7 @@ export default function Planner({ tasks = [] }) {
                     <Card className="employee-workspace-card lg:col-span-2 overflow-hidden p-3 sm:p-4">
                         <div className="grid grid-cols-7 mb-2 border-b border-border/60 pb-2">
                             {WEEKDAYS.map(w => (
-                                <div key={w} className="text-center text-[11px] font-bold text-dim uppercase tracking-wider">
+                                <div key={w} className="text-center text-[12px] font-bold text-dim uppercase tracking-wider">
                                     {w}
                                 </div>
                             ))}
@@ -316,7 +316,7 @@ export default function Planner({ tasks = [] }) {
                                                 return (
                                                     <span
                                                         key={t.id}
-                                                        className={`text-[10px] px-1.5 py-0.5 rounded-md truncate font-medium ${
+                                                        className={`text-[12px] px-1.5 py-0.5 rounded-md truncate font-medium ${
                                                             done
                                                                 ? 'line-through opacity-50 bg-field text-dim'
                                                                 : t.priority === 'high'
@@ -331,7 +331,7 @@ export default function Planner({ tasks = [] }) {
                                                 )
                                             })}
                                             {overflow > 0 && (
-                                                <span className="text-[10px] font-mono font-semibold text-dim px-1">
+                                                <span className="text-[12px] font-mono font-semibold text-dim px-1">
                                                     +{overflow} more
                                                 </span>
                                             )}

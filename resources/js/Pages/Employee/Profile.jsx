@@ -113,7 +113,7 @@ export default function Profile({ employee, govIds }) {
                     )}
                     action={(
                         <div className="rounded-xl border border-white/20 bg-black/20 backdrop-blur-xs px-4 py-2.5 text-left sm:text-right shadow-2xs">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">Daily compensation rate</p>
+                            <p className="text-[12px] font-bold uppercase tracking-wider text-emerald-300">Daily compensation rate</p>
                             <p className="mt-0.5 font-mono text-base font-bold text-white tracking-tight">{formatCurrency.format(Number(employee.daily_rate || 0))} / day</p>
                         </div>
                     )}
@@ -201,7 +201,7 @@ export default function Profile({ employee, govIds }) {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                         </svg>
                                     </div>
-                                    <p className="text-[11px] text-dim mt-1">Official email is managed by your system administrator.</p>
+                                    <p className="text-[12px] text-dim mt-1">Official email is managed by your system administrator.</p>
                                 </div>
 
                                 <div>

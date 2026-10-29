@@ -131,7 +131,7 @@ export default function Employees({ employees = [] }) {
                         <div className="hidden md:block overflow-x-auto">
                             <table className="w-full text-xs min-w-[760px]">
                                 <thead>
-                                    <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[11px]">
+                                    <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[12px]">
                                         <th className="text-left px-5 py-3 font-semibold">Employee</th>
                                         <th className="text-left px-4 py-3 font-semibold">ID</th>
                                         <th className="text-left px-4 py-3 font-semibold">Department</th>
@@ -199,7 +199,7 @@ export default function Employees({ employees = [] }) {
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-xs font-semibold text-text truncate">{emp.full_name}</p>
-                                            <p className="text-[11px] text-sub truncate">{emp.employee_id} • {emp.department ?? 'No Dept'}</p>
+                                            <p className="text-[12px] text-sub truncate">{emp.employee_id} • {emp.department ?? 'No Dept'}</p>
                                         </div>
                                     </div>
                                     <Badge variant={emp.status} size="sm">

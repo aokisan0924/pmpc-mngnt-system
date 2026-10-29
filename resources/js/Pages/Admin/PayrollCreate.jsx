@@ -207,7 +207,7 @@ export default function PayrollCreate({
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             title="Open this employee's DTR for the cutoff month"
-                                                            className="mt-1 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-semibold text-amber-900 underline-offset-2 hover:underline"
+                                                            className="mt-1 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[12px] font-semibold text-amber-900 underline-offset-2 hover:underline"
                                                         >
                                                             {hasUnresolvedDtr(item) ? `DTR needs review · ${item.dtr_unresolved_dates.join(', ')}` : 'Attendance overridden'} ↗
                                                         </a>
@@ -217,7 +217,7 @@ export default function PayrollCreate({
                                                     <td key={field} className="px-2 py-3 text-right">
                                                         {numberInput(index, field, label, field === 'absence_days' ? { ...options, max: item.paid_days_basis } : options, data.items[index][field], (value) => update(index, field, value))}
                                                         {field === 'tardiness_minutes' && Number(item.tardiness_minutes) > 0 && (
-                                                            <span className="mt-1 block text-[11px] text-rose-700 tnum">−₱{fmt(item.tardiness_deduction)}</span>
+                                                            <span className="mt-1 block text-[12px] text-rose-700 tnum">−₱{fmt(item.tardiness_deduction)}</span>
                                                         )}
                                                     </td>
                                                 ))}

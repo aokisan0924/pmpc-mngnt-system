@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Per-employee two-punch shifts (time in / time out, no lunch, may end after midnight), set in the employee compensation tab; an overnight clock-out closes the log opened the evening before. Two-punch days show Time In/Time Out in DTR tables, print and archive, an unclosed day is flagged "Missing time out" (pays 0 until HR corrects it), and HR corrections accept overnight times.
 
 ### Changed
+- Increased undersized interface labels and status text to a readable 12 px minimum, refined shared page-header typography, and added more responsive breathing room around portal content.
 - Removed repeated notification totals, redundant account identity in the admin header, duplicate sign-in and password-reset copy, and decorative grid/watermark layers. Shortened page descriptions while keeping the actions, filters, and payroll/DTR context.
 
 ### Fixed

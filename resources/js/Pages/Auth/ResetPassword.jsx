@@ -55,7 +55,7 @@ export default function ResetPassword({ email, token }) {
                         </div>
                         <div>
                             <p className="text-white text-sm md:text-xs font-semibold leading-tight">PMPC EMS</p>
-                            <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.55)' }}>People&apos;s Multi-Purpose Cooperative</p>
+                            <p className="text-[12px]" style={{ color: 'rgba(255,255,255,0.55)' }}>People&apos;s Multi-Purpose Cooperative</p>
                         </div>
                     </div>
 

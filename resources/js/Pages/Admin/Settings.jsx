@@ -475,17 +475,17 @@ export default function Settings({ settings, holidays = [], holidayTypes = {} })
                                         <div className="px-2">
                                             <div className="border-t border-text/40 pt-2 mb-1" />
                                             <p className="text-xs font-semibold text-text">Employee Signature</p>
-                                            <p className="text-[11px] text-dim">Employee</p>
+                                            <p className="text-[12px] text-dim">Employee</p>
                                         </div>
                                         <div className="px-2">
                                             <div className="border-t border-text/40 pt-2 mb-1" />
                                             <p className="text-xs font-semibold text-text">{data.signatory_1_name || 'Signatory 1'}</p>
-                                            <p className="text-[11px] text-dim">{data.signatory_1_role || 'Title'}</p>
+                                            <p className="text-[12px] text-dim">{data.signatory_1_role || 'Title'}</p>
                                         </div>
                                         <div className="px-2">
                                             <div className="border-t border-text/40 pt-2 mb-1" />
                                             <p className="text-xs font-semibold text-text">{data.signatory_2_name || 'Signatory 2'}</p>
-                                            <p className="text-[11px] text-dim">{data.signatory_2_role || 'Title'}</p>
+                                            <p className="text-[12px] text-dim">{data.signatory_2_role || 'Title'}</p>
                                         </div>
                                     </div>
                                 </div>

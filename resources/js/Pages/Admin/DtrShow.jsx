@@ -143,7 +143,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[720px] border-collapse border border-border text-xs [&_th]:border [&_th]:border-border [&_td]:border [&_td]:border-border/70">
                                 <thead>
-                                    <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[11px]">
+                                    <tr className="bg-field/70 border-b border-border/80 text-sub uppercase text-[12px]">
                                         <th scope="col" className="text-left px-5 py-3 font-semibold">Date</th>
                                         {slots.map(([slot, label]) => (
                                             <th key={slot} scope="col" className={`text-center px-3 py-3 font-semibold ${slot.endsWith('out') ? 'border-r border-border/80' : ''}`}>{label}</th>
@@ -157,7 +157,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                     {weeks.map(week => (
                                         <Fragment key={week.key}>
                                         <tr className="bg-indigo-50/60">
-                                            <th scope="rowgroup" colSpan={(canCorrect ? 8 : 7) - (4 - slots.length)} className="px-5 py-2 text-left text-[11px] font-bold uppercase tracking-wide text-[#26215C]">
+                                            <th scope="rowgroup" colSpan={(canCorrect ? 8 : 7) - (4 - slots.length)} className="px-5 py-2 text-left text-[12px] font-bold uppercase tracking-wide text-[#26215C]">
                                                 {week.label}
                                             </th>
                                         </tr>
@@ -171,9 +171,9 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                                 }`}
                                             >
                                                 <td className="px-5 py-3.5">
-                                                    <p className="font-semibold text-text">{log.date_label}{log.date === today_date && <span className="ml-2 inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100">Today</span>}</p>
+                                                    <p className="font-semibold text-text">{log.date_label}{log.date === today_date && <span className="ml-2 inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[12px] font-bold text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100">Today</span>}</p>
                                                     {log.is_weekend && (
-                                                        <p className="text-[11px] text-dim font-medium">Rest day</p>
+                                                        <p className="text-[12px] text-dim font-medium">Rest day</p>
                                                     )}
                                                 </td>
                                                 {slots.map(([slot]) => (
@@ -205,14 +205,14 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                                     )}
                                                     {log.absence_reason && <p className="mt-1 max-w-64 whitespace-normal text-left text-xs text-sub">{log.absence_reason}</p>}
                                                     <DtrEditRequestNote request={log.edit_request} slots={slots} />
-                                                    {!log.has_entry && !log.is_future && <p className="mt-1 text-[11px] text-dim">No entry</p>}
+                                                    {!log.has_entry && !log.is_future && <p className="mt-1 text-[12px] text-dim">No entry</p>}
                                                 </td>
                                                 {canCorrect && (
                                                     <td className="px-3 py-2 text-center">
                                                         {log.is_future ? (
                                                             <span className="text-dim">—</span>
                                                         ) : log.has_pending_edit ? (
-                                                            <Link href="/admin/edit-requests" className="text-[11px] font-semibold text-amber-800 underline">Review request first</Link>
+                                                            <Link href="/admin/edit-requests" className="text-[12px] font-semibold text-amber-800 underline">Review request first</Link>
                                                         ) : (
                                                             <button
                                                                 type="button"
@@ -227,7 +227,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                                 )}
                                             </tr>
                                         ))}
-                                        <tr className="bg-field/40 text-[11px] font-semibold text-sub">
+                                        <tr className="bg-field/40 text-[12px] font-semibold text-sub">
                                             <td colSpan={(canCorrect ? 8 : 7) - (4 - slots.length)} className="px-5 py-2">
                                                 Week subtotal: {week.present} present · {week.absent} absent · {week.hours}h
                                             </td>

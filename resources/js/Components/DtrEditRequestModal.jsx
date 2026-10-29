@@ -87,13 +87,13 @@ export default function DtrEditRequestModal({ log, onClose, twoPunch = false }) 
 
                 {/* Current recorded times */}
                 <div className="rounded-xl p-3.5 border border-border bg-field/60">
-                    <p className="text-[11px] font-semibold text-dim uppercase tracking-wider mb-2">
+                    <p className="text-[12px] font-semibold text-dim uppercase tracking-wider mb-2">
                         Current recorded times
                     </p>
                     <div className={`grid gap-2 ${twoPunch ? 'grid-cols-2' : 'grid-cols-4'}`}>
                         {slots.map((slot) => (
                             <div key={slot}>
-                                <p className="text-[10px] text-dim">{labelFor(slot)}</p>
+                                <p className="text-[12px] text-dim">{labelFor(slot)}</p>
                                 <p className="text-xs font-mono font-semibold text-text mt-0.5">
                                     {currentLog?.[slot] ? currentLog[slot].slice(0, 5) : '—:—'}
                                 </p>

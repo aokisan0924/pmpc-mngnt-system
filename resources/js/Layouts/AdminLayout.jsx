@@ -221,7 +221,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
                     </svg>
                 </button>
                 <div className="min-w-0 text-center">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Admin</p>
+                    <p className="text-[12px] font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">Admin</p>
                     <p className="text-sm font-heading font-semibold text-text truncate">{activeItem?.label}</p>
                 </div>
                 <div className="w-9 -mr-2" aria-hidden="true" />
@@ -317,7 +317,7 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
                     <p className="font-heading font-bold text-xs text-white tracking-tight truncate">PMPC WorkForce</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-300 animate-pulse" />
-                        <p className="text-[9px] text-indigo-200 font-bold tracking-wider uppercase">Admin Portal</p>
+                        <p className="text-[12px] text-indigo-200 font-bold tracking-wider uppercase">Admin Portal</p>
                     </div>
                 </div>
             </div>
@@ -326,7 +326,7 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
             <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto" aria-label="Admin navigation">
                 {sections.map(section => (
                     <div key={section}>
-                        <p className="text-[10px] font-bold text-white/80 px-3 mb-1.5 tracking-wider uppercase">
+                        <p className="text-[12px] font-bold text-white/80 px-3 mb-1.5 tracking-wider uppercase">
                             {section}
                         </p>
                         <div className="space-y-0.5">
@@ -351,7 +351,7 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
                                             <span className="truncate">{item.label}</span>
                                         </div>
                                         {item.badge && pendingEditCount > 0 && (
-                                            <span className={`text-[10px] px-1.5 py-0.25 rounded-full font-bold shadow-2xs ${
+                                            <span className={`text-[12px] px-1.5 py-0.25 rounded-full font-bold shadow-2xs ${
                                                 active
                                                     ? 'bg-amber-500 text-white'
                                                     : 'bg-amber-400 text-[#26215C]'
@@ -376,7 +376,7 @@ function SidebarContent({ navItems, sections, activeHref, pendingEditCount, onLo
                         </div>
                         <div className="min-w-0">
                             <p className="font-semibold text-xs text-white truncate leading-tight">{employee?.full_name ?? 'Super Admin'}</p>
-                            <p className="text-[10px] text-indigo-200 truncate leading-tight font-mono mt-0.5">{employee?.employee_id ?? 'ADM-0001'}</p>
+                            <p className="text-[12px] text-indigo-200 truncate leading-tight font-mono mt-0.5">{employee?.employee_id ?? 'ADM-0001'}</p>
                         </div>
                     </div>
                     <button
