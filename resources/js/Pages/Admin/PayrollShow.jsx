@@ -242,20 +242,12 @@ export default function PayrollShow({ payroll, items = [], signatureEmployees = 
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
                             <h2 id="downloads-title" className="font-heading text-lg font-bold text-text">
-                                Reports & downloads
+                                Payroll workbook export
                             </h2>
                             <p className="mt-1 text-xs text-sub">
-                                Download payslips or choose signatories for the management workbook.
+                                Export this payroll as an Excel workbook with the selected signatories.
                             </p>
                         </div>
-                        <a
-                            href={`/admin/payslips/download-all?month=${payroll.month_key}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex min-h-[44px] items-center rounded-xl border border-border px-4 text-sm font-semibold text-[#26215C] hover:bg-field"
-                        >
-                            Download all payslips
-                        </a>
                     </div>
                     <details
                         open={Object.keys(errors || {}).some((key) => key.startsWith('signatories.')) || undefined}

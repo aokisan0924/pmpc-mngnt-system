@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed repeated notification totals, redundant account identity in the admin header, duplicate sign-in and password-reset copy, and decorative grid/watermark layers. Shortened page descriptions while keeping the actions, filters, and payroll/DTR context.
 
 ### Fixed
+- Payroll batch pages now offer only the Management Excel workbook export; separate payslip PDF downloads remain available in their own areas.
 - Management payroll exports now default to Kurt Fariñas for preparation, Katherine Sevilleno for certification, and President Alexander L. Feria for approval on both cutoffs.
 - Payroll review and finalization no longer require an attendance override reason for unresolved DTR entries; unresolved dates remain visible in the saved batch for reference.
 - General Merchandise employees now default to the 15-day cutoff basis even when their saved custom work schedule contains 16 dates.
