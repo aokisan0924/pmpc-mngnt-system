@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed repeated notification totals, redundant account identity in the admin header, duplicate sign-in and password-reset copy, and decorative grid/watermark layers. Shortened page descriptions while keeping the actions, filters, and payroll/DTR context.
 
 ### Fixed
+- General Merchandise employees now default to the 15-day cutoff basis even when their saved custom work schedule contains 16 dates.
 - Management payroll exports place employees in the General Merchandise sheet when their employee department is General Merchandise, even if their verified payroll office remains Main Office.
 - Payroll review accepts the 16-day DTR basis snapshot possible for a custom schedule spanning a 16-day cutoff; the actual paid-days input remains capped at 15.
 - The maintenance page shown during deploys no longer crashes with a server error: a stray template tag inside a code comment made it fail to render.

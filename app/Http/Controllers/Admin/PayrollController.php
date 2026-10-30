@@ -358,12 +358,15 @@ class PayrollController extends Controller
         $start = Employee::startDateFor((int) $employee->id);
         $workDays = collect(CarbonPeriod::create($from, $to))
             ->filter(fn ($day): bool => Employee::isWorkDay((int) $employee->id, $day));
+        $isGeneralMerchandise = mb_strtolower(trim((string) $employee->department)) === 'general merchandise';
 
-        if (Employee::hasCustomWorkDays((int) $employee->id, $from, $to)) {
+        if (Employee::hasCustomWorkDays((int) $employee->id, $from, $to) && ! $isGeneralMerchandise) {
             return (float) $workDays->filter(fn ($day): bool => $start === null || $day->toDateString() >= $start)->count();
         }
 
-        $office = $employee->hasVerifiedPayrollOffice() ? $employee->payroll_office : '';
+        $office = $isGeneralMerchandise
+            ? 'gen_mdse'
+            : ($employee->hasVerifiedPayrollOffice() ? $employee->payroll_office : '');
         // Work days before the hire date are not paid, so a mid-period hire gets a shorter basis.
         $beforeStart = $start === null ? 0 : $workDays->filter(fn ($day): bool => $day->toDateString() < $start)->count();
 
