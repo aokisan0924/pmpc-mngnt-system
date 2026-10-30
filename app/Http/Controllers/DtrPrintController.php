@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\Setting;
+use App\Services\AlwaysPresentAttendanceFiller;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -77,6 +78,8 @@ class DtrPrintController extends Controller
 
     private function buildPdf(Employee $employee, string $month): \Barryvdh\DomPDF\PDF
     {
+        app(AlwaysPresentAttendanceFiller::class)->fill();
+
         $from = Carbon::parse($month)->startOfMonth();
         $to = Carbon::parse($month)->endOfMonth();
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\DtrLog;
 use App\Models\Employee;
+use App\Services\AlwaysPresentAttendanceFiller;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,8 +13,10 @@ use Inertia\Response;
 
 class AdminDtrController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request, AlwaysPresentAttendanceFiller $filler): Response
     {
+        $filler->fill();
+
         $month = $request->get('month', now()->format('Y-m'));
         $employeeId = $request->get('employee_id');
 
@@ -68,8 +71,10 @@ class AdminDtrController extends Controller
         ]);
     }
 
-    public function show(Request $request, Employee $employee): Response
+    public function show(Request $request, Employee $employee, AlwaysPresentAttendanceFiller $filler): Response
     {
+        $filler->fill();
+
         $month = $request->get('month', now()->format('Y-m'));
         $from = Carbon::parse($month)->startOfMonth();
         $to = Carbon::parse($month)->endOfMonth();
