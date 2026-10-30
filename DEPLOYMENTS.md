@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-10-30 09:49 — 06536a3 — Remove mandatory DTR reason for payroll
+- By: Codex, requested by Kurt
+- Code: `d74e25b` → `06536a3`
+- Migrations: none
+- Backup: none (code-only deployment; no database records changed)
+- Data changes: none. Payroll review and finalization no longer require an attendance override reason; unresolved DTR dates remain listed for reference.
+- Verified: Server checkout is clean at `06536a3`; migration check reported nothing to migrate; optimized caches rebuilt and app returned live.
+
 ## 2026-10-30 09:46 — d74e25b — Default General Merchandise payroll to 15 days
 - By: Codex, requested by Kurt
 - Code: `8e594fb` → `d74e25b`
