@@ -9,6 +9,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use ZipArchive;
 
 class DtrPrintController extends Controller
 {
@@ -33,7 +36,46 @@ class DtrPrintController extends Controller
         return $this->generatePdf($employee, $month);
     }
 
+    /**
+     * Admin exports every active employee's DTR for the month as one zip of PDFs named Surname_DTR_YYYY-MM.pdf
+     */
+    public function adminExportAll(Request $request): BinaryFileResponse
+    {
+        $month = Carbon::parse($request->get('month', now()->format('Y-m')))->format('Y-m');
+        $path = tempnam(sys_get_temp_dir(), 'dtr');
+        $zip = new ZipArchive;
+        $zip->open($path, ZipArchive::OVERWRITE);
+
+        $used = [];
+        foreach (Employee::where('is_staff', true)->where('status', 'active')->orderBy('last_name')->orderBy('first_name')->get() as $employee) {
+            $surname = $this->surnameFor($employee);
+            $name = "{$surname}_DTR_{$month}";
+            // Two people with the same surname must not overwrite each other.
+            if (isset($used[$name])) {
+                $name = "{$surname}_{$employee->employee_id}_DTR_{$month}";
+            }
+            $used[$name] = true;
+            $zip->addFromString("{$name}.pdf", $this->buildPdf($employee, $month)->output());
+        }
+        $zip->close();
+
+        return response()->download($path, "DTR_All_{$month}.zip")->deleteFileAfterSend(true);
+    }
+
     private function generatePdf(Employee $employee, string $month): Response
+    {
+        $surname = $this->surnameFor($employee);
+
+        return $this->buildPdf($employee, $month)->download("{$surname}_DTR_{$month}.pdf");
+    }
+
+    /** Surname for file names: keeps capitals, replaces anything unsafe with an underscore. */
+    private function surnameFor(Employee $employee): string
+    {
+        return trim((string) preg_replace('/[^A-Za-z0-9]+/', '_', Str::ascii((string) $employee->last_name)), '_') ?: 'Employee';
+    }
+
+    private function buildPdf(Employee $employee, string $month): \Barryvdh\DomPDF\PDF
     {
         $from = Carbon::parse($month)->startOfMonth();
         $to = Carbon::parse($month)->endOfMonth();
@@ -91,8 +133,6 @@ class DtrPrintController extends Controller
             'settings' => $settings,
         ])->setPaper('a4', 'portrait');
 
-        $filename = "DTR_{$employee->employee_id}_{$month}.pdf";
-
-        return $pdf->download($filename);
+        return $pdf;
     }
 }

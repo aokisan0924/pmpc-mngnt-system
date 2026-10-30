@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Services\OfficePayrollCalculator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -98,76 +97,5 @@ class PayrollItem extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class);
-    }
-
-    /**
-     * Compute all totals based on cutoff type.
-     * isFirst = true  → 1st cutoff (SSS/Phil/Pag-IBIG full, split deductions half)
-     * isFirst = false → 2nd cutoff (govt deductions = 0, split deductions half)
-     */
-    public function computeTotals(bool $isFirst): void
-    {
-        $emp = $this->employee;
-
-        if ($this->payroll_office !== null) {
-            $this->fill(app(OfficePayrollCalculator::class)->calculate(
-                $emp, $isFirst, (float) $this->paid_days_basis, (float) $this->absence_days,
-                (float) $this->weekday_ot_hours, (float) $this->weekend_ot_hours, (float) $this->tardiness_deduction,
-                $this->only(['sss_deduction', 'philhealth_deduction', 'pagibig_deduction', 'tax_deduction', 'loan_deduction', 'capital_contribution_deduction', 'cash_advance_deduction', 'rental_deduction', 'savings_deduction', 'other_deductions']),
-                (float) $this->holiday_pay,
-            ));
-
-            return;
-        }
-
-        // OT pay
-        $hourlyRate = $emp->daily_rate / 8;
-        $this->weekday_ot_pay = round($hourlyRate * 1.25 * $this->weekday_ot_hours, 4);
-        $this->weekend_ot_pay = round($hourlyRate * 1.30 * $this->weekend_ot_hours, 4);
-        $this->total_ot_pay = $this->weekday_ot_pay + $this->weekend_ot_pay;
-
-        // Cutoff gross = basic pay prorated by actual attendance for this
-        // cutoff (days_present is set upstream in PayrollController before
-        // computeTotals() runs; half_day already counts as 0.5 there)
-        // + fixed allowances split evenly across the two cutoffs.
-        $this->cutoff_basic = round($emp->daily_rate * $this->days_present, 4);
-        $this->cutoff_transpo = round($emp->transpo_allowance / 2, 4);
-        $this->cutoff_rep = round($emp->rep_allowance / 2, 4);
-        $this->cutoff_quarterly = round($emp->quarterly_allowance / 2, 4);
-        $this->cutoff_gross = $this->cutoff_basic
-            + $this->cutoff_transpo
-            + $this->cutoff_rep
-            + $this->cutoff_quarterly;
-
-        // Total gross = cutoff_gross + OT
-        $this->gross_pay = $this->cutoff_gross + $this->total_ot_pay;
-
-        // Government deductions — full on 1st, zero on 2nd
-        $this->sss_deduction = $isFirst ? $emp->sss_deduction : 0;
-        $this->philhealth_deduction = $isFirst ? $emp->philhealth_deduction : 0;
-        $this->pagibig_deduction = $isFirst ? $emp->pagibig_deduction : 0;
-        $this->tax_deduction = $isFirst ? $emp->tax_deduction : 0;
-
-        // Split deductions — half each cutoff
-        $this->loan_deduction = round($emp->loan_deduction / 2, 4);
-        $this->capital_contribution_deduction = round($emp->capital_contribution_deduction / 2, 4);
-        $this->cash_advance_deduction = round($emp->cash_advance_deduction / 2, 4);
-        $this->rental_deduction = round($emp->rental_deduction / 2, 4);
-        $this->savings_deduction = round($emp->savings_deduction / 2, 4);
-        $this->other_deductions = round($emp->other_deductions / 2, 4);
-
-        $this->total_deductions =
-            $this->sss_deduction
-            + $this->philhealth_deduction
-            + $this->pagibig_deduction
-            + $this->tax_deduction
-            + $this->loan_deduction
-            + $this->capital_contribution_deduction
-            + $this->cash_advance_deduction
-            + $this->rental_deduction
-            + $this->savings_deduction
-            + $this->other_deductions;
-
-        $this->net_pay = $this->gross_pay - $this->total_deductions;
     }
 }

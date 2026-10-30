@@ -179,10 +179,11 @@ class PayrollController extends Controller
                 $item->payroll_id = $payroll->id;
                 $item->employee_id = $emp->id;
                 $item->cutoff = $validated['cutoff'];
-                $item->days_present = $itemData['days_present'] ?? 0;
                 $item->payroll_office = $itemData['payroll_office'];
                 $item->paid_days_basis = $itemData['paid_days_basis'];
                 $item->absence_days = $itemData['absence_days'];
+                // Days paid, computed from the DTR-derived basis and absences, never taken from the browser.
+                $item->days_present = (float) $item->paid_days_basis - (float) $item->absence_days;
                 $item->default_paid_days_basis = $dtr['default_paid_days_basis'];
                 $item->dtr_days_present = $dtr['days_present'];
                 $item->dtr_absence_days = $dtr['absence_days'];
@@ -197,7 +198,7 @@ class PayrollController extends Controller
                 $item->weekend_ot_hours = floatval($itemData['weekend_ot_hours'] ?? 0);
                 $item->holiday_pay = floatval($itemData['holiday_pay'] ?? 0);
 
-                // Eager load employee for computeTotals
+                // Calculator reads the employee relation
                 $item->setRelation('employee', $emp);
                 $item->fill(app(OfficePayrollCalculator::class)->calculate(
                     $emp, $isFirst, (float) $item->paid_days_basis, (float) $item->absence_days,
@@ -354,14 +355,18 @@ class PayrollController extends Controller
 
     private function paidDaysBasisFor(Employee $employee, Carbon $from, Carbon $to): float
     {
+        $start = Employee::startDateFor((int) $employee->id);
+        $workDays = collect(CarbonPeriod::create($from, $to))
+            ->filter(fn ($day): bool => Employee::isWorkDay((int) $employee->id, $day));
+
         if (Employee::hasCustomWorkDays((int) $employee->id, $from, $to)) {
-            return (float) collect(CarbonPeriod::create($from, $to))
-                ->filter(fn ($day): bool => Employee::isWorkDay((int) $employee->id, $day))
-                ->count();
+            return (float) $workDays->filter(fn ($day): bool => $start === null || $day->toDateString() >= $start)->count();
         }
 
         $office = $employee->hasVerifiedPayrollOffice() ? $employee->payroll_office : '';
+        // Work days before the hire date are not paid, so a mid-period hire gets a shorter basis.
+        $beforeStart = $start === null ? 0 : $workDays->filter(fn ($day): bool => $day->toDateString() < $start)->count();
 
-        return (float) (OfficePayrollCalculator::OFFICES[$office]['days'] ?? 11);
+        return (float) max(0, (OfficePayrollCalculator::OFFICES[$office]['days'] ?? 11) - $beforeStart);
     }
 }

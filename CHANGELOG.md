@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- "Export all DTRs" button on the admin DTR page downloads one zip with a PDF per active employee, named Surname_DTR_YYYY-MM.pdf (an employee ID is added when two people share a surname). Single-employee DTR PDFs now use the same Surname_DTR_YYYY-MM.pdf name.
 - Payroll attendance now defaults to DTR-derived present days, absences, and late minutes after the configured grace period. Super admins can override these values in the payroll preview with a recorded reason; the saved batch retains the DTR snapshot and flags unresolved dates.
 - Payroll creation now ends with a final review step: "Review payroll" opens a short summary (net payout, gross, deductions, and a list of each employee) before anything is saved. HR can save as draft, keep editing, or discard (nothing is written). The "I checked all rows" tick box is replaced by this step.
 - Disabled-by-default authenticated attendance API for Gen Mdse, with an explicit active employee allowlist, attendance-only responses, repeat-safe request IDs, expected-state conflicts, and shared punch handling across API and WorkForce screens.
@@ -19,10 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Per-employee two-punch shifts (time in / time out, no lunch, may end after midnight), set in the employee compensation tab; an overnight clock-out closes the log opened the evening before. Two-punch days show Time In/Time Out in DTR tables, print and archive, an unclosed day is flagged "Missing time out" (pays 0 until HR corrects it), and HR corrections accept overnight times.
 
 ### Changed
+- Removed the unused pre-office payroll formula (`PayrollItem::computeTotals()`) and its tests; all payroll now goes through the office calculator. Days present is always saved as paid-days basis minus DTR absences.
 - Increased undersized interface labels and status text to a readable 12 px minimum, refined shared page-header typography, and added more responsive breathing room around portal content.
 - Removed repeated notification totals, redundant account identity in the admin header, duplicate sign-in and password-reset copy, and decorative grid/watermark layers. Shortened page descriptions while keeping the actions, filters, and payroll/DTR context.
 
 ### Fixed
+- Payroll no longer pays an employee for work days before their hire date: the paid-days basis for a mid-period hire is reduced by the scheduled work days that fall before the date hired.
 - Changing an employee's shift or workdays no longer changes past attendance: absences, rest days, two-punch rules, and payroll paid days now follow the schedule that was in effect on each date. Existing personal shifts and workdays carry over into the schedule history. A month keeps the Time In / Time Out layout when its only four-punch days are absences with no punches.
 - Employee DTR edit requests must list times in order (AM in, AM out, PM in, PM out), the same rule HR corrections use. Out-of-order requests such as a PM In of 01:00 can no longer be submitted and inflate hours.
 - A punch pair tapped through in under a minute no longer counts as a worked half. Arriving after lunch or leaving at noon and tapping the remaining punches is now a half day. Skipping the lunch punches during a full day still counts as a full day, as does tapping PM In and PM Out together at or after shift end. `php artisan dtr:recompute-status --from=Y-m-d` lists saved statuses that change under this rule, and `--apply` saves only the statuses.

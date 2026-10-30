@@ -101,6 +101,12 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                             <Button variant="primary" size="sm" onClick={applyFilter}>
                                 Apply Filter
                             </Button>
+                            <a
+                                href={`/admin/dtr/export-all?month=${month}`}
+                                className="inline-flex h-9 items-center rounded-lg border border-border bg-panel px-3 text-xs font-semibold text-text transition-colors hover:bg-field"
+                            >
+                                Export all DTRs
+                            </a>
                         </div>
                     </CardContent>
                 </Card>

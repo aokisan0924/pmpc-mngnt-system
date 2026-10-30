@@ -143,6 +143,7 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::delete('/payroll/{payroll}', [PayrollController::class, 'destroy'])->name('payroll.destroy');
 
         // DTR management
+        Route::get('/dtr/export-all', [DtrPrintController::class, 'adminExportAll'])->name('dtr.export-all');
         Route::get('/dtr/{employee}/print', [DtrPrintController::class, 'adminPrint'])->name('dtr.admin-print');
         Route::get('/dtr', [AdminDtrController::class, 'index'])->name('dtr');
         Route::get('/dtr/{employee}', [AdminDtrController::class, 'show'])->name('dtr.show');
