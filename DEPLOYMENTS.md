@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-10-30 09:56 — 9887079 — Default payroll export signatories
+- By: Codex, requested by Kurt
+- Code: `06536a3` → `9887079`
+- Migrations: none
+- Backup: none (code-only deployment; no database records changed)
+- Data changes: none. Both cutoff blocks default to Kurt Fariñas (prepared), Katherine Sevilleno (certified correct), and President Alexander L. Feria (approved). Users can still change or clear the selections.
+- Verified: Clean server checkout at `9887079`; no migrations; caches rebuilt and app returned live. Read-only production lookup resolved the defaults to active employee IDs 12, 13, and 3, respectively, for both cutoffs.
+
 ## 2026-10-30 09:49 — 06536a3 — Remove mandatory DTR reason for payroll
 - By: Codex, requested by Kurt
 - Code: `d74e25b` → `06536a3`
