@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-10-30 08:56 — data only — Verify Main Office assignments for payroll
+- By: Codex, requested by Kurt
+- Code: none
+- Migrations: none
+- Backup: none
+- Data changes: Changed Violie R. Malana (EMP-0005) and John Roy C. Sibal (EMP-0006) from no verified payroll office to Main Office, based on Kurt's confirmation that both belong to UPI Main Office. To undo, restore each employee's prior unassigned state by clearing the payroll office and its verification timestamp through an authorized data correction.
+- Verified: Both employee profiles display “Main Office · HR verified.” The app confirmed the office update; existing saved payroll assignments remain unchanged. The October 16–31 draft was not saved because the payroll form rejects paid-days values above 15.
+
 ## 2026-10-30 00:49 — 327c98a — Maintenance page crash fix
 - By: Claude, requested by Kurt
 - Code: `4f7c26c` → `327c98a`
