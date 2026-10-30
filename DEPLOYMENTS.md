@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-10-30 09:46 — d74e25b — Default General Merchandise payroll to 15 days
+- By: Codex, requested by Kurt
+- Code: `8e594fb` → `d74e25b`
+- Migrations: none
+- Backup: none (code-only deployment; no database records changed)
+- Data changes: none. General Merchandise employees now default to the 15-day cutoff basis, including those with custom schedules.
+- Verified: Production checkout is clean at `d74e25b`; migration check reported nothing to migrate; optimized caches rebuilt; app returned live. Live October 16–31 payroll preview shows Violie R. Malana and John Roy C. Sibal at 15 paid days each. No payroll was saved.
+
 ## 2026-10-30 09:33 — 8e594fb — Route General Merchandise staff to payroll sheet
 - By: Codex, requested by Kurt
 - Code: `aa907d4` → `8e594fb`
