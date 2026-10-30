@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-10-30 00:49 — 4f7c26c — Auto-fill punches for always-present employees
+- By: Claude, requested by Kurt
+- Code: `d7a0635` → `4f7c26c`
+- Migrations: none
+- Backup: none (the earlier backup `db-backup-2026-10-30-pre-feria.sql` predates this deploy; no data was changed)
+- Data changes: none. The new command was run once on live and created 0 rows (today's 5pm punch time had not passed); Alexander L. Feria still has 78 rows, latest 2026-10-29. Undo for future rows: delete his `dtr_logs` rows dated after 2026-10-29, and flip off "Always present" to stop new ones.
+- Verified: server checkout was clean before and after; caches rebuilt, maintenance mode cleared; `schedule:list` shows `dtr:fill-always-present` daily at 18:00; live `/login` returned HTTP 200 and `/admin/dtr` redirected a logged-out visitor (302). The DTR pages themselves were not opened on the live site. The 6pm schedule only runs if an hPanel cron job calls `schedule:run`; without it, rows are still filled when an admin opens or prints a DTR.
+
 ## 2026-10-30 00:44 — data only — President's DTR filled with standard punches
 - By: Claude, requested by Kurt
 - Code: none
