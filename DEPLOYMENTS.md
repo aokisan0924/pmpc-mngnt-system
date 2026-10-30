@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-10-30 10:02 — 9d63f5a — Keep payroll batch exports Excel-only
+- By: Codex, requested by Kurt
+- Code: `9887079` → `9d63f5a`
+- Migrations: none
+- Backup: none (code-only deployment; no payroll data changed)
+- Data changes: none. The payroll batch page now offers only the Management Excel workbook; separate payslip PDF downloads remain available elsewhere.
+- Verified: Clean server checkout at `9d63f5a`; no migrations; caches rebuilt and app returned live. The saved batch page shows only the Excel workbook export, with the PDF option absent. Both cutoff signatory selectors default to Kurt Vincent Fariñas, Katherine Sevilleno, and Alexander L. Feria. A fresh live export opened in WPS Office; the management workbook layout, employee/pay figures, and printed signatory names were visible.
+
 ## 2026-10-30 09:56 — 9887079 — Default payroll export signatories
 - By: Codex, requested by Kurt
 - Code: `06536a3` → `9887079`
