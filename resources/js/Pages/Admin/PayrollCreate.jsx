@@ -72,9 +72,6 @@ export default function PayrollCreate({
         )
     const totals = sum(items)
     const unverified = items.filter((item) => !item.office_verified).length
-    const missingOverrideReasons = items.findIndex((item, index) =>
-        (attendanceDiffers(item) || hasUnresolvedDtr(item)) && !data.items[index].attendance_override_reason?.trim(),
-    )
     const groups = Object.keys(offices)
         .concat('')
         .map((office) => [office, items.map((item, index) => ({ item, index })).filter(({ item }) => (item.office_verified ? item.payroll_office : '') === office)])
@@ -93,11 +90,6 @@ export default function PayrollCreate({
     function submit(event) {
         event.preventDefault()
         if (!items.length || unverified || processing) return
-        if (missingOverrideReasons !== -1) {
-            setOpen(missingOverrideReasons)
-            document.getElementById(`payroll-row-${missingOverrideReasons}`)?.scrollIntoView({ block: 'center' })
-            return
-        }
         setReviewing(true)
     }
     // Nothing is written until this runs; discarding from the review just leaves the page.
@@ -265,25 +257,6 @@ export default function PayrollCreate({
                                                                 className="mt-1 min-h-[44px] w-full rounded-lg border border-border bg-panel px-3 text-sm text-text"
                                                             />
                                                         </label>
-                                                        {(attendanceDiffers(item) || hasUnresolvedDtr(item)) && (
-                                                            <label className="mt-3 block max-w-xl text-xs font-semibold text-rose-700">
-                                                                Reason for attendance override or unresolved DTR <span aria-hidden="true">*</span>
-                                                                <input
-                                                                    type="text"
-                                                                    maxLength={1000}
-                                                                    required
-                                                                    value={data.items[index].attendance_override_reason || ''}
-                                                                    onChange={(event) => update(index, 'attendance_override_reason', event.target.value)}
-                                                                    aria-invalid={!data.items[index].attendance_override_reason?.trim() || !!errors[`items.${index}.attendance_override_reason`]}
-                                                                    className="mt-1 min-h-[44px] w-full rounded-lg border border-border bg-panel px-3 text-sm font-normal text-text"
-                                                                />
-                                                                {(!data.items[index].attendance_override_reason?.trim() || errors[`items.${index}.attendance_override_reason`]) && (
-                                                                    <span role="alert" className="mt-1 block font-normal">
-                                                                        {errors[`items.${index}.attendance_override_reason`] || 'Enter a reason before reviewing this payroll.'}
-                                                                    </span>
-                                                                )}
-                                                            </label>
-                                                        )}
                                                     </td>
                                                 </tr>
                                             )}

@@ -189,7 +189,7 @@ export default function PayrollShow({ payroll, items = [], signatureEmployees = 
                                                     <p>DTR source: <strong className="text-text">{item.dtr_days_present} present · {item.dtr_absence_days} absent · {item.dtr_tardiness_minutes} late minutes</strong></p>
                                                     <p className="mt-1">Used in payroll: <strong className="text-text">{item.paid_days_basis} workdays · {item.absence_days} absent · {item.tardiness_minutes} late minutes</strong></p>
                                                     {(item.dtr_unresolved_dates || []).length > 0 && (
-                                                        <p className="mt-2 text-amber-700">DTR entries reviewed: {(item.dtr_unresolved_dates || []).join(', ')}</p>
+                                                        <p className="mt-2 text-amber-700">DTR dates flagged: {(item.dtr_unresolved_dates || []).join(', ')}</p>
                                                     )}
                                                     {item.attendance_override_reason && (
                                                         <p className="mt-2"><strong className="text-text">Attendance override reason:</strong> {item.attendance_override_reason}</p>

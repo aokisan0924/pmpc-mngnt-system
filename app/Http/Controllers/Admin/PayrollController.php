@@ -94,7 +94,6 @@ class PayrollController extends Controller
                     'weekday_ot_hours' => 0,
                     'weekend_ot_hours' => 0,
                     'tardiness_minutes' => $dtr['tardiness_minutes'],
-                    'attendance_override_reason' => '',
                     'deductions' => collect($suggestions)->only(OfficePayrollCalculator::DEDUCTIONS)->all(),
                 ];
             });
@@ -165,14 +164,7 @@ class PayrollController extends Controller
                     throw ValidationException::withMessages(["items.$index.dtr_days_present" => 'DTR changed after this preview. Reload payroll and review the updated attendance.']);
                 }
 
-                $attendanceOverridden = abs((float) $itemData['paid_days_basis'] - $dtr['default_paid_days_basis']) >= 0.005
-                    || abs((float) $itemData['absence_days'] - $dtr['absence_days']) >= 0.005
-                    || abs((float) ($itemData['tardiness_minutes'] ?? 0) - $dtr['tardiness_minutes']) >= 0.005;
                 $overrideReason = trim((string) ($itemData['attendance_override_reason'] ?? ''));
-                if (($attendanceOverridden || $dtr['unresolved_dates'] !== []) && $overrideReason === '') {
-                    throw ValidationException::withMessages(["items.$index.attendance_override_reason" => 'Explain the attendance override or how the unresolved DTR was reviewed.']);
-                }
-
                 $reconciliationNote = trim((string) ($itemData['dtr_reconciliation_note'] ?? ''));
 
                 $item = new PayrollItem;
@@ -301,16 +293,6 @@ class PayrollController extends Controller
                 return false;
             }
 
-            $unreviewedDtr = $lockedPayroll->items()
-                ->whereNotNull('dtr_unresolved_dates')
-                ->get(['dtr_unresolved_dates', 'attendance_override_reason'])
-                ->contains(fn (PayrollItem $item): bool => (is_array($item->dtr_unresolved_dates) && $item->dtr_unresolved_dates !== [])
-                    && blank($item->attendance_override_reason));
-
-            if ($unreviewedDtr) {
-                return false;
-            }
-
             $lockedPayroll->forceFill([
                 'status' => 'finalized',
                 'finalized_by' => $request->user()->id,
@@ -325,7 +307,7 @@ class PayrollController extends Controller
 
             return back()->withErrors(['error' => $payroll->isFinalized()
                 ? 'Payroll is already finalized.'
-                : 'Review unresolved DTR entries and record an override reason before finalizing payroll.']);
+                : 'Payroll could not be finalized. Please reload and try again.']);
         }
 
         return back()->with('success', 'Payroll finalized.');
