@@ -31,7 +31,7 @@ const deductions = {
     tardiness_deduction: 'Tardiness',
 }
 
-export default function PayrollShow({ payroll, items = [], signatureEmployees = [] }) {
+export default function PayrollShow({ payroll, items = [], signatureEmployees = [], defaultSignatories = {} }) {
     const { flash, errors } = usePage().props
     const form = useForm({})
     const [confirmOpen, setConfirmOpen] = useState(false)
@@ -264,7 +264,7 @@ export default function PayrollShow({ payroll, items = [], signatureEmployees = 
                         <summary className="flex min-h-[44px] cursor-pointer items-center text-sm font-semibold text-text">
                             Management Excel · signatories & export
                         </summary>
-                        <PayrollExcelExport payroll={payroll} employees={signatureEmployees} />
+                        <PayrollExcelExport payroll={payroll} employees={signatureEmployees} defaultSignatories={defaultSignatories} />
                     </details>
                 </section>
                 {payroll.status === 'draft' && (

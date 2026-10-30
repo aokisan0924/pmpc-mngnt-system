@@ -12,6 +12,7 @@ use App\Models\Holiday;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
 use App\Services\DtrPayrollAttendanceCalculator;
+use App\Services\ManagementPayrollExport;
 use App\Services\OfficePayrollCalculator;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -210,7 +211,7 @@ class PayrollController extends Controller
             ->with('success', 'Payroll saved successfully.');
     }
 
-    public function show(Payroll $payroll): Response
+    public function show(Payroll $payroll, ManagementPayrollExport $managementPayrollExport): Response
     {
         $payroll->loadMissing('finalizer');
         $items = $payroll->items()
@@ -265,6 +266,7 @@ class PayrollController extends Controller
 
         return Inertia::render('Admin/PayrollShow', [
             'signatureEmployees' => Employee::where('status', 'active')->orderBy('first_name')->get(['id', 'employee_id', 'first_name', 'last_name'])->map(fn (Employee $employee) => ['id' => $employee->id, 'name' => $employee->full_name, 'employee_id' => $employee->employee_id]),
+            'defaultSignatories' => $managementPayrollExport->defaultSignatories(),
             'payroll' => [
                 'id' => $payroll->id,
                 'period_label' => $payroll->period_label,

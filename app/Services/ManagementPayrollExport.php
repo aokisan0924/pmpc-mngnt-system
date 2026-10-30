@@ -55,8 +55,21 @@ class ManagementPayrollExport
     /** Notes and supplemental detail sit below the original layout and outside the print area. */
     private const DETAIL_ROW = 90;
 
+    public function defaultSignatories(): array
+    {
+        $employees = Employee::where('status', 'active')->get(['id', 'employee_id', 'first_name', 'last_name', 'position']);
+        $defaults = [
+            'prepared' => $employees->firstWhere('employee_id', 'EMP-0002')?->id,
+            'certified' => $employees->first(fn (Employee $employee): bool => $employee->first_name === 'Katherine' && $employee->last_name === 'Sevilleno')?->id,
+            'approved' => $employees->first(fn (Employee $employee): bool => $employee->first_name === 'Alexander L.' && $employee->last_name === 'Feria' && $employee->position === 'President')?->id,
+        ];
+
+        return ['first' => $defaults, 'second' => $defaults];
+    }
+
     public function export(Payroll $selected, array $signatories = []): string
     {
+        $signatories = array_replace_recursive($this->defaultSignatories(), $signatories);
         $signatureIds = collect($signatories)->flatMap(fn ($roles) => array_values($roles))->filter()->unique();
         $people = Employee::whereIn('id', $signatureIds)->get()->keyBy('id');
         if ($people->count() !== $signatureIds->count()) {

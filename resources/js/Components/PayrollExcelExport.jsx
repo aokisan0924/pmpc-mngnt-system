@@ -1,10 +1,10 @@
 import { useForm, usePage } from '@inertiajs/react'
 
-export default function PayrollExcelExport({ payroll, employees }) {
+export default function PayrollExcelExport({ payroll, employees, defaultSignatories }) {
     const { errors } = usePage().props
     const form = useForm({
-        first: { prepared: '', certified: '', approved: '' },
-        second: { prepared: '', certified: '', approved: '' },
+        first: { prepared: '', certified: '', approved: '', ...defaultSignatories?.first },
+        second: { prepared: '', certified: '', approved: '', ...defaultSignatories?.second },
     })
     return (
         <section id="payroll-excel-export" className="pt-4 space-y-4" aria-labelledby="excel-export-title">
