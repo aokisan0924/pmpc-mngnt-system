@@ -77,9 +77,13 @@ class ManagementPayrollExport
             if (! isset(self::LAYOUT[$item->payroll_office]) || ! $item->employee) {
                 $this->reject('Every exported item needs a verified payroll office and employee. Historical items without an office cannot use this export.');
             }
+            if (! isset(self::LAYOUT[$this->exportOffice($item)])) {
+                $this->reject('Every exported item needs a supported payroll section.');
+            }
         }
+        $itemsByOffice = $items->groupBy(fn (PayrollItem $item): string => $this->exportOffice($item));
         foreach (self::LAYOUT as $office => $layout) {
-            if ($items->where('payroll_office', $office)->pluck('employee_id')->unique()->count() > $layout['capacity']) {
+            if ($itemsByOffice->get($office, collect())->pluck('employee_id')->unique()->count() > $layout['capacity']) {
                 $this->reject(OfficePayrollCalculator::OFFICES[$office]['label'].' exceeds the supplied template capacity ('.$layout['capacity'].' employees). Expand the approved template before exporting; no rows have been omitted.');
             }
         }
@@ -95,7 +99,7 @@ class ManagementPayrollExport
             }
             foreach (self::LAYOUT as $office => $layout) {
                 $doc = $this->document($zip->getFromName('xl/worksheets/sheet'.$layout['sheet'].'.xml'));
-                $officeItems = $items->where('payroll_office', $office);
+                $officeItems = $itemsByOffice->get($office, collect());
                 $ids = $officeItems->sortBy(fn ($i) => mb_strtolower($i->employee->last_name.' '.$i->employee->first_name))->pluck('employee_id')->unique()->values();
                 foreach (['first', 'second'] as $cutoff) {
                     $batch = $batches->firstWhere('cutoff', $cutoff);
@@ -251,6 +255,13 @@ class ManagementPayrollExport
         }
 
         return $item;
+    }
+
+    private function exportOffice(PayrollItem $item): string
+    {
+        return mb_strtolower(trim((string) $item->employee->department)) === 'general merchandise'
+            ? 'gen_mdse'
+            : $item->payroll_office;
     }
 
     private function blankItem(Employee $employee): PayrollItem
