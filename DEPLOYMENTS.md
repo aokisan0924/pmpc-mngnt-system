@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-10-30 00:44 — data only — President's DTR filled with standard punches
+- By: Claude, requested by Kurt
+- Code: none
+- Migrations: none
+- Backup: `~/domains/peoplescoopdtr.online/db-backup-2026-10-30-pre-feria.sql` (full database dump taken just before the change)
+- Data changes: one-off script created 78 `dtr_logs` rows for Alexander L. Feria (2003-00001, id 3) on every workday (Mon–Fri, no holidays on file) from 2026-07-14 (account creation) to 2026-10-29, each with AM in 08:00, AM out 12:00, PM in 13:00, PM out 17:00, status on_time, 8.00 hours. The dry run showed 0 existing rows, so nothing was overwritten. Undo: delete `dtr_logs` where `employee_id = 3` (he had no rows before), or restore from the backup. Today's date (2026-10-30) and later were left alone.
+- Verified: after the run he has 78 rows, all `on_time`, 8.00 hours each; the server checkout is still clean at `d7a0635`; the temporary script was removed from the server.
+
 ## 2026-10-30 00:25 — d7a0635 — Pre-hire payroll days and Export all DTRs
 - By: Claude, requested by Kurt
 - Code: `e667c38` → `d7a0635`
