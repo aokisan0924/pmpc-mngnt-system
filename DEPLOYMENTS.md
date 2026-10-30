@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-10-30 09:33 — 8e594fb — Route General Merchandise staff to payroll sheet
+- By: Codex, requested by Kurt
+- Code: `aa907d4` → `8e594fb`
+- Migrations: none
+- Backup: none (code-only deployment; no database records changed)
+- Data changes: none. Employees whose department is General Merchandise are grouped on that sheet in the management export, while their verified payroll office and saved payroll figures stay unchanged.
+- Verified: server checkout is clean at `8e594fb`; no migrations ran; optimization caches rebuilt and app returned live. Exported October payroll draft #3 from the live page: four employees appear under Main Office, and Violie R. Malana and John Roy C. Sibal appear under General Merchandise.
+
 ## 2026-10-30 09:17 — b6ae5bf — Allow 16-day custom-schedule DTR snapshots
 - By: Codex, requested by Kurt
 - Code: 327c98a → b6ae5bf
