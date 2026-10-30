@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed repeated notification totals, redundant account identity in the admin header, duplicate sign-in and password-reset copy, and decorative grid/watermark layers. Shortened page descriptions while keeping the actions, filters, and payroll/DTR context.
 
 ### Fixed
+- Payroll review accepts the 16-day DTR basis snapshot possible for a custom schedule spanning a 16-day cutoff; the actual paid-days input remains capped at 15.
 - The maintenance page shown during deploys no longer crashes with a server error: a stray template tag inside a code comment made it fail to render.
 - Payroll no longer pays an employee for work days before their hire date: the paid-days basis for a mid-period hire is reduced by the scheduled work days that fall before the date hired.
 - Changing an employee's shift or workdays no longer changes past attendance: absences, rest days, two-punch rules, and payroll paid days now follow the schedule that was in effect on each date. Existing personal shifts and workdays carry over into the schedule history. A month keeps the Time In / Time Out layout when its only four-punch days are absences with no punches.

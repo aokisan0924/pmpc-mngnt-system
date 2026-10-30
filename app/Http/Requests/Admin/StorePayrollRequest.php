@@ -38,7 +38,7 @@ class StorePayrollRequest extends FormRequest
             'items.*.payroll_office' => ['required', 'in:'.implode(',', array_keys(OfficePayrollCalculator::OFFICES))],
             'items.*.paid_days_basis' => ['required', 'numeric', 'min:0', 'max:15', 'multiple_of:0.5'],
             'items.*.absence_days' => ['required', 'numeric', 'min:0', 'lte:items.*.paid_days_basis', 'multiple_of:0.5'],
-            'items.*.default_paid_days_basis' => ['required', 'numeric', 'min:0', 'max:15', 'multiple_of:0.5'],
+            'items.*.default_paid_days_basis' => ['required', 'numeric', 'min:0', 'max:16', 'multiple_of:0.5'],
             'items.*.dtr_days_present' => ['required', 'numeric', 'min:0', 'max:31', 'multiple_of:0.5'],
             'items.*.dtr_absence_days' => ['required', 'numeric', 'min:0', 'max:15', 'multiple_of:0.5'],
             'items.*.dtr_tardiness_minutes' => ['required', 'numeric', 'min:0', 'max:9999', 'multiple_of:0.5'],
