@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-10-30 09:17 — b6ae5bf — Allow 16-day custom-schedule DTR snapshots
+- By: Codex, requested by Kurt
+- Code: 327c98a → b6ae5bf
+- Migrations: none
+- Backup: none (code-only; no schema or live-data changes)
+- Data changes: none
+- Verified: The clean server checkout fast-forwarded to b6ae5bf; `php artisan migrate --force` reported nothing to migrate; optimized caches rebuilt; the site returned from maintenance mode; live `/login` returned HTTP 200. Payroll paid-days remain capped at 15 while the DTR basis snapshot accepts 16.
+
 ## 2026-10-30 08:56 — data only — Verify Main Office assignments for payroll
 - By: Codex, requested by Kurt
 - Code: none
