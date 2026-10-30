@@ -185,7 +185,7 @@
             // Pure JS, no Blade syntax in here — reads the retry delay from the
             // card's data attribute instead of interpolating PHP directly into
             // the script block (avoids editor/linter false positives on the
-            // embedded {{ }} syntax, and keeps this file valid plain JS).
+            // embedded template syntax, and keeps this file valid plain JS).
             var retryMs = card && card.dataset.retryMs ? parseInt(card.dataset.retryMs, 10) : null;
             if (retryMs) {
                 setTimeout(function () { window.location.reload(); }, retryMs);
