@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-10-30 00:25 — d7a0635 — Pre-hire payroll days and Export all DTRs
+- By: Claude, requested by Kurt
+- Code: `e667c38` → `d7a0635`
+- Migrations: none
+- Backup: none
+- Data changes: none
+- Verified: server checkout was clean before deployment and is now at `d7a0635`; migrate reported nothing to migrate; Laravel caches rebuilt and maintenance mode cleared; live `/login` returned HTTP 200 and `/admin/dtr/export-all` redirected a logged-out visitor (HTTP 302). The export and a new-hire payroll preview were not exercised on the live site.
+
 ## 2026-10-29 18:14 — e667c38 — Portal typography and spacing polish
 - By: Codex, requested by Kurt
 - Code: `10afda2` → `e667c38`
