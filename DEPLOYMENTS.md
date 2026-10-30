@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-10-30 00:49 — 327c98a — Maintenance page crash fix
+- By: Claude, requested by Kurt
+- Code: `4f7c26c` → `327c98a`
+- Migrations: none
+- Backup: none
+- Data changes: none
+- Verified: server checkout was clean before and after; while in maintenance mode `/login` returned HTTP 503 (the page renders, no server error); after `artisan up` it returned HTTP 200. Found because the earlier deploys logged a 500 from this page when a visitor arrived during maintenance.
+
 ## 2026-10-30 00:49 — 4f7c26c — Auto-fill punches for always-present employees
 - By: Claude, requested by Kurt
 - Code: `d7a0635` → `4f7c26c`
