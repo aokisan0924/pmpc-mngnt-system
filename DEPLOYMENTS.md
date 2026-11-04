@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 15:50 — 973b19f — Repeating tasks, team tasks overview and calendar
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `d5bc350` → `973b19f`
+- Migrations: `2026_11_05_000000_create_recurring_tasks_table` (new `recurring_tasks` table; `tasks.recurring_task_id` with a unique index on `recurring_task_id` + `due_date`)
+- Backup: `~/domains/peoplescoopdtr.online/db-backup-2026-11-04-recurring.sql` (taken 15:48; 22 tables). To undo: `php artisan migrate:rollback --step=1 --force`, then `git checkout d5bc350`, no data was changed.
+- Data changes: none. No repeat rules exist yet, so no copies were generated.
+- Verified: full suite 244 of 245 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), build passed, migrate and rollback tested on a scratch MariaDB 10.4. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200, task count unchanged at 51 and 0 rules, no log errors, `tasks:generate-recurring` scheduled daily 06:00. Signed in as Kurt in Chrome, Team tasks shows "0 overdue, 20 due this week, 20 open" and the Board and Calendar tabs. Nothing was changed on the live site during the check.
+
 ## 2026-11-04 15:28 — hosting setting only — Hostinger cron for the WorkForce scheduler
 - By: Claude Code (Chrome, Kurt's hPanel session), requested by Kurt
 - Code: none
