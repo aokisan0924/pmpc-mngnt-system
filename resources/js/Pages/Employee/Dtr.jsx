@@ -135,7 +135,6 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <StatCard
                         title="Days Present"
                         value={summary.days_present ?? 0}
-                        subtitle="This month"
                         accent="emerald"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -157,7 +156,6 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <StatCard
                         title="Late Days"
                         value={summary.days_late ?? 0}
-                        subtitle="Recorded tardiness"
                         accent="amber"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -168,7 +166,6 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <StatCard
                         title="Rendered Hours"
                         value={`${Number(summary.hours_rendered ?? 0).toFixed(1)}h`}
-                        subtitle="Cumulative total"
                         accent="emerald"
                         icon={
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -184,7 +181,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                         event.preventDefault()
                         absence.post('/employee/dtr/absence', { preserveScroll: true, onSuccess: () => absence.reset('reason', 'confirmed') })
                     }}>
-                        <p className="text-sm text-sub">Tell HR you will be absent. This records a notice, not approved leave. Cancel the notice here if your plans change before clocking in.</p>
+                        <p className="text-sm text-sub">Sends HR a notice. This is not approved leave.</p>
                         <label className="block text-sm text-text">Date
                             <input type="date" required min={today.date} value={absence.data.date} onChange={(event) => absence.setData('date', event.target.value)} className="mt-1 block rounded-lg border border-border bg-field p-2" />
                         </label>
@@ -213,7 +210,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center border-b border-border/60 px-4 py-3 sm:px-6">
                         <div className="min-w-0">
                             <CardTitle>Monthly Attendance Log</CardTitle>
-                            <p className="text-xs text-sub mt-0.5">Every calendar day, including missed workdays and rest days</p>
+                            
                         </div>
                         <div className="flex shrink-0 items-center gap-1.5 p-1 bg-field rounded-xl border border-border">
                             <button
@@ -265,7 +262,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                                 {logs?.map((log, index) => (
                                     <Fragment key={log.date}>
                                     {(index === 0 || logs[index - 1].week !== log.week) && <tr className="bg-field"><th colSpan={slots.length + 4} scope="rowgroup" className="px-4 py-2 text-left font-sans text-sub">Week of {log.week}</th></tr>}
-                                    <tr data-dtr-today={log.date === today.date ? '' : undefined} aria-current={log.date === today.date ? 'date' : undefined} className={`scroll-mt-20 scroll-mb-24 transition-colors ${log.date === today.date ? 'bg-emerald-50 hover:bg-emerald-100/80 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60' : 'hover:bg-hover/60'}`}>
+                                    <tr data-dtr-today={log.date === today.date ? '' : undefined} aria-current={log.date === today.date ? 'date' : undefined} className={`scroll-mt-20 scroll-mb-24 transition-colors ${log.status === 'upcoming' ? 'opacity-60 ' : ''}${log.date === today.date ? 'bg-emerald-50 hover:bg-emerald-100/80 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60' : 'hover:bg-hover/60'}`}>
                                         <td className="px-4 py-2 sm:py-2.5 font-sans font-medium text-text whitespace-nowrap">
                                             {log.date_label}
                                             {log.date === today.date && <span className="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[12px] font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100">Today</span>}
@@ -314,7 +311,7 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     {/* Mobile Card List */}
                     <div className="space-y-3 p-4 md:hidden">
                         {logs?.map((log) => (
-                            <div key={log.date} data-dtr-today={log.date === today.date ? '' : undefined} aria-current={log.date === today.date ? 'date' : undefined} className={`scroll-mt-20 scroll-mb-24 p-4 rounded-xl border space-y-3 ${log.date === today.date ? 'border-emerald-500 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-950/60' : 'border-border bg-field/60'}`}>
+                            <div key={log.date} data-dtr-today={log.date === today.date ? '' : undefined} aria-current={log.date === today.date ? 'date' : undefined} className={`scroll-mt-20 scroll-mb-24 p-4 rounded-xl border space-y-3 ${log.status === 'upcoming' ? 'opacity-60 ' : ''}${log.date === today.date ? 'border-emerald-500 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-950/60' : 'border-border bg-field/60'}`}>
                                 <div className="flex items-center justify-between">
                                     <p className="text-sm font-semibold text-text">{log.date_label}{log.date === today.date && <span className="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[12px] font-bold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100">Today</span>}</p>
                                     {getStatusBadge(log)}

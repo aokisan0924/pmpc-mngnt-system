@@ -147,7 +147,6 @@ export default function Payslips({ payslips = [] }) {
                         <StatCard
                             title="Finalized Months"
                             value={finalizedPayslips.length}
-                            subtitle="Disbursed vouchers"
                             accent="emerald"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -158,7 +157,6 @@ export default function Payslips({ payslips = [] }) {
                         <StatCard
                             title="In Progress"
                             value={pendingPeriods}
-                            subtitle="Pending HR closure"
                             accent="amber"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -169,7 +167,6 @@ export default function Payslips({ payslips = [] }) {
                         <StatCard
                             title="Total Gross Paid"
                             value={`₱ ${fmt(finalizedGross)}`}
-                            subtitle="Taxable base & overtime"
                             accent="amber"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -180,7 +177,6 @@ export default function Payslips({ payslips = [] }) {
                         <StatCard
                             title="Net Pay Received"
                             value={`₱ ${fmt(finalizedNet)}`}
-                            subtitle="Take-home disbursements"
                             accent="emerald"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -196,29 +192,21 @@ export default function Payslips({ payslips = [] }) {
                         <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3Z" />
                         </svg>
-                        <p><span className="font-semibold">{pendingPeriods} payroll {pendingPeriods === 1 ? 'period is' : 'periods are'} still in progress.</span> Draft values are for reference and become an official payslip after HR finalizes payroll.</p>
+                        <p>Draft values are for reference until HR finalizes payroll.</p>
                     </div>
                 )}
 
                 {payslips.length === 0 ? (
                     <Card className="employee-workspace-card overflow-hidden">
-                        <div className="grid gap-0 md:grid-cols-[1fr_0.72fr]">
+                        <div>
                         <div className="px-6 py-12 text-center md:px-10 md:text-left">
                             <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-4 text-emerald-700 md:mx-0 dark:bg-emerald-950/40 dark:border-emerald-900 dark:text-emerald-300">
                                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
                             </div>
-                            <p className="text-base font-semibold text-text">No Payslips Generated Yet</p>
-                            <p className="text-sm text-sub mt-1 max-w-md">Your itemized vouchers will appear here after HR finalizes a payroll period.</p>
-                        </div>
-                        <div className="border-t border-border bg-field/70 px-6 py-8 md:border-l md:border-t-0 md:px-8">
-                            <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-emerald-700 dark:text-emerald-300">What happens next</p>
-                            <ol className="mt-3 space-y-3 text-xs text-sub">
-                                <li className="flex gap-2"><span className="font-bold text-emerald-700 dark:text-emerald-300">1.</span><span>HR completes and finalizes the payroll period.</span></li>
-                                <li className="flex gap-2"><span className="font-bold text-emerald-700 dark:text-emerald-300">2.</span><span>Your official payslip becomes available here.</span></li>
-                                <li className="flex gap-2"><span className="font-bold text-emerald-700 dark:text-emerald-300">3.</span><span>You can review and download the finalized record.</span></li>
-                            </ol>
+                            <p className="text-base font-semibold text-text">No payslips yet</p>
+                            <p className="text-sm text-sub mt-1 max-w-md">They appear here after HR finalizes payroll.</p>
                         </div>
                         </div>
                     </Card>
