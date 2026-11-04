@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 12:49 — a2513c2 — Task tidy-ups: board filter, old completed tasks, tests
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `c6b682b` → `a2513c2`
+- Migrations: none (three already-run migrations only gained `declare(strict_types=1)`)
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: local suite 215 of 216 passed (the one failure is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint clean, Node tests passed, build passed; browser-checked locally that the Done filter no longer empties the Planner board and is hidden there, and that the Team tasks "Show completed over 30 days old" option sets `?older=1`. On live: server tree clean before and after, no pending migrations, app returned from maintenance mode, task count unchanged at 51, `/login` 200, Team tasks and planner redirect guests, new `TeamTasks` and `Planner` assets return 200 and match the manifest, the live Team tasks bundle contains the new option, the new 30-day query runs on the live MySQL database, no log errors. Not checked: a signed-in click-through on the live site.
+
 ## 2026-11-04 12:39 — c6b682b — Text cleanup: payroll input, saved payroll batch, employee attendance
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `29608ee` → `c6b682b`
