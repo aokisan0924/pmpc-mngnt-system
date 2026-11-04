@@ -37,8 +37,16 @@ class RecurringTaskGenerator
     {
         $today = CarbonImmutable::now('Asia/Manila')->toDateString();
 
-        if (Cache::add("recurring-tasks-generated:{$today}", true, now()->addDay())) {
-            $this->run();
+        $key = "recurring-tasks-generated:{$today}";
+
+        if (Cache::add($key, true, now()->addDay())) {
+            try {
+                $this->run();
+            } catch (\Throwable $e) {
+                // A failure must not 500 the admin's page or use up the day: let the next visit retry.
+                report($e);
+                Cache::forget($key);
+            }
         }
     }
 

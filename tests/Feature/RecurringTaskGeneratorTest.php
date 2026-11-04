@@ -9,6 +9,7 @@ use App\Models\EmployeeNotification;
 use App\Models\RecurringTask;
 use App\Models\Task;
 use App\Services\RecurringTaskGenerator;
+use App\Services\TaskAssignmentNotifier;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -185,6 +186,26 @@ class RecurringTaskGeneratorTest extends TestCase
         $this->today('2026-11-02');
         app(RecurringTaskGenerator::class)->runOncePerDay();
         $this->assertSame(2, Task::count());
+    }
+
+    public function test_a_failed_run_does_not_use_up_the_day(): void
+    {
+        Cache::flush();
+        $this->today('2026-11-01');
+        $this->rule();
+
+        $broken = new class(app(TaskAssignmentNotifier::class)) extends RecurringTaskGenerator
+        {
+            public function run(): int
+            {
+                throw new \RuntimeException('boom');
+            }
+        };
+        $broken->runOncePerDay();
+
+        $this->assertSame(0, Task::count());
+        app(RecurringTaskGenerator::class)->runOncePerDay();
+        $this->assertSame(1, Task::count());
     }
 
     public function test_the_artisan_command_generates_copies(): void

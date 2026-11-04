@@ -45,8 +45,10 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('tasks', function (Blueprint $table) {
+            // MySQL backs the foreign key with the unique index, so the key must go first.
+            $table->dropForeign(['recurring_task_id']);
             $table->dropUnique(['recurring_task_id', 'due_date']);
-            $table->dropConstrainedForeignId('recurring_task_id');
+            $table->dropColumn('recurring_task_id');
         });
 
         Schema::dropIfExists('recurring_tasks');
