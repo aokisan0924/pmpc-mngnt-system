@@ -204,6 +204,13 @@ export default function Dashboard({
 
     const alertsList = recentNotifications
     const pendingTasksCount = recentTasks.filter(t => t.status !== 'done').length
+    const heroSub = pendingPunch
+        ? attendancePunchRetryMessage(pendingPunch)
+        : today?.has_active_absence
+        ? (today.absence_reason || 'Cancel this notice before clocking in.')
+        : nextSlot
+        ? `Step ${nextPunchIndex + 1} of ${punchSlots.length}${nextScheduledTime ? ` · Scheduled ${formatPunchTime(nextScheduledTime)}` : ''}`
+        : ''
 
     return (
         <EmployeeLayout title="DTR Dashboard">
@@ -218,23 +225,8 @@ export default function Dashboard({
                     }}
                 >
                     {/* Console Header Bar */}
-                    <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div className="max-w-2xl space-y-1.5">
-                            {cutoff && (
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-black/20 text-white border border-white/20">
-                                        <span>{cutoff.label}</span>
-                                        <span className="text-emerald-300">• {cutoff.days_remaining} {cutoff.days_remaining === 1 ? 'day' : 'days'} left</span>
-                                    </span>
-                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-white/15 text-white border border-white/25">
-                                        <svg className="w-3.5 h-3.5 text-emerald-200 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <span>Next Payday: <strong className="text-white">{cutoff.payday_label}</strong></span>
-                                        {cutoff.is_payday_today && <span className="text-emerald-300 font-bold">(Today!)</span>}
-                                    </span>
-                                </div>
-                            )}
+                    <div className="relative z-10 flex flex-row items-center justify-between gap-4">
+                        <div className="max-w-2xl">
                             <h1 className="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight">
                                 {greeting}, {firstName}.
                             </h1>
@@ -245,7 +237,7 @@ export default function Dashboard({
                     </div>
 
                     {/* Workstation Command Deck: Punch Action */}
-                    <div className="relative z-10 my-5 pt-1">
+                    <div className="relative z-10 my-4">
 
                         {/* Punch Controller */}
                         <div className="flex flex-col justify-between rounded-xl bg-[#094738]/90 border border-white/15 p-4 sm:p-5 space-y-4 backdrop-blur-xs">
@@ -256,36 +248,19 @@ export default function Dashboard({
                                 <h2 id="next-dtr-action" className="mt-1 font-heading text-xl sm:text-2xl font-bold text-white tracking-tight">
                                     {pendingPunch ? punchAction.label : today?.has_active_absence ? 'Absence notice active' : nextSlot ? `Punch ${nextSlot.label}` : !today?.two_punch && !today?.am_time_in && today?.pm_time_out ? 'Afternoon half day completed' : `All ${punchSlots.length === 2 ? 'two' : 'four'} punches completed`}
                                 </h2>
-                                <p className="mt-0.5 text-xs sm:text-sm text-emerald-100/80">
-                                    {pendingPunch
-                                        ? attendancePunchRetryMessage(pendingPunch)
-                                        : today?.has_active_absence
-                                        ? (today.absence_reason || 'Cancel this notice before clocking in.')
-                                        : nextSlot
-                                        ? `Step ${nextPunchIndex + 1} of ${punchSlots.length}${nextScheduledTime ? ` · Scheduled ${formatPunchTime(nextScheduledTime)}` : ' · Asia/Manila standard time'}`
-                                        : 'Daily milestones secured. Shift complete.'}
-                                </p>
+                                {heroSub && (
+                                    <p className="mt-0.5 text-xs sm:text-sm text-emerald-100/80">{heroSub}</p>
+                                )}
                             </div>
 
                             {/* Tactile Punch Controller */}
                             <div
                                 data-testid="dtr-primary-action"
-                                className="fixed inset-x-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 flex items-center justify-between gap-3 rounded-2xl border border-white/20 bg-[#063328] p-3.5 shadow-xl sm:static sm:flex-row sm:border-white/15 sm:bg-[#07382C] sm:p-3.5 sm:shadow-none"
+                                className="fixed inset-x-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 flex items-center justify-end max-sm:justify-center gap-3 rounded-2xl border border-white/20 bg-[#063328] p-3.5 shadow-xl sm:static sm:flex-row sm:border-white/15 sm:bg-[#07382C] sm:p-3.5 sm:shadow-none"
                             >
-                                <div className="min-w-0 pr-2">
-                                    <p className="text-[12px] font-bold uppercase tracking-wider text-emerald-300 truncate">
-                                        {pendingPunch ? punchAction.label : today?.has_active_absence ? 'Clock-in is paused' : nextSlot ? `Ready for ${nextSlot.label}` : 'Attendance Complete'}
-                                    </p>
-                                    <p className="text-xs text-emerald-100/80 truncate mt-0.5">
-                                        {pendingPunch
-                                            ? 'Retry this request before starting another punch.'
-                                            : today?.has_active_absence
-                                            ? 'Cancel your notice to resume clocking in.'
-                                            : nextSlot
-                                            ? (nextScheduledTime ? `Target: ${formatPunchTime(nextScheduledTime)}` : 'Asia/Manila timestamp')
-                                            : 'All logs verified'}
-                                    </p>
-                                </div>
+                                {today?.has_active_absence && !pendingPunch && (
+                                    <p className="min-w-0 pr-2 text-xs font-semibold text-emerald-100 truncate">Clock-in is paused</p>
+                                )}
 
                                 <div className="flex shrink-0 items-center gap-2">
                                     {today?.has_active_absence && !pendingPunch ? (
@@ -372,9 +347,6 @@ export default function Dashboard({
                             <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-white">
                                 Today’s punches
                             </h3>
-                            <span className="text-[12px] text-emerald-100/75">
-                                Asia/Manila Standard Time
-                            </span>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -435,11 +407,13 @@ export default function Dashboard({
 
                                         <div>
                                             <p className="font-heading font-bold text-xl sm:text-2xl text-white tnum tracking-tight">
-                                                {isDone ? formatPunchTime(rawVal) : isNext ? 'Ready' : '--:--'}
+                                                {isDone ? formatPunchTime(rawVal) : '--:--'}
                                             </p>
-                                            <p className="mt-0.5 text-xs text-emerald-100/75 truncate">
-                                                {isDone ? 'Recorded timestamp' : schedule?.[slot.key] ? `Scheduled ${formatPunchTime(schedule[slot.key])}` : 'Pending trigger'}
-                                            </p>
+                                            {!isDone && schedule?.[slot.key] && (
+                                                <p className="mt-0.5 text-xs text-emerald-100/75 truncate">
+                                                    {`Scheduled ${formatPunchTime(schedule[slot.key])}`}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 )
@@ -476,7 +450,7 @@ export default function Dashboard({
                         </div>
                         <div className="mt-2.5 pt-2 border-t border-amber-200/60 dark:border-amber-900/40 flex justify-end">
                             <Link href="/employee/dtr" className="text-xs font-semibold text-amber-800 hover:text-amber-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 dark:text-amber-300">
-                                Review DTR requests in full archive →
+                                View all →
                             </Link>
                         </div>
                     </aside>
@@ -488,7 +462,11 @@ export default function Dashboard({
                         <h2 id="today-glance-heading" className="text-xs font-bold uppercase tracking-[0.14em] text-sub">
                             Today at a glance
                         </h2>
-                        <span className="text-xs text-sub font-medium">Refreshes automatically</span>
+                        {cutoff && (
+                            <p className="text-xs font-medium text-sub">
+                                {`${cutoff.label} · ${cutoff.days_remaining} ${cutoff.days_remaining === 1 ? 'day' : 'days'} left · Payday ${cutoff.payday_label}${cutoff.is_payday_today ? ' (today)' : ''}`}
+                            </p>
+                        )}
                     </div>
                     <div className="attendance-metrics grid grid-cols-1 gap-px overflow-hidden bg-border sm:grid-cols-2 sm:rounded-xl lg:grid-cols-4">
                         <StatCard
@@ -498,7 +476,7 @@ export default function Dashboard({
                             progress={{
                                 value: today?.hours_rendered ?? 0,
                                 max: 8,
-                                label: 'Recorded today',
+                                label: 'Of 8 hours',
                                 color: 'bg-emerald-500',
                             }}
                             icon={
@@ -510,7 +488,7 @@ export default function Dashboard({
                         <StatCard
                             title="Cutoff Attendance"
                             value={`${summary?.present_days ?? 0} days`}
-                            subtitle={`${cutoff?.label ?? 'Current cutoff'} presence`}
+                            subtitle={cutoff?.label ?? 'Current cutoff'}
                             accent="emerald"
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
@@ -521,7 +499,6 @@ export default function Dashboard({
                         <StatCard
                             title="Pending Tasks"
                             value={pendingTasksCount}
-                            subtitle={pendingTasksCount === 0 ? 'No pending tasks' : pendingTasksCount === 1 ? 'Task needs attention' : 'Tasks need attention'}
                             accent={pendingTasksCount > 0 ? 'amber' : 'emerald'}
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
@@ -532,7 +509,6 @@ export default function Dashboard({
                         <StatCard
                             title="DTR Edits"
                             value={summary?.pending_edits ?? 0}
-                            subtitle={(summary?.pending_edits ?? 0) > 0 ? 'Awaiting HR review' : 'No pending requests'}
                             accent={(summary?.pending_edits ?? 0) > 0 ? 'amber' : 'emerald'}
                             icon={
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
@@ -572,7 +548,7 @@ export default function Dashboard({
                                                         : 'text-sub hover:text-text hover:bg-field'
                                                 }`}
                                             >
-                                                Priority Tasks ({pendingTasksCount})
+                                                Tasks
                                             </button>
                                             <button
                                                 type="button"
@@ -590,7 +566,7 @@ export default function Dashboard({
                                                         : 'text-sub hover:text-text hover:bg-field'
                                                 }`}
                                             >
-                                                Alerts & Notices ({alertsList.length})
+                                                Alerts ({alertsList.length})
                                             </button>
                                         </div>
                                     </div>
@@ -702,7 +678,7 @@ export default function Dashboard({
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                                                 </svg>
                                             </div>
-                                            <p className="text-xs font-medium text-text">No pending alerts</p>
+                                            <p className="text-xs font-medium text-text">No alerts</p>
                                         </div>
                                     )}
                                 </CardContent>
@@ -750,7 +726,7 @@ export default function Dashboard({
                                     <div className="flex flex-1 flex-col items-center justify-center text-center py-4">
                                         <p className="text-xs text-sub">No finalized payslip yet.</p>
                                         <Link href="/employee/payslips" className={`mt-3 ${SOFT_EMERALD_ACTION_CLASS}`}>
-                                            Open Payslip Archive →
+                                            Open payslips →
                                         </Link>
                                     </div>
                                 )}
