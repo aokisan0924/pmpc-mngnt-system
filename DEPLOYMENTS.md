@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 12:34 — 29608ee — Admin screens: compact header, text cleanup, darker placeholders
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `98e73dd` → `29608ee`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: local suite 211 of 212 passed (the one failure is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint clean, Node tests passed, build passed; browser-checked locally on the admin dashboard, Employees, Payroll (desktop and phone), Team tasks and page text of the other admin screens; login placeholder contrast measured at 5.9:1 after the change. On live: server tree clean before and after, no pending migrations, app returned from maintenance mode, task count unchanged at 51, `/login` 200, admin pages redirect guests, new `Payroll`, `Employees` and `ThirteenthMonth` assets return 200 and match the manifest, the live Payroll bundle has the new text and the live CSS has the narrow-width class, no log errors. Not checked: a signed-in click-through on the live site, or a payroll export or print view (code paths untouched).
+
 ## 2026-11-04 12:03 — 98e73dd — Employee screens: compact header, text cleanup, punch-first dashboard
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `bd4348e` → `98e73dd`
