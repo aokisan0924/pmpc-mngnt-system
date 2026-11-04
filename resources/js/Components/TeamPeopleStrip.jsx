@@ -4,6 +4,7 @@ const VISIBLE = 8
 const CHIP = 'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
 const IDLE = 'border-border bg-panel text-text hover:bg-hover'
 const ACTIVE = 'border-[#26215C] bg-[#26215C] text-white'
+const TAB = 'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
 
 function Late({ count, onDark }) {
     return (
@@ -14,74 +15,107 @@ function Late({ count, onDark }) {
 }
 
 /**
- * Chips that filter Team tasks by person or whole-office group.
- * `people` comes from the server and ignores the board filters, so chips stay put while one is selected.
+ * Office tabs (All, each office, Late) and a row of people chips for the chosen office.
+ * `offices` and `people` come from the server; offices ignore the board filters, people follow the office only.
  */
-export default function TeamPeopleStrip({ people = [], employees = [], overview = {}, filters = {}, onFilter }) {
+export default function TeamPeopleStrip({ offices = [], people = [], employees = [], overview = {}, filters = {}, onFilter }) {
     const [expanded, setExpanded] = useState(false)
-    // Office groups are few, so they always show; only the people list folds.
+    const office = filters.office || ''
+    const officeRow = offices.find(o => o.key === office)
+    const showLate = (overview.overdue ?? 0) > 0 || filters.overdue
+
     const persons = people.filter(c => c.type === 'employee')
-    const offices = people.filter(c => c.type === 'office')
+    const whole = people.find(c => c.type === 'whole')
     const selectedId = String(filters.employee_id ?? '')
     const folded = persons.slice(0, VISIBLE)
-    // The chosen person stays visible even when folded away, or when they have no open tasks.
+    // The chosen person stays visible even when folded away, or when they have no open tasks here.
     const chosen = persons.find(c => c.key === selectedId)
         ?? (selectedId ? { type: 'employee', key: selectedId, label: employees.find(e => String(e.id) === selectedId)?.name ?? 'Selected person', open: 0, late: 0 } : null)
     const visiblePersons = expanded ? persons : chosen && !folded.includes(chosen) ? [...folded, chosen] : folded
-    const shown = [...visiblePersons, ...offices]
     const hidden = persons.length - visiblePersons.length
-    const everyone = !filters.employee_id && !filters.group
-    const showLate = (overview.overdue ?? 0) > 0 || filters.overdue
+    const everyone = !selectedId && !filters.whole
+
+    const tabs = [
+        { key: '', label: 'All', count: overview.open ?? 0 },
+        ...offices.map(o => ({ key: o.key, label: o.label, count: o.open })),
+    ]
 
     return (
-        <section aria-label="Filter by person or office" className="flex flex-wrap items-center gap-2">
-            <button type="button" aria-pressed={everyone} onClick={() => onFilter({ employee_id: '', group: '' })} className={`${CHIP} ${everyone ? ACTIVE : IDLE}`}>
-                Everyone <b className="tnum">{overview.open ?? 0}</b>
-            </button>
+        <section aria-label="Filter by office and person" className="space-y-2.5">
+            <div className="flex flex-wrap items-center gap-2">
+                <nav aria-label="Office" className="flex flex-wrap gap-1 rounded-xl border border-border bg-field p-1">
+                    {tabs.map(tab => {
+                        const selected = tab.key === office
+                        return (
+                            <button
+                                key={tab.key || 'all'}
+                                type="button"
+                                aria-pressed={selected}
+                                onClick={() => onFilter({ office: selected ? '' : tab.key, employee_id: '', whole: '' })}
+                                className={`${TAB} ${selected ? 'bg-white text-[#26215C] shadow-xs border border-indigo-200' : 'border border-transparent text-sub hover:bg-panel/60 hover:text-text'}`}
+                            >
+                                {tab.label} <b className="tnum">{tab.count}</b>
+                            </button>
+                        )
+                    })}
+                </nav>
 
-            {showLate && (
-                <button
-                    type="button"
-                    aria-pressed={Boolean(filters.overdue)}
-                    onClick={() => onFilter({ overdue: !filters.overdue })}
-                    className={`${CHIP} border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 ${filters.overdue ? 'ring-2 ring-rose-400' : ''}`}
-                >
-                    <b className="tnum">{overview.overdue ?? 0}</b> late
-                </button>
-            )}
-
-            {shown.map(chip => {
-                const isOffice = chip.type === 'office'
-                const selected = isOffice ? filters.group === chip.key : selectedId === chip.key
-                const toggle = isOffice
-                    ? { group: selected ? '' : chip.key, employee_id: '' }
-                    : { employee_id: selected ? '' : chip.key, group: '' }
-
-                return (
+                {showLate && (
                     <button
-                        key={`${chip.type}:${chip.key}`}
                         type="button"
-                        aria-pressed={selected}
-                        aria-label={`${chip.label}, ${chip.open} open${chip.late > 0 ? `, ${chip.late} late` : ''}`}
-                        onClick={() => onFilter(toggle)}
-                        className={`${CHIP} ${selected ? ACTIVE : isOffice ? 'border-border bg-field text-sub hover:bg-hover' : IDLE}`}
+                        aria-pressed={Boolean(filters.overdue)}
+                        onClick={() => onFilter({ overdue: !filters.overdue })}
+                        className={`${CHIP} border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 ${filters.overdue ? 'ring-2 ring-rose-400' : ''}`}
                     >
-                        {isOffice && (
-                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1" />
-                            </svg>
-                        )}
-                        {chip.label} <b className="tnum">{chip.open}</b>
-                        {chip.late > 0 && <Late count={chip.late} onDark={selected} />}
+                        <b className="tnum">{overview.overdue ?? 0}</b> late
                     </button>
-                )
-            })}
+                )}
+            </div>
 
-            {persons.length > VISIBLE && (expanded || hidden > 0) && (
-                <button type="button" aria-expanded={expanded} onClick={() => setExpanded(v => !v)} className={`${CHIP} ${IDLE}`}>
-                    {expanded ? 'Show fewer' : `+${hidden} more`}
+            <div role="group" aria-label="Person" className="flex flex-wrap items-center gap-2">
+                <button type="button" aria-pressed={everyone} onClick={() => onFilter({ employee_id: '', whole: '' })} className={`${CHIP} ${everyone ? ACTIVE : IDLE}`}>
+                    {officeRow ? `Everyone in ${officeRow.label}` : 'Everyone'} <b className="tnum">{officeRow ? officeRow.open : overview.open ?? 0}</b>
                 </button>
-            )}
+
+                {visiblePersons.map(chip => {
+                    const selected = selectedId === chip.key
+                    return (
+                        <button
+                            key={chip.key}
+                            type="button"
+                            aria-pressed={selected}
+                            aria-label={`${chip.label}, ${chip.open} open${chip.late > 0 ? `, ${chip.late} late` : ''}`}
+                            onClick={() => onFilter({ employee_id: selected ? '' : chip.key, whole: '' })}
+                            className={`${CHIP} ${selected ? ACTIVE : IDLE}`}
+                        >
+                            {chip.label} <b className="tnum">{chip.open}</b>
+                            {chip.late > 0 && <Late count={chip.late} onDark={selected} />}
+                        </button>
+                    )
+                })}
+
+                {persons.length > VISIBLE && (expanded || hidden > 0) && (
+                    <button type="button" aria-expanded={expanded} onClick={() => setExpanded(v => !v)} className={`${CHIP} ${IDLE}`}>
+                        {expanded ? 'Show fewer' : `+${hidden} more`}
+                    </button>
+                )}
+
+                {whole && (
+                    <button
+                        type="button"
+                        aria-pressed={Boolean(filters.whole)}
+                        aria-label={`Whole office, ${whole.open} open${whole.late > 0 ? `, ${whole.late} late` : ''}`}
+                        onClick={() => onFilter({ whole: filters.whole ? '' : 1, employee_id: '' })}
+                        className={`${CHIP} ${filters.whole ? ACTIVE : 'border-border bg-field text-sub hover:bg-hover'}`}
+                    >
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1" />
+                        </svg>
+                        Whole office <b className="tnum">{whole.open}</b>
+                        {whole.late > 0 && <Late count={whole.late} onDark={Boolean(filters.whole)} />}
+                    </button>
+                )}
+            </div>
         </section>
     )
 }

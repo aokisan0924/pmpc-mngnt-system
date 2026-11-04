@@ -28,7 +28,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
         if (merged.employee_id) query.employee_id = merged.employee_id
         if (merged.priority)    query.priority = merged.priority
         if (merged.office)      query.office = merged.office
-        if (merged.group)       query.group = merged.group
+        if (merged.whole)       query.whole = 1
         if (merged.overdue)     query.overdue = 1
         if (merged.older)       query.older = 1
         router.get('/admin/team-tasks', query, { preserveState: true, preserveScroll: true, replace: true })
@@ -102,7 +102,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
 
                 <TeamStatusOverview counts={status_counts} older={Boolean(filters.older)} />
 
-                <TeamPeopleStrip people={people} employees={employees} overview={overview} filters={filters} onFilter={applyFilters} />
+                <TeamPeopleStrip offices={offices} people={people} employees={employees} overview={overview} filters={filters} onFilter={applyFilters} />
 
                 <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-panel p-3">
                     <div className="flex gap-1 rounded-xl border border-border bg-field p-1 shrink-0" role="group" aria-label="Team tasks view">
@@ -120,19 +120,6 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                             </button>
                         ))}
                     </div>
-                    <label className="flex items-center gap-2 text-xs font-semibold text-sub">
-                        Office
-                        <select
-                            value={filters.office ?? ''}
-                            onChange={e => applyFilters({ office: e.target.value })}
-                            className={SELECT}
-                        >
-                            <option value="">All</option>
-                            {offices.map(o => (
-                                <option key={o.key} value={o.key}>{o.label}</option>
-                            ))}
-                        </select>
-                    </label>
                     <label className="flex items-center gap-2 text-xs font-semibold text-sub">
                         Priority
                         <select
