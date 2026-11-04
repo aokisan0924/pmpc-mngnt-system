@@ -245,7 +245,7 @@ export default function Dashboard({
                                 <div className="min-w-0 space-y-2">
                                     <div className="flex flex-wrap items-center gap-2">
                                         <span className="text-[12px] font-bold uppercase tracking-[0.14em] text-indigo-300">
-                                            Administrator Attendance · DTR Punch Station
+                                            Your attendance
                                         </span>
                                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[12px] font-bold uppercase tracking-wider ${
                                             punchAction
@@ -301,9 +301,9 @@ export default function Dashboard({
                                                     </span>
                                                     <span className="text-[12px] text-indigo-200/70 mt-0.5 truncate">
                                                         {isRecorded
-                                                            ? 'Recorded'
+                                                            ? ''
                                                             : isCurrentNext
-                                                                ? 'Next Required'
+                                                                ? 'Next'
                                                                 : `Target ${slot.targetTime}`}
                                                     </span>
                                                 </div>
@@ -396,11 +396,8 @@ export default function Dashboard({
                                         ? 'Payroll batch finalized for this period'
                                         : active_cutoff?.status === 'draft'
                                             ? 'Draft payroll calculations awaiting review'
-                                            : 'Ready to compute and finalize cutoff compensation'}
+                                            : 'Ready to compute payroll'}
                                 </h2>
-                                <p className="mt-0.5 text-xs text-indigo-100/80">
-                                    Period: {active_cutoff?.period_from ?? '—'} to {active_cutoff?.period_to ?? '—'}
-                                </p>
                             </div>
 
                             <div className="flex flex-wrap items-center gap-2.5 shrink-0">

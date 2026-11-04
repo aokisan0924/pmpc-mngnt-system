@@ -289,9 +289,6 @@ export default function Settings({ settings, holidays = [], holidayTypes = {} })
 
                                 {/* Preview Card */}
                                 <div className="p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 space-y-2">
-                                    <div className="flex items-center gap-2">
-                                        <Badge variant="indigo" size="sm">Active Schedule Preview</Badge>
-                                    </div>
                                     <p className="text-sm font-mono font-medium text-text">
                                         {data.shift_start} – {data.lunch_start} (AM) <span className="text-dim">| Lunch |</span> {data.lunch_end} – {data.shift_end} (PM)
                                     </p>
@@ -341,7 +338,7 @@ export default function Settings({ settings, holidays = [], holidayTypes = {} })
                                     />
                                     {errors.working_days_month && <p className="mt-1.5 text-xs text-rose-500">{errors.working_days_month}</p>}
                                     <p className="mt-1.5 text-xs text-dim">
-                                        Formula: Monthly Basic Pay = Daily Rate × {data.working_days_month} Days. Standard labor factor is 22 days.
+                                        Monthly pay = daily rate × {data.working_days_month} days (standard: 22).
                                     </p>
                                 </div>
 
@@ -384,10 +381,9 @@ export default function Settings({ settings, holidays = [], holidayTypes = {} })
                             <div className="space-y-6">
                                 <div className="p-3.5 rounded-xl bg-field/70 border border-border flex items-center justify-between">
                                     <div>
-                                        <p className="text-xs font-semibold text-dim uppercase tracking-wider">Signatory 1 (Automated)</p>
-                                        <p className="text-sm font-semibold text-text mt-0.5">Employee Name & Signature</p>
+                                        <p className="text-xs font-semibold text-dim uppercase tracking-wider">Signatory 1</p>
+                                        <p className="text-sm font-semibold text-text mt-0.5">Employee name and signature, filled in automatically</p>
                                     </div>
-                                    <Badge variant="slate" size="sm">System Dynamic</Badge>
                                 </div>
 
                                 <div>
@@ -462,7 +458,7 @@ export default function Settings({ settings, holidays = [], holidayTypes = {} })
                                 {/* Signature Block Preview */}
                                 <div className="p-5 rounded-xl border border-border bg-field/60">
                                     <p className="text-xs font-semibold text-sub uppercase tracking-wider mb-6 text-center">
-                                        Printed Timesheet Signature Layout
+                                        Preview
                                     </p>
                                     <div className="grid grid-cols-1 gap-5 text-center sm:grid-cols-3 sm:gap-6">
                                         <div className="px-2">

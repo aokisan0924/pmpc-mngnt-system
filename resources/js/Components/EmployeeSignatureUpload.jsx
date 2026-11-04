@@ -15,7 +15,7 @@ export default function EmployeeSignatureUpload({ employee, endpoint = `/admin/e
     }
     return <section className="rounded-2xl border border-border bg-panel p-5 sm:p-6 space-y-3" aria-labelledby="employee-signature-title">
         <h2 id="employee-signature-title" className="font-semibold text-text">Signature for payroll records{required ? ' (required)' : ''}</h2>
-        <p className="text-sm text-sub">Upload a picture of your signature as PNG or JPEG, up to 2 MB. It is kept privately on file and is not printed on payroll exports. Uploading a signature does not approve a payroll.</p>
+        <p className="text-sm text-sub">PNG or JPEG, up to 2 MB. Stored privately and not printed on payroll exports.</p>
         {employee.signature_url && <div className="rounded-lg border border-border bg-white p-3 w-fit"><img src={employee.signature_url} alt={`${employee.full_name} signature`} className="h-16 max-w-64 object-contain" /></div>}
         <form onSubmit={submit} className="flex flex-wrap items-end gap-3">
             <div className="min-w-0 flex-1">
