@@ -102,19 +102,17 @@ export default function Profile({ employee, govIds }) {
                 )}
 
                 <EmployeePageHeader
-                    eyebrow={`Employee ID ${employee.employee_id}`}
                     title={employee.full_name || `${employee.first_name} ${employee.last_name}`}
-                    description={`${employee.department || 'Department not assigned'} · ${employee.position || 'Position not assigned'}`}
-                    badge="Active Staff"
+                    badge={[employee.employee_id, employee.department, employee.position].filter(Boolean).join(' · ')}
                     leading={(
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-[#0F6E56] font-heading text-2xl font-extrabold shadow-md ring-4 ring-white/20 shrink-0">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#0F6E56] font-heading text-lg font-extrabold shadow-md ring-2 ring-white/20 shrink-0">
                             {initials(employee.first_name, employee.last_name)}
                         </div>
                     )}
                     action={(
-                        <div className="rounded-xl border border-white/20 bg-black/20 backdrop-blur-xs px-4 py-2.5 text-left sm:text-right shadow-2xs">
-                            <p className="text-[12px] font-bold uppercase tracking-wider text-emerald-300">Daily compensation rate</p>
-                            <p className="mt-0.5 font-mono text-base font-bold text-white tracking-tight">{formatCurrency.format(Number(employee.daily_rate || 0))} / day</p>
+                        <div className="rounded-xl border border-white/20 bg-black/20 px-3 py-1.5 text-right">
+                            <p className="text-xs font-bold uppercase tracking-wider text-emerald-300">Daily rate</p>
+                            <p className="font-mono text-sm font-bold text-white tracking-tight">{formatCurrency.format(Number(employee.daily_rate || 0))} / day</p>
                         </div>
                     )}
                 />

@@ -88,7 +88,6 @@ export default function Notifications({ notifications = [] }) {
                 )}
 
                 <EmployeePageHeader
-                    eyebrow="Updates"
                     title="Notifications"
                     action={unread.length > 0 ? (
                         <button

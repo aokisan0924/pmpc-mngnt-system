@@ -138,9 +138,7 @@ export default function Payslips({ payslips = [] }) {
                 )}
 
                 <EmployeePageHeader
-                    eyebrow="Compensation Archive"
                     title="My Payslips"
-                    description="Finalized pay periods and payslip downloads."
                 />
 
                 {/* Career summary stats */}

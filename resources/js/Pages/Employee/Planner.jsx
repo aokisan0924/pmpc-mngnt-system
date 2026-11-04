@@ -156,7 +156,6 @@ export default function Planner({ tasks = [] }) {
                 )}
 
                 <EmployeePageHeader
-                    eyebrow="Personal Workspace"
                     title="Work Planner"
                     badge={`${tasks.filter(task => task.status !== 'done').length} pending`}
                     action={<button
