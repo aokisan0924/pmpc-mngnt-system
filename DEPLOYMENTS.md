@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 11:30 — da6d33b — Office tasks and import of the Google Tasks lists
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `8b93955` → `da6d33b`
+- Migrations: `2026_11_04_130000_add_office_to_tasks_table` (makes `tasks.employee_id` nullable and adds nullable `tasks.office`; the employee foreign key is kept)
+- Backup: `/home/u512373751/backups/pre-office-tasks-20261104-1125.sql.gz` (full database dump taken just before the deploy; gzip test passed)
+- Data changes: 21 tasks created by `php artisan tasks:import-office-lists --apply`, all assigned by Kurt (`EMP-0002`), category = the original list name. Xander list 5 tasks (Alexander A. Feria Jr.), Reynold list 4 (Reynold Valdez), Team Cubao 2 (Katherine Sevilleno, Kurt), Team Isabela 5 (3 whole-office tasks for UPI Main Office, "Yvon and Jerome" once each for Yvonne N. Condo and Jerome A. Santos), Team Fortmag 5 (3 whole-office tasks for Fort Magsaysay, "Validating information on PIS" once each for Diana Pasco and Mariel S. Lucero). Tasks with no due date were set to 2026-11-04. The 30 existing personal tasks were not touched. To undo: `DELETE FROM tasks WHERE assigned_by IS NOT NULL AND category IN ('Xander','Reynold','Team Isabela','Team Fortmag','Team Cubao');` (no other admin-assigned tasks existed before this import), or restore the backup.
+- Verified: local suite 210 of 211 passed (the one failure is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint clean, migration run on a scratch MariaDB with rollback guard checked, browser-checked locally that an office member sees and can move an office task but not edit it. On live: server tree clean before and after, dry run listed only the two `ALTER`s, migration ran, import dry run showed exactly the 21 planned tasks, apply created 21, task rows went from 30 to 51 (30 personal, 21 assigned), a second dry run planned 0 new, `/login` 200, Team tasks and planner redirect guests, new assets return 200 and match the manifest, no log errors, maintenance mode off. Not checked: a signed-in click-through on the live site.
+
 ## 2026-11-04 11:10 — data only — Make Alexander A. Feria Jr. an admin
 - By: Claude Code (SSH key), requested by Kurt
 - Code: none
