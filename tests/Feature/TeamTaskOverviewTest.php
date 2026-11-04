@@ -44,21 +44,14 @@ class TeamTaskOverviewTest extends TestCase
         $this->task($admin, $juan, ['due_date' => '2026-11-10']);                        // last day of the window
         $this->task($admin, $juan, ['due_date' => '2026-11-11']);                        // outside the window
         $this->task($admin, null, ['office' => 'cubao', 'title' => 'Wide', 'due_date' => '2026-11-30']); // whole office
-        $done = $this->task($admin, $maria, ['status' => 'done', 'due_date' => '2026-11-01']);
-        $oldDone = $this->task($admin, $maria, ['status' => 'done', 'due_date' => '2026-10-01']);
-        Task::whereKey($done->id)->update(['updated_at' => Carbon::parse('2026-11-03 09:00', 'Asia/Manila')]);   // this week (Mon 2 to Sun 8)
-        Task::whereKey($oldDone->id)->update(['updated_at' => Carbon::parse('2026-10-28 09:00', 'Asia/Manila')]); // last week
+        $this->task($admin, $maria, ['status' => 'done', 'due_date' => '2026-11-01']); // finished tasks are not open
         Task::create(['employee_id' => $maria->id, 'title' => 'Private', 'due_date' => '2026-11-01', 'priority' => 'low', 'status' => 'pending']);
 
         $this->actingAs($admin)->get('/admin/team-tasks?office=main_office&priority=low')->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('overview.overdue', 1)
                 ->where('overview.due_this_week', 2)
-                ->where('overview.open', 5)
-                ->where('overview.done_this_week', 1)
-                ->where('overview.by_owner.0', ['name' => 'Juan Dela Cruz', 'open' => 2])
-                ->where('overview.by_owner.1', ['name' => 'Maria Santos', 'open' => 2])
-                ->where('overview.by_owner.2', ['name' => 'Whole office · Cubao Office', 'open' => 1]));
+                ->where('overview.open', 5));
     }
 
     public function test_opening_team_tasks_or_the_dashboard_creates_due_repeat_copies_once_a_day(): void

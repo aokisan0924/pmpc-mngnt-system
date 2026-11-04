@@ -83,7 +83,6 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
 
                 <AdminPageHeader
                     title="Team tasks"
-                    badge={`${tasks.filter(t => t.status !== 'done').length} open`}
                     action={
                         <button
                             type="button"
@@ -98,34 +97,25 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                     }
                 />
 
-                <section aria-label="Team overview" className="grid grid-cols-2 gap-3 lg:grid-cols-6">
-                    {[
-                        ['Overdue', overview.overdue, true],
-                        ['Due this week', overview.due_this_week, false],
-                        ['Open', overview.open, false],
-                        ['Done this week', overview.done_this_week, false],
-                    ].map(([label, value, alert]) => (
-                        <div
-                            key={label}
-                            className={`rounded-xl border bg-panel px-3 py-2.5 ${alert && value > 0 ? 'border-rose-300' : 'border-border'}`}
-                        >
-                            <p className={`text-xs font-bold uppercase tracking-wider ${alert && value > 0 ? 'text-rose-700' : 'text-sub'}`}>{label}</p>
-                            <p className={`font-heading text-2xl font-extrabold tnum ${alert && value > 0 ? 'text-rose-700' : 'text-text'}`}>{value ?? 0}</p>
-                        </div>
-                    ))}
-                    <div className="col-span-2 rounded-xl border border-border bg-panel px-3 py-2.5">
-                        <p className="text-xs font-bold uppercase tracking-wider text-sub">Open by person</p>
-                        {(overview.by_owner ?? []).length === 0 ? (
-                            <p className="mt-1 text-sm text-dim">Nothing open.</p>
-                        ) : (
-                            <p className="mt-1 text-sm leading-relaxed text-text">
-                                {(overview.by_owner ?? []).slice(0, 4).map((o, i) => (
-                                    <span key={o.name}>{i > 0 ? ' · ' : ''}{o.name} <b>{o.open}</b></span>
-                                ))}
-                                {(overview.by_owner ?? []).length > 4 && <span className="text-dim"> · +{overview.by_owner.length - 4} more</span>}
-                            </p>
-                        )}
-                    </div>
+                <section aria-label="Team overview" className="flex flex-wrap items-center gap-2 text-sm">
+                    <button
+                        type="button"
+                        aria-pressed={Boolean(filters.overdue)}
+                        onClick={() => applyFilters({ overdue: !filters.overdue })}
+                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
+                            overview.overdue > 0
+                                ? 'border-rose-300 bg-rose-50 text-rose-700'
+                                : 'border-border bg-panel text-sub'
+                        } ${filters.overdue ? 'ring-2 ring-rose-300' : ''}`}
+                    >
+                        <b className="tnum">{overview.overdue ?? 0}</b> overdue
+                    </button>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-panel px-3 py-1.5 font-medium text-text">
+                        <b className="tnum">{overview.due_this_week ?? 0}</b> due this week
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-panel px-3 py-1.5 font-medium text-sub">
+                        <b className="tnum text-text">{overview.open ?? 0}</b> open
+                    </span>
                 </section>
 
                 <div className="flex gap-1 rounded-xl border border-border bg-field p-1 w-fit" role="group" aria-label="Team tasks view">
@@ -183,15 +173,6 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                             <option value="medium">Medium</option>
                             <option value="low">Low</option>
                         </select>
-                    </label>
-                    <label className="flex items-center gap-2 text-xs font-semibold text-sub cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={Boolean(filters.overdue)}
-                            onChange={e => applyFilters({ overdue: e.target.checked })}
-                            className="h-4 w-4 rounded border-border accent-[#26215C]"
-                        />
-                        Overdue only
                     </label>
                     <label className="flex items-center gap-2 text-xs font-semibold text-sub cursor-pointer">
                         <input

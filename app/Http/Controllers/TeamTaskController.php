@@ -186,22 +186,10 @@ class TeamTaskController extends Controller
         $today = CarbonImmutable::now('Asia/Manila')->startOfDay();
         $open = fn () => Task::assignedByAdmin()->where('status', '!=', 'done');
 
-        $byOwner = $open()->with('employee')->get()
-            ->groupBy(fn (Task $task) => $task->employee
-                ? trim($task->employee->first_name.' '.$task->employee->last_name)
-                : 'Whole office · '.($task->officeLabel() ?? 'Unassigned'))
-            ->map(fn ($tasks, string $name) => ['name' => $name, 'open' => $tasks->count()])
-            ->sortBy([['open', 'desc'], ['name', 'asc']])
-            ->values()
-            ->all();
-
         return [
             'overdue' => $open()->whereDate('due_date', '<', $today->toDateString())->count(),
             'due_this_week' => $open()->whereDate('due_date', '>=', $today->toDateString())->whereDate('due_date', '<=', $today->addDays(6)->toDateString())->count(),
             'open' => $open()->count(),
-            'done_this_week' => Task::assignedByAdmin()->where('status', 'done')
-                ->whereBetween('updated_at', [$today->startOfWeek(), $today->endOfWeek()])->count(),
-            'by_owner' => $byOwner,
         ];
     }
 }
