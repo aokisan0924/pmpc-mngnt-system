@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Click a task card (or its title in the Planner agenda) to open it in a larger view with the full notes, due date, priority, status, who it is for, who assigned it and when it was added. Move, Edit and Delete work from there. It works for employees in My tasks and for admins in Team tasks; whole-office tasks stay move-only for employees.
+- Press View on a task card (or click its title) to open it in a larger view with the full notes, due date, priority, status, who it is for, who assigned it and when it was added. Move, Edit and Delete work from there. It works for employees in My tasks and for admins in Team tasks; whole-office tasks stay move-only for employees.
 - Tasks can belong to an office (Cubao Office, Fort Magsaysay Office, UPI Main Office). A task with no named person is seen by everyone in that office, who can move it between To do, Doing and Done but not edit or delete it; a task that names a member is seen only by that member. Team tasks has an Office filter and an Office choice on the form, and cards show the person or "Whole office". Payroll office names are unchanged.
 - `php artisan tasks:import-office-lists` imports the Xander, Reynold, Cubao, Fort Magsaysay and Isabela task lists. It is a dry run unless `--apply` is given and is safe to run twice.
 - My tasks has a Board tab with To do, Doing and Done columns. Drag a card to another column or use the "Move to" menu on the card; the Calendar tab is unchanged. Tasks gain a Doing status, and existing tasks stay as To do.

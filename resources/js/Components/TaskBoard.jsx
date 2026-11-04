@@ -74,7 +74,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                                 type="button"
                                                 onClick={() => onOpen(task)}
                                                 aria-haspopup="dialog"
-                                                className={`block w-full text-left text-sm font-semibold focus-visible:outline-2 ${focusRing} ${done ? 'line-through text-dim' : 'text-text'}`}
+                                                className={`block w-full text-left text-sm font-semibold hover:underline focus-visible:outline-2 ${focusRing} ${done ? 'line-through text-dim' : 'text-text'}`}
                                             >
                                                 {task.title}
                                             </button>
@@ -115,6 +115,17 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                                     {`→ ${c.label}`}
                                                 </button>
                                             ))}
+                                            {onOpen && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => onOpen(task)}
+                                                    aria-haspopup="dialog"
+                                                    aria-label={`View task "${task.title}"`}
+                                                    className={`rounded-lg border border-border bg-panel px-2.5 py-1 text-xs font-semibold text-text hover:bg-hover focus-visible:outline-2 ${focusRing}`}
+                                                >
+                                                    View
+                                                </button>
+                                            )}
                                             {!readOnly(task) && (
                                             <button
                                                 type="button"

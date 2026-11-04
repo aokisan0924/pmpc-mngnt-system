@@ -398,7 +398,7 @@ export default function Planner({ tasks = [] }) {
                                                     type="button"
                                                     onClick={() => setDetailId(task.id)}
                                                     aria-haspopup="dialog"
-                                                    className={`block w-full text-left text-sm font-semibold truncate focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${done ? 'line-through text-dim' : 'text-text'}`}
+                                                    className={`block w-full text-left text-sm font-semibold truncate hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${done ? 'line-through text-dim' : 'text-text'}`}
                                                 >
                                                     {task.title}
                                                 </button>
@@ -423,8 +423,17 @@ export default function Planner({ tasks = [] }) {
                                                 </div>
                                             </div>
 
-                                            {task.employee_id !== null && (
                                             <div className="flex flex-col gap-1 shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDetailId(task.id)}
+                                                    aria-haspopup="dialog"
+                                                    aria-label={`View task "${task.title}"`}
+                                                    className="inline-flex h-8 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-[#0F6E56] shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                                >
+                                                    View
+                                                </button>
+                                                {task.employee_id !== null && (<>
                                                 <button
                                                     type="button"
                                                     onClick={() => startEdit(task)}
@@ -441,8 +450,8 @@ export default function Planner({ tasks = [] }) {
                                                 >
                                                     Delete
                                                 </button>
+                                                </>)}
                                             </div>
-                                            )}
                                         </div>
                                     </div>
                                 )
