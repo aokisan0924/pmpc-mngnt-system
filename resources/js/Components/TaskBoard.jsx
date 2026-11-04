@@ -17,7 +17,7 @@ const PRIORITY_BADGE = {
  * Three-column task board. Cards can be dragged between columns or moved with
  * the "Move to" select (touch screens). `onMove(task, status)` does the saving.
  */
-export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, accent = 'emerald', showOwner = false }) {
+export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, accent = 'emerald', showOwner = false, showMoveButtons = true }) {
     const [overColumn, setOverColumn] = useState(null)
 
     // Employees may move a whole-office task but not edit or delete it.
@@ -104,7 +104,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                         </div>
 
                                         <div className="mt-3 flex items-center gap-2">
-                                            {COLUMNS.filter(c => c.status !== task.status).map(c => (
+                                            {showMoveButtons && COLUMNS.filter(c => c.status !== task.status).map(c => (
                                                 <button
                                                     key={c.status}
                                                     type="button"

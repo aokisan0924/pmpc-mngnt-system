@@ -142,6 +142,10 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                     </label>
                 </div>
 
+                <p className="text-xs text-sub">
+                    Drag a card to another column to move it. Open a card with View to change its status without dragging.
+                </p>
+
                 <TaskBoard
                     tasks={tasks}
                     onMove={moveTask}
@@ -150,6 +154,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                     onOpen={task => setDetailId(task.id)}
                     accent="indigo"
                     showOwner
+                    showMoveButtons={false}
                 />
             </div>
 
