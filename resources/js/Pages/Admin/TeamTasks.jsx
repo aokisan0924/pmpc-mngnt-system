@@ -6,15 +6,18 @@ import ConfirmModal from '@/Components/ConfirmModal'
 import TaskBoard from '@/Components/TaskBoard'
 import TaskFormModal from '@/Components/TaskFormModal'
 import TaskDetailModal from '@/Components/TaskDetailModal'
+import TeamTaskCalendar from '@/Components/TeamTaskCalendar'
 
 const SELECT = 'rounded-xl border border-border bg-field px-3 py-2 text-xs font-semibold text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
 
-export default function TeamTasks({ tasks = [], employees = [], offices = [], filters = {} }) {
+export default function TeamTasks({ tasks = [], employees = [], offices = [], filters = {}, overview = {} }) {
     const { flash } = usePage().props
     const [showForm, setShowForm]         = useState(false)
     const [editTarget, setEditTarget]     = useState(null)
     const [taskToDelete, setTaskToDelete] = useState(null)
     const [detailId, setDetailId]         = useState(null)
+    const [view, setView]                 = useState('board')
+    const [stopAlso, setStopAlso]         = useState(false)
     const detailTask = tasks.find(t => t.id === detailId)
 
     function applyFilters(next) {
@@ -55,9 +58,14 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
     function deleteTask() {
         if (!taskToDelete) return
         router.delete(`/admin/team-tasks/${taskToDelete.id}`, {
+            data: stopAlso ? { stop_repeat: 1 } : {},
             preserveScroll: true,
-            onFinish: () => setTaskToDelete(null),
+            onFinish: () => { setTaskToDelete(null); setStopAlso(false) },
         })
+    }
+
+    function stopRepeat(task) {
+        router.post(`/admin/team-tasks/${task.id}/stop-repeat`, {}, { preserveScroll: true })
     }
 
     return (
@@ -89,6 +97,52 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                         </button>
                     }
                 />
+
+                <section aria-label="Team overview" className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+                    {[
+                        ['Overdue', overview.overdue, true],
+                        ['Due this week', overview.due_this_week, false],
+                        ['Open', overview.open, false],
+                        ['Done this week', overview.done_this_week, false],
+                    ].map(([label, value, alert]) => (
+                        <div
+                            key={label}
+                            className={`rounded-xl border bg-panel px-3 py-2.5 ${alert && value > 0 ? 'border-rose-300' : 'border-border'}`}
+                        >
+                            <p className={`text-xs font-bold uppercase tracking-wider ${alert && value > 0 ? 'text-rose-700' : 'text-sub'}`}>{label}</p>
+                            <p className={`font-heading text-2xl font-extrabold tnum ${alert && value > 0 ? 'text-rose-700' : 'text-text'}`}>{value ?? 0}</p>
+                        </div>
+                    ))}
+                    <div className="col-span-2 rounded-xl border border-border bg-panel px-3 py-2.5">
+                        <p className="text-xs font-bold uppercase tracking-wider text-sub">Open by person</p>
+                        {(overview.by_owner ?? []).length === 0 ? (
+                            <p className="mt-1 text-sm text-dim">Nothing open.</p>
+                        ) : (
+                            <p className="mt-1 text-sm leading-relaxed text-text">
+                                {(overview.by_owner ?? []).slice(0, 4).map((o, i) => (
+                                    <span key={o.name}>{i > 0 ? ' · ' : ''}{o.name} <b>{o.open}</b></span>
+                                ))}
+                                {(overview.by_owner ?? []).length > 4 && <span className="text-dim"> · +{overview.by_owner.length - 4} more</span>}
+                            </p>
+                        )}
+                    </div>
+                </section>
+
+                <div className="flex gap-1 rounded-xl border border-border bg-field p-1 w-fit" role="group" aria-label="Team tasks view">
+                    {[['board', 'Board'], ['calendar', 'Calendar']].map(([key, label]) => (
+                        <button
+                            key={key}
+                            type="button"
+                            aria-pressed={view === key}
+                            onClick={() => setView(key)}
+                            className={`rounded-lg px-3 py-1 text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
+                                view === key ? 'border border-indigo-200 bg-white font-bold text-[#26215C] shadow-xs' : 'text-sub hover:bg-panel/50 hover:text-text'
+                            }`}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
 
                 <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-panel p-3">
                     <label className="flex items-center gap-2 text-xs font-semibold text-sub">
@@ -150,11 +204,17 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                     </label>
                 </div>
 
-                <p className="text-xs text-sub">
-                    Drag a card to another column to move it. Open a card with View to change its status without dragging.
-                </p>
+                {view === 'board' && (
+                    <p className="text-xs text-sub">
+                        Drag a card to another column to move it. Open a card with View to change its status without dragging.
+                    </p>
+                )}
 
-                <TaskBoard
+                {view === 'calendar' && (
+                    <TeamTaskCalendar tasks={tasks} onOpen={task => setDetailId(task.id)} />
+                )}
+
+                {view === 'board' && <TaskBoard
                     tasks={tasks}
                     onMove={moveTask}
                     onEdit={openForm}
@@ -163,7 +223,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                     accent="indigo"
                     showOwner
                     showMoveButtons={false}
-                />
+                />}
             </div>
 
             <TaskDetailModal
@@ -171,7 +231,8 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                 onClose={() => setDetailId(null)}
                 onMove={moveTask}
                 onEdit={task => { setDetailId(null); openForm(task) }}
-                onDelete={task => { setDetailId(null); setTaskToDelete(task) }}
+                onDelete={task => { setDetailId(null); setStopAlso(false); setTaskToDelete(task) }}
+                onStopRepeat={stopRepeat}
                 showOwner
             />
 
@@ -194,8 +255,15 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                 cancelLabel="Cancel"
                 confirmStyle="danger"
                 onConfirm={deleteTask}
-                onCancel={() => setTaskToDelete(null)}
-            />
+                onCancel={() => { setTaskToDelete(null); setStopAlso(false) }}
+            >
+                {taskToDelete?.repeat_active && (
+                    <label className="mb-5 flex items-center justify-center gap-2 text-sm font-medium text-text">
+                        <input type="checkbox" checked={stopAlso} onChange={e => setStopAlso(e.target.checked)} className="h-4 w-4 rounded border-border" />
+                        Also stop repeating
+                    </label>
+                )}
+            </ConfirmModal>
         </AdminLayout>
     )
 }

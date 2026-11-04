@@ -3,6 +3,7 @@ import { useForm } from '@inertiajs/react'
 import Button from '@/Components/UI/Button'
 
 const INPUT = 'w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
+const LEAD_DEFAULTS = { daily: 0, weekly: 2, monthly: 7, yearly: 14 }
 const LABEL = 'block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5'
 
 /**
@@ -28,7 +29,11 @@ export default function TaskFormModal({
         due_date:    task?.due_date?.slice(0, 10) ?? defaultDate,
         category:    task?.category ?? '',
         priority:    task?.priority ?? 'medium',
-        ...(employees ? { employee_id: task?.employee_id ?? '', office: task?.office ?? '' } : {}),
+        ...(employees ? {
+            employee_id: task?.employee_id ?? '', office: task?.office ?? '',
+            repeat: '', repeat_day_of_week: '', repeat_day_of_month: '', repeat_last_day: false,
+            repeat_month: '', repeat_lead_days: '', repeat_until: '',
+        } : {}),
     })
 
     useEffect(() => {
@@ -38,6 +43,18 @@ export default function TaskFormModal({
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
     }, [onClose])
+
+    // Choosing how often it repeats pre-fills the day from the due date.
+    function chooseRepeat(value) {
+        const due = data.due_date ? new Date(`${data.due_date}T00:00:00`) : new Date()
+        setData(d => ({
+            ...d,
+            repeat: value,
+            repeat_day_of_week: d.repeat_day_of_week === '' ? due.getDay() : d.repeat_day_of_week,
+            repeat_day_of_month: d.repeat_day_of_month === '' ? due.getDate() : d.repeat_day_of_month,
+            repeat_month: d.repeat_month === '' ? due.getMonth() + 1 : d.repeat_month,
+        }))
+    }
 
     function submit(e) {
         e.preventDefault()
@@ -198,6 +215,89 @@ export default function TaskFormModal({
                             className={INPUT}
                         />
                     </div>
+
+                    {employees && !task && (
+                        <fieldset className="space-y-3 rounded-xl border border-border p-3">
+                            <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-sub">Repeats</legend>
+                            <div>
+                                <label htmlFor="task-form-repeat-input" className="sr-only">Repeats</label>
+                                <select
+                                    id="task-form-repeat-input"
+                                    value={data.repeat}
+                                    onChange={e => chooseRepeat(e.target.value)}
+                                    className={INPUT}
+                                >
+                                    <option value="">Does not repeat</option>
+                                    <option value="daily">Every day</option>
+                                    <option value="weekly">Every week</option>
+                                    <option value="monthly">Every month</option>
+                                    <option value="yearly">Every year</option>
+                                </select>
+                                {errors.repeat && <p className="mt-1 text-xs text-rose-500">{errors.repeat}</p>}
+                            </div>
+
+                            {data.repeat === 'weekly' && (
+                                <div>
+                                    <label htmlFor="task-form-repeat-weekday" className={LABEL}>On</label>
+                                    <select id="task-form-repeat-weekday" value={data.repeat_day_of_week} onChange={e => setData('repeat_day_of_week', e.target.value)} className={INPUT}>
+                                        {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((d, i) => <option key={d} value={i}>{d}</option>)}
+                                    </select>
+                                    {errors.repeat_day_of_week && <p className="mt-1 text-xs text-rose-500">{errors.repeat_day_of_week}</p>}
+                                </div>
+                            )}
+
+                            {(data.repeat === 'monthly' || data.repeat === 'yearly') && (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {data.repeat === 'yearly' && (
+                                        <div>
+                                            <label htmlFor="task-form-repeat-month" className={LABEL}>Month</label>
+                                            <select id="task-form-repeat-month" value={data.repeat_month} onChange={e => setData('repeat_month', e.target.value)} className={INPUT}>
+                                                {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+                                            </select>
+                                            {errors.repeat_month && <p className="mt-1 text-xs text-rose-500">{errors.repeat_month}</p>}
+                                        </div>
+                                    )}
+                                    <div>
+                                        <label htmlFor="task-form-repeat-day" className={LABEL}>Day of the month</label>
+                                        <input
+                                            id="task-form-repeat-day" type="number" min="1" max="31"
+                                            value={data.repeat_day_of_month}
+                                            disabled={data.repeat === 'monthly' && data.repeat_last_day}
+                                            onChange={e => setData('repeat_day_of_month', e.target.value)}
+                                            className={INPUT}
+                                        />
+                                        {errors.repeat_day_of_month && <p className="mt-1 text-xs text-rose-500">{errors.repeat_day_of_month}</p>}
+                                    </div>
+                                    {data.repeat === 'monthly' && (
+                                        <label className="flex items-end gap-2 pb-2 text-sm font-medium text-text">
+                                            <input type="checkbox" checked={data.repeat_last_day} onChange={e => setData('repeat_last_day', e.target.checked)} className="h-4 w-4 rounded border-border" />
+                                            Last day of the month
+                                        </label>
+                                    )}
+                                </div>
+                            )}
+
+                            {data.repeat && (
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label htmlFor="task-form-repeat-lead" className={LABEL}>Show it days before</label>
+                                        <input
+                                            id="task-form-repeat-lead" type="number" min="0" max="60"
+                                            value={data.repeat_lead_days}
+                                            placeholder={String(LEAD_DEFAULTS[data.repeat])}
+                                            onChange={e => setData('repeat_lead_days', e.target.value)}
+                                            className={INPUT}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="task-form-repeat-until" className={LABEL}>Stop after (optional)</label>
+                                        <input id="task-form-repeat-until" type="date" value={data.repeat_until} onChange={e => setData('repeat_until', e.target.value)} className={`${INPUT} py-2 font-mono`} />
+                                        {errors.repeat_until && <p className="mt-1 text-xs text-rose-500">{errors.repeat_until}</p>}
+                                    </div>
+                                </div>
+                            )}
+                        </fieldset>
+                    )}
 
                     <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
                         <Button variant="secondary" size="md" type="button" onClick={onClose}>

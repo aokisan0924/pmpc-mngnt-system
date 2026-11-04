@@ -10,6 +10,7 @@ export default function ConfirmModal({
     onConfirm,
     onCancel,
     processing    = false,
+    children,
 }) {
     // Close on Escape key
     useEffect(() => {
@@ -69,6 +70,7 @@ export default function ConfirmModal({
                 <p className="text-sm text-sub text-center leading-relaxed mb-6">
                     {message}
                 </p>
+                {children}
 
                 {/* Actions */}
                 <div className="flex gap-3">

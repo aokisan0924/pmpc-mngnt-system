@@ -101,6 +101,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                                 <Badge variant="indigo" size="sm">{`Whole office${task.office_label ? ` · ${task.office_label}` : ''}`}</Badge>
                                             )}
                                             {task.is_overdue && <Badge variant="rose" size="sm">Overdue</Badge>}
+                                            {task.repeat_label && <Badge variant="slate" size="sm">↻ Repeats</Badge>}
                                         </div>
 
                                         <div className="mt-3 flex items-center gap-2">

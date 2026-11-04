@@ -33,7 +33,7 @@ function Detail({ label, children }) {
  * Larger read view of one task with the same actions as its card.
  * `readOnly` hides Edit and Delete (employees on a whole-office task).
  */
-export default function TaskDetailModal({ task, onClose, onMove, onEdit, onDelete, readOnly = false, showOwner = false }) {
+export default function TaskDetailModal({ task, onClose, onMove, onEdit, onDelete, onStopRepeat, readOnly = false, showOwner = false }) {
     useEffect(() => {
         if (!task) return
         const handleKeyDown = (e) => {
@@ -96,6 +96,7 @@ export default function TaskDetailModal({ task, onClose, onMove, onEdit, onDelet
                     {(showOwner || wholeOffice) && owner && <Detail label={showOwner ? 'For' : 'Shared with'}>{owner}</Detail>}
                     {task.office_label && !wholeOffice && <Detail label="Office">{task.office_label}</Detail>}
                     {task.assigned_by_name && <Detail label="Assigned by">{task.assigned_by_name}</Detail>}
+                    {task.repeat_label && <Detail label="Repeats">{task.repeat_label.replace(/^Repeats /, '')}{task.repeat_active === false ? ' (stopped)' : ''}</Detail>}
                     {task.category && <Detail label="List">{task.category}</Detail>}
                     {task.created_label && <Detail label="Added">{task.created_label}</Detail>}
                 </dl>
@@ -124,6 +125,15 @@ export default function TaskDetailModal({ task, onClose, onMove, onEdit, onDelet
                         ))}
                     </div>
                     <div className="flex items-center gap-2">
+                        {!readOnly && onStopRepeat && task.repeat_active && (
+                            <button
+                                type="button"
+                                onClick={() => onStopRepeat(task)}
+                                className="rounded-lg border border-border bg-field px-3 py-1.5 text-xs font-semibold text-text hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                            >
+                                Stop repeating
+                            </button>
+                        )}
                         {!readOnly && onDelete && (
                             <button
                                 type="button"
