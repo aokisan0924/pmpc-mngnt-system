@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TaskStatusRequest;
 use App\Models\Task;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,18 +19,7 @@ class TaskController extends Controller
             ->orderBy('due_date')
             ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END")
             ->get()
-            ->map(fn ($task) => [
-                'id' => $task->id,
-                'title' => $task->title,
-                'description' => $task->description,
-                'due_date' => $task->due_date->format('Y-m-d'),
-                'due_label' => $task->due_date->format('M d, Y'),
-                'category' => $task->category,
-                'priority' => $task->priority,
-                'status' => $task->status,
-                'is_overdue' => $task->due_date->toDateString() < now('Asia/Manila')->toDateString()
-                    && $task->status === 'pending',
-            ]);
+            ->map(fn (Task $task) => $task->toPlannerArray());
 
         return Inertia::render('Employee/Planner', [
             'tasks' => $tasks,
@@ -78,6 +68,15 @@ class TaskController extends Controller
         $task->update([
             'status' => $task->status === 'done' ? 'pending' : 'done',
         ]);
+
+        return back();
+    }
+
+    public function updateStatus(TaskStatusRequest $request, Task $task): RedirectResponse
+    {
+        $this->authorizeTask($task, $request);
+
+        $task->update(['status' => $request->validated('status')]);
 
         return back();
     }

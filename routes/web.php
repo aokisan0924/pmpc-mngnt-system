@@ -98,6 +98,7 @@ Route::middleware(['auth', 'role:employee,super_admin'])
         Route::post('/planner', [TaskController::class, 'store'])->name('planner.store');
         Route::patch('/planner/{task}', [TaskController::class, 'update'])->name('planner.update');
         Route::patch('/planner/{task}/toggle', [TaskController::class, 'toggleDone'])->name('planner.toggle');
+        Route::patch('/planner/{task}/status', [TaskController::class, 'updateStatus'])->name('planner.status');
         Route::delete('/planner/{task}', [TaskController::class, 'destroy'])->name('planner.destroy');
     });
 
