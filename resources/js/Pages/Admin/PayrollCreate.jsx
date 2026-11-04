@@ -127,9 +127,7 @@ export default function PayrollCreate({
         <AdminLayout>
             <form onSubmit={submit} className="admin-page-shell space-y-5 page-enter">
                 <AdminPageHeader
-                    eyebrow="Payroll input"
                     title={period_label}
-                    description="Attendance comes from DTR for this cutoff. Review the workdays, absences and late minutes, then enter any overtime or adjustments."
                     badge={is_first ? '1st cutoff' : '2nd cutoff'}
                     meta={
                         <Link href="/admin/payroll" className="inline-flex min-h-[44px] items-center font-medium text-indigo-100 hover:text-white">

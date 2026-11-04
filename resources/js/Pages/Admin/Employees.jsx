@@ -43,9 +43,7 @@ export default function Employees({ employees = [] }) {
                 )}
 
                 <AdminPageHeader
-                    eyebrow="People operations"
                     title="Employee Management"
-                    description="Manage employee records, status, and compensation."
                     badge={`${counts.active} active staff`}
                     action={
                     <Button
@@ -64,7 +62,6 @@ export default function Employees({ employees = [] }) {
                 />
 
                 {/* ── Filters & Search Toolbar ──────────────────────── */}
-                <Link href="/admin/account-setups" className="inline-flex min-h-[44px] items-center rounded-xl border border-border bg-panel px-4 text-sm font-semibold text-[#26215C]">Review employee account setups</Link>
                 <Card className="admin-workspace-card">
                     <CardHeader className="flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                         <div
@@ -168,7 +165,7 @@ export default function Employees({ employees = [] }) {
                                                     href={`/admin/employees/${emp.id}`}
                                                     className="inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-indigo-200 bg-indigo-50 px-3 text-xs font-semibold text-indigo-700 shadow-2xs transition-colors hover:bg-indigo-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:border-indigo-800/70 dark:bg-indigo-950/50 dark:text-indigo-300 dark:hover:bg-indigo-900/60"
                                                 >
-                                                    View Profile →
+                                                    Open
                                                 </Link>
                                             </td>
                                         </tr>
@@ -177,7 +174,7 @@ export default function Employees({ employees = [] }) {
                                     {filtered.length === 0 && (
                                         <tr>
                                             <td colSpan={7} className="text-center py-12 text-sub">
-                                                No employees found matching the filter or search criteria.
+                                                No matching employees.
                                             </td>
                                         </tr>
                                     )}

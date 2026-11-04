@@ -72,7 +72,7 @@ export default function Settings({ settings, holidays = [], holidayTypes = {} })
 
     return (
         <AdminLayout>
-            <div className="admin-page-shell max-w-5xl space-y-4 sm:space-y-5 page-enter">
+            <div className="admin-page-shell admin-page-narrow space-y-4 sm:space-y-5 page-enter">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -84,10 +84,7 @@ export default function Settings({ settings, holidays = [], holidayTypes = {} })
                 )}
 
                 <AdminPageHeader
-                    eyebrow="System administration"
                     title="System Settings"
-                    description="Configure cooperative identity, work schedules, payroll parameters, and official DTR signatories."
-                    badge="Admin configuration"
                 />
 
                 {/* Tabs */}
@@ -122,7 +119,6 @@ export default function Settings({ settings, holidays = [], holidayTypes = {} })
                     {activeTab === 'coop' && (
                         <SettingsCard
                             title="Cooperative Organization Profile"
-                            description="Official legal name, address, and contact details used on formal certificates and DTR headers"
                         >
                             <div className="space-y-5">
                                 <div>
@@ -196,7 +192,6 @@ export default function Settings({ settings, holidays = [], holidayTypes = {} })
                     {activeTab === 'shift' && (
                         <SettingsCard
                             title="Shift Hours & Punctuality Policy"
-                            description="Standard operational work hours, designated lunch break interval, and tardiness grace periods"
                         >
                             <div className="space-y-6">
                                 <div>
@@ -328,7 +323,6 @@ export default function Settings({ settings, holidays = [], holidayTypes = {} })
                     {activeTab === 'payroll' && (
                         <SettingsCard
                             title="Payroll & Working Days Formula"
-                            description="Baseline working day constants used to derive daily rates, cutoffs, and statutory overtime coefficients"
                         >
                             <div className="space-y-6">
                                 <div>
@@ -386,7 +380,6 @@ export default function Settings({ settings, holidays = [], holidayTypes = {} })
                     {activeTab === 'signatories' && (
                         <SettingsCard
                             title="Official Document Signatories"
-                            description="Designated organizational authorities printed at the bottom of Daily Time Records and certification docs"
                         >
                             <div className="space-y-6">
                                 <div className="p-3.5 rounded-xl bg-field/70 border border-border flex items-center justify-between">

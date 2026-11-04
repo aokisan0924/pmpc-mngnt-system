@@ -34,10 +34,7 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
         <AdminLayout>
             <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
                 <AdminPageHeader
-                    eyebrow="Attendance operations"
                     title="Daily Time Records"
-                    description={`Review attendance completeness, rendered hours, lateness, and undertime for ${monthLabel}.`}
-                    badge="Attendance ledger"
                     action={
                     <div className="flex items-center gap-2 bg-panel p-1 rounded-xl border border-border/80 shadow-xs self-start sm:self-auto">
                         <button

@@ -63,9 +63,7 @@ export default function PayrollShow({ payroll, items = [], signatureEmployees = 
                         </p>
                     ))}
                 <AdminPageHeader
-                    eyebrow="Saved payroll batch"
                     title={payroll.period_label}
-                    description={`${payroll.period_from} to ${payroll.period_to}`}
                     badge={`${payroll.cutoff_label} · ${payroll.status}`}
                     meta={
                         <Link

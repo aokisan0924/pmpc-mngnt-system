@@ -62,13 +62,11 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
 
     return (
         <AdminLayout>
-            <div ref={todayRef} className="admin-page-shell max-w-6xl space-y-4 sm:space-y-5 page-enter">
+            <div ref={todayRef} className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
                 {/* ── Top Header ────────────────────────────────────── */}
                 <AdminPageHeader
-                    eyebrow="Individual attendance ledger"
                     title={employee.full_name}
-                    description={`${employee.employee_id} · ${employee.department} · ${employee.position}`}
-                    badge={monthLabel}
+                    badge={`${employee.employee_id} · ${employee.department}`}
                     leading={<div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-white/10 font-heading text-sm font-bold text-white">{employee.initials}</div>}
                     meta={<Link href="/admin/dtr" className="font-medium text-indigo-100 hover:text-white">← Back to DTR Ledger</Link>}
                     action={

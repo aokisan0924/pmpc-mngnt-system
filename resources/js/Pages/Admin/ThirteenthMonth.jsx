@@ -23,7 +23,7 @@ export default function ThirteenthMonth({ records = [] }) {
 
     return (
         <AdminLayout>
-            <div className="admin-page-shell max-w-6xl space-y-4 sm:space-y-5 page-enter">
+            <div className="admin-page-shell admin-page-narrow space-y-4 sm:space-y-5 page-enter">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -35,10 +35,7 @@ export default function ThirteenthMonth({ records = [] }) {
                 )}
 
                 <AdminPageHeader
-                    eyebrow="Statutory compensation"
                     title="13th Month Pay"
-                    description="Compute 13th month pay from verified DTR days and current rates."
-                    badge="PD 851"
                 />
 
                 {/* Compute Action Card */}

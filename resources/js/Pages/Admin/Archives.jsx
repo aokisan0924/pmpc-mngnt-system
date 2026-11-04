@@ -22,7 +22,7 @@ export default function Archives({ archives = [], last_month }) {
 
     return (
         <AdminLayout>
-            <div className="admin-page-shell max-w-6xl space-y-4 sm:space-y-5 page-enter">
+            <div className="admin-page-shell admin-page-narrow space-y-4 sm:space-y-5 page-enter">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
@@ -42,10 +42,7 @@ export default function Archives({ archives = [], last_month }) {
                 )}
 
                 <AdminPageHeader
-                    eyebrow="Records retention"
                     title="DTR Archives"
-                    description="Download monthly DTR archives."
-                    badge="ZIP and PDF"
                 />
 
                 {/* Manual generate card */}

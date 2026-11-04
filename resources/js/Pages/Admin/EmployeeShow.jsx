@@ -182,7 +182,7 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
 
     return (
         <AdminLayout>
-            <div className="admin-page-shell max-w-4xl space-y-4 sm:space-y-5 page-enter">
+            <div className="admin-page-shell admin-page-narrow space-y-4 sm:space-y-5 page-enter">
 
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
@@ -192,10 +192,8 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                 )}
 
                 <AdminPageHeader
-                    eyebrow="Employee record"
                     title={employee.full_name}
-                    description={`${employee.employee_id}${employee.department ? ` · ${employee.department}` : ''}`}
-                    badge={employee.status}
+                    badge={`${employee.employee_id}${employee.department ? ` · ${employee.department}` : ''} · ${employee.status}`}
                     leading={
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-white/20 bg-white/10 font-heading text-sm font-bold text-white shadow-xs">
                             {employee.initials ?? initials(employee.first_name, employee.last_name)}

@@ -92,9 +92,7 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                 )}
 
                 <AdminPageHeader
-                    eyebrow="Attendance review"
                     title="DTR Edit Requests"
-                    description="Compare requested punch changes with original records and resolve employee attendance corrections."
                     badge={`${pendingCount} pending review`}
                     action={
                     <div

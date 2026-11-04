@@ -40,9 +40,7 @@ export default function Payroll({ payrolls = [] }) {
                     </p>
                 )}
                 <AdminPageHeader
-                    eyebrow="Compensation operations"
                     title="Payroll Management"
-                    description="Prepare a cutoff, review employee pay, then save and finalize your batch."
                     action={
                         <div className="flex flex-wrap items-center gap-3">
                         <Button onClick={() => setPreparing(!preparing)} aria-expanded={preparing} aria-controls="payroll-setup" className="admin-header-primary min-h-[44px]">
@@ -153,12 +151,11 @@ export default function Payroll({ payrolls = [] }) {
                 >
                     <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border p-5">
                         <div>
-                            <p className="text-xs font-semibold text-[#26215C]">Payroll ledger</p>
-                            <h2 id="batches-title" className="mt-1 font-heading text-xl font-bold text-text">
+                            <h2 id="batches-title" className="font-heading text-xl font-bold text-text">
                                 Payroll batches
                             </h2>
                             <p className="mt-1 text-xs text-sub">
-                                {payrolls.filter((batch) => batch.status === 'draft').length} drafts ·{' '}
+                                {payrolls.filter((batch) => batch.status === 'draft').length === 1 ? '1 draft' : `${payrolls.filter((batch) => batch.status === 'draft').length} drafts`} ·{' '}
                                 {payrolls.filter((batch) => batch.status === 'finalized').length} finalized
                             </p>
                         </div>
@@ -215,7 +212,7 @@ export default function Payroll({ payrolls = [] }) {
                                     ].map(([label, amount]) => (
                                         <div key={label}>
                                             <dt className="text-sub">{label}</dt>
-                                            <dd className="mt-1 break-words font-semibold text-text tnum">
+                                            <dd className={`mt-1 break-words tnum ${label === 'Net pay' ? 'text-base font-bold text-text' : 'font-medium text-sub'}`}>
                                                 {fmt(amount)}
                                             </dd>
                                         </div>
@@ -234,12 +231,12 @@ export default function Payroll({ payrolls = [] }) {
                     {!visible.length && (
                         <div className="px-5 py-12 text-center">
                             <h3 className="font-semibold text-text">
-                                {payrolls.length ? 'No matching batches' : 'Your payroll ledger starts here'}
+                                {payrolls.length ? 'No matching batches' : 'No payroll batches yet'}
                             </h3>
                             <p className="mx-auto mt-2 max-w-[45ch] text-sm leading-relaxed text-sub">
                                 {payrolls.length
                                     ? 'Try a different search or status filter.'
-                                    : 'Prepare a cutoff above. Saved drafts and finalized payrolls will appear here.'}
+                                    : 'Prepare a cutoff above.'}
                             </p>
                         </div>
                     )}

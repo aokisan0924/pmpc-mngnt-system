@@ -34,13 +34,11 @@ export default function ThirteenthMonthCompute({
 
     return (
         <AdminLayout>
-            <div className="admin-page-shell max-w-6xl space-y-4 sm:space-y-5 page-enter">
+            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
                 {/* Header */}
                 <AdminPageHeader
-                    eyebrow="Computation preview"
                     title={`13th Month Pay — ${year}`}
-                    description={`${period_from} to ${period_to} · Verify attendance-derived statutory payouts before saving.`}
-                    badge={tranche_label}
+                    badge={`${tranche_label} · ${period_from} to ${period_to}`}
                     meta={<Link href="/admin/thirteenth-month" className="font-medium text-indigo-100 hover:text-white">← Back to 13th Month Ledger</Link>}
                     action={
                     <div className="flex flex-wrap items-center gap-3">

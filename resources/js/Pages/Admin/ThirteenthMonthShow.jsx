@@ -36,7 +36,7 @@ export default function ThirteenthMonthShow({
 
     return (
         <AdminLayout>
-            <div className="admin-page-shell max-w-6xl space-y-4 sm:space-y-5 page-enter">
+            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
@@ -46,10 +46,8 @@ export default function ThirteenthMonthShow({
 
                 {/* Header */}
                 <AdminPageHeader
-                    eyebrow="Statutory batch ledger"
                     title={`13th Month Pay — ${year}`}
-                    description={`${period_from} to ${period_to} · ${records.length} employee records`}
-                    badge={`${tranche_label} · ${status}`}
+                    badge={`${tranche_label} · ${status} · ${period_from} to ${period_to}`}
                     meta={<Link href="/admin/thirteenth-month" className="font-medium text-indigo-100 hover:text-white">← Back to 13th Month Ledger</Link>}
                     action={status === 'draft' && (
                         <Button

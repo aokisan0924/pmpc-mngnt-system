@@ -107,10 +107,7 @@ export default function PayrollAnalytics({
             <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
 
                 <AdminPageHeader
-                    eyebrow="Financial intelligence"
                     title="Payroll Analytics"
-                    description="Compare payroll costs and deductions across finalized periods."
-                    badge="Executive view"
                     action={latestPayroll && (
                         <div className="flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-4 py-2 shadow-xs">
                             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -174,7 +171,6 @@ export default function PayrollAnalytics({
                 {/* Chart 1 — Monthly net pay trend */}
                 <Card
                     title="Gross Pay, Net Payout & Deductions Trend"
-                    description="Semi-monthly historical trajectory of total compensation expenditure"
                 >
                     {hasData ? (
                         <div className="h-72 w-full pt-2">
@@ -207,7 +203,6 @@ export default function PayrollAnalytics({
                     {/* Headcount vs Cost */}
                     <Card
                         title="Headcount vs Payroll Cost"
-                        description="Correlation between active payroll headcount and total gross outlay"
                     >
                         {hasData ? (
                             <div className="h-64 w-full pt-2">
@@ -232,7 +227,6 @@ export default function PayrollAnalytics({
                     {/* Department Cost Bar */}
                     <Card
                         title="Department Cost Distribution"
-                        description="All-time gross and net expenditure distributed across divisions"
                     >
                         {hasDept ? (
                             <div className="h-64 w-full pt-2">
@@ -258,7 +252,6 @@ export default function PayrollAnalytics({
                 {hasDept && (
                     <Card
                         title="Department Financial Breakdown"
-                        description="Cumulative summary of payroll figures and effective deduction ratios"
                     >
                         <div className="overflow-x-auto -mx-6 -my-4">
                             <table className="w-full text-xs">
@@ -295,7 +288,6 @@ export default function PayrollAnalytics({
                 {/* Deductions Breakdown per Employee */}
                 <Card
                     title={`Deductions Breakdown per Employee${latestPayroll ? ' — ' + latestPayroll.period_label : ''}`}
-                    description="Itemized statutory and company deduction allocations from the latest payroll"
                     action={
                         <div
                             role="group"

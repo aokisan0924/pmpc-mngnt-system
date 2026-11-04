@@ -550,6 +550,11 @@
         padding: 1rem;
     }
 
+    /* Forms, settings and record pages; lists, tables and boards use the default wide shell. */
+    .admin-page-narrow {
+        max-width: 64rem;
+    }
+
     .admin-page-header {
         background: linear-gradient(122deg, #17123F 0%, #26215C 56%, #493D8C 100%);
         box-shadow: 0 20px 44px rgba(38, 33, 92, 0.2);
