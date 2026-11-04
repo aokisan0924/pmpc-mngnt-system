@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 13:10 — b3007a0 — Notify employees when an admin assigns them a task
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `a2513c2` → `b3007a0`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none at deploy time. From now on, creating a task for an employee, a whole-office task, or reassigning a task adds `notifications` rows (type `task_assigned`) for the people concerned; undo for any of them is deleting that row. The `notifications` table held 458 rows at deploy.
+- Verified: local suite 221 of 222 passed (the one failure is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint clean, Node tests passed, build passed; six new tests cover the notification rules; browser-checked locally that an admin assigning a task puts "New task assigned" with a Task badge on the employee's Notifications page. On live: server tree clean before and after, no pending migrations, app returned from maintenance mode, task count unchanged at 51, `/login` 200, Notifications and Team tasks redirect guests, the new `Notifications` asset returns 200, matches the manifest and handles `task_assigned`, the new `notifyAssignees` method is present in the live controller, no log errors. Not tested on live: an actual assignment, to avoid sending a real notification to staff; the real-time popup channel was not tested.
+
 ## 2026-11-04 12:49 — a2513c2 — Task tidy-ups: board filter, old completed tasks, tests
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `c6b682b` → `a2513c2`
