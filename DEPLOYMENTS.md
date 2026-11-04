@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 13:18 — cadeb9a — My tasks page title matches the sidebar
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `b3007a0` → `cadeb9a`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: build and Node tests passed locally; the two browser-test checks that expected "Work Planner" were updated. On live: server tree clean before and after, no pending migrations, app returned from maintenance mode, task count unchanged at 51, `/login` 200, `/employee/planner` redirects guests, the new `Planner` asset returns 200 and matches the manifest, the live Planner bundle no longer contains "Work Planner", no log errors. Not checked: a signed-in look at the live page after this change.
+
 ## 2026-11-04 13:10 — b3007a0 — Notify employees when an admin assigns them a task
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `a2513c2` → `b3007a0`
