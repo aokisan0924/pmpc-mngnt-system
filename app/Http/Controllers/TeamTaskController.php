@@ -30,6 +30,7 @@ class TeamTaskController extends Controller
             ? $request->query('priority')
             : null;
         $office = array_key_exists((string) $request->query('office'), Task::OFFICES) ? $request->query('office') : null;
+        $group = ! $employeeId && array_key_exists((string) $request->query('group'), Task::OFFICES) ? $request->query('group') : null;
         $overdueOnly = $request->boolean('overdue');
         $showOlder = $request->boolean('older');
         $today = now('Asia/Manila')->toDateString();
@@ -39,6 +40,7 @@ class TeamTaskController extends Controller
             ->when($employeeId, fn ($q) => $q->where('employee_id', $employeeId))
             ->when($priority, fn ($q) => $q->where('priority', $priority))
             ->when($office, fn ($q) => $q->where('office', $office))
+            ->when($group, fn ($q) => $q->whereNull('employee_id')->where('office', $group))
             ->when(! $showOlder, fn ($q) => $q->where(fn ($w) => $w->where('status', '!=', 'done')->orWhere('updated_at', '>=', now()->subDays(30))))
             ->when($overdueOnly, fn ($q) => $q->where('due_date', '<', $today)->where('status', '!=', 'done'))
             ->orderBy('due_date')
@@ -59,12 +61,14 @@ class TeamTaskController extends Controller
         return Inertia::render('Admin/TeamTasks', [
             'tasks' => $tasks,
             'overview' => $this->overview(),
+            'people' => $this->people(),
             'employees' => $employees,
             'offices' => collect(Task::OFFICES)->map(fn (string $label, string $key) => ['key' => $key, 'label' => $label])->values(),
             'filters' => [
                 'employee_id' => $employeeId,
                 'priority' => $priority,
                 'office' => $office,
+                'group' => $group,
                 'overdue' => $overdueOnly,
                 'older' => $showOlder,
             ],
@@ -181,6 +185,37 @@ class TeamTaskController extends Controller
      *
      * @return array<string, mixed>
      */
+    /** One chip per active person, then per whole-office group, with open tasks. Ignores the board filters. */
+    private function people(): array
+    {
+        $today = CarbonImmutable::now('Asia/Manila')->toDateString();
+        $chips = [];
+
+        Task::assignedByAdmin()->where('status', '!=', 'done')
+            ->with('employee:id,first_name,last_name,status')
+            ->get(['id', 'employee_id', 'office', 'due_date'])
+            ->each(function (Task $task) use (&$chips, $today): void {
+                if ($task->employee_id === null) {
+                    $id = 'office:'.$task->office;
+                    $chip = ['type' => 'office', 'key' => (string) $task->office, 'label' => Task::OFFICES[$task->office] ?? (string) $task->office];
+                } elseif ($task->employee?->status === 'active') {
+                    $id = 'employee:'.$task->employee_id;
+                    $chip = ['type' => 'employee', 'key' => (string) $task->employee_id, 'label' => trim($task->employee->first_name.' '.$task->employee->last_name)];
+                } else {
+                    return;
+                }
+
+                $chips[$id] ??= $chip + ['open' => 0, 'late' => 0];
+                $chips[$id]['open']++;
+                $chips[$id]['late'] += $task->due_date->toDateString() < $today ? 1 : 0;
+            });
+
+        return collect($chips)
+            ->sortBy([['type', 'asc'], ['late', 'desc'], ['open', 'desc'], ['label', 'asc']])
+            ->values()
+            ->all();
+    }
+
     private function overview(): array
     {
         $today = CarbonImmutable::now('Asia/Manila')->startOfDay();
@@ -188,7 +223,6 @@ class TeamTaskController extends Controller
 
         return [
             'overdue' => $open()->whereDate('due_date', '<', $today->toDateString())->count(),
-            'due_this_week' => $open()->whereDate('due_date', '>=', $today->toDateString())->whereDate('due_date', '<=', $today->addDays(6)->toDateString())->count(),
             'open' => $open()->count(),
         ];
     }

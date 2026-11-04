@@ -50,7 +50,6 @@ class TeamTaskOverviewTest extends TestCase
         $this->actingAs($admin)->get('/admin/team-tasks?office=main_office&priority=low')->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('overview.overdue', 1)
-                ->where('overview.due_this_week', 2)
                 ->where('overview.open', 5));
     }
 
