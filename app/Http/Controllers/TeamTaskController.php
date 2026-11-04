@@ -25,7 +25,7 @@ class TeamTaskController extends Controller
         $overdueOnly = $request->boolean('overdue');
         $today = now('Asia/Manila')->toDateString();
 
-        $tasks = Task::with('employee')
+        $tasks = Task::with(['employee', 'assigner'])
             ->assignedByAdmin()
             ->when($employeeId, fn ($q) => $q->where('employee_id', $employeeId))
             ->when($priority, fn ($q) => $q->where('priority', $priority))

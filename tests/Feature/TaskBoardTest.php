@@ -93,4 +93,24 @@ class TaskBoardTest extends TestCase
         $this->actingAs($employee)->patch("/employee/planner/{$task->id}/toggle");
         $this->assertSame('pending', $task->fresh()->status);
     }
+
+    public function test_planner_tasks_carry_who_assigned_them_and_when_they_were_added(): void
+    {
+        $admin = Employee::factory()->superAdmin()->create(['first_name' => 'Kurt', 'last_name' => 'Boss']);
+        $employee = Employee::factory()->create();
+        $assigned = $this->makeTask($employee, ['title' => 'From admin', 'assigned_by' => $admin->id]);
+        $personal = $this->makeTask($employee, ['title' => 'Mine']);
+
+        $this->actingAs($employee)->get('/employee/planner')->assertOk()
+            ->assertInertia(function (Assert $page) use ($assigned, $personal) {
+                $byId = collect($page->toArray()['props']['tasks'])->keyBy('id');
+
+                $this->assertSame('Kurt Boss', $byId[$assigned->id]['assigned_by_name']);
+                $this->assertNull($byId[$personal->id]['assigned_by_name']);
+                $this->assertSame(now('Asia/Manila')->format('M d, Y'), $byId[$personal->id]['created_label']);
+            });
+
+        $this->actingAs($admin)->get('/admin/team-tasks')->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('tasks.0.assigned_by_name', 'Kurt Boss'));
+    }
 }

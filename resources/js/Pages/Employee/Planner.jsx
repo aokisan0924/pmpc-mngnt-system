@@ -7,6 +7,7 @@ import Badge from '@/Components/UI/Badge'
 import ConfirmModal from '@/Components/ConfirmModal'
 import TaskBoard from '@/Components/TaskBoard'
 import TaskFormModal from '@/Components/TaskFormModal'
+import TaskDetailModal from '@/Components/TaskDetailModal'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -50,6 +51,8 @@ export default function Planner({ tasks = [] }) {
     const [taskToDelete, setTaskToDelete] = useState(null)
     const [filter, setFilter]             = useState('all')
     const [view, setView]                 = useState('calendar')
+    const [detailId, setDetailId]         = useState(null)
+    const detailTask = tasks.find(t => t.id === detailId)
 
     // "pending" means anything not finished yet, so tasks in Doing stay visible.
     const visibleTasks = filter === 'all'
@@ -252,6 +255,7 @@ export default function Planner({ tasks = [] }) {
                         onMove={moveTask}
                         onEdit={startEdit}
                         onDelete={confirmDelete}
+                        onOpen={task => setDetailId(task.id)}
                         accent="emerald"
                     />
                 )}
@@ -390,9 +394,14 @@ export default function Planner({ tasks = [] }) {
                                             </button>
 
                                             <div className="flex-1 min-w-0">
-                                                <p className={`text-sm font-semibold truncate ${done ? 'line-through text-dim' : 'text-text'}`}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDetailId(task.id)}
+                                                    aria-haspopup="dialog"
+                                                    className={`block w-full text-left text-sm font-semibold truncate focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${done ? 'line-through text-dim' : 'text-text'}`}
+                                                >
                                                     {task.title}
-                                                </p>
+                                                </button>
                                                 {task.description && (
                                                     <p className="text-xs text-sub mt-0.5 line-clamp-2">{task.description}</p>
                                                 )}
@@ -462,6 +471,15 @@ export default function Planner({ tasks = [] }) {
                 </div>
 
             </div>
+
+            <TaskDetailModal
+                task={detailTask}
+                onClose={() => setDetailId(null)}
+                onMove={moveTask}
+                onEdit={task => { setDetailId(null); startEdit(task) }}
+                onDelete={task => { setDetailId(null); confirmDelete(task) }}
+                readOnly={detailTask?.employee_id === null}
+            />
 
             {showForm && (
                 <TaskFormModal

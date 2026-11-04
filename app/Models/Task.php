@@ -38,6 +38,11 @@ class Task extends Model
         return $this->belongsTo(Employee::class);
     }
 
+    public function assigner()
+    {
+        return $this->belongsTo(Employee::class, 'assigned_by');
+    }
+
     /** Tasks an admin created for an employee; an employee's personal tasks are excluded. */
     public function scopeAssignedByAdmin(Builder $query): Builder
     {
@@ -98,6 +103,10 @@ class Task extends Model
             'employee_id' => $this->employee_id,
             'office' => $this->office,
             'office_label' => $this->officeLabel(),
+            'assigned_by_name' => $this->relationLoaded('assigner') && $this->assigner
+                ? trim($this->assigner->first_name.' '.$this->assigner->last_name)
+                : null,
+            'created_label' => $this->created_at?->timezone('Asia/Manila')->format('M d, Y'),
             'employee_name' => $this->relationLoaded('employee') && $this->employee
                 ? trim($this->employee->first_name.' '.$this->employee->last_name)
                 : null,

@@ -5,6 +5,7 @@ import AdminPageHeader from '@/Components/AdminPageHeader'
 import ConfirmModal from '@/Components/ConfirmModal'
 import TaskBoard from '@/Components/TaskBoard'
 import TaskFormModal from '@/Components/TaskFormModal'
+import TaskDetailModal from '@/Components/TaskDetailModal'
 
 const SELECT = 'rounded-xl border border-border bg-field px-3 py-2 text-xs font-semibold text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
 
@@ -13,6 +14,8 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
     const [showForm, setShowForm]         = useState(false)
     const [editTarget, setEditTarget]     = useState(null)
     const [taskToDelete, setTaskToDelete] = useState(null)
+    const [detailId, setDetailId]         = useState(null)
+    const detailTask = tasks.find(t => t.id === detailId)
 
     function applyFilters(next) {
         const merged = { ...filters, ...next }
@@ -144,10 +147,20 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                     onMove={moveTask}
                     onEdit={openForm}
                     onDelete={setTaskToDelete}
+                    onOpen={task => setDetailId(task.id)}
                     accent="indigo"
                     showOwner
                 />
             </div>
+
+            <TaskDetailModal
+                task={detailTask}
+                onClose={() => setDetailId(null)}
+                onMove={moveTask}
+                onEdit={task => { setDetailId(null); openForm(task) }}
+                onDelete={task => { setDetailId(null); setTaskToDelete(task) }}
+                showOwner
+            />
 
             {showForm && (
                 <TaskFormModal

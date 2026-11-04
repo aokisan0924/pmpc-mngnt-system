@@ -17,7 +17,7 @@ const PRIORITY_BADGE = {
  * Three-column task board. Cards can be dragged between columns or moved with
  * the "Move to" select (touch screens). `onMove(task, status)` does the saving.
  */
-export default function TaskBoard({ tasks, onMove, onEdit, onDelete, accent = 'emerald', showOwner = false }) {
+export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, accent = 'emerald', showOwner = false }) {
     const [overColumn, setOverColumn] = useState(null)
 
     // Employees may move a whole-office task but not edit or delete it.
@@ -64,11 +64,25 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, accent = 'e
                                         key={task.id}
                                         draggable
                                         onDragStart={e => e.dataTransfer.setData('text/plain', String(task.id))}
+                                        onClick={e => {
+                                            if (onOpen && !e.target.closest('button, select, a')) onOpen(task)
+                                        }}
                                         className={`rounded-xl border border-border bg-panel p-3 shadow-2xs cursor-grab active:cursor-grabbing ${done ? 'opacity-60' : ''}`}
                                     >
-                                        <p className={`text-sm font-semibold ${done ? 'line-through text-dim' : 'text-text'}`}>
-                                            {task.title}
-                                        </p>
+                                        {onOpen ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => onOpen(task)}
+                                                aria-haspopup="dialog"
+                                                className={`block w-full text-left text-sm font-semibold focus-visible:outline-2 ${focusRing} ${done ? 'line-through text-dim' : 'text-text'}`}
+                                            >
+                                                {task.title}
+                                            </button>
+                                        ) : (
+                                            <p className={`text-sm font-semibold ${done ? 'line-through text-dim' : 'text-text'}`}>
+                                                {task.title}
+                                            </p>
+                                        )}
                                         {showOwner && (task.employee_name || task.office_label) && (
                                             <p className="mt-0.5 text-xs font-semibold text-sub">
                                                 {task.employee_name
