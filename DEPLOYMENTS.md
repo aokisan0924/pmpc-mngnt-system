@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 15:28 — hosting setting only — Hostinger cron for the WorkForce scheduler
+- By: Claude Code (Chrome, Kurt's hPanel session), requested by Kurt
+- Code: none
+- Migrations: none
+- Backup: none (no database or code change)
+- Data changes: none to the app. In hPanel > peoplescoopdtr.online > Advanced > Cron Jobs a second job was added: every minute (`* * * * *`), `/opt/alt/php83/usr/bin/php /home/u512373751/domains/peoplescoopdtr.online/pmpc_mngnt/artisan schedule:run`. The existing PIS job (`/usr/bin/php .../peoplesmpcoop.com/public_html/pis_core/artisan schedule:run`) was not touched. Reason: no cron was running for this app, so the 18:00 attendance fill and monthly archive were not running on schedule. To undo: delete that one job in hPanel > Cron Jobs.
+- Verified: within about a minute a new cron log `~/.logs/cronjob_p9GTj47ONC` appeared with "No scheduled commands are ready to run." (the scheduler runs for this app and nothing was due). Not yet verified: the 18:00 attendance job actually running; check tonight.
+
 ## 2026-11-04 15:10 — d5bc350 — Admin text tidy: employee record, settings, dashboard
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `cadeb9a` → `d5bc350`
