@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Employees are notified when an admin assigns them a task: a named employee, every active member of an office for a whole-office task, or the new owner when a task is reassigned. The notification shows the task, due date and who assigned it, and appears in the bell, the popup and the Notifications page with a Task badge. Plain edits, status moves and the admin's own assignments send nothing.
 - Press View on a task card (or click its title) to open it in a larger view with the full notes, due date, priority, status, who it is for, who assigned it and when it was added. Move, Edit and Delete work from there. It works for employees in My tasks and for admins in Team tasks; whole-office tasks stay move-only for employees.
 - Tasks can belong to an office (Cubao Office, Fort Magsaysay Office, UPI Main Office). A task with no named person is seen by everyone in that office, who can move it between To do, Doing and Done but not edit or delete it; a task that names a member is seen only by that member. Team tasks has an Office filter and an Office choice on the form, and cards show the person or "Whole office". Payroll office names are unchanged.
 - `php artisan tasks:import-office-lists` imports the Xander, Reynold, Cubao, Fort Magsaysay and Isabela task lists. It is a dry run unless `--apply` is given and is safe to run twice.
