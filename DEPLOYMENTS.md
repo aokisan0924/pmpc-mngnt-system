@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 17:45 — d427308 — Team tasks office tabs and people row
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `335a67b` → `d427308`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: full suite 259 of 260 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint and build passed, Opus review found nothing Critical or Important. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome, Team tasks shows the office tabs All 20, Cubao Office 7, Fort Magsaysay Office 5, UPI Main Office 8. Choosing Cubao narrowed the people row to its three people, set the cards to 6 to do and 1 doing, and showed 7 cards on the board. Nothing was changed on the live site during the check.
+
 ## 2026-11-04 17:05 — 335a67b — Team tasks status overview cards
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `0a56b15` → `335a67b`
