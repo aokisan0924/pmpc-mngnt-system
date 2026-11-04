@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 17:05 — 335a67b — Team tasks status overview cards
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `0a56b15` → `335a67b`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: full suite 258 of 259 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint and build passed, Opus review's Important finding fixed. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome, Team tasks shows To do 19, Doing 1, Done 1 (4% finished, last 30 days) with a progress bar, matching the board columns; the people pills are still there. Nothing was changed on the live site during the check.
+
 ## 2026-11-04 16:35 — 0a56b15 — Team tasks people strip
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `973b19f` → `0a56b15`
