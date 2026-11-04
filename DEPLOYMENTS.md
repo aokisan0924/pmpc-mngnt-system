@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 11:38 — 6898cba — Visible View button on task cards
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `6d7ec1c` → `6898cba`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: Pint and task tests passed locally (31 task tests, 4 frontend policy tests); browser-checked locally that the Planner agenda shows View, Edit and Delete, the board card shows View, and View opens the detail window. On live: server tree clean before and after, no pending migrations, app returned from maintenance mode, task count unchanged at 51, `/login` 200, Team tasks and planner redirect guests, new `Planner` and `TeamTasks` assets return 200 and match the manifest, the live Planner bundle contains the View button, no log errors. Not checked: a signed-in click-through on the live site.
+
 ## 2026-11-04 11:34 — 6d7ec1c — Task detail modal
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `da6d33b` → `6d7ec1c`
