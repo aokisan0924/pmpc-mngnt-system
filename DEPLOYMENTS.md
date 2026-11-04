@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 12:39 — c6b682b — Text cleanup: payroll input, saved payroll batch, employee attendance
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `29608ee` → `c6b682b`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: local suite 211 of 212 passed (the one failure is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint clean, Node tests passed, build passed; browser-checked locally that the three pages render (payroll input without the duplicate totals block, saved batch, an employee's attendance). On live: server tree clean before and after, no pending migrations, app returned from maintenance mode, task count unchanged at 51, `/login` 200, payroll and attendance pages redirect guests, the new `PayrollCreate`, `PayrollShow` and `DtrShow` assets return 200 and match the manifest, the live saved-batch bundle has "Export to Excel" and no longer has the old sentence, the live attendance bundle no longer has "days in period", no log errors. Not checked: a signed-in click-through, or a payroll export or print view (code paths untouched).
+
 ## 2026-11-04 12:34 — 29608ee — Admin screens: compact header, text cleanup, darker placeholders
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `98e73dd` → `29608ee`
