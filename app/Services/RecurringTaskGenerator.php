@@ -1,0 +1,85 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use App\Models\RecurringTask;
+use App\Models\Task;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Cache;
+
+class RecurringTaskGenerator
+{
+    /** Most copies one rule can create in a single run. */
+    private const MAX_PER_RULE = 31;
+
+    /** Missed due dates older than this many days are skipped, not resurrected. */
+    private const CATCH_UP_DAYS = 31;
+
+    public function __construct(private readonly TaskAssignmentNotifier $notifier) {}
+
+    /** Create every copy whose time has come. Safe to run repeatedly. Returns how many were created. */
+    public function run(): int
+    {
+        $today = CarbonImmutable::now('Asia/Manila')->startOfDay();
+        $created = 0;
+
+        RecurringTask::where('active', true)->orderBy('id')->each(function (RecurringTask $rule) use ($today, &$created) {
+            $created += $this->generateFor($rule, $today);
+        });
+
+        return $created;
+    }
+
+    /** The same, but at most once per calendar day (used when an admin opens a page, so it works without cron). */
+    public function runOncePerDay(): void
+    {
+        $today = CarbonImmutable::now('Asia/Manila')->toDateString();
+
+        if (Cache::add("recurring-tasks-generated:{$today}", true, now()->addDay())) {
+            $this->run();
+        }
+    }
+
+    private function generateFor(RecurringTask $rule, CarbonImmutable $today): int
+    {
+        $created = 0;
+        $cursor = CarbonImmutable::parse(($rule->last_due_date ?? $rule->starts_on->copy()->subDay())->toDateString());
+
+        while ($created < self::MAX_PER_RULE && ($next = $rule->nextDueAfter($cursor)) !== null) {
+            if ($next->subDays((int) $rule->lead_days)->gt($today)) {
+                break;
+            }
+
+            $cursor = $next;
+
+            if ($next->lt($today->subDays(self::CATCH_UP_DAYS))) {
+                continue;
+            }
+
+            $task = Task::firstOrCreate(
+                ['recurring_task_id' => $rule->id, 'due_date' => $next->toDateString()],
+                [
+                    'employee_id' => $rule->employee_id,
+                    'office' => $rule->office,
+                    'assigned_by' => $rule->created_by,
+                    'title' => $rule->title,
+                    'description' => $rule->description,
+                    'category' => $rule->category,
+                    'priority' => $rule->priority,
+                    'status' => 'pending',
+                ]
+            );
+
+            if ($task->wasRecentlyCreated) {
+                $created++;
+                $this->notifier->notify($task, (int) $rule->created_by);
+            }
+        }
+
+        $rule->update(['last_due_date' => $cursor->toDateString()]);
+
+        return $created;
+    }
+}

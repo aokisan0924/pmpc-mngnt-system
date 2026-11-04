@@ -13,3 +13,6 @@ Schedule::command('dtr:archive')->monthlyOn(1, '00:00');
 
 // Always-present employees (e.g. the president) get the standard punches after the 5pm end of day
 Schedule::command('dtr:fill-always-present')->dailyAt('18:00');
+
+// New copies of repeating tasks (bills, reminders) appear on their schedule
+Schedule::command('tasks:generate-recurring')->dailyAt('06:00')->timezone('Asia/Manila');

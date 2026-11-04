@@ -21,6 +21,7 @@ class Task extends Model
         'employee_id',
         'office',
         'assigned_by',
+        'recurring_task_id',
         'title',
         'description',
         'due_date',
@@ -36,6 +37,11 @@ class Task extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function recurringTask()
+    {
+        return $this->belongsTo(RecurringTask::class);
     }
 
     public function assigner()

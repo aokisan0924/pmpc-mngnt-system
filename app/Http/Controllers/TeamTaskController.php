@@ -7,8 +7,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TeamTaskRequest;
 use App\Models\Employee;
-use App\Models\EmployeeNotification;
 use App\Models\Task;
+use App\Services\TaskAssignmentNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -67,7 +67,7 @@ class TeamTaskController extends Controller
     {
         $task = Task::create([...$this->withOffice($request->validated()), 'assigned_by' => $request->user()->id]);
 
-        $this->notifyAssignees($task, $request->user());
+        app(TaskAssignmentNotifier::class)->notify($task, $request->user());
 
         return back()->with('success', 'Task added.');
     }
@@ -83,7 +83,7 @@ class TeamTaskController extends Controller
 
         // Only a change of who the task is for tells anyone; plain edits stay quiet.
         if ($task->employee_id !== $previousEmployeeId || ($task->employee_id === null && $task->office !== $previousOffice)) {
-            $this->notifyAssignees($task, $request->user());
+            app(TaskAssignmentNotifier::class)->notify($task, $request->user());
         }
 
         return back()->with('success', 'Task updated.');
@@ -126,31 +126,5 @@ class TeamTaskController extends Controller
         }
 
         return $data;
-    }
-
-    /**
-     * Tell whoever now owns the task: the named employee, or the active members of the task's office.
-     * The admin who made the change is never notified, and a failed notification never blocks the save.
-     */
-    private function notifyAssignees(Task $task, Employee $admin): void
-    {
-        $recipients = $task->employee_id !== null
-            ? Employee::whereKey($task->employee_id)->where('status', 'active')->get()
-            : Employee::where('status', 'active')->where('payroll_office', $task->office)->get();
-
-        $message = sprintf(
-            '%s · due %s · Assigned by %s',
-            $task->title,
-            $task->due_date->format('M d, Y'),
-            trim($admin->first_name.' '.$admin->last_name)
-        );
-
-        foreach ($recipients->reject(fn (Employee $recipient) => $recipient->id === $admin->id) as $recipient) {
-            try {
-                EmployeeNotification::send($recipient->id, 'task_assigned', 'New task assigned', $message, '/employee/planner');
-            } catch (\Throwable $e) {
-                report($e);
-            }
-        }
     }
 }
