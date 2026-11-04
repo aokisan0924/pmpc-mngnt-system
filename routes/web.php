@@ -25,6 +25,7 @@ use App\Http\Controllers\EmployeeProfileController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PayslipController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TeamTaskController;
 use Illuminate\Support\Facades\Route;
 
 // ── Auth ──────────────────────────────────────────────────
@@ -117,6 +118,13 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::get('/account-setups', [AccountSetupReviewController::class, 'index'])->name('account-setups');
         Route::patch('/account-setups/{submission}', [AccountSetupReviewController::class, 'review'])->name('account-setups.review');
         Route::patch('/employees/{employee}/payroll-office', [AccountSetupReviewController::class, 'transfer'])->name('employees.payroll-office');
+
+        // Team tasks
+        Route::get('/team-tasks', [TeamTaskController::class, 'index'])->name('team-tasks');
+        Route::post('/team-tasks', [TeamTaskController::class, 'store'])->name('team-tasks.store');
+        Route::patch('/team-tasks/{task}', [TeamTaskController::class, 'update'])->name('team-tasks.update');
+        Route::patch('/team-tasks/{task}/status', [TeamTaskController::class, 'updateStatus'])->name('team-tasks.status');
+        Route::delete('/team-tasks/{task}', [TeamTaskController::class, 'destroy'])->name('team-tasks.destroy');
 
         // Employee management
         Route::get('/employees', [EmployeeController::class, 'index'])->name('employees');
