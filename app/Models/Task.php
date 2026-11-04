@@ -10,8 +10,16 @@ class Task extends Model
     /** `pending` is shown as "To do" in the UI. */
     public const STATUSES = ['pending', 'doing', 'done'];
 
+    /** Office keys match employees.payroll_office; payroll's own labels are unchanged. */
+    public const OFFICES = [
+        'cubao' => 'Cubao Office',
+        'fort_magsaysay' => 'Fort Magsaysay Office',
+        'main_office' => 'UPI Main Office',
+    ];
+
     protected $fillable = [
         'employee_id',
+        'office',
         'assigned_by',
         'title',
         'description',
@@ -34,6 +42,28 @@ class Task extends Model
     public function scopeAssignedByAdmin(Builder $query): Builder
     {
         return $query->whereNotNull('assigned_by');
+    }
+
+    /** Own tasks, plus office-wide tasks (no employee) of the employee's office. */
+    public function scopeVisibleTo(Builder $query, Employee $employee): Builder
+    {
+        return $query->where(function (Builder $q) use ($employee) {
+            $q->where('employee_id', $employee->id);
+
+            if ($employee->payroll_office) {
+                $q->orWhere(fn (Builder $office) => $office->whereNull('employee_id')->where('office', $employee->payroll_office));
+            }
+        });
+    }
+
+    public function isOfficeWide(): bool
+    {
+        return $this->employee_id === null;
+    }
+
+    public function officeLabel(): ?string
+    {
+        return self::OFFICES[$this->office] ?? null;
     }
 
     public function isDone(): bool
@@ -66,8 +96,10 @@ class Task extends Model
             'status' => $this->status,
             'is_overdue' => $this->isOverdue(),
             'employee_id' => $this->employee_id,
-            'employee_name' => $this->relationLoaded('employee')
-                ? trim(($this->employee?->first_name ?? '').' '.($this->employee?->last_name ?? ''))
+            'office' => $this->office,
+            'office_label' => $this->officeLabel(),
+            'employee_name' => $this->relationLoaded('employee') && $this->employee
+                ? trim($this->employee->first_name.' '.$this->employee->last_name)
                 : null,
         ];
     }

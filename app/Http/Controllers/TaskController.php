@@ -15,7 +15,7 @@ class TaskController extends Controller
     {
         $employee = $request->user();
 
-        $tasks = Task::where('employee_id', $employee->id)
+        $tasks = Task::visibleTo($employee)
             ->orderBy('due_date')
             ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END")
             ->get()
@@ -63,7 +63,7 @@ class TaskController extends Controller
 
     public function toggleDone(Request $request, Task $task): RedirectResponse
     {
-        $this->authorizeTask($task, $request);
+        $this->authorizeMove($task, $request);
 
         $task->update([
             'status' => $task->status === 'done' ? 'pending' : 'done',
@@ -74,7 +74,7 @@ class TaskController extends Controller
 
     public function updateStatus(TaskStatusRequest $request, Task $task): RedirectResponse
     {
-        $this->authorizeTask($task, $request);
+        $this->authorizeMove($task, $request);
 
         $task->update(['status' => $request->validated('status')]);
 
@@ -87,6 +87,15 @@ class TaskController extends Controller
         $task->delete();
 
         return back()->with('success', 'Task deleted.');
+    }
+
+    /** Moving a task between columns: its owner, or anyone in the office of an office-wide task. */
+    private function authorizeMove(Task $task, Request $request): void
+    {
+        $user = $request->user();
+        $inOffice = $task->isOfficeWide() && $user->payroll_office !== null && $task->office === $user->payroll_office;
+
+        abort_unless($task->employee_id === $user->id || $inOffice, 403);
     }
 
     private function authorizeTask(Task $task, Request $request): void

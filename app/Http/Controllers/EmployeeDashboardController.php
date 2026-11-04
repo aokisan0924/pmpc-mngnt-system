@@ -134,7 +134,7 @@ class EmployeeDashboardController extends Controller
             ]);
 
         // Recent tasks (up to 5)
-        $recentTasks = Task::where('employee_id', $employee->id)
+        $recentTasks = Task::visibleTo($employee)
             ->orderByRaw("CASE WHEN status = 'done' THEN 1 ELSE 0 END")
             ->orderBy('due_date')
             ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END")
