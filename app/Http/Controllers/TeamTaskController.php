@@ -23,6 +23,7 @@ class TeamTaskController extends Controller
             : null;
         $office = array_key_exists((string) $request->query('office'), Task::OFFICES) ? $request->query('office') : null;
         $overdueOnly = $request->boolean('overdue');
+        $showOlder = $request->boolean('older');
         $today = now('Asia/Manila')->toDateString();
 
         $tasks = Task::with(['employee', 'assigner'])
@@ -30,6 +31,7 @@ class TeamTaskController extends Controller
             ->when($employeeId, fn ($q) => $q->where('employee_id', $employeeId))
             ->when($priority, fn ($q) => $q->where('priority', $priority))
             ->when($office, fn ($q) => $q->where('office', $office))
+            ->when(! $showOlder, fn ($q) => $q->where(fn ($w) => $w->where('status', '!=', 'done')->orWhere('updated_at', '>=', now()->subDays(30))))
             ->when($overdueOnly, fn ($q) => $q->where('due_date', '<', $today)->where('status', '!=', 'done'))
             ->orderBy('due_date')
             ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END")
@@ -55,6 +57,7 @@ class TeamTaskController extends Controller
                 'priority' => $priority,
                 'office' => $office,
                 'overdue' => $overdueOnly,
+                'older' => $showOlder,
             ],
         ]);
     }

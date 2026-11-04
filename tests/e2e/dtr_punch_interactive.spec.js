@@ -17,7 +17,7 @@ test('Employee punches AM In and verifies DTR Workstation state transition', asy
     await page.waitForURL('**/employee/dashboard', { timeout: 10000 })
 
     // Verify initial DTR console state: Ready for AM In (Step 1 of 4)
-    await expect(page.getByText('Daily Time Record Console')).toBeVisible()
+    await expect(page.getByText('Today’s punches')).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Punch AM In' })).toBeVisible()
 
     // Take screenshot of Initial State
@@ -29,7 +29,7 @@ test('Employee punches AM In and verifies DTR Workstation state transition', asy
     await punchButton.click()
 
     // Expect success feedback message
-    await expect(page.getByText(/Recorded AM In successfully/)).toBeVisible({ timeout: 5000 })
+    await expect(page.getByText(/attendance request was accepted/)).toBeVisible({ timeout: 5000 })
 
     // Wait for the UI state machine to advance to AM Out (Step 2 of 4)
     await expect(page.getByRole('heading', { name: 'Punch AM Out' })).toBeVisible({ timeout: 5000 })

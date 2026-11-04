@@ -113,4 +113,13 @@ class TaskBoardTest extends TestCase
         $this->actingAs($admin)->get('/admin/team-tasks')->assertOk()
             ->assertInertia(fn (Assert $page) => $page->where('tasks.0.assigned_by_name', 'Kurt Boss'));
     }
+
+    public function test_employee_dashboard_flags_a_doing_task_past_due_as_overdue(): void
+    {
+        $employee = Employee::factory()->create();
+        $this->makeTask($employee, ['title' => 'Late doing', 'status' => 'doing', 'due_date' => now('Asia/Manila')->subDays(2)->toDateString()]);
+
+        $this->actingAs($employee)->get('/employee/dashboard')->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('recentTasks.0.title', 'Late doing')->where('recentTasks.0.is_overdue', true));
+    }
 }

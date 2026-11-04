@@ -313,4 +313,45 @@ class TeamTasksTest extends TestCase
         $this->assertSame('Wide renamed', $task->title);
         $this->assertNull($task->employee_id);
     }
+
+    public function test_old_completed_tasks_are_hidden_until_asked_for(): void
+    {
+        $admin = $this->admin();
+        $employee = Employee::factory()->create();
+        $recentDone = $this->makeTask($employee, ['title' => 'Done last week', 'status' => 'done']);
+        $oldDone = $this->makeTask($employee, ['title' => 'Done long ago', 'status' => 'done']);
+        $oldOpen = $this->makeTask($employee, ['title' => 'Old but open', 'status' => 'pending']);
+        Task::whereKey([$oldDone->id, $oldOpen->id])->update(['updated_at' => now()->subDays(45)]);
+        Task::whereKey($recentDone->id)->update(['updated_at' => now()->subDays(5)]);
+
+        $titles = fn (string $q) => collect($this->boardTasks($admin, $q))->pluck('title')->sort()->values()->all();
+
+        $this->assertSame(['Done last week', 'Old but open'], $titles(''));
+        $this->assertSame(['Done last week', 'Done long ago', 'Old but open'], $titles('?older=1'));
+    }
+
+    public function test_odd_filter_values_never_error(): void
+    {
+        $admin = $this->admin();
+        $employee = Employee::factory()->create();
+        $this->makeTask($employee, ['title' => 'Only task']);
+
+        $this->assertCount(1, $this->boardTasks($admin, '?employee_id=abc'));
+        $this->assertCount(1, $this->boardTasks($admin, '?priority=bogus'));
+        $this->assertCount(1, $this->boardTasks($admin, '?office=nowhere'));
+        $this->assertCount(0, $this->boardTasks($admin, '?overdue=yes'));
+    }
+
+    public function test_regular_employee_cannot_update_or_delete_through_team_task_routes(): void
+    {
+        $employee = Employee::factory()->create();
+        $task = $this->makeTask($employee, ['title' => 'Untouched']);
+
+        $this->actingAs($employee)->patch("/admin/team-tasks/{$task->id}", [
+            'title' => 'Hacked', 'due_date' => '2026-12-01', 'priority' => 'low', 'employee_id' => $employee->id,
+        ])->assertRedirect(route('employee.dashboard'));
+        $this->actingAs($employee)->delete("/admin/team-tasks/{$task->id}")->assertRedirect(route('employee.dashboard'));
+
+        $this->assertSame('Untouched', $task->fresh()->title);
+    }
 }

@@ -24,6 +24,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
         if (merged.priority)    query.priority = merged.priority
         if (merged.office)      query.office = merged.office
         if (merged.overdue)     query.overdue = 1
+        if (merged.older)       query.older = 1
         router.get('/admin/team-tasks', query, { preserveState: true, preserveScroll: true, replace: true })
     }
 
@@ -137,6 +138,15 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                             className="h-4 w-4 rounded border-border accent-[#26215C]"
                         />
                         Overdue only
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-semibold text-sub cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={Boolean(filters.older)}
+                            onChange={e => applyFilters({ older: e.target.checked })}
+                            className="h-4 w-4 rounded border-border accent-[#26215C]"
+                        />
+                        Show completed over 30 days old
                     </label>
                 </div>
 

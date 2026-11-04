@@ -229,7 +229,7 @@ export default function Planner({ tasks = [] }) {
                     </div>
                     </div>
 
-                    <div className="flex gap-1 p-1 bg-field rounded-xl border border-border" role="group" aria-label="Filter tasks">
+                    <div className={`flex gap-1 p-1 bg-field rounded-xl border border-border ${view === 'calendar' ? '' : 'hidden'}`} role="group" aria-label="Filter tasks">
                         {['all', 'pending', 'done'].map(f => (
                             <button
                                 key={f}
@@ -250,7 +250,7 @@ export default function Planner({ tasks = [] }) {
 
                 {view === 'board' && (
                     <TaskBoard
-                        tasks={visibleTasks}
+                        tasks={tasks}
                         onMove={moveTask}
                         onEdit={startEdit}
                         onDelete={confirmDelete}
