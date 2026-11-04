@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 16:35 — 0a56b15 — Team tasks people strip
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `973b19f` → `0a56b15`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: full suite 253 of 254 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint and build passed, Opus review found nothing Critical or Important. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome, Team tasks shows Everyone 20, one chip per person with open tasks and the Fort Magsaysay and UPI Main office chips; clicking Alexander filtered the board to his 5 tasks. Nothing was changed on the live site during the check.
+
 ## 2026-11-04 15:50 — 973b19f — Repeating tasks, team tasks overview and calendar
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `d5bc350` → `973b19f`
