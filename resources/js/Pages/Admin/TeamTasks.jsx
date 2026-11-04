@@ -7,10 +7,11 @@ import TaskBoard from '@/Components/TaskBoard'
 import TaskFormModal from '@/Components/TaskFormModal'
 import TaskDetailModal from '@/Components/TaskDetailModal'
 import TeamTaskCalendar from '@/Components/TeamTaskCalendar'
+import TeamPeopleStrip from '@/Components/TeamPeopleStrip'
 
 const SELECT = 'rounded-xl border border-border bg-field px-3 py-2 text-xs font-semibold text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
 
-export default function TeamTasks({ tasks = [], employees = [], offices = [], filters = {}, overview = {} }) {
+export default function TeamTasks({ tasks = [], employees = [], offices = [], filters = {}, overview = {}, people = [] }) {
     const { flash } = usePage().props
     const [showForm, setShowForm]         = useState(false)
     const [editTarget, setEditTarget]     = useState(null)
@@ -26,6 +27,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
         if (merged.employee_id) query.employee_id = merged.employee_id
         if (merged.priority)    query.priority = merged.priority
         if (merged.office)      query.office = merged.office
+        if (merged.group)       query.group = merged.group
         if (merged.overdue)     query.overdue = 1
         if (merged.older)       query.older = 1
         router.get('/admin/team-tasks', query, { preserveState: true, preserveScroll: true, replace: true })
@@ -97,57 +99,24 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                     }
                 />
 
-                <section aria-label="Team overview" className="flex flex-wrap items-center gap-2 text-sm">
-                    <button
-                        type="button"
-                        aria-pressed={Boolean(filters.overdue)}
-                        onClick={() => applyFilters({ overdue: !filters.overdue })}
-                        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
-                            overview.overdue > 0
-                                ? 'border-rose-300 bg-rose-50 text-rose-700'
-                                : 'border-border bg-panel text-sub'
-                        } ${filters.overdue ? 'ring-2 ring-rose-300' : ''}`}
-                    >
-                        <b className="tnum">{overview.overdue ?? 0}</b> overdue
-                    </button>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-panel px-3 py-1.5 font-medium text-text">
-                        <b className="tnum">{overview.due_this_week ?? 0}</b> due this week
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-panel px-3 py-1.5 font-medium text-sub">
-                        <b className="tnum text-text">{overview.open ?? 0}</b> open
-                    </span>
-                </section>
-
-                <div className="flex gap-1 rounded-xl border border-border bg-field p-1 w-fit" role="group" aria-label="Team tasks view">
-                    {[['board', 'Board'], ['calendar', 'Calendar']].map(([key, label]) => (
-                        <button
-                            key={key}
-                            type="button"
-                            aria-pressed={view === key}
-                            onClick={() => setView(key)}
-                            className={`rounded-lg px-3 py-1 text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
-                                view === key ? 'border border-indigo-200 bg-white font-bold text-[#26215C] shadow-xs' : 'text-sub hover:bg-panel/50 hover:text-text'
-                            }`}
-                        >
-                            {label}
-                        </button>
-                    ))}
-                </div>
+                <TeamPeopleStrip people={people} overview={overview} filters={filters} onFilter={applyFilters} />
 
                 <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-panel p-3">
-                    <label className="flex items-center gap-2 text-xs font-semibold text-sub">
-                        Employee
-                        <select
-                            value={filters.employee_id ?? ''}
-                            onChange={e => applyFilters({ employee_id: e.target.value })}
-                            className={SELECT}
-                        >
-                            <option value="">All</option>
-                            {employees.map(emp => (
-                                <option key={emp.id} value={emp.id}>{emp.name}</option>
-                            ))}
-                        </select>
-                    </label>
+                    <div className="flex gap-1 rounded-xl border border-border bg-field p-1 shrink-0" role="group" aria-label="Team tasks view">
+                        {[['board', 'Board'], ['calendar', 'Calendar']].map(([key, label]) => (
+                            <button
+                                key={key}
+                                type="button"
+                                aria-pressed={view === key}
+                                onClick={() => setView(key)}
+                                className={`rounded-lg px-3 py-1 text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
+                                    view === key ? 'border border-indigo-200 bg-white font-bold text-[#26215C] shadow-xs' : 'text-sub hover:bg-panel/50 hover:text-text'
+                                }`}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
                     <label className="flex items-center gap-2 text-xs font-semibold text-sub">
                         Office
                         <select
