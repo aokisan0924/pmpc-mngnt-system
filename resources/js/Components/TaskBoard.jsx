@@ -20,6 +20,9 @@ const PRIORITY_BADGE = {
 export default function TaskBoard({ tasks, onMove, onEdit, onDelete, accent = 'emerald', showOwner = false }) {
     const [overColumn, setOverColumn] = useState(null)
 
+    // Employees may move a whole-office task but not edit or delete it.
+    const readOnly = task => !showOwner && task.employee_id === null
+
     const accentText = accent === 'indigo'
         ? 'text-[#26215C] dark:text-indigo-300'
         : 'text-[#0F6E56] dark:text-emerald-300'
@@ -66,8 +69,12 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, accent = 'e
                                         <p className={`text-sm font-semibold ${done ? 'line-through text-dim' : 'text-text'}`}>
                                             {task.title}
                                         </p>
-                                        {showOwner && task.employee_name && (
-                                            <p className="mt-0.5 text-xs font-semibold text-sub">{task.employee_name}</p>
+                                        {showOwner && (task.employee_name || task.office_label) && (
+                                            <p className="mt-0.5 text-xs font-semibold text-sub">
+                                                {task.employee_name
+                                                    ? `${task.employee_name}${task.office_label ? ` · ${task.office_label}` : ''}`
+                                                    : `Whole office · ${task.office_label}`}
+                                            </p>
                                         )}
                                         {task.description && (
                                             <p className="mt-1 text-xs text-sub line-clamp-2">{task.description}</p>
@@ -76,6 +83,9 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, accent = 'e
                                             <span className="text-xs font-mono text-dim">{task.due_label}</span>
                                             {PRIORITY_BADGE[task.priority]}
                                             {task.category && <Badge variant="slate" size="sm">{task.category}</Badge>}
+                                            {readOnly(task) && (
+                                                <Badge variant="indigo" size="sm">{`Whole office${task.office_label ? ` · ${task.office_label}` : ''}`}</Badge>
+                                            )}
                                             {task.is_overdue && <Badge variant="rose" size="sm">Overdue</Badge>}
                                         </div>
 
@@ -91,6 +101,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, accent = 'e
                                                     {`→ ${c.label}`}
                                                 </button>
                                             ))}
+                                            {!readOnly(task) && (
                                             <button
                                                 type="button"
                                                 onClick={() => onEdit(task)}
@@ -99,7 +110,8 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, accent = 'e
                                             >
                                                 Edit
                                             </button>
-                                            {onDelete && (
+                                            )}
+                                            {onDelete && !readOnly(task) && (
                                                 <button
                                                     type="button"
                                                     onClick={() => onDelete(task)}

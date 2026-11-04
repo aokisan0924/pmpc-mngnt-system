@@ -9,12 +9,15 @@ const LABEL = 'block text-xs font-semibold text-sub uppercase tracking-wider mb-
  * Create / edit dialog for a task. Render it only while open: it reads its
  * initial values from `task` / `defaultDate` when it mounts.
  *
- * Pass `employees` ([{ id, name }]) to show an Employee select (admin use).
+ * Pass `employees` ([{ id, name }]) and `offices` ([{ key, label }]) to show the
+ * Employee and Office selects (admin use). Leaving the employee empty makes it a
+ * whole-office task, seen by everyone in the chosen office.
  */
 export default function TaskFormModal({
     task = null,
     defaultDate = '',
     employees = null,
+    offices = [],
     createUrl,
     updateUrl,
     onClose,
@@ -25,7 +28,7 @@ export default function TaskFormModal({
         due_date:    task?.due_date?.slice(0, 10) ?? defaultDate,
         category:    task?.category ?? '',
         priority:    task?.priority ?? 'medium',
-        ...(employees ? { employee_id: task?.employee_id ?? '' } : {}),
+        ...(employees ? { employee_id: task?.employee_id ?? '', office: task?.office ?? '' } : {}),
     })
 
     useEffect(() => {
@@ -78,16 +81,15 @@ export default function TaskFormModal({
                     {employees && (
                         <div>
                             <label htmlFor="task-form-employee-input" className={LABEL}>
-                                Employee <span className="text-rose-500">*</span>
+                                Employee
                             </label>
                             <select
                                 id="task-form-employee-input"
                                 value={data.employee_id}
                                 onChange={e => setData('employee_id', e.target.value)}
                                 className={INPUT}
-                                required
                             >
-                                <option value="" disabled>Choose an employee</option>
+                                <option value="">Whole office (everyone in the office)</option>
                                 {(task && !employees.some(emp => emp.id === task.employee_id)
                                     ? [{ id: task.employee_id, name: `${task.employee_name} (inactive)` }, ...employees]
                                     : employees
@@ -96,6 +98,27 @@ export default function TaskFormModal({
                                 ))}
                             </select>
                             {errors.employee_id && <p className="mt-1 text-xs text-rose-500">{errors.employee_id}</p>}
+                        </div>
+                    )}
+
+                    {employees && (
+                        <div>
+                            <label htmlFor="task-form-office-input" className={LABEL}>
+                                Office {!data.employee_id && <span className="text-rose-500">*</span>}
+                            </label>
+                            <select
+                                id="task-form-office-input"
+                                value={data.office}
+                                onChange={e => setData('office', e.target.value)}
+                                className={INPUT}
+                                required={!data.employee_id}
+                            >
+                                <option value="">{data.employee_id ? "The employee's own office" : 'Choose an office'}</option>
+                                {offices.map(o => (
+                                    <option key={o.key} value={o.key}>{o.label}</option>
+                                ))}
+                            </select>
+                            {errors.office && <p className="mt-1 text-xs text-rose-500">{errors.office}</p>}
                         </div>
                     )}
 

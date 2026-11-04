@@ -403,12 +403,18 @@ export default function Planner({ tasks = [] }) {
                                                             {task.category}
                                                         </Badge>
                                                     )}
+                                                    {task.employee_id === null && (
+                                                        <Badge variant="indigo" size="sm">
+                                                            {`Whole office${task.office_label ? ` · ${task.office_label}` : ''}`}
+                                                        </Badge>
+                                                    )}
                                                     {task.is_overdue && !done && (
                                                         <Badge variant="rose" size="sm">Overdue</Badge>
                                                     )}
                                                 </div>
                                             </div>
 
+                                            {task.employee_id !== null && (
                                             <div className="flex flex-col gap-1 shrink-0">
                                                 <button
                                                     type="button"
@@ -427,6 +433,7 @@ export default function Planner({ tasks = [] }) {
                                                     Delete
                                                 </button>
                                             </div>
+                                            )}
                                         </div>
                                     </div>
                                 )

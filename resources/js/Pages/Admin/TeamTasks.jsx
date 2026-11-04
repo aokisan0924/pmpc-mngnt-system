@@ -8,7 +8,7 @@ import TaskFormModal from '@/Components/TaskFormModal'
 
 const SELECT = 'rounded-xl border border-border bg-field px-3 py-2 text-xs font-semibold text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
 
-export default function TeamTasks({ tasks = [], employees = [], filters = {} }) {
+export default function TeamTasks({ tasks = [], employees = [], offices = [], filters = {} }) {
     const { flash } = usePage().props
     const [showForm, setShowForm]         = useState(false)
     const [editTarget, setEditTarget]     = useState(null)
@@ -19,6 +19,7 @@ export default function TeamTasks({ tasks = [], employees = [], filters = {} }) 
         const query = {}
         if (merged.employee_id) query.employee_id = merged.employee_id
         if (merged.priority)    query.priority = merged.priority
+        if (merged.office)      query.office = merged.office
         if (merged.overdue)     query.overdue = 1
         router.get('/admin/team-tasks', query, { preserveState: true, preserveScroll: true, replace: true })
     }
@@ -102,6 +103,19 @@ export default function TeamTasks({ tasks = [], employees = [], filters = {} }) 
                         </select>
                     </label>
                     <label className="flex items-center gap-2 text-xs font-semibold text-sub">
+                        Office
+                        <select
+                            value={filters.office ?? ''}
+                            onChange={e => applyFilters({ office: e.target.value })}
+                            className={SELECT}
+                        >
+                            <option value="">All</option>
+                            {offices.map(o => (
+                                <option key={o.key} value={o.key}>{o.label}</option>
+                            ))}
+                        </select>
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-semibold text-sub">
                         Priority
                         <select
                             value={filters.priority ?? ''}
@@ -139,6 +153,7 @@ export default function TeamTasks({ tasks = [], employees = [], filters = {} }) 
                 <TaskFormModal
                     task={editTarget}
                     employees={employees}
+                    offices={offices}
                     createUrl="/admin/team-tasks"
                     updateUrl={t => `/admin/team-tasks/${t.id}`}
                     onClose={closeForm}
