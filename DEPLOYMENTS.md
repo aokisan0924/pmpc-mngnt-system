@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 11:34 — 6d7ec1c — Task detail modal
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `da6d33b` → `6d7ec1c`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: local suite 211 of 212 passed (the one failure is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint clean, browser-checked locally on admin Team tasks (open, Edit, Delete confirm, close) and on the employee board (open, move, Escape, no Edit/Delete on whole-office tasks). On live: server tree clean before and after, no pending migrations, app returned from maintenance mode, task count unchanged at 51, `/login` 200, Team tasks and planner redirect guests, new `TeamTasks` and `Planner` assets return 200 and match the manifest, the `TaskDetailModal` chunk is on the server, no log errors. Not checked: a signed-in click-through on the live site.
+
 ## 2026-11-04 11:30 — da6d33b — Office tasks and import of the Google Tasks lists
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `8b93955` → `da6d33b`
