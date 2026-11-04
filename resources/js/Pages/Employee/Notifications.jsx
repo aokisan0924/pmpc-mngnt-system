@@ -214,12 +214,9 @@ export default function Notifications({ notifications = [] }) {
                                 </div>
                                 <p className="text-base font-semibold text-text">
                                     {notifications.length === 0
-                                        ? 'No Notifications Yet'
+                                        ? 'No notifications'
                                         : `No ${filter} notifications found`}
                                 </p>
-                                {notifications.length === 0 && (
-                                    <p className="text-xs text-dim mt-1">DTR review decisions and other updates will appear here.</p>
-                                )}
                             </div>
                         </Card>
                     )}

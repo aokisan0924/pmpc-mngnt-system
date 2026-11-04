@@ -225,7 +225,7 @@ export default function Dashboard({
                     }}
                 >
                     {/* Console Header Bar */}
-                    <div className="relative z-10 flex flex-row items-center justify-between gap-4">
+                    <div className="relative z-10 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                         <div className="max-w-2xl">
                             <h1 className="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight">
                                 {greeting}, {firstName}.
@@ -237,10 +237,10 @@ export default function Dashboard({
                     </div>
 
                     {/* Workstation Command Deck: Punch Action */}
-                    <div className="relative z-10 my-4">
+                    <div className="relative z-20 my-4">
 
                         {/* Punch Controller */}
-                        <div className="flex flex-col justify-between rounded-xl bg-[#094738]/90 border border-white/15 p-4 sm:p-5 space-y-4 backdrop-blur-xs">
+                        <div className="flex flex-col gap-4 rounded-xl bg-[#094738]/90 border border-white/15 p-4 sm:p-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                             <div>
                                 <span className="text-[12px] font-bold uppercase tracking-[0.14em] text-emerald-300">
                                     {pendingPunch ? 'Unresolved attendance request' : today?.has_active_absence ? 'Planned absence' : nextSlot ? 'Next required action' : 'Today’s attendance'}
@@ -256,7 +256,7 @@ export default function Dashboard({
                             {/* Tactile Punch Controller */}
                             <div
                                 data-testid="dtr-primary-action"
-                                className="fixed inset-x-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 flex items-center justify-end max-sm:justify-center gap-3 rounded-2xl border border-white/20 bg-[#063328] p-3.5 shadow-xl sm:static sm:flex-row sm:border-white/15 sm:bg-[#07382C] sm:p-3.5 sm:shadow-none"
+                                className="fixed inset-x-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 flex items-center justify-end max-sm:justify-center gap-3 rounded-2xl border border-white/20 bg-[#063328] p-3.5 shadow-xl sm:static sm:flex-row sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none"
                             >
                                 {today?.has_active_absence && !pendingPunch && (
                                     <p className="min-w-0 pr-2 text-xs font-semibold text-emerald-100 truncate">Clock-in is paused</p>
@@ -318,7 +318,7 @@ export default function Dashboard({
                             </div>
 
                             {/* Polite Feedback Container */}
-                            <div aria-live="polite" aria-atomic="true">
+                            <div aria-live="polite" aria-atomic="true" className="sm:basis-full empty:hidden">
                                 {punchFeedback && (
                                     <div className={`p-2.5 rounded-lg text-xs font-semibold flex items-center gap-2 border ${
                                         punchFeedback.type === 'success'

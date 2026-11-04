@@ -89,8 +89,10 @@ export default function Profile({ employee, govIds }) {
         <EmployeeLayout title="My Profile">
             <div className="employee-page-shell max-w-5xl space-y-5">
 
-                <Link href="/employee/setup" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[#0F6E56] underline">Account setup, verified office & optional signature</Link>
-                <p className="text-sm text-sub">Name changes require HR verification. Contact HR after your account setup is approved.</p>
+                <div className="flex flex-wrap items-center justify-between gap-x-4">
+                    <Link href="/employee/setup" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[#0F6E56] underline">Account setup & signature</Link>
+                    <p className="text-sm text-sub">Name changes need HR verification.</p>
+                </div>
 
                 {flash?.success && (
                     <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#0F6E56]/10 border border-[#0F6E56]/25 text-[#0F6E56] dark:text-emerald-400 text-xs font-semibold">
@@ -146,7 +148,6 @@ export default function Profile({ employee, govIds }) {
                         <Card
                             className="employee-workspace-card"
                             title="Personal Information"
-                            description="Update your contact number, physical address, and basic directory details"
                         >
                             <form onSubmit={submitInfo}>
                                 <CardContent className="space-y-5">
@@ -247,7 +248,6 @@ export default function Profile({ employee, govIds }) {
                         <Card
                             className="employee-workspace-card"
                             title="Government Statutory Numbers"
-                            description="Mandatory Philippine statutory registration identifiers used for monthly Remittance returns"
                         >
                             <form onSubmit={submitGov}>
                                 <CardContent className="space-y-5">
@@ -255,7 +255,7 @@ export default function Profile({ employee, govIds }) {
                                     <svg className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    <span>These statutory records are encrypted and utilized solely for SSS, PhilHealth, Pag-IBIG, and BIR compliance.</span>
+                                    <span>Used only for SSS, PhilHealth, Pag-IBIG and BIR records.</span>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -334,7 +334,6 @@ export default function Profile({ employee, govIds }) {
                         <Card
                             className="employee-workspace-card"
                             title="Account Security Credentials"
-                            description="Ensure your portal credentials remain confidential with regular updates"
                         >
                             <form onSubmit={submitPass}>
                                 <CardContent className="max-w-lg space-y-5">
