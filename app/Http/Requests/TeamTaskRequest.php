@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\Task;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -30,13 +31,15 @@ class TeamTaskRequest extends FormRequest
             'category' => ['nullable', 'string', 'max:100'],
             'priority' => ['required', 'in:low,medium,high'],
             'employee_id' => [
-                'required',
+                'nullable',
+                'required_without:office',
                 'integer',
                 Rule::exists('employees', 'id')->where(
                     fn ($query) => $query->where('status', 'active')
                         ->when($currentOwnerId, fn ($q) => $q->orWhere('id', $currentOwnerId))
                 ),
             ],
+            'office' => ['nullable', 'required_without:employee_id', Rule::in(array_keys(Task::OFFICES))],
         ];
     }
 }

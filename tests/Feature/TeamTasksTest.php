@@ -237,4 +237,80 @@ class TeamTasksTest extends TestCase
         $this->assertSame('Private', $personal->title);
         $this->assertSame('pending', $personal->status);
     }
+
+    public function test_admin_creates_an_office_wide_task_without_an_employee(): void
+    {
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->post('/admin/team-tasks', [
+            'title' => 'Facebook Page Monitoring', 'due_date' => '2026-11-20', 'priority' => 'medium',
+            'employee_id' => '', 'office' => 'fort_magsaysay',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $task = Task::firstOrFail();
+        $this->assertNull($task->employee_id);
+        $this->assertSame('fort_magsaysay', $task->office);
+        $this->assertSame($admin->id, $task->assigned_by);
+    }
+
+    public function test_task_needs_an_employee_or_an_office_and_a_real_office_key(): void
+    {
+        $admin = $this->admin();
+        $payload = ['title' => 'X', 'due_date' => '2026-11-20', 'priority' => 'low'];
+
+        $this->actingAs($admin)->post('/admin/team-tasks', $payload)->assertSessionHasErrors(['employee_id', 'office']);
+        $this->actingAs($admin)->post('/admin/team-tasks', [...$payload, 'office' => 'gen_mdse'])->assertSessionHasErrors('office');
+
+        $this->assertSame(0, Task::count());
+    }
+
+    public function test_choosing_only_an_employee_fills_the_office_from_that_employee(): void
+    {
+        $admin = $this->admin();
+        $employee = Employee::factory()->create(['payroll_office' => 'cubao']);
+
+        $this->actingAs($admin)->post('/admin/team-tasks', [
+            'title' => 'Personal ask', 'due_date' => '2026-11-20', 'priority' => 'low', 'employee_id' => $employee->id,
+        ])->assertRedirect();
+
+        $this->assertSame('cubao', Task::firstOrFail()->office);
+    }
+
+    public function test_office_filter_and_office_wide_cards_on_the_board(): void
+    {
+        $admin = $this->admin();
+        $cubao = Employee::factory()->create(['payroll_office' => 'cubao']);
+        $this->makeTask($cubao, ['title' => 'Kath task', 'office' => 'cubao']);
+        $this->makeTask(Employee::factory()->create(), ['title' => 'Elsewhere', 'office' => 'main_office']);
+        Task::create([
+            'assigned_by' => $admin->id, 'employee_id' => null, 'office' => 'cubao', 'title' => 'Cubao wide',
+            'due_date' => '2026-11-20', 'priority' => 'low', 'status' => 'pending',
+        ]);
+
+        $tasks = collect($this->boardTasks($admin, '?office=cubao'))->keyBy('title');
+
+        $this->assertSame(['Cubao wide', 'Kath task'], $tasks->keys()->sort()->values()->all());
+        $this->assertNull($tasks['Cubao wide']['employee_name']);
+        $this->assertSame('Cubao Office', $tasks['Cubao wide']['office_label']);
+        $this->assertCount(3, $this->boardTasks($admin, '?office=bogus'), 'an unknown office filter is ignored');
+    }
+
+    public function test_admin_can_move_and_edit_an_office_wide_task(): void
+    {
+        $admin = $this->admin();
+        $task = Task::create([
+            'assigned_by' => $admin->id, 'employee_id' => null, 'office' => 'cubao', 'title' => 'Wide',
+            'due_date' => '2026-11-20', 'priority' => 'low', 'status' => 'pending',
+        ]);
+
+        $this->actingAs($admin)->patch("/admin/team-tasks/{$task->id}/status", ['status' => 'doing'])->assertRedirect();
+        $this->actingAs($admin)->patch("/admin/team-tasks/{$task->id}", [
+            'title' => 'Wide renamed', 'due_date' => '2026-11-21', 'priority' => 'high', 'office' => 'cubao',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $task->refresh();
+        $this->assertSame('doing', $task->status);
+        $this->assertSame('Wide renamed', $task->title);
+        $this->assertNull($task->employee_id);
+    }
 }
