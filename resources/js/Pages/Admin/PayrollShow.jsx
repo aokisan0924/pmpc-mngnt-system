@@ -112,9 +112,6 @@ export default function PayrollShow({ payroll, items = [], signatureEmployees = 
                             <h2 id="breakdown-title" className="font-heading text-xl font-bold text-text">
                                 Employee breakdown
                             </h2>
-                            <p className="mt-1 text-xs text-sub">
-                                Open an employee to inspect earnings and deductions.
-                            </p>
                         </div>
                         <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-2">
                             <label className="text-xs text-sub">
@@ -153,7 +150,7 @@ export default function PayrollShow({ payroll, items = [], signatureEmployees = 
                                             {item.payroll_office_label || item.position || 'Employee'}
                                         </p>
                                         <p className="mt-1 text-xs text-sub">
-                                            {item.payroll_office
+                                            {item.payroll_office && item.paid_days_basis != null
                                                 ? `${item.paid_days_basis} paid days − ${item.absence_days} absent`
                                                 : `${item.days_present} attendance days`}
                                         </p>
@@ -240,11 +237,8 @@ export default function PayrollShow({ payroll, items = [], signatureEmployees = 
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
                             <h2 id="downloads-title" className="font-heading text-lg font-bold text-text">
-                                Payroll workbook export
+                                Export to Excel
                             </h2>
-                            <p className="mt-1 text-xs text-sub">
-                                Export this payroll as an Excel workbook with the selected signatories.
-                            </p>
                         </div>
                     </div>
                     <details

@@ -3,7 +3,6 @@ import { useForm, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Button from '@/Components/UI/Button'
 import AdminPageHeader from '@/Components/AdminPageHeader'
-import PayrollSummary from '@/Components/PayrollSummary'
 import { calculateOfficeItem } from './officePayrollMath'
 
 const fmt = (value) =>
@@ -141,7 +140,6 @@ export default function PayrollCreate({
                         <Link href="/admin/account-setups" className="font-semibold underline">Review account setups</Link>
                     </p>
                 )}
-                <PayrollSummary {...totals} />
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-border bg-field px-4 py-3 text-sm text-sub">
                     <strong className="text-text">Holidays this cutoff:</strong>
                     {holidays.length ? holidays.map((holiday) => (

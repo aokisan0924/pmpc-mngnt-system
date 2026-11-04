@@ -68,7 +68,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                     title={employee.full_name}
                     badge={`${employee.employee_id} · ${employee.department}`}
                     leading={<div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-white/10 font-heading text-sm font-bold text-white">{employee.initials}</div>}
-                    meta={<Link href="/admin/dtr" className="font-medium text-indigo-100 hover:text-white">← Back to DTR Ledger</Link>}
+                    meta={<Link href="/admin/dtr" className="font-medium text-indigo-100 hover:text-white">← Attendance records</Link>}
                     action={
                     <div className="flex flex-wrap items-center gap-3">
                         {/* Month Navigator */}
@@ -134,7 +134,6 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                 <Card>
                     <CardHeader>
                         <CardTitle>Daily Time Record — {monthLabel}</CardTitle>
-                        <span className="text-xs text-sub">{logs.length} days in period</span>
                     </CardHeader>
 
                     <CardContent className="p-0">
@@ -170,9 +169,6 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                             >
                                                 <td className="px-5 py-3.5">
                                                     <p className="font-semibold text-text">{log.date_label}{log.date === today_date && <span className="ml-2 inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[12px] font-bold text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100">Today</span>}</p>
-                                                    {log.is_weekend && (
-                                                        <p className="text-[12px] text-dim font-medium">Rest day</p>
-                                                    )}
                                                 </td>
                                                 {slots.map(([slot]) => (
                                                     <td
@@ -203,7 +199,6 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                                     )}
                                                     {log.absence_reason && <p className="mt-1 max-w-64 whitespace-normal text-left text-xs text-sub">{log.absence_reason}</p>}
                                                     <DtrEditRequestNote request={log.edit_request} slots={slots} />
-                                                    {!log.has_entry && !log.is_future && <p className="mt-1 text-[12px] text-dim">No entry</p>}
                                                 </td>
                                                 {canCorrect && (
                                                     <td className="px-3 py-2 text-center">
