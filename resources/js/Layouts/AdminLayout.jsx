@@ -69,6 +69,18 @@ const navItems = [
         ),
     },
     {
+        label: 'Team tasks',
+        href: '/admin/team-tasks',
+        section: 'People & attendance',
+        icon: (
+            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <rect x="3" y="4" width="5" height="16" rx="1.5" fill="currentColor" fillOpacity="0.22" />
+                <rect x="9.5" y="4" width="5" height="10" rx="1.5" />
+                <rect x="16" y="4" width="5" height="13" rx="1.5" />
+            </svg>
+        ),
+    },
+    {
         label: 'Attendance records',
         href: '/admin/dtr',
         section: 'People & attendance',
