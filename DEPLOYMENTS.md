@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 15:10 — d5bc350 — Admin text tidy: employee record, settings, dashboard
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `cadeb9a` → `d5bc350`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: Pint, full suite (221 of 222; the one failure is the JPEG-less local PHP build in `EmployeeSignatureTest`), Node tests and build passed locally. On live: server tree clean before and after, no pending migrations, app returned from maintenance mode, task count unchanged at 51, no log errors. Checked read-only while signed in as Kurt in Chrome: the Operations dashboard shows "Your attendance", plain punch times and "Ready to compute payroll" with no period line; an employee record shows the one-line signature note; Settings > DTR Signatories shows "Signatory 1" with no badge and a "Preview" label. Nothing was changed on the live site during the check.
+
 ## 2026-11-04 13:18 — cadeb9a — My tasks page title matches the sidebar
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `b3007a0` → `cadeb9a`
