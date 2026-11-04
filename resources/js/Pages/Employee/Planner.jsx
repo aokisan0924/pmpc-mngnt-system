@@ -171,13 +171,12 @@ export default function Planner({ tasks = [] }) {
                 {/* Controls Bar */}
                 <div className="employee-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2.5 rounded-2xl border">
                     <div className="flex flex-wrap items-center gap-2">
-                        <div className="flex gap-1 p-1 bg-field rounded-xl border border-border" role="tablist" aria-label="Planner view">
+                        <div className="flex gap-1 p-1 bg-field rounded-xl border border-border" role="group" aria-label="Planner view">
                             {[['calendar', 'Calendar'], ['board', 'Board']].map(([key, label]) => (
                                 <button
                                     key={key}
                                     type="button"
-                                    role="tab"
-                                    aria-selected={view === key}
+                                    aria-pressed={view === key}
                                     onClick={() => setView(key)}
                                     className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                         view === key

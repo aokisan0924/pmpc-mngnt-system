@@ -80,19 +80,17 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, accent = 'e
                                         </div>
 
                                         <div className="mt-3 flex items-center gap-2">
-                                            <label className="sr-only" htmlFor={`move-${task.id}`}>
-                                                {`Move "${task.title}" to`}
-                                            </label>
-                                            <select
-                                                id={`move-${task.id}`}
-                                                value={task.status}
-                                                onChange={e => onMove(task, e.target.value)}
-                                                className={`min-w-0 flex-1 rounded-lg border border-border bg-field px-2 py-1 text-xs font-semibold text-text focus-visible:outline-2 ${focusRing}`}
-                                            >
-                                                {COLUMNS.map(c => (
-                                                    <option key={c.status} value={c.status}>{`Move to: ${c.label}`}</option>
-                                                ))}
-                                            </select>
+                                            {COLUMNS.filter(c => c.status !== task.status).map(c => (
+                                                <button
+                                                    key={c.status}
+                                                    type="button"
+                                                    onClick={() => onMove(task, c.status)}
+                                                    aria-label={`Move "${task.title}" to ${c.label}`}
+                                                    className={`flex-1 rounded-lg border border-border bg-field px-2 py-1 text-xs font-semibold text-text hover:bg-hover focus-visible:outline-2 ${focusRing}`}
+                                                >
+                                                    {`→ ${c.label}`}
+                                                </button>
+                                            ))}
                                             <button
                                                 type="button"
                                                 onClick={() => onEdit(task)}

@@ -88,7 +88,10 @@ export default function TaskFormModal({
                                 required
                             >
                                 <option value="" disabled>Choose an employee</option>
-                                {employees.map(emp => (
+                                {(task && !employees.some(emp => emp.id === task.employee_id)
+                                    ? [{ id: task.employee_id, name: `${task.employee_name} (inactive)` }, ...employees]
+                                    : employees
+                                ).map(emp => (
                                     <option key={emp.id} value={emp.id}>{emp.name}</option>
                                 ))}
                             </select>

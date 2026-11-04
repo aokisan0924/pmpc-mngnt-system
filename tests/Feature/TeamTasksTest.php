@@ -158,4 +158,33 @@ class TeamTasksTest extends TestCase
         $this->actingAs($admin)->delete("/admin/team-tasks/{$task->id}")->assertRedirect();
         $this->assertSame(0, Task::count());
     }
+
+    public function test_admin_can_edit_task_of_an_inactive_owner_without_reassigning(): void
+    {
+        $admin = $this->admin();
+        $inactive = Employee::factory()->inactive()->create();
+        $task = $this->makeTask($inactive);
+
+        $this->actingAs($admin)->patch("/admin/team-tasks/{$task->id}", [
+            'title' => 'Typo fixed', 'due_date' => '2026-11-20', 'priority' => 'low', 'employee_id' => $inactive->id,
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertSame('Typo fixed', $task->fresh()->title);
+    }
+
+    public function test_admin_cannot_reassign_task_to_inactive_or_missing_employee(): void
+    {
+        $admin = $this->admin();
+        $owner = Employee::factory()->create();
+        $inactive = Employee::factory()->inactive()->create();
+        $task = $this->makeTask($owner);
+        $payload = ['title' => 'X', 'due_date' => '2026-11-20', 'priority' => 'low'];
+
+        $this->actingAs($admin)->patch("/admin/team-tasks/{$task->id}", [...$payload, 'employee_id' => $inactive->id])
+            ->assertSessionHasErrors('employee_id');
+        $this->actingAs($admin)->patch("/admin/team-tasks/{$task->id}", [...$payload, 'employee_id' => 999999])
+            ->assertSessionHasErrors('employee_id');
+
+        $this->assertSame($owner->id, $task->fresh()->employee_id);
+    }
 }
