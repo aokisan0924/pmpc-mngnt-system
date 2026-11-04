@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 11:08 — 8b93955 — Private personal tasks and smooth Team tasks
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `de91eaa` → `8b93955`
+- Migrations: `2026_11_04_120000_add_assigned_by_to_tasks_table` (adds nullable `tasks.assigned_by`, a foreign key to `employees` that sets null on delete)
+- Backup: `/home/u512373751/backups/pre-private-tasks-20261104-1107.sql.gz` (full database dump taken just before the deploy; gzip test passed)
+- Data changes: none to existing rows. All 30 existing tasks have `assigned_by` empty, so they count as employees' personal tasks and no longer appear on Team tasks; only tasks an admin creates from now on are listed there. To undo: `php artisan migrate:rollback --step=1 --force`, or restore the backup.
+- Verified: local suite passed except the unrelated JPEG-less local PHP build failure in `EmployeeSignatureTest`; Pint clean; 5 Node tests passed; browser-checked locally that personal tasks are hidden, an admin-created task appears, cards move instantly and the loader stays off under a 1.5 s network delay. On live: server tree clean before and after, dry run listed only the column and foreign key, migration ran, `assigned_by` column present (30 tasks, 30 personal, 0 assigned), `/login` 200, Team tasks and planner redirect guests, new `TeamTasks` and `app` assets return 200 and match the manifest, no new log errors, maintenance mode off. Not checked: a signed-in click-through on the live site.
+
 ## 2026-11-04 10:57 — de91eaa — Task board and Team tasks
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `9d63f5a` → `de91eaa`
