@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- My tasks has a Board tab with To do, Doing and Done columns. Drag a card to another column or use the "Move to" menu on the card; the Calendar tab is unchanged. Tasks gain a Doing status, and existing tasks stay as To do.
+- Admins get a Team tasks page (Admin Portal, People & attendance) showing every employee's tasks on one board with each employee's name. It can filter by employee, priority and overdue, and admins can add, edit, move, reassign and delete any employee's task. Employees still see only their own tasks.
 - Always-present employees (such as the president) now get the standard punches (AM in 08:00, AM out 12:00, PM in 13:00, PM out 17:00) written automatically on each workday with no DTR row. It runs daily at 6pm (`php artisan dtr:fill-always-present`) and also whenever an admin opens the DTR pages or prints a DTR. It never overwrites an existing row, skips weekends and holidays, never fills today before 5pm, and does not invent history before an employee's latest row.
 - "Export all DTRs" button on the admin DTR page downloads one zip with a PDF per active employee, named Surname_DTR_YYYY-MM.pdf (an employee ID is added when two people share a surname). Single-employee DTR PDFs now use the same Surname_DTR_YYYY-MM.pdf name.
 - Payroll attendance now defaults to DTR-derived present days, absences, and late minutes after the configured grace period. Super admins can override these values in the payroll preview with a recorded reason; the saved batch retains the DTR snapshot and flags unresolved dates.
