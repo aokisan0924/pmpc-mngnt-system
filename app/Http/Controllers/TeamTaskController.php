@@ -9,7 +9,9 @@ use App\Http\Requests\TeamTaskRequest;
 use App\Models\Employee;
 use App\Models\RecurringTask;
 use App\Models\Task;
+use App\Services\RecurringTaskGenerator;
 use App\Services\TaskAssignmentNotifier;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -21,6 +23,8 @@ class TeamTaskController extends Controller
 {
     public function index(Request $request): Response
     {
+        app(RecurringTaskGenerator::class)->runOncePerDay();
+
         $employeeId = $request->integer('employee_id') ?: null;
         $priority = in_array($request->query('priority'), ['low', 'medium', 'high'], true)
             ? $request->query('priority')
@@ -54,6 +58,7 @@ class TeamTaskController extends Controller
 
         return Inertia::render('Admin/TeamTasks', [
             'tasks' => $tasks,
+            'overview' => $this->overview(),
             'employees' => $employees,
             'offices' => collect(Task::OFFICES)->map(fn (string $label, string $key) => ['key' => $key, 'label' => $label])->values(),
             'filters' => [
@@ -168,5 +173,35 @@ class TeamTaskController extends Controller
         }
 
         return $data;
+    }
+
+    /**
+     * Team-wide figures for the strip on top of the page. They cover every admin-assigned task
+     * and deliberately ignore the board's filters.
+     *
+     * @return array<string, mixed>
+     */
+    private function overview(): array
+    {
+        $today = CarbonImmutable::now('Asia/Manila')->startOfDay();
+        $open = fn () => Task::assignedByAdmin()->where('status', '!=', 'done');
+
+        $byOwner = $open()->with('employee')->get()
+            ->groupBy(fn (Task $task) => $task->employee
+                ? trim($task->employee->first_name.' '.$task->employee->last_name)
+                : 'Whole office · '.($task->officeLabel() ?? 'Unassigned'))
+            ->map(fn ($tasks, string $name) => ['name' => $name, 'open' => $tasks->count()])
+            ->sortBy([['open', 'desc'], ['name', 'asc']])
+            ->values()
+            ->all();
+
+        return [
+            'overdue' => $open()->whereDate('due_date', '<', $today->toDateString())->count(),
+            'due_this_week' => $open()->whereDate('due_date', '>=', $today->toDateString())->whereDate('due_date', '<=', $today->addDays(6)->toDateString())->count(),
+            'open' => $open()->count(),
+            'done_this_week' => Task::assignedByAdmin()->where('status', 'done')
+                ->whereBetween('updated_at', [$today->startOfWeek(), $today->endOfWeek()])->count(),
+            'by_owner' => $byOwner,
+        ];
     }
 }

@@ -11,6 +11,7 @@ use App\Models\Payroll;
 use App\Models\PayrollItem;
 use App\Models\Setting;
 use App\Services\AttendancePunchService;
+use App\Services\RecurringTaskGenerator;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,8 @@ class AdminDashboardController extends Controller
 {
     public function index(Request $request, AttendancePunchService $punches): Response
     {
+        app(RecurringTaskGenerator::class)->runOncePerDay();
+
         $today = today();
         $startOfMonth = now()->startOfMonth();
         $endOfMonth = now()->endOfMonth();
