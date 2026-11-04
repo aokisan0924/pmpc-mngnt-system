@@ -7,10 +7,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\TaskStatusRequest;
 use App\Http\Requests\TeamTaskRequest;
 use App\Models\Employee;
+use App\Models\RecurringTask;
 use App\Models\Task;
 use App\Services\TaskAssignmentNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -27,7 +30,7 @@ class TeamTaskController extends Controller
         $showOlder = $request->boolean('older');
         $today = now('Asia/Manila')->toDateString();
 
-        $tasks = Task::with(['employee', 'assigner'])
+        $tasks = Task::with(['employee', 'assigner', 'recurringTask'])
             ->assignedByAdmin()
             ->when($employeeId, fn ($q) => $q->where('employee_id', $employeeId))
             ->when($priority, fn ($q) => $q->where('priority', $priority))
@@ -65,7 +68,32 @@ class TeamTaskController extends Controller
 
     public function store(TeamTaskRequest $request): RedirectResponse
     {
-        $task = Task::create([...$this->withOffice($request->validated()), 'assigned_by' => $request->user()->id]);
+        $data = $this->withOffice($request->validated());
+        $fields = Arr::only($data, ['employee_id', 'office', 'title', 'description', 'due_date', 'category', 'priority']);
+
+        $task = DB::transaction(function () use ($request, $data, $fields): Task {
+            $rule = null;
+
+            if (! empty($data['repeat'])) {
+                $frequency = $data['repeat'];
+                $rule = RecurringTask::create([
+                    ...Arr::except($fields, ['due_date']),
+                    'created_by' => $request->user()->id,
+                    'frequency' => $frequency,
+                    'day_of_week' => $frequency === 'weekly' ? $data['repeat_day_of_week'] : null,
+                    'day_of_month' => in_array($frequency, ['monthly', 'yearly'], true) ? ($data['repeat_day_of_month'] ?? null) : null,
+                    'last_day_of_month' => $frequency === 'monthly' && $request->boolean('repeat_last_day'),
+                    'month' => $frequency === 'yearly' ? $data['repeat_month'] : null,
+                    'lead_days' => $data['repeat_lead_days'] ?? RecurringTask::DEFAULT_LEAD_DAYS[$frequency],
+                    'starts_on' => $fields['due_date'],
+                    'ends_on' => $data['repeat_until'] ?? null,
+                    'active' => true,
+                    'last_due_date' => $fields['due_date'],
+                ]);
+            }
+
+            return Task::create([...$fields, 'assigned_by' => $request->user()->id, 'recurring_task_id' => $rule?->id]);
+        });
 
         app(TaskAssignmentNotifier::class)->notify($task, $request->user());
 
@@ -79,7 +107,7 @@ class TeamTaskController extends Controller
         $previousEmployeeId = $task->employee_id;
         $previousOffice = $task->office;
 
-        $task->update($this->withOffice($request->validated()));
+        $task->update(Arr::only($this->withOffice($request->validated()), ['employee_id', 'office', 'title', 'description', 'due_date', 'category', 'priority']));
 
         // Only a change of who the task is for tells anyone; plain edits stay quiet.
         if ($task->employee_id !== $previousEmployeeId || ($task->employee_id === null && $task->office !== $previousOffice)) {
@@ -98,9 +126,23 @@ class TeamTaskController extends Controller
         return back();
     }
 
-    public function destroy(Task $task): RedirectResponse
+    public function stopRepeat(Task $task): RedirectResponse
     {
         $this->ensureAssigned($task);
+        abort_if($task->recurring_task_id === null, 404);
+
+        RecurringTask::whereKey($task->recurring_task_id)->update(['active' => false]);
+
+        return back()->with('success', 'This task will no longer repeat.');
+    }
+
+    public function destroy(Request $request, Task $task): RedirectResponse
+    {
+        $this->ensureAssigned($task);
+
+        if ($request->boolean('stop_repeat') && $task->recurring_task_id !== null) {
+            RecurringTask::whereKey($task->recurring_task_id)->update(['active' => false]);
+        }
 
         $task->delete();
 

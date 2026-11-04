@@ -109,6 +109,8 @@ class Task extends Model
             'employee_id' => $this->employee_id,
             'office' => $this->office,
             'office_label' => $this->officeLabel(),
+            'repeat_label' => $this->relationLoaded('recurringTask') ? $this->recurringTask?->label() : null,
+            'repeat_active' => $this->relationLoaded('recurringTask') ? $this->recurringTask?->active : null,
             'assigned_by_name' => $this->relationLoaded('assigner') && $this->assigner
                 ? trim($this->assigner->first_name.' '.$this->assigner->last_name)
                 : null,

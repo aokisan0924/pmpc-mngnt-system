@@ -124,6 +124,7 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::post('/team-tasks', [TeamTaskController::class, 'store'])->name('team-tasks.store');
         Route::patch('/team-tasks/{task}', [TeamTaskController::class, 'update'])->name('team-tasks.update');
         Route::patch('/team-tasks/{task}/status', [TeamTaskController::class, 'updateStatus'])->name('team-tasks.status');
+        Route::post('/team-tasks/{task}/stop-repeat', [TeamTaskController::class, 'stopRepeat'])->name('team-tasks.stop-repeat');
         Route::delete('/team-tasks/{task}', [TeamTaskController::class, 'destroy'])->name('team-tasks.destroy');
 
         // Employee management
