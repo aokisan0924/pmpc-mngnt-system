@@ -143,7 +143,7 @@ export default function Planner({ tasks = [] }) {
     }
 
     return (
-        <EmployeeLayout title="Task Planner">
+        <EmployeeLayout title="My tasks">
             <div className="employee-page-shell space-y-5">
 
                 {flash?.success && (
@@ -156,7 +156,7 @@ export default function Planner({ tasks = [] }) {
                 )}
 
                 <EmployeePageHeader
-                    title="Work Planner"
+                    title="My tasks"
                     badge={`${tasks.filter(task => task.status !== 'done').length} pending`}
                     action={<button
                         type="button"

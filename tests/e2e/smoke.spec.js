@@ -83,7 +83,7 @@ test.describe('PMPC WorkForce Smoke & Design Verification', () => {
 
         // 3. Weekly Planner
         await page.goto('/employee/planner')
-        await expect(page.locator('h1')).toContainText('Work Planner')
+        await expect(page.locator('h1')).toContainText('My tasks')
         await page.screenshot({ path: 'output/employee-planner.png', fullPage: true })
 
         // 4. Payslips
@@ -119,7 +119,7 @@ test.describe('PMPC WorkForce Smoke & Design Verification', () => {
 
         const employeePages = [
             { path: '/employee/dtr', heading: 'Daily Time Record', screenshot: 'employee-dtr-mobile.png' },
-            { path: '/employee/planner', heading: 'Work Planner', screenshot: 'employee-planner-mobile.png' },
+            { path: '/employee/planner', heading: 'My tasks', screenshot: 'employee-planner-mobile.png' },
             { path: '/employee/payslips', heading: 'My Payslips', screenshot: 'employee-payslips-mobile.png' },
             { path: '/employee/profile', heading: 'Diana Pasco', screenshot: 'employee-profile-mobile.png' },
             { path: '/employee/notifications', heading: 'Notification Center', screenshot: 'employee-notifications-mobile.png' },
