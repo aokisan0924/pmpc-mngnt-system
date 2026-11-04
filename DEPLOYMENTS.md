@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 11:10 — data only — Make Alexander A. Feria Jr. an admin
+- By: Claude Code (SSH key), requested by Kurt
+- Code: none
+- Migrations: none
+- Backup: `/home/u512373751/backups/pre-feria-jr-admin-20261104-1110.sql.gz` (full database dump taken just before the change; gzip test passed)
+- Data changes: `employees` id 4 (employee ID `2022-00003`, Alexander A. Feria Jr., Operations, active) changed from `employee` to `super_admin`. One row, guarded by id, employee ID and current role. This gives him the Admin Portal and the DTR edit-request and absence notifications sent to admins; payroll is unaffected. To undo: `UPDATE employees SET role='employee' WHERE id=4;`
+- Verified: before and after rows read back on live (role `employee` → `super_admin`, status still active); role counts went from 14 employee / 3 super_admin to 13 / 4. The president, Alexander L. Feria (id 3), was not touched.
+
 ## 2026-11-04 11:08 — 8b93955 — Private personal tasks and smooth Team tasks
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `de91eaa` → `8b93955`
