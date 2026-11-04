@@ -29,3 +29,6 @@ Thumbs.db
 /test-results
 database/*.sqlite*
 /outputs
+
+# superpowers scratch
+.superpowers/
