@@ -50,8 +50,9 @@ class TeamTaskStatusCountsTest extends TestCase
         $this->task($maria);
         $this->task($maria, ['status' => 'doing', 'due_date' => '2026-11-02']);
         $this->task($maria, ['status' => 'done', 'due_date' => '2026-11-01']);
+        $this->task($maria, ['due_date' => '2026-11-04']); // due today is not late yet
 
-        $this->assertSame(['todo' => 2, 'doing' => 1, 'done' => 1, 'late' => 2], $this->counts());
+        $this->assertSame(['todo' => 3, 'doing' => 1, 'done' => 1, 'late' => 2], $this->counts());
     }
 
     public function test_done_is_limited_to_30_days_unless_older_is_ticked(): void

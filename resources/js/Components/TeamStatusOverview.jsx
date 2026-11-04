@@ -5,12 +5,12 @@ export default function TeamStatusOverview({ counts = {}, older = false }) {
     const done = counts.done ?? 0
     const late = counts.late ?? 0
     const total = todo + doing + done
-    const pct = total === 0 ? 0 : Math.round((done / total) * 100)
+    const pct = total === 0 ? 0 : Math.floor((done / total) * 100)
 
     const cards = [
         { label: 'To do', value: todo, note: late > 0 ? `${late} late` : 'waiting', noteClass: late > 0 ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-sub' },
         { label: 'Doing', value: doing, note: 'in progress', noteClass: 'text-sub' },
-        { label: 'Done', value: done, note: `${pct}% finished · ${older ? 'all time' : 'last 30 days'}`, noteClass: 'text-emerald-700 dark:text-emerald-400' },
+        { label: 'Done', value: done, note: `${pct}% finished`, sub: older ? 'all time' : 'last 30 days', noteClass: 'text-emerald-700 dark:text-emerald-400' },
     ]
 
     return (
@@ -20,7 +20,8 @@ export default function TeamStatusOverview({ counts = {}, older = false }) {
                     <div key={card.label} className="min-w-0 rounded-2xl border border-border bg-panel px-3 py-2.5 sm:px-4 sm:py-3">
                         <p className="text-xs font-bold uppercase tracking-wider text-sub">{card.label}</p>
                         <p className="font-heading text-2xl sm:text-3xl font-extrabold tnum text-text">{card.value}</p>
-                        <p className={`truncate text-xs ${card.noteClass}`}>{card.note}</p>
+                        <p className={`text-xs ${card.noteClass}`}>{card.note}</p>
+                        {card.sub && <p className="text-xs text-sub">{card.sub}</p>}
                     </div>
                 ))}
             </div>
