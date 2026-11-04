@@ -25,6 +25,7 @@ class TeamTaskController extends Controller
         $today = now('Asia/Manila')->toDateString();
 
         $tasks = Task::with('employee')
+            ->assignedByAdmin()
             ->when($employeeId, fn ($q) => $q->where('employee_id', $employeeId))
             ->when($priority, fn ($q) => $q->where('priority', $priority))
             ->when($overdueOnly, fn ($q) => $q->where('due_date', '<', $today)->where('status', '!=', 'done'))
@@ -52,13 +53,15 @@ class TeamTaskController extends Controller
 
     public function store(TeamTaskRequest $request): RedirectResponse
     {
-        Task::create($request->validated());
+        Task::create([...$request->validated(), 'assigned_by' => $request->user()->id]);
 
         return back()->with('success', 'Task added.');
     }
 
     public function update(TeamTaskRequest $request, Task $task): RedirectResponse
     {
+        $this->ensureAssigned($task);
+
         $task->update($request->validated());
 
         return back()->with('success', 'Task updated.');
@@ -66,6 +69,8 @@ class TeamTaskController extends Controller
 
     public function updateStatus(TaskStatusRequest $request, Task $task): RedirectResponse
     {
+        $this->ensureAssigned($task);
+
         $task->update(['status' => $request->validated('status')]);
 
         return back();
@@ -73,8 +78,16 @@ class TeamTaskController extends Controller
 
     public function destroy(Task $task): RedirectResponse
     {
+        $this->ensureAssigned($task);
+
         $task->delete();
 
         return back()->with('success', 'Task deleted.');
+    }
+
+    /** Employees' personal tasks are private: admins can only touch tasks admins created. */
+    private function ensureAssigned(Task $task): void
+    {
+        abort_if($task->assigned_by === null, 404);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Task extends Model
@@ -11,6 +12,7 @@ class Task extends Model
 
     protected $fillable = [
         'employee_id',
+        'assigned_by',
         'title',
         'description',
         'due_date',
@@ -26,6 +28,12 @@ class Task extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    /** Tasks an admin created for an employee; an employee's personal tasks are excluded. */
+    public function scopeAssignedByAdmin(Builder $query): Builder
+    {
+        return $query->whereNotNull('assigned_by');
     }
 
     public function isDone(): bool

@@ -33,8 +33,18 @@ export default function TeamTasks({ tasks = [], employees = [], filters = {} }) 
         setEditTarget(null)
     }
 
+    // The card jumps to its new column at once; Inertia rolls it back if the save fails.
     function moveTask(task, status) {
-        router.patch(`/admin/team-tasks/${task.id}/status`, { status }, { preserveScroll: true })
+        const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' })
+        router.patch(`/admin/team-tasks/${task.id}/status`, { status }, {
+            preserveScroll: true,
+            showProgress: false,
+            optimistic: props => ({
+                tasks: props.tasks.map(t => t.id === task.id
+                    ? { ...t, status, is_overdue: status !== 'done' && t.due_date < today }
+                    : t),
+            }),
+        })
     }
 
     function deleteTask() {
@@ -61,7 +71,7 @@ export default function TeamTasks({ tasks = [], employees = [], filters = {} }) 
                 <AdminPageHeader
                     eyebrow="People & attendance"
                     title="Team tasks"
-                    description="Everyone's tasks on one board."
+                    description="Tasks you assign to employees. Their own personal tasks stay private."
                     badge={`${tasks.filter(t => t.status !== 'done').length} open`}
                     action={
                         <button

@@ -14,9 +14,15 @@ class TeamTasksTest extends TestCase
 {
     use RefreshDatabase;
 
+    private ?int $assignerId = null;
+
+    /** Defaults to an admin-assigned task; pass `'assigned_by' => null` for an employee's personal task. */
     private function makeTask(Employee $employee, array $overrides = []): Task
     {
+        $this->assignerId ??= Employee::factory()->superAdmin()->create()->id;
+
         return Task::create([
+            'assigned_by' => $this->assignerId,
             'employee_id' => $employee->id,
             'title' => 'Sample task',
             'due_date' => now('Asia/Manila')->addDays(3)->toDateString(),
@@ -186,5 +192,49 @@ class TeamTasksTest extends TestCase
             ->assertSessionHasErrors('employee_id');
 
         $this->assertSame($owner->id, $task->fresh()->employee_id);
+    }
+
+    public function test_team_tasks_hides_personal_tasks_employees_made_for_themselves(): void
+    {
+        $admin = $this->admin();
+        $maria = Employee::factory()->create();
+        $this->makeTask($maria, ['title' => 'Assigned by admin']);
+        $this->makeTask($maria, ['title' => 'My private errand', 'assigned_by' => null]);
+
+        $titles = collect($this->boardTasks($admin))->pluck('title')->all();
+
+        $this->assertSame(['Assigned by admin'], $titles);
+    }
+
+    public function test_task_created_by_admin_is_recorded_as_assigned_and_the_employee_still_sees_it(): void
+    {
+        $admin = $this->admin();
+        $employee = Employee::factory()->create();
+
+        $this->actingAs($admin)->post('/admin/team-tasks', [
+            'title' => 'Assigned task', 'due_date' => '2026-11-20', 'priority' => 'low', 'employee_id' => $employee->id,
+        ])->assertRedirect();
+
+        $this->assertSame($admin->id, Task::firstOrFail()->assigned_by);
+        $this->assertSame(['Assigned task'], collect($this->boardTasks($admin))->pluck('title')->all());
+
+        $this->actingAs($employee)->get('/employee/planner')->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->has('tasks', 1)->where('tasks.0.title', 'Assigned task'));
+    }
+
+    public function test_admin_cannot_edit_move_or_delete_a_personal_task(): void
+    {
+        $admin = $this->admin();
+        $personal = $this->makeTask(Employee::factory()->create(), ['assigned_by' => null, 'title' => 'Private']);
+
+        $this->actingAs($admin)->patch("/admin/team-tasks/{$personal->id}", [
+            'title' => 'Hijacked', 'due_date' => '2026-11-20', 'priority' => 'low', 'employee_id' => $personal->employee_id,
+        ])->assertNotFound();
+        $this->actingAs($admin)->patch("/admin/team-tasks/{$personal->id}/status", ['status' => 'done'])->assertNotFound();
+        $this->actingAs($admin)->delete("/admin/team-tasks/{$personal->id}")->assertNotFound();
+
+        $personal->refresh();
+        $this->assertSame('Private', $personal->title);
+        $this->assertSame('pending', $personal->status);
     }
 }

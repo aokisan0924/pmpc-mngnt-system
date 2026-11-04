@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { router } from '@inertiajs/react'
 import pmpcLogo from '@images/pmpc_ems.png'
+import { shouldShowNavigationLoader } from '@/hooks/navigationLoaderPolicy'
 
 export default function NavigationLoader() {
     const [visible, setVisible] = useState(false)
@@ -25,14 +26,8 @@ export default function NavigationLoader() {
         }
 
         const removeStart = router.on('start', (event) => {
-            // Never display full-screen loader for silent background polls or partial reloads
-            const visit = event?.detail?.visit
-            if (
-                visit?.poll ||
-                (Array.isArray(visit?.only) && visit.only.length > 0) ||
-                visit?.showProgress === false ||
-                (visit?.preserveState && visit?.preserveScroll && !visit?.url)
-            ) {
+            // Never display full-screen loader for silent background polls, partial reloads or silent pages
+            if (!shouldShowNavigationLoader(event?.detail?.visit)) {
                 return
             }
 
