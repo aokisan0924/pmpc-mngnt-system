@@ -81,61 +81,90 @@ class TeamTaskPeopleTest extends TestCase
         $this->assertSame([], $this->people());
     }
 
-    public function test_whole_office_tasks_get_an_office_chip_after_the_people(): void
+    public function test_whole_office_chip_appears_only_with_an_office_chosen(): void
     {
-        $maria = $this->person('Maria');
-        $this->task($maria);
+        $this->task($this->person('Maria'));
         $this->task(null, ['office' => 'cubao']);
         $this->task(null, ['office' => 'cubao']);
 
-        $people = $this->people();
+        $this->assertSame(['employee'], array_column($this->people(), 'type'));
 
-        $this->assertCount(2, $people);
-        $this->assertSame(['type' => 'office', 'key' => 'cubao', 'label' => 'Cubao Office', 'open' => 2, 'late' => 0], $people[1]);
+        $people = $this->people('?office=cubao');
+        $this->assertSame(['type' => 'whole', 'key' => 'cubao', 'label' => 'Whole office', 'open' => 2, 'late' => 0], end($people));
+        $this->assertSame([], array_filter($this->people('?office=main_office'), fn ($c) => $c['type'] === 'whole'));
     }
 
-    public function test_people_ignore_the_board_filters(): void
+    public function test_people_follow_only_the_office_not_the_other_filters(): void
     {
         $maria = $this->person('Maria');
         $juan = $this->person('Juan');
         $this->task($maria, ['due_date' => '2026-11-01']);
         $this->task($juan);
 
-        $this->assertSame($this->people(), $this->people("?employee_id={$maria->id}&priority=low&overdue=1&office=main_office"));
+        $this->assertSame($this->people(), $this->people("?employee_id={$maria->id}&priority=low&overdue=1"));
     }
 
-    public function test_group_filter_shows_only_whole_office_tasks(): void
+    public function test_people_narrow_to_the_chosen_office_with_that_offices_counts(): void
     {
-        $maria = $this->person('Maria');
-        $this->task($maria, ['title' => 'Personal one']);
-        $this->task(null, ['office' => 'cubao', 'title' => 'Wide one']);
+        $ana = $this->person('Ana');
+        $other = $this->person('Other', 'Test', 'main_office');
+        $this->task($ana);
+        $this->task($ana);
+        $this->task($ana, ['office' => 'main_office']);
+        $this->task($other);
 
-        $this->actingAs($this->admin)->get('/admin/team-tasks?group=cubao')->assertOk()
+        $this->assertSame(3, $this->people()[0]['open']);
+        $this->assertSame(['Ana Test'], array_column($this->people('?office=cubao'), 'label'));
+        $this->assertSame(2, $this->people('?office=cubao')[0]['open']);
+        $this->assertSame(['Ana Test', 'Other Test'], array_column($this->people('?office=main_office'), 'label'));
+        $this->assertSame(1, $this->people('?office=main_office')[0]['open']);
+    }
+
+    public function test_offices_lists_all_three_with_counts_and_ignores_filters(): void
+    {
+        $ana = $this->person('Ana');
+        $this->task($ana, ['due_date' => '2026-11-01']);
+        $this->task(null, ['office' => 'cubao']);
+        $this->task(Employee::factory()->inactive()->create(['payroll_office' => 'main_office']));
+
+        $expected = [
+            ['key' => 'cubao', 'label' => 'Cubao Office', 'open' => 2, 'late' => 1],
+            ['key' => 'fort_magsaysay', 'label' => 'Fort Magsaysay Office', 'open' => 0, 'late' => 0],
+            ['key' => 'main_office', 'label' => 'UPI Main Office', 'open' => 1, 'late' => 0],
+        ];
+        $get = fn (string $q) => $this->actingAs($this->admin)->get('/admin/team-tasks'.$q)->assertOk()->viewData('page')['props']['offices'];
+
+        $this->assertSame($expected, $get(''));
+        $this->assertSame($expected, $get("?office=cubao&priority=low&overdue=1&employee_id={$ana->id}"));
+    }
+
+    public function test_whole_filter_shows_only_no_person_tasks_of_the_chosen_office(): void
+    {
+        $this->task($this->person('Maria'), ['title' => 'Personal one']);
+        $this->task(null, ['office' => 'cubao', 'title' => 'Wide one']);
+        $this->task(null, ['office' => 'main_office', 'title' => 'Other wide']);
+
+        $this->actingAs($this->admin)->get('/admin/team-tasks?office=cubao&whole=1')->assertOk()
             ->assertInertia(fn (Assert $page) => $page
-                ->where('filters.group', 'cubao')
+                ->where('filters.whole', true)
                 ->has('tasks', 1)
                 ->where('tasks.0.title', 'Wide one'));
     }
 
-    public function test_group_is_ignored_with_an_employee_or_an_unknown_key(): void
+    public function test_whole_is_ignored_without_an_office_or_with_an_employee_and_group_is_gone(): void
     {
         $maria = $this->person('Maria');
         $this->task($maria, ['title' => 'Personal one']);
         $this->task(null, ['office' => 'cubao', 'title' => 'Wide one']);
 
-        $this->actingAs($this->admin)->get("/admin/team-tasks?group=cubao&employee_id={$maria->id}")->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->where('filters.group', null)->has('tasks', 1)->where('tasks.0.title', 'Personal one'));
+        $this->actingAs($this->admin)->get('/admin/team-tasks?whole=1')->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('filters.whole', false)->has('tasks', 2));
 
-        $this->actingAs($this->admin)->get('/admin/team-tasks?group=nope')->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->where('filters.group', null)->has('tasks', 2));
-    }
+        $this->actingAs($this->admin)->get("/admin/team-tasks?office=cubao&whole=1&employee_id={$maria->id}")->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('filters.whole', false)->has('tasks', 1)->where('tasks.0.title', 'Personal one'));
 
-    public function test_an_office_group_replaces_the_office_dropdown_filter(): void
-    {
-        $this->task(null, ['office' => 'cubao', 'title' => 'Wide one']);
-
-        $this->actingAs($this->admin)->get('/admin/team-tasks?group=cubao&office=main_office')->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->where('filters.office', null)->has('tasks', 1));
+        $this->actingAs($this->admin)->get('/admin/team-tasks?group=cubao')->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->missing('filters.group')->has('tasks', 2));
     }
 
     public function test_an_inactive_employees_open_task_still_counts_in_everyone(): void

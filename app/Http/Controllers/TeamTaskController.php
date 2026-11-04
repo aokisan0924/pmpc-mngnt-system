@@ -31,8 +31,7 @@ class TeamTaskController extends Controller
             ? $request->query('priority')
             : null;
         $office = array_key_exists((string) $request->query('office'), Task::OFFICES) ? $request->query('office') : null;
-        $group = ! $employeeId && array_key_exists((string) $request->query('group'), Task::OFFICES) ? $request->query('group') : null;
-        $office = $group ? null : $office; // a group chip is more specific than the Office dropdown
+        $whole = $request->boolean('whole') && $office && ! $employeeId;
         $overdueOnly = $request->boolean('overdue');
         $showOlder = $request->boolean('older');
         $today = now('Asia/Manila')->toDateString();
@@ -41,7 +40,7 @@ class TeamTaskController extends Controller
             ->when($employeeId, fn ($q) => $q->where('employee_id', $employeeId))
             ->when($priority, fn ($q) => $q->where('priority', $priority))
             ->when($office, fn ($q) => $q->where('office', $office))
-            ->when($group, fn ($q) => $q->whereNull('employee_id')->where('office', $group));
+            ->when($whole, fn ($q) => $q->whereNull('employee_id'));
 
         $tasks = $scoped()->with(['employee', 'assigner', 'recurringTask'])
             ->when(! $showOlder, fn ($q) => $q->where(fn ($w) => $w->where('status', '!=', 'done')->orWhere('updated_at', '>=', now()->subDays(30))))
@@ -64,15 +63,15 @@ class TeamTaskController extends Controller
         return Inertia::render('Admin/TeamTasks', [
             'tasks' => $tasks,
             'overview' => $this->overview(),
-            'people' => $this->people(),
+            'offices' => $this->offices(),
+            'people' => $this->people($office),
             'status_counts' => $this->statusCounts($scoped, $showOlder, $today),
             'employees' => $employees,
-            'offices' => collect(Task::OFFICES)->map(fn (string $label, string $key) => ['key' => $key, 'label' => $label])->values(),
             'filters' => [
                 'employee_id' => $employeeId,
                 'priority' => $priority,
                 'office' => $office,
-                'group' => $group,
+                'whole' => $whole,
                 'overdue' => $overdueOnly,
                 'older' => $showOlder,
             ],
@@ -201,22 +200,49 @@ class TeamTaskController extends Controller
     }
 
     /**
-     * One chip per active person, then per whole-office group, with open tasks. Ignores the board filters.
+     * The three offices with their open and late task counts. Ignores every board filter.
+     *
+     * @return list<array{key: string, label: string, open: int, late: int}>
+     */
+    private function offices(): array
+    {
+        $today = CarbonImmutable::now('Asia/Manila')->toDateString();
+        $tasks = Task::assignedByAdmin()->where('status', '!=', 'done')->get(['id', 'office', 'due_date']);
+
+        return collect(Task::OFFICES)->map(function (string $label, string $key) use ($tasks, $today): array {
+            $mine = $tasks->where('office', $key);
+
+            return [
+                'key' => $key,
+                'label' => $label,
+                'open' => $mine->count(),
+                'late' => $mine->filter(fn (Task $t) => $t->due_date->toDateString() < $today)->count(),
+            ];
+        })->values()->all();
+    }
+
+    /**
+     * One chip per active person with open tasks (in the chosen office, if any), then a "Whole office"
+     * chip for tasks that name nobody when an office is chosen. Ignores the other board filters.
      *
      * @return list<array{type: string, key: string, label: string, open: int, late: int}>
      */
-    private function people(): array
+    private function people(?string $office): array
     {
         $today = CarbonImmutable::now('Asia/Manila')->toDateString();
         $chips = [];
 
         Task::assignedByAdmin()->where('status', '!=', 'done')
+            ->when($office, fn ($q) => $q->where('office', $office))
             ->with('employee:id,first_name,last_name,status')
             ->get(['id', 'employee_id', 'office', 'due_date'])
-            ->each(function (Task $task) use (&$chips, $today): void {
+            ->each(function (Task $task) use (&$chips, $today, $office): void {
                 if ($task->employee_id === null) {
-                    $id = 'office:'.$task->office;
-                    $chip = ['type' => 'office', 'key' => (string) $task->office, 'label' => Task::OFFICES[$task->office] ?? (string) $task->office];
+                    if (! $office) {
+                        return;
+                    }
+                    $id = 'whole';
+                    $chip = ['type' => 'whole', 'key' => $office, 'label' => 'Whole office'];
                 } elseif ($task->employee?->status === 'active') {
                     $id = 'employee:'.$task->employee_id;
                     $chip = ['type' => 'employee', 'key' => (string) $task->employee_id, 'label' => trim($task->employee->first_name.' '.$task->employee->last_name)];
@@ -231,6 +257,7 @@ class TeamTaskController extends Controller
 
         return collect($chips)
             ->sortBy([['type', 'asc'], ['late', 'desc'], ['open', 'desc'], ['label', 'asc']])
+            ->sortBy(fn (array $chip) => $chip['type'] === 'whole' ? 1 : 0)
             ->values()
             ->all();
     }

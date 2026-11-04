@@ -66,7 +66,7 @@ class TeamTaskStatusCountsTest extends TestCase
         $this->assertSame(2, $this->counts('?older=1')['done']);
     }
 
-    public function test_counts_follow_person_group_office_and_priority_filters(): void
+    public function test_counts_follow_person_whole_office_and_priority_filters(): void
     {
         $maria = Employee::factory()->create(['payroll_office' => 'cubao']);
         $juan = Employee::factory()->create(['payroll_office' => 'main_office']);
@@ -76,7 +76,7 @@ class TeamTaskStatusCountsTest extends TestCase
 
         $this->assertSame(3, $this->counts()['todo']);
         $this->assertSame(1, $this->counts("?employee_id={$maria->id}")['todo']);
-        $this->assertSame(1, $this->counts('?group=cubao')['todo']);
+        $this->assertSame(1, $this->counts('?office=cubao&whole=1')['todo']);
         $this->assertSame(2, $this->counts('?office=cubao')['todo']);
         $this->assertSame(1, $this->counts('?priority=high')['todo']);
     }
