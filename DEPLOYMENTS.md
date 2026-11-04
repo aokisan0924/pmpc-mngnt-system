@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 12:03 — 98e73dd — Employee screens: compact header, text cleanup, punch-first dashboard
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `bd4348e` → `98e73dd`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: local suite 211 of 212 passed (the one failure is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint clean, Node tests passed, build passed; browser-checked locally at desktop and phone width on the dashboard (punch first, persistent punch bar above the bottom nav on phones, a real PM In punch recorded and the screen advanced to PM Out), attendance, payslips, profile and notifications. On live: server tree clean before and after, no pending migrations, app returned from maintenance mode, task count unchanged at 51, `/login` 200, employee pages redirect guests, new `Dashboard` and `Payslips` assets return 200 and match the manifest, the live Dashboard bundle contains "Next required action" and no longer contains "Refreshes automatically", no log errors. Not checked: a signed-in click-through or a real punch on the live site.
+
 ## 2026-11-04 11:45 — bd4348e — Drag-only moves on Team tasks
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `6898cba` → `bd4348e`
