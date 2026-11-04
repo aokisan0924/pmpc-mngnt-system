@@ -12,6 +12,7 @@ use App\Models\Task;
 use App\Services\RecurringTaskGenerator;
 use App\Services\TaskAssignmentNotifier;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -36,12 +37,13 @@ class TeamTaskController extends Controller
         $showOlder = $request->boolean('older');
         $today = now('Asia/Manila')->toDateString();
 
-        $tasks = Task::with(['employee', 'assigner', 'recurringTask'])
-            ->assignedByAdmin()
+        $scoped = fn () => Task::assignedByAdmin()
             ->when($employeeId, fn ($q) => $q->where('employee_id', $employeeId))
             ->when($priority, fn ($q) => $q->where('priority', $priority))
             ->when($office, fn ($q) => $q->where('office', $office))
-            ->when($group, fn ($q) => $q->whereNull('employee_id')->where('office', $group))
+            ->when($group, fn ($q) => $q->whereNull('employee_id')->where('office', $group));
+
+        $tasks = $scoped()->with(['employee', 'assigner', 'recurringTask'])
             ->when(! $showOlder, fn ($q) => $q->where(fn ($w) => $w->where('status', '!=', 'done')->orWhere('updated_at', '>=', now()->subDays(30))))
             ->when($overdueOnly, fn ($q) => $q->where('due_date', '<', $today)->where('status', '!=', 'done'))
             ->orderBy('due_date')
@@ -63,6 +65,7 @@ class TeamTaskController extends Controller
             'tasks' => $tasks,
             'overview' => $this->overview(),
             'people' => $this->people(),
+            'status_counts' => $this->statusCounts($scoped, $showOlder, $today),
             'employees' => $employees,
             'offices' => collect(Task::OFFICES)->map(fn (string $label, string $key) => ['key' => $key, 'label' => $label])->values(),
             'filters' => [
@@ -178,6 +181,23 @@ class TeamTaskController extends Controller
         }
 
         return $data;
+    }
+
+    /**
+     * To do, Doing, Done and late counts for the current person, office and priority filters
+     * (not the late filter). Done follows the board's 30-day rule unless older tasks are shown.
+     *
+     * @param  \Closure(): Builder<Task>  $scoped
+     * @return array{todo: int, doing: int, done: int, late: int}
+     */
+    private function statusCounts(\Closure $scoped, bool $showOlder, string $today): array
+    {
+        return [
+            'todo' => $scoped()->where('status', 'pending')->count(),
+            'doing' => $scoped()->where('status', 'doing')->count(),
+            'done' => $scoped()->where('status', 'done')->when(! $showOlder, fn ($q) => $q->where('updated_at', '>=', now()->subDays(30)))->count(),
+            'late' => $scoped()->where('status', '!=', 'done')->whereDate('due_date', '<', $today)->count(),
+        ];
     }
 
     /**
