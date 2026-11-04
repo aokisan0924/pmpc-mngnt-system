@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 10:57 — de91eaa — Task board and Team tasks
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `9d63f5a` → `de91eaa`
+- Migrations: `2026_11_04_000000_allow_doing_task_status` (changes `tasks.status` from enum pending/done to varchar(20), default `pending`)
+- Backup: `/home/u512373751/backups/pre-task-board-20261104-1056.sql.gz` (full database dump taken just before the deploy; gzip test passed)
+- Data changes: none. All 33 existing tasks kept their status (30 done, 3 pending). To undo: `php artisan migrate:rollback --step=1 --force` (turns any `doing` task back into `pending`), or restore the backup.
+- Verified: local suite 189 of 190 passed (the one failure is a JPEG-less local PHP build in `EmployeeSignatureTest`, unrelated); Pint clean; migration run on a scratch MariaDB with up, data kept, `doing` accepted and rollback all checked; browser-checked the employee Board and admin Team tasks screens on a local copy. On live: server tree clean before and after, dry run listed only the one `ALTER`, migration ran, `tasks` rows 33 before and after, `/login` returned 200, `/admin/team-tasks` and `/employee/planner` redirect guests, the new `TeamTasks` and `Planner` assets return 200 and match the manifest, no new errors in the Laravel log. Not checked: a signed-in click-through on the live site (no live credentials used). The app was in maintenance mode for under a minute; the new code was briefly live before the migration ran, when only the Doing status could have failed.
+
 ## 2026-10-30 10:02 — 9d63f5a — Keep payroll batch exports Excel-only
 - By: Codex, requested by Kurt
 - Code: `9887079` → `9d63f5a`
