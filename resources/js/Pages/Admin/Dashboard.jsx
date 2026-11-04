@@ -253,7 +253,7 @@ export default function Dashboard({
                                                 : 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
                                         }`}>
                                             <span className={`w-1.5 h-1.5 rounded-full ${punchAction ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`} />
-                                            {pendingPunch ? punchAction.label : punchAction ? `Ready for ${nextSlot.label}` : 'All 4 Punches Complete'}
+                                            {pendingPunch ? punchAction.label : punchAction ? 'Ready' : 'All 4 Punches Complete'}
                                         </span>
                                         {(admin_dtr?.hours_rendered ?? 0) > 0 && (
                                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-semibold bg-white/10 text-white/90 border border-white/15">
@@ -269,7 +269,7 @@ export default function Dashboard({
                                         {pendingPunch
                                             ? attendancePunchRetryMessage(pendingPunch)
                                             : nextSlot
-                                            ? `Step ${nextPunchIndex + 1} of 4 · Shift ${schedule?.am_time_in || '08:00'}–${schedule?.pm_time_out || '17:00'} (Asia/Manila standard time)`
+                                            ? `Step ${nextPunchIndex + 1} of 4`
                                             : 'Daily attendance milestones secured. Shift logged.'}
                                     </p>
 
@@ -399,7 +399,7 @@ export default function Dashboard({
                                             : 'Ready to compute and finalize cutoff compensation'}
                                 </h2>
                                 <p className="mt-0.5 text-xs text-indigo-100/80">
-                                    Period: {active_cutoff?.period_from ?? '—'} to {active_cutoff?.period_to ?? '—'} · Asia/Manila Labor Standards
+                                    Period: {active_cutoff?.period_from ?? '—'} to {active_cutoff?.period_to ?? '—'}
                                 </p>
                             </div>
 
@@ -584,7 +584,7 @@ export default function Dashboard({
                     <CardHeader className="flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border/70">
                         <div>
                             <CardTitle>Today&apos;s workforce attendance</CardTitle>
-                            <p className="mt-1 text-xs text-sub">Real-time attendance punch logs and status indicators for the current shift.</p>
+                            
                         </div>
                         <div className="flex items-center gap-3">
                             <label className="sr-only" htmlFor="attendance-search">Search attendance</label>

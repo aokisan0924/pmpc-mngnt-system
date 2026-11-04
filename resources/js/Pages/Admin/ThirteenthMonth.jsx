@@ -42,12 +42,9 @@ export default function ThirteenthMonth({ records = [] }) {
                 <Card className="admin-workspace-card overflow-hidden">
                     <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center">
                         <div>
-                            <CardTitle>Run a New Computation</CardTitle>
-                            <CardDescription>
-                                Pull verified DTR attendance and employee daily rates for the selected period.
-                            </CardDescription>
+                            <CardTitle>New computation</CardTitle>
                         </div>
-                        <Badge variant="indigo" size="sm">PD 851</Badge>
+                        
                     </CardHeader>
                     <CardContent className="p-5 sm:p-6">
                     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
@@ -111,7 +108,7 @@ export default function ThirteenthMonth({ records = [] }) {
                             }
                             iconPosition="right"
                         >
-                            <span>Compute Tranche</span>
+                            <span>Compute</span>
                         </Button>
                     </div>
                     </CardContent>
@@ -121,8 +118,8 @@ export default function ThirteenthMonth({ records = [] }) {
                 <Card className="overflow-hidden">
                     <CardHeader>
                         <div>
-                            <CardTitle>13th Month Disbursement Records</CardTitle>
-                            <CardDescription>Archive of finalized statutory calculations and disbursements.</CardDescription>
+                            <CardTitle>Batches</CardTitle>
+                            
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
@@ -191,7 +188,7 @@ export default function ThirteenthMonth({ records = [] }) {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                                 </svg>
                                             </div>
-                                            No 13th month disbursement batches have been generated yet.
+                                            No batches yet.
                                         </td>
                                     </tr>
                                 )}

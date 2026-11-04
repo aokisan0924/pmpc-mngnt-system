@@ -181,6 +181,12 @@
 }
 
 @layer base {
+  /* Tailwind's default placeholder is 50% of the text colour, about 3:1 on our field background. */
+  input::placeholder,
+  textarea::placeholder {
+    color: color-mix(in oklab, currentcolor 68%, transparent);
+  }
+
     * {
         box-sizing: border-box;
     }

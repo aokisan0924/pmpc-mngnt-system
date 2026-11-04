@@ -93,7 +93,6 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
 
                 <AdminPageHeader
                     title="DTR Edit Requests"
-                    badge={`${pendingCount} pending review`}
                     action={
                     <div
                         role="group"
@@ -279,7 +278,7 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                     {filtered.length === 0 && (
                         <Card>
                             <CardContent className="text-center py-12 text-sub">
-                                No DTR edit requests found for this filter.
+                                No requests.
                             </CardContent>
                         </Card>
                     )}

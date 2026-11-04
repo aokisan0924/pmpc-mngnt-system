@@ -49,12 +49,9 @@ export default function Archives({ archives = [], last_month }) {
                 <Card className="admin-workspace-card overflow-hidden">
                     <CardHeader className="flex-col items-start gap-3 sm:flex-row sm:items-center">
                         <div>
-                            <CardTitle>Generate a Monthly Archive</CardTitle>
-                            <CardDescription>
-                                Compile PDF DTR certificates for active employees into one downloadable ZIP package.
-                            </CardDescription>
+                            <CardTitle>Generate archive</CardTitle>
                         </div>
-                        <Badge variant="indigo" size="sm">ZIP + PDF</Badge>
+                        
                     </CardHeader>
                     <CardContent className="p-5 sm:p-6">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
@@ -84,7 +81,7 @@ export default function Archives({ archives = [], last_month }) {
                                 </svg>
                             }
                         >
-                            <span>Compile Archive</span>
+                            <span>Generate</span>
                         </Button>
                     </div>
                     </CardContent>
@@ -94,8 +91,8 @@ export default function Archives({ archives = [], last_month }) {
                 <Card className="overflow-hidden">
                     <CardHeader>
                         <div>
-                            <CardTitle>Available Archives</CardTitle>
-                            <CardDescription>Download a compiled ZIP package for an archived month.</CardDescription>
+                            <CardTitle>Archives</CardTitle>
+                            
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">

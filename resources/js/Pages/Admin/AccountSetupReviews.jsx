@@ -26,8 +26,8 @@ export default function AccountSetupReviews({ submissions, offices }) {
     return <AdminLayout><div className="admin-page-shell space-y-5">
         <AdminPageHeader title="Account setup verification" />
         {flash?.success && <p role="status" className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">{flash.success}</p>}
-        <p className="text-sm text-sub">{submissions.length} pending submissions. Check employment corrections in the employee record before approving.</p>
+        <p className="text-sm text-sub">{submissions.length ? 'Check employment corrections in the employee record before approving.' : null}</p>
         {submissions.map(submission => <Review key={submission.id} submission={submission} offices={offices} />)}
-        {!submissions.length && <p className="rounded-2xl border border-border bg-panel p-8 text-sm text-sub">No account setups awaiting verification. Employees who have not submitted yet can use Complete setup after signing in.</p>}
+        {!submissions.length && <p className="rounded-2xl border border-border bg-panel p-8 text-sm text-sub">No setups awaiting verification.</p>}
     </div></AdminLayout>
 }
