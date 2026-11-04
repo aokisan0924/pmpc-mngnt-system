@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-04 11:45 — bd4348e — Drag-only moves on Team tasks
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `6898cba` → `bd4348e`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: build passed; browser-checked locally that Team tasks cards show only View, Edit and Delete, the drag hint appears, dragging a card to Done moves it, and the View window still offers the move buttons. On live: server tree clean before and after, no pending migrations, app returned from maintenance mode, task count unchanged at 51, `/login` 200, Team tasks and planner redirect guests, the new `TeamTasks` asset returns 200, matches the manifest and contains the drag hint, no log errors. Not checked: a signed-in click-through on the live site.
+
 ## 2026-11-04 11:38 — 6898cba — Visible View button on task cards
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `6d7ec1c` → `6898cba`
