@@ -257,7 +257,6 @@ class TeamTaskController extends Controller
 
         return collect($chips)
             ->sortBy([['type', 'asc'], ['late', 'desc'], ['open', 'desc'], ['label', 'asc']])
-            ->sortBy(fn (array $chip) => $chip['type'] === 'whole' ? 1 : 0)
             ->values()
             ->all();
     }

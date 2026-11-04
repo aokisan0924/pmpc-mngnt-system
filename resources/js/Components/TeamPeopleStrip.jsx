@@ -25,14 +25,15 @@ export default function TeamPeopleStrip({ offices = [], people = [], employees =
     const showLate = (overview.overdue ?? 0) > 0 || filters.overdue
 
     const persons = people.filter(c => c.type === 'employee')
-    const whole = people.find(c => c.type === 'whole')
+    // Keep the Whole office chip visible while it is the active filter, even when its last open task is gone.
+    const whole = people.find(c => c.type === 'whole') ?? (filters.whole ? { type: 'whole', key: office, label: 'Whole office', open: 0, late: 0 } : null)
     const selectedId = String(filters.employee_id ?? '')
     const folded = persons.slice(0, VISIBLE)
     // The chosen person stays visible even when folded away, or when they have no open tasks here.
     const chosen = persons.find(c => c.key === selectedId)
         ?? (selectedId ? { type: 'employee', key: selectedId, label: employees.find(e => String(e.id) === selectedId)?.name ?? 'Selected person', open: 0, late: 0 } : null)
     const visiblePersons = expanded ? persons : chosen && !folded.includes(chosen) ? [...folded, chosen] : folded
-    const hidden = persons.length - visiblePersons.length
+    const hidden = persons.length - VISIBLE
     const everyone = !selectedId && !filters.whole
 
     const tabs = [
@@ -51,7 +52,7 @@ export default function TeamPeopleStrip({ offices = [], people = [], employees =
                                 key={tab.key || 'all'}
                                 type="button"
                                 aria-pressed={selected}
-                                onClick={() => onFilter({ office: selected ? '' : tab.key, employee_id: '', whole: '' })}
+                                onClick={() => { if (!(selected && tab.key === '')) onFilter({ office: selected ? '' : tab.key, employee_id: '', whole: '' }) }}
                                 className={`${TAB} ${selected ? 'bg-white text-[#26215C] shadow-xs border border-indigo-200' : 'border border-transparent text-sub hover:bg-panel/60 hover:text-text'}`}
                             >
                                 {tab.label} <b className="tnum">{tab.count}</b>
@@ -94,7 +95,7 @@ export default function TeamPeopleStrip({ offices = [], people = [], employees =
                     )
                 })}
 
-                {persons.length > VISIBLE && (expanded || hidden > 0) && (
+                {persons.length > VISIBLE && (
                     <button type="button" aria-expanded={expanded} onClick={() => setExpanded(v => !v)} className={`${CHIP} ${IDLE}`}>
                         {expanded ? 'Show fewer' : `+${hidden} more`}
                     </button>
