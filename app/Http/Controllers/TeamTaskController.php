@@ -31,6 +31,7 @@ class TeamTaskController extends Controller
             : null;
         $office = array_key_exists((string) $request->query('office'), Task::OFFICES) ? $request->query('office') : null;
         $group = ! $employeeId && array_key_exists((string) $request->query('group'), Task::OFFICES) ? $request->query('group') : null;
+        $office = $group ? null : $office; // a group chip is more specific than the Office dropdown
         $overdueOnly = $request->boolean('overdue');
         $showOlder = $request->boolean('older');
         $today = now('Asia/Manila')->toDateString();
@@ -180,12 +181,10 @@ class TeamTaskController extends Controller
     }
 
     /**
-     * Team-wide figures for the strip on top of the page. They cover every admin-assigned task
-     * and deliberately ignore the board's filters.
+     * One chip per active person, then per whole-office group, with open tasks. Ignores the board filters.
      *
-     * @return array<string, mixed>
+     * @return list<array{type: string, key: string, label: string, open: int, late: int}>
      */
-    /** One chip per active person, then per whole-office group, with open tasks. Ignores the board filters. */
     private function people(): array
     {
         $today = CarbonImmutable::now('Asia/Manila')->toDateString();
@@ -216,6 +215,12 @@ class TeamTaskController extends Controller
             ->all();
     }
 
+    /**
+     * Team-wide figures for the strip on top of the page. They cover every admin-assigned task
+     * and deliberately ignore the board's filters.
+     *
+     * @return array<string, mixed>
+     */
     private function overview(): array
     {
         $today = CarbonImmutable::now('Asia/Manila')->startOfDay();

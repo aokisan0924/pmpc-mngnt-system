@@ -130,6 +130,23 @@ class TeamTaskPeopleTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page->where('filters.group', null)->has('tasks', 2));
     }
 
+    public function test_an_office_group_replaces_the_office_dropdown_filter(): void
+    {
+        $this->task(null, ['office' => 'cubao', 'title' => 'Wide one']);
+
+        $this->actingAs($this->admin)->get('/admin/team-tasks?group=cubao&office=main_office')->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('filters.office', null)->has('tasks', 1));
+    }
+
+    public function test_an_inactive_employees_open_task_still_counts_in_everyone(): void
+    {
+        $this->task(Employee::factory()->inactive()->create());
+        $this->task($this->person('Maria'));
+
+        $this->actingAs($this->admin)->get('/admin/team-tasks')->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('overview.open', 2)->has('people', 1));
+    }
+
     public function test_people_is_empty_when_nothing_is_open(): void
     {
         $this->actingAs($this->admin)->get('/admin/team-tasks')->assertOk()

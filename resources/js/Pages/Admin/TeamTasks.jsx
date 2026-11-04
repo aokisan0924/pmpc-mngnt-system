@@ -99,7 +99,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                     }
                 />
 
-                <TeamPeopleStrip people={people} overview={overview} filters={filters} onFilter={applyFilters} />
+                <TeamPeopleStrip people={people} employees={employees} overview={overview} filters={filters} onFilter={applyFilters} />
 
                 <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-panel p-3">
                     <div className="flex gap-1 rounded-xl border border-border bg-field p-1 shrink-0" role="group" aria-label="Team tasks view">

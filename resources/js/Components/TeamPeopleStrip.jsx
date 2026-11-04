@@ -17,13 +17,19 @@ function Late({ count, onDark }) {
  * Chips that filter Team tasks by person or whole-office group.
  * `people` comes from the server and ignores the board filters, so chips stay put while one is selected.
  */
-export default function TeamPeopleStrip({ people = [], overview = {}, filters = {}, onFilter }) {
+export default function TeamPeopleStrip({ people = [], employees = [], overview = {}, filters = {}, onFilter }) {
     const [expanded, setExpanded] = useState(false)
     // Office groups are few, so they always show; only the people list folds.
     const persons = people.filter(c => c.type === 'employee')
     const offices = people.filter(c => c.type === 'office')
-    const shown = [...(expanded ? persons : persons.slice(0, VISIBLE)), ...offices]
-    const hidden = persons.length - Math.min(persons.length, VISIBLE)
+    const selectedId = String(filters.employee_id ?? '')
+    const folded = persons.slice(0, VISIBLE)
+    // The chosen person stays visible even when folded away, or when they have no open tasks.
+    const chosen = persons.find(c => c.key === selectedId)
+        ?? (selectedId ? { type: 'employee', key: selectedId, label: employees.find(e => String(e.id) === selectedId)?.name ?? 'Selected person', open: 0, late: 0 } : null)
+    const visiblePersons = expanded ? persons : chosen && !folded.includes(chosen) ? [...folded, chosen] : folded
+    const shown = [...visiblePersons, ...offices]
+    const hidden = persons.length - visiblePersons.length
     const everyone = !filters.employee_id && !filters.group
     const showLate = (overview.overdue ?? 0) > 0 || filters.overdue
 
@@ -46,7 +52,7 @@ export default function TeamPeopleStrip({ people = [], overview = {}, filters = 
 
             {shown.map(chip => {
                 const isOffice = chip.type === 'office'
-                const selected = isOffice ? filters.group === chip.key : String(filters.employee_id) === chip.key
+                const selected = isOffice ? filters.group === chip.key : selectedId === chip.key
                 const toggle = isOffice
                     ? { group: selected ? '' : chip.key, employee_id: '' }
                     : { employee_id: selected ? '' : chip.key, group: '' }
@@ -56,6 +62,7 @@ export default function TeamPeopleStrip({ people = [], overview = {}, filters = 
                         key={`${chip.type}:${chip.key}`}
                         type="button"
                         aria-pressed={selected}
+                        aria-label={`${chip.label}, ${chip.open} open${chip.late > 0 ? `, ${chip.late} late` : ''}`}
                         onClick={() => onFilter(toggle)}
                         className={`${CHIP} ${selected ? ACTIVE : isOffice ? 'border-border bg-field text-sub hover:bg-hover' : IDLE}`}
                     >
@@ -70,7 +77,7 @@ export default function TeamPeopleStrip({ people = [], overview = {}, filters = 
                 )
             })}
 
-            {persons.length > VISIBLE && (
+            {persons.length > VISIBLE && (expanded || hidden > 0) && (
                 <button type="button" aria-expanded={expanded} onClick={() => setExpanded(v => !v)} className={`${CHIP} ${IDLE}`}>
                     {expanded ? 'Show fewer' : `+${hidden} more`}
                 </button>
