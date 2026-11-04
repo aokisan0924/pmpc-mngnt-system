@@ -8,10 +8,11 @@ import TaskFormModal from '@/Components/TaskFormModal'
 import TaskDetailModal from '@/Components/TaskDetailModal'
 import TeamTaskCalendar from '@/Components/TeamTaskCalendar'
 import TeamPeopleStrip from '@/Components/TeamPeopleStrip'
+import TeamStatusOverview from '@/Components/TeamStatusOverview'
 
 const SELECT = 'rounded-xl border border-border bg-field px-3 py-2 text-xs font-semibold text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
 
-export default function TeamTasks({ tasks = [], employees = [], offices = [], filters = {}, overview = {}, people = [] }) {
+export default function TeamTasks({ tasks = [], employees = [], offices = [], filters = {}, overview = {}, people = [], status_counts = {} }) {
     const { flash } = usePage().props
     const [showForm, setShowForm]         = useState(false)
     const [editTarget, setEditTarget]     = useState(null)
@@ -98,6 +99,8 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                         </button>
                     }
                 />
+
+                <TeamStatusOverview counts={status_counts} older={Boolean(filters.older)} />
 
                 <TeamPeopleStrip people={people} employees={employees} overview={overview} filters={filters} onFilter={applyFilters} />
 
