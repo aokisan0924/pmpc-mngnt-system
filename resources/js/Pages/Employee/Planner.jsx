@@ -1,21 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
-import { router, useForm, usePage } from '@inertiajs/react'
+import { useMemo, useState } from 'react'
+import { router, usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import EmployeePageHeader from '@/Components/EmployeePageHeader'
 import Card from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
-import Button from '@/Components/UI/Button'
 import ConfirmModal from '@/Components/ConfirmModal'
+import TaskBoard from '@/Components/TaskBoard'
+import TaskFormModal from '@/Components/TaskFormModal'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-const EMPTY_FORM = {
-    title:       '',
-    description: '',
-    due_date:    '',
-    category:    '',
-    priority:    'medium',
-}
 
 function toKey(d) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -53,23 +46,15 @@ export default function Planner({ tasks = [] }) {
     const [selectedDate, setSelectedDate] = useState(todayKey)
     const [showForm, setShowForm]         = useState(false)
     const [editTarget, setEditTarget]     = useState(null)
+    const [formDate, setFormDate]         = useState('')
     const [taskToDelete, setTaskToDelete] = useState(null)
     const [filter, setFilter]             = useState('all')
+    const [view, setView]                 = useState('calendar')
 
-    useEffect(() => {
-        if (!showForm) return
-        const handleKeyDown = (e) => {
-            if (e.key === 'Escape') {
-                cancelForm()
-            }
-        }
-        window.addEventListener('keydown', handleKeyDown)
-        return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [showForm])
-
-    const { data, setData, post, patch, processing, errors, reset } = useForm(EMPTY_FORM)
-
-    const visibleTasks = filter === 'all' ? tasks : tasks.filter(t => t.status === filter)
+    // "pending" means anything not finished yet, so tasks in Doing stay visible.
+    const visibleTasks = filter === 'all'
+        ? tasks
+        : tasks.filter(t => (filter === 'done') === (t.status === 'done'))
 
     const tasksByDate = useMemo(() => {
         const map = {}
@@ -101,41 +86,23 @@ export default function Planner({ tasks = [] }) {
     }
 
     function openNewTaskForm(prefillDate) {
-        reset()
-        setData(d => ({ ...d, due_date: prefillDate ?? selectedDate }))
+        setFormDate(prefillDate ?? selectedDate)
         setEditTarget(null)
         setShowForm(true)
     }
 
-    function submitTask(e) {
-        e.preventDefault()
-        if (editTarget) {
-            patch(`/employee/planner/${editTarget.id}`, {
-                onSuccess: () => { setEditTarget(null); setShowForm(false); reset() },
-            })
-        } else {
-            post('/employee/planner', {
-                onSuccess: () => { setShowForm(false); reset() },
-            })
-        }
-    }
-
     function startEdit(task) {
         setEditTarget(task)
-        setData({
-            title:       task.title,
-            description: task.description ?? '',
-            due_date:    task.due_date?.slice(0, 10) ?? '',
-            category:    task.category ?? '',
-            priority:    task.priority,
-        })
         setShowForm(true)
     }
 
     function cancelForm() {
         setShowForm(false)
         setEditTarget(null)
-        reset()
+    }
+
+    function moveTask(task, status) {
+        router.patch(`/employee/planner/${task.id}/status`, { status }, { preserveScroll: true })
     }
 
     function toggleDone(task) {
@@ -203,7 +170,26 @@ export default function Planner({ tasks = [] }) {
 
                 {/* Controls Bar */}
                 <div className="employee-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2.5 rounded-2xl border">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex gap-1 p-1 bg-field rounded-xl border border-border" role="tablist" aria-label="Planner view">
+                            {[['calendar', 'Calendar'], ['board', 'Board']].map(([key, label]) => (
+                                <button
+                                    key={key}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={view === key}
+                                    onClick={() => setView(key)}
+                                    className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
+                                        view === key
+                                            ? 'bg-white text-[#0F6E56] dark:bg-emerald-950/80 dark:text-emerald-300 font-bold shadow-xs border border-emerald-200/80 dark:border-emerald-800'
+                                            : 'text-sub hover:text-text hover:bg-panel/50'
+                                    }`}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                    <div className={`flex items-center gap-2 ${view === 'calendar' ? '' : 'hidden'}`}>
                         <div className="flex items-center gap-1.5 p-1 bg-field rounded-xl border border-border">
                             <button
                                 type="button"
@@ -240,6 +226,7 @@ export default function Planner({ tasks = [] }) {
                             Today
                         </button>
                     </div>
+                    </div>
 
                     <div className="flex gap-1 p-1 bg-field rounded-xl border border-border" role="group" aria-label="Filter tasks">
                         {['all', 'pending', 'done'].map(f => (
@@ -260,8 +247,18 @@ export default function Planner({ tasks = [] }) {
                     </div>
                 </div>
 
+                {view === 'board' && (
+                    <TaskBoard
+                        tasks={visibleTasks}
+                        onMove={moveTask}
+                        onEdit={startEdit}
+                        onDelete={confirmDelete}
+                        accent="emerald"
+                    />
+                )}
+
                 {/* Calendar + Agenda Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 items-start ${view === 'calendar' ? '' : 'hidden'}`}>
 
                     {/* Month Grid Card (2 Cols) */}
                     <Card className="employee-workspace-card lg:col-span-2 overflow-hidden p-3 sm:p-4">
@@ -460,123 +457,14 @@ export default function Planner({ tasks = [] }) {
 
             </div>
 
-            {/* Task Form Modal */}
             {showForm && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
-                    onClick={cancelForm}
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="task-form-title"
-                >
-                    <div
-                        className="w-full max-w-md rounded-2xl border border-border bg-panel p-6 shadow-2xl space-y-5"
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <div className="flex items-center justify-between pb-3 border-b border-border">
-                            <h2 id="task-form-title" className="text-lg font-bold font-display text-text">
-                                {editTarget ? 'Edit Task' : 'Schedule New Task'}
-                            </h2>
-                            <button
-                                type="button"
-                                onClick={cancelForm}
-                                aria-label="Close task form"
-                                className="text-sub hover:text-text p-1 rounded-lg hover:bg-hover transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
-                            >
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <form onSubmit={submitTask} className="space-y-4">
-                            <div>
-                                <label htmlFor="task-form-title-input" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
-                                    Task Title <span className="text-rose-500">*</span>
-                                </label>
-                                <input
-                                    id="task-form-title-input"
-                                    type="text"
-                                    value={data.title}
-                                    onChange={e => setData('title', e.target.value)}
-                                    placeholder="What needs to be accomplished?"
-                                    className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                                    required
-                                    autoFocus
-                                />
-                                {errors.title && <p className="mt-1 text-xs text-rose-500">{errors.title}</p>}
-                            </div>
-
-                            <div>
-                                <label htmlFor="task-form-desc-input" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
-                                    Description (Optional)
-                                </label>
-                                <textarea
-                                    id="task-form-desc-input"
-                                    value={data.description}
-                                    onChange={e => setData('description', e.target.value)}
-                                    rows={2}
-                                    placeholder="Details or deliverables..."
-                                    className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label htmlFor="task-form-due-date-input" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
-                                        Due Date <span className="text-rose-500">*</span>
-                                    </label>
-                                    <input
-                                        id="task-form-due-date-input"
-                                        type="date"
-                                        value={data.due_date}
-                                        onChange={e => setData('due_date', e.target.value)}
-                                        className="w-full px-3.5 py-2 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-mono"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="task-form-priority-input" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
-                                        Priority
-                                    </label>
-                                    <select
-                                        id="task-form-priority-input"
-                                        value={data.priority}
-                                        onChange={e => setData('priority', e.target.value)}
-                                        className="w-full px-3.5 py-2 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                                    >
-                                        <option value="low">Low Priority</option>
-                                        <option value="medium">Medium Priority</option>
-                                        <option value="high">High Priority</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label htmlFor="task-form-category-input" className="block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5">
-                                    Category / Label
-                                </label>
-                                <input
-                                    id="task-form-category-input"
-                                    type="text"
-                                    value={data.category}
-                                    onChange={e => setData('category', e.target.value)}
-                                    placeholder="e.g. Operations, Accounting"
-                                    className="w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
-                                <Button variant="secondary" size="md" type="button" onClick={cancelForm}>
-                                    Cancel
-                                </Button>
-                                <Button variant="emerald" size="md" type="submit" loading={processing}>
-                                    {editTarget ? 'Update Task' : 'Add Task'}
-                                </Button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                <TaskFormModal
+                    task={editTarget}
+                    defaultDate={formDate}
+                    createUrl="/employee/planner"
+                    updateUrl={t => `/employee/planner/${t.id}`}
+                    onClose={cancelForm}
+                />
             )}
 
             {/* Task Deletion Confirmation Dialog */}
