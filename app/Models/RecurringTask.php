@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class RecurringTask extends Model
 {
@@ -31,6 +32,12 @@ class RecurringTask extends Model
     public function tasks()
     {
         return $this->hasMany(Task::class);
+    }
+
+    /** The people on a shared rule (no person, no office). */
+    public function assignees(): BelongsToMany
+    {
+        return $this->belongsToMany(Employee::class, 'recurring_task_assignees');
     }
 
     /** The first due date after $date that this rule produces, or null if the rule has ended by then. */

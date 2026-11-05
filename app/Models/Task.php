@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Task extends Model
 {
@@ -67,9 +68,20 @@ class Task extends Model
         });
     }
 
+    /** The people on a shared task (no person, no office). */
+    public function assignees(): BelongsToMany
+    {
+        return $this->belongsToMany(Employee::class, 'task_assignees')->orderBy('first_name')->orderBy('last_name');
+    }
+
+    public function isShared(): bool
+    {
+        return $this->employee_id === null && $this->office === null;
+    }
+
     public function isOfficeWide(): bool
     {
-        return $this->employee_id === null;
+        return $this->employee_id === null && $this->office !== null;
     }
 
     public function officeLabel(): ?string
@@ -119,6 +131,15 @@ class Task extends Model
             'employee_name' => $this->relationLoaded('employee') && $this->employee
                 ? trim($this->employee->first_name.' '.$this->employee->last_name)
                 : null,
+            'is_shared' => $this->isShared(),
+            'assignees' => $this->isShared() && $this->relationLoaded('assignees')
+                ? $this->assignees->map(fn (Employee $e) => [
+                    'id' => $e->id,
+                    'name' => trim($e->first_name.' '.$e->last_name),
+                    'office' => $e->payroll_office,
+                    'active' => $e->status === 'active',
+                ])->values()->all()
+                : [],
         ];
     }
 }
