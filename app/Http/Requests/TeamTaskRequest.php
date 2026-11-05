@@ -41,6 +41,8 @@ class TeamTaskRequest extends FormRequest
         $currentOwnerId = $task?->employee_id;
         $sharedEdit = $task?->isShared() ?? false;
         $shared = $this->boolean('shared') || $sharedEdit;
+        // Editing a normal task never counts a people list as an owner, so it cannot end with no owner and no office.
+        $listCounts = $task === null || $sharedEdit;
         $currentAssigneeIds = $sharedEdit ? $task->assignees()->pluck('employees.id')->all() : [];
 
         return [
@@ -51,14 +53,14 @@ class TeamTaskRequest extends FormRequest
             'priority' => ['required', 'in:low,medium,high'],
             'employee_id' => [
                 'nullable',
-                'required_without_all:office,employee_ids',
+                $listCounts ? 'required_without_all:office,employee_ids' : 'required_without:office',
                 'integer',
                 Rule::exists('employees', 'id')->where(
                     fn ($query) => $query->where('status', 'active')
                         ->when($currentOwnerId, fn ($q) => $q->orWhere('id', $currentOwnerId))
                 ),
             ],
-            'office' => ['nullable', 'required_without_all:employee_id,employee_ids', Rule::in(array_keys(Task::OFFICES))],
+            'office' => ['nullable', $listCounts ? 'required_without_all:employee_id,employee_ids' : 'required_without:employee_id', Rule::in(array_keys(Task::OFFICES))],
 
             // Several people at once: one separate task each. Read only when a task is created.
             // "shared" is chosen only when creating; an existing shared task edits its people instead.

@@ -155,6 +155,19 @@ class TeamTaskSharedTest extends TestCase
         $this->edit($task, [$a->id, $b->id])->assertSessionHasNoErrors();
     }
 
+    public function test_an_edit_cannot_turn_an_office_task_into_an_empty_shared_task(): void
+    {
+        $maria = Employee::factory()->create();
+        $task = Task::create(['assigned_by' => $this->admin->id, 'employee_id' => null, 'office' => 'cubao', 'title' => 'T', 'due_date' => '2026-11-20', 'priority' => 'low', 'status' => 'pending']);
+
+        $this->actingAs($this->admin)->patch("/admin/team-tasks/{$task->id}", [
+            'title' => 'T', 'due_date' => '2026-11-20', 'priority' => 'low', 'employee_id' => '', 'office' => '', 'employee_ids' => [$maria->id],
+        ])->assertSessionHasErrors('office');
+
+        $this->assertSame('cubao', $task->fresh()->office);
+        $this->assertFalse($task->fresh()->isShared());
+    }
+
     public function test_editing_a_normal_task_still_ignores_employee_ids(): void
     {
         $maria = Employee::factory()->create();
