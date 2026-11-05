@@ -133,8 +133,11 @@ First date = `nextDueAfter(today − 1 day)` with today in Asia/Manila. Examples
 - `transform` (create) wraps the existing mode transform and adds `due_type: dueType`; for `recurring` also `due_date: ''`; for `none` `due_date: ''` and `repeat: ''`; for `date` `repeat: ''`.
 - Admin edit: the Due Date cell stays; it is required (asterisk, `required`) only when `task.repeat_label`; otherwise the label reads "Due Date (optional)" with the hint "Leave empty for no due date." An undated task opens with an empty field (`task.due_date` null → `defaultDate` `''`).
 
+## Employee edits an undated task (owner decision: stay undated)
+An employee who is the named owner can edit an admin-assigned task from My tasks. For a task that has no due date, `TaskController::update` makes `due_date` nullable (blank saves null) and the Planner form shows the date as optional and empty (it no longer pre-fills the selected calendar day). A dated task still requires a date on every edit, and an employee's own new task still requires a date. Plan Task 3b and the form change in Task 4.
+
 ## Risks
-- **Employee editing an undated admin task assigned to them.** `TaskController::authorizeTask` lets the owner edit, and the Planner form requires a date and pre-fills the selected day, so saving there gives the task a date. Accepted for now (owner said the employee form is unchanged); owner to confirm.
+- **Employee editing an undated admin task assigned to them.** `TaskController::authorizeTask` lets the owner edit, and the Planner form requires a date and pre-fills the selected day, so saving there gives the task a date. Resolved: the owner chose to keep the task undated (see the section "Employee edits an undated task").
 - **sqlite `->change()`** rebuilds `tasks` in every test run; if it loses an index or foreign key, the existing `RecurringTaskGeneratorTest` duplicate tests or `SharedTaskModelTest` cascade tests fail, so the full suite is the check.
 - **MariaDB ALTER** on a live table: small table, fast, but needs a backup first and the scratch up/down/up check.
 - **Rollback** is blocked once anyone saves an undated task; that is intended.

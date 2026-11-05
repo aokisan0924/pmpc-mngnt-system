@@ -176,6 +176,24 @@
 - [ ] **Step 4: Run** `php artisan test --filter='TeamTask|RecurringTask|TaskAssignment|SharedTask|OfficeTasks'`. Expected: all pass, `RecurringTaskAdminTest` and `TeamTaskMultiAssignTest` unchanged. Pint.
 - [ ] **Step 5: Commit** `feat(admin): choose when a task is due, including no due date`.
 
+### Task 3b: An employee editing an undated task keeps it undated (owner decision)
+
+**Files:**
+- Modify: `app/Http/Controllers/TaskController.php` (`update` only)
+- Test: `tests/Feature/TaskNoDueDateEmployeeEditTest.php` (new; style of `TaskBoardTest`)
+
+**Interfaces:**
+- `TaskController::update`: `due_date` rule becomes `$task->due_date === null ? ['nullable', 'date'] : ['required', 'date']` (a blank value saves `null`). `store` is unchanged (employees' own new tasks still need a date).
+
+- [ ] **Step 1: Write failing tests:**
+  - `test_an_employee_can_edit_an_undated_task_and_it_stays_undated`: an admin-assigned task with `due_date` null and `employee_id` = the employee; `PATCH` `employee.planner.update` with a new title, `due_date => ''`, `priority`; assert no errors, title changed, `due_date` still null.
+  - `test_an_employee_can_give_an_undated_task_a_date`: same task, `due_date => '2026-12-01'` saves it.
+  - `test_a_dated_task_still_needs_a_date_when_an_employee_edits_it`: a dated task, `due_date => ''` gives a session error on `due_date`, date unchanged.
+  - `test_an_employee_still_needs_a_date_for_a_new_task`: `POST` `employee.planner.store` without `due_date` gives an error.
+- [ ] **Step 2: Run** `php artisan test --filter=TaskNoDueDateEmployeeEditTest`. Expected: the first test FAILS (due date required).
+- [ ] **Step 3: Implement** the rule change. **Step 4: Run** `php artisan test --filter='TaskNoDueDate|TaskBoard|OfficeTasks|TeamTask'`; `vendor/bin/pint app tests`. Expected: pass.
+- [ ] **Step 5: Commit** `fix(planner): employees keep an undated task undated when editing`.
+
 ### Task 4: Frontend (form, detail, calendars, dashboard)
 
 **Files:**
@@ -191,7 +209,8 @@
   - Add `const [dueType, setDueType] = useState('date')` and `const adminCreate = Boolean(employees) && !task`.
   - `chooseDueType(value)`: `setDueType(value)`; if `value === 'recurring' && !data.repeat` call `chooseRepeat('monthly')`.
   - Gap-check correction: `chooseRepeat` currently pre-fills the weekday/day/month from `data.due_date` (falling back to today). In Recurring mode it must pre-fill from today only (use `new Date()`), so a date typed earlier or a calendar `defaultDate` does not leak into the schedule.
-  - Date/priority grid: render the Due Date cell only when `!adminCreate`. In it, `const dateRequired = !employees || Boolean(task?.repeat_label)`; label "Due Date" + red `*` when `dateRequired`, else "Due Date (optional)"; `required={dateRequired}`; when not required show `<p className="mt-1 text-xs text-sub">Leave empty for no due date.</p>`. Employee form output stays identical.
+  - Initial value: change `due_date: task?.due_date?.slice(0, 10) ?? defaultDate` to `due_date: task ? (task.due_date?.slice(0, 10) ?? '') : defaultDate`, so editing an undated task does not pre-fill the calendar's selected day (this matters for the employee Planner form).
+  - Date/priority grid: render the Due Date cell only when `!adminCreate`. In it, `const dateRequired = employees ? Boolean(task?.repeat_label) : !(task && !task.due_date)` (employee form: required for new tasks and dated tasks, optional only when editing an undated task, per Task 3b); label "Due Date" + red `*` when `dateRequired`, else "Due Date (optional)"; `required={dateRequired}`; when not required show `<p className="mt-1 text-xs text-sub">Leave empty for no due date.</p>`. The employee form is otherwise unchanged.
   - Replace the `employees && !task` "Repeats" fieldset with a "When is it due?" fieldset (legend in the existing legend style). Three radios in the style of the "How to give it" radios: `name="task-form-due-type"`, values `date` "Has a due date", `recurring` "Recurring", `none` "No due date". Then:
     - `date`: the due date input (`id="task-form-due-date-input"`, `type="date"`, `required`) and `errors.due_date`.
     - `recurring`: the existing frequency select (keep `id="task-form-repeat-input"`, visible label "How often", drop the "Does not repeat" option) and the existing weekday / month / day / last-day / "Show it days before" / "Stop after" blocks unchanged; hint `<p className="text-xs text-sub">The first one is the next date on this schedule, from today.</p>`; `errors.repeat`, `errors.repeat_until` as now.
