@@ -45,6 +45,7 @@ class TeamTaskController extends Controller
         $tasks = $scoped()->with(['employee', 'assigner', 'recurringTask', 'assignees'])
             ->when(! $showOlder, fn ($q) => $q->where(fn ($w) => $w->where('status', '!=', 'done')->orWhere('updated_at', '>=', now()->subDays(30))))
             ->when($overdueOnly, fn ($q) => $q->where('due_date', '<', $today)->where('status', '!=', 'done'))
+            ->orderByRaw('due_date IS NULL')
             ->orderBy('due_date')
             ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END")
             ->get()
@@ -252,12 +253,11 @@ class TeamTaskController extends Controller
      */
     private function offices(): array
     {
-        $today = CarbonImmutable::now('Asia/Manila')->toDateString();
         $tasks = Task::assignedByAdmin()->where('status', '!=', 'done')
             ->with('assignees:id,payroll_office')
-            ->get(['id', 'employee_id', 'office', 'due_date']);
+            ->get(['id', 'employee_id', 'office', 'due_date', 'status']);
 
-        return collect(Task::OFFICES)->map(function (string $label, string $key) use ($tasks, $today): array {
+        return collect(Task::OFFICES)->map(function (string $label, string $key) use ($tasks): array {
             $mine = $tasks->filter(fn (Task $t) => $t->office === $key
                 || ($t->isShared() && $t->assignees->contains('payroll_office', $key)));
 
@@ -265,7 +265,7 @@ class TeamTaskController extends Controller
                 'key' => $key,
                 'label' => $label,
                 'open' => $mine->count(),
-                'late' => $mine->filter(fn (Task $t) => $t->due_date->toDateString() < $today)->count(),
+                'late' => $mine->filter(fn (Task $t) => $t->isOverdue())->count(),
             ];
         })->values()->all();
     }
@@ -278,19 +278,18 @@ class TeamTaskController extends Controller
      */
     private function people(?string $office): array
     {
-        $today = CarbonImmutable::now('Asia/Manila')->toDateString();
         $chips = [];
 
-        $bump = function (string $id, array $chip, Task $task) use (&$chips, $today): void {
+        $bump = function (string $id, array $chip, Task $task) use (&$chips): void {
             $chips[$id] ??= $chip + ['open' => 0, 'late' => 0];
             $chips[$id]['open']++;
-            $chips[$id]['late'] += $task->due_date->toDateString() < $today ? 1 : 0;
+            $chips[$id]['late'] += $task->isOverdue() ? 1 : 0;
         };
 
         Task::assignedByAdmin()->where('status', '!=', 'done')
             ->when($office, fn ($q) => $q->inOffice($office))
             ->with(['employee:id,first_name,last_name,status', 'assignees:id,first_name,last_name,status,payroll_office'])
-            ->get(['id', 'employee_id', 'office', 'due_date'])
+            ->get(['id', 'employee_id', 'office', 'due_date', 'status'])
             ->each(function (Task $task) use ($bump, $office): void {
                 if ($task->isShared()) {
                     foreach ($task->assignees as $person) {

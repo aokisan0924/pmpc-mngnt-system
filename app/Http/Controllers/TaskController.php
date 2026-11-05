@@ -17,6 +17,7 @@ class TaskController extends Controller
 
         $tasks = Task::visibleTo($employee)
             ->with(['assigner', 'recurringTask', 'assignees'])
+            ->orderByRaw('due_date IS NULL')
             ->orderBy('due_date')
             ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END")
             ->get()

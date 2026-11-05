@@ -136,6 +136,7 @@ class EmployeeDashboardController extends Controller
         // Recent tasks (up to 5)
         $recentTasks = Task::visibleTo($employee)
             ->orderByRaw("CASE WHEN status = 'done' THEN 1 ELSE 0 END")
+            ->orderByRaw('due_date IS NULL')
             ->orderBy('due_date')
             ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END")
             ->limit(5)
@@ -144,11 +145,16 @@ class EmployeeDashboardController extends Controller
                 'id' => $task->id,
                 'title' => $task->title,
                 'description' => $task->description,
-                'due_date' => $task->due_date->format('Y-m-d'),
-                'due_label' => $task->due_date->isToday() ? 'Today' : ($task->due_date->isTomorrow() ? 'Tomorrow' : $task->due_date->format('M d')),
+                'due_date' => $task->due_date?->format('Y-m-d'),
+                'due_label' => match (true) {
+                    $task->due_date === null => 'No due date',
+                    $task->due_date->isToday() => 'Today',
+                    $task->due_date->isTomorrow() => 'Tomorrow',
+                    default => $task->due_date->format('M d'),
+                },
                 'priority' => $task->priority,
                 'status' => $task->status,
-                'is_overdue' => $task->due_date->isPast() && ! $task->due_date->isToday() && $task->status !== 'done',
+                'is_overdue' => $task->isOverdue(),
             ]);
 
         // Latest finalized payslip
