@@ -1,6 +1,7 @@
 import { useId, useMemo, useState } from 'react'
 
 const INPUT = 'w-full px-3.5 py-2 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all'
+const MAX = 25
 const LINK = 'text-xs font-semibold text-[#26215C] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 rounded'
 
 /**
@@ -26,14 +27,14 @@ export default function PeoplePicker({ employees = [], offices = [], value = [],
     }, [employees, offices, text])
 
     const toggle = id => onChange(picked.has(id) ? value.filter(v => v !== id) : [...value, id])
-    const setMany = (ids, on) => onChange(on ? [...new Set([...value, ...ids])] : value.filter(v => !ids.includes(v)))
+    const setMany = (ids, on) => onChange(on ? [...new Set([...value, ...ids])].slice(0, MAX) : value.filter(v => !ids.includes(v)))
     const nameOf = id => employees.find(e => e.id === id)?.name ?? `#${id}`
 
     return (
         <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
                 <label htmlFor={searchId} className="block text-xs font-semibold text-sub uppercase tracking-wider">People</label>
-                <span className="text-xs font-semibold text-sub" aria-live="polite">{value.length} selected</span>
+                <span className="text-xs font-semibold text-sub" aria-live="polite">{value.length} selected (up to {MAX})</span>
             </div>
 
             {value.length > 0 && (
@@ -76,6 +77,7 @@ export default function PeoplePicker({ employees = [], offices = [], value = [],
                                             <input
                                                 type="checkbox"
                                                 checked={picked.has(emp.id)}
+                                                disabled={!picked.has(emp.id) && value.length >= MAX}
                                                 onChange={() => toggle(emp.id)}
                                                 className="h-4 w-4 rounded border-border accent-[#26215C]"
                                             />

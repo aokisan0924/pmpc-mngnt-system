@@ -90,7 +90,7 @@ class TeamTaskMultiAssignTest extends TestCase
         $many = Employee::factory()->count(26)->create()->pluck('id')->all();
 
         $this->create($this->payload([$one->id, $one->id]))->assertSessionHasErrors('employee_ids.1');
-        $this->create($this->payload([]))->assertSessionHasErrors();
+        $this->create($this->payload([]))->assertSessionHasErrors('employee_ids');
         $this->create($this->payload($many))->assertSessionHasErrors('employee_ids');
         $this->assertSame(0, Task::count());
     }
@@ -112,6 +112,18 @@ class TeamTaskMultiAssignTest extends TestCase
 
         $this->create($this->payload([$a->id, $b->id]))->assertSessionHas('success', 'Task added for 2 people.');
         $this->create($this->payload([$a->id]))->assertSessionHas('success', 'Task added.');
+    }
+
+    public function test_editing_works_when_the_form_sends_an_empty_employee_ids_list(): void
+    {
+        $maria = Employee::factory()->create();
+        $task = Task::create(['assigned_by' => $this->admin->id, 'employee_id' => $maria->id, 'office' => $maria->payroll_office, 'title' => 'T', 'due_date' => '2026-11-20', 'priority' => 'low', 'status' => 'pending']);
+
+        $this->actingAs($this->admin)->patch("/admin/team-tasks/{$task->id}", [
+            'title' => 'T2', 'due_date' => '2026-11-21', 'priority' => 'low', 'employee_id' => $maria->id, 'employee_ids' => [],
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame('T2', $task->fresh()->title);
     }
 
     public function test_editing_ignores_employee_ids(): void

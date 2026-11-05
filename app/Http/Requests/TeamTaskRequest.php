@@ -17,6 +17,17 @@ class TeamTaskRequest extends FormRequest
     }
 
     /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'employee_ids.min' => 'Choose at least one person.',
+            'employee_ids.max' => 'Choose up to 25 people.',
+        ];
+    }
+
+    /**
      * @return array<string, array<int, mixed>>
      */
     public function rules(): array
@@ -43,8 +54,9 @@ class TeamTaskRequest extends FormRequest
             'office' => ['nullable', 'required_without_all:employee_id,employee_ids', Rule::in(array_keys(Task::OFFICES))],
 
             // Several people at once: one separate task each. Read only when a task is created.
-            'employee_ids' => ['nullable', 'array', 'min:1', 'max:25'],
+            'employee_ids' => [Rule::excludeIf(fn () => $this->route('task') !== null), 'nullable', 'array', 'min:1', 'max:25'],
             'employee_ids.*' => [
+                Rule::excludeIf(fn () => $this->route('task') !== null),
                 'integer', 'distinct',
                 Rule::exists('employees', 'id')->where(fn ($query) => $query->where('status', 'active')),
             ],

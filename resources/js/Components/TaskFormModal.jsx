@@ -83,7 +83,7 @@ export default function TaskFormModal({
             aria-labelledby="task-form-title"
         >
             <div
-                className="w-full max-w-md rounded-2xl border border-border bg-panel p-6 shadow-2xl space-y-5"
+                className="w-full max-w-md max-h-[92vh] overflow-y-auto rounded-2xl border border-border bg-panel p-6 shadow-2xl space-y-5"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between pb-3 border-b border-border">
