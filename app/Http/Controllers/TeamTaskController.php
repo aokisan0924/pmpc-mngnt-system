@@ -81,6 +81,19 @@ class TeamTaskController extends Controller
     public function store(TeamTaskRequest $request): RedirectResponse
     {
         $data = $request->validated();
+
+        if ($request->boolean('shared')) {
+            $ids = array_map('intval', $data['employee_ids']);
+            $task = DB::transaction(fn () => $this->createTask(
+                $request,
+                [...Arr::except($data, ['employee_ids', 'employee_id', 'office', 'shared']), 'employee_id' => null, 'office' => null],
+                $ids,
+            ));
+            app(TaskAssignmentNotifier::class)->notify($task, $request->user());
+
+            return back()->with('success', 'Shared task added for '.count($ids).' people.');
+        }
+
         // Several people means one separate task each; the array wins over employee_id and office.
         $owners = ! empty($data['employee_ids']) ? array_map(fn ($id) => ['employee_id' => (int) $id, 'office' => null], $data['employee_ids']) : [Arr::only($data, ['employee_id', 'office'])];
 
@@ -98,7 +111,7 @@ class TeamTaskController extends Controller
     }
 
     /** Creates one task, and its repeat rule when the admin chose to repeat it. */
-    private function createTask(Request $request, array $data): Task
+    private function createTask(Request $request, array $data, array $assigneeIds = []): Task
     {
         $fields = Arr::only($data, ['employee_id', 'office', 'title', 'description', 'due_date', 'category', 'priority']);
         $rule = null;
@@ -121,12 +134,33 @@ class TeamTaskController extends Controller
             ]);
         }
 
-        return Task::create([...$fields, 'assigned_by' => $request->user()->id, 'recurring_task_id' => $rule?->id]);
+        $task = Task::create([...$fields, 'assigned_by' => $request->user()->id, 'recurring_task_id' => $rule?->id]);
+
+        if ($assigneeIds !== []) {
+            $rule?->assignees()->attach($assigneeIds);
+            $task->assignees()->attach($assigneeIds);
+        }
+
+        return $task;
     }
 
     public function update(TeamTaskRequest $request, Task $task): RedirectResponse
     {
         $this->ensureAssigned($task);
+
+        if ($task->isShared()) {
+            $changes = DB::transaction(function () use ($request, $task): array {
+                $task->update(Arr::only($request->validated(), ['title', 'description', 'due_date', 'category', 'priority']));
+
+                return $task->assignees()->sync(array_map('intval', $request->validated('employee_ids')));
+            });
+
+            if ($changes['attached'] !== []) {
+                app(TaskAssignmentNotifier::class)->notify($task, $request->user(), $changes['attached']);
+            }
+
+            return back()->with('success', 'Task updated.');
+        }
 
         $previousEmployeeId = $task->employee_id;
         $previousOffice = $task->office;

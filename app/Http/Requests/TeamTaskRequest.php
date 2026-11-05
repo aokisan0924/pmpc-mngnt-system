@@ -21,8 +21,11 @@ class TeamTaskRequest extends FormRequest
      */
     public function messages(): array
     {
+        $shared = $this->boolean('shared') || ($this->route('task')?->isShared() ?? false);
+
         return [
-            'employee_ids.min' => 'Choose at least one person.',
+            'employee_ids.min' => $shared ? 'A shared task needs at least two people.' : 'Choose at least one person.',
+            'employee_ids.required' => 'A shared task needs at least two people.',
             'employee_ids.max' => 'Choose up to 25 people.',
         ];
     }
@@ -34,7 +37,11 @@ class TeamTaskRequest extends FormRequest
     {
         // On edit, the task's current owner stays valid even if deactivated since,
         // so an admin can fix a task without having to reassign it.
-        $currentOwnerId = $this->route('task')?->employee_id;
+        $task = $this->route('task');
+        $currentOwnerId = $task?->employee_id;
+        $sharedEdit = $task?->isShared() ?? false;
+        $shared = $this->boolean('shared') || $sharedEdit;
+        $currentAssigneeIds = $sharedEdit ? $task->assignees()->pluck('employees.id')->all() : [];
 
         return [
             'title' => ['required', 'string', 'max:200'],
@@ -54,11 +61,20 @@ class TeamTaskRequest extends FormRequest
             'office' => ['nullable', 'required_without_all:employee_id,employee_ids', Rule::in(array_keys(Task::OFFICES))],
 
             // Several people at once: one separate task each. Read only when a task is created.
-            'employee_ids' => [Rule::excludeIf(fn () => $this->route('task') !== null), 'nullable', 'array', 'min:1', 'max:25'],
+            // "shared" is chosen only when creating; an existing shared task edits its people instead.
+            'shared' => [Rule::excludeIf(fn () => $task !== null), 'nullable', 'boolean'],
+            'employee_ids' => [
+                Rule::excludeIf(fn () => $task !== null && ! $sharedEdit),
+                Rule::requiredIf($shared), 'nullable', 'array', $shared ? 'min:2' : 'min:1', 'max:25',
+            ],
             'employee_ids.*' => [
-                Rule::excludeIf(fn () => $this->route('task') !== null),
+                Rule::excludeIf(fn () => $task !== null && ! $sharedEdit),
                 'integer', 'distinct',
-                Rule::exists('employees', 'id')->where(fn ($query) => $query->where('status', 'active')),
+                // People already on a shared task stay valid after being deactivated.
+                Rule::exists('employees', 'id')->where(
+                    fn ($query) => $query->where('status', 'active')
+                        ->when($currentAssigneeIds, fn ($q) => $q->orWhereIn('id', $currentAssigneeIds))
+                ),
             ],
 
             // Repeat settings are read only when a task is created.
