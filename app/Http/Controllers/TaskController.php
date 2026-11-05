@@ -53,7 +53,8 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:200'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'due_date' => ['required', 'date'],
+            // An ongoing task an admin gave this employee may stay undated; a dated one still needs its date.
+            'due_date' => $task->due_date === null ? ['nullable', 'date'] : ['required', 'date'],
             'category' => ['nullable', 'string', 'max:100'],
             'priority' => ['required', 'in:low,medium,high'],
         ]);
