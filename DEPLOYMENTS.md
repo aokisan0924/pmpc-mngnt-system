@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-05 20:15 — 0853203 — Dues page, and five bills moved from tasks to dues
+- By: Claude Code (SSH key), requested by Kurt (fast release: "no testing, just push to main and live")
+- Code: `a75d152` → `0853203`
+- Migrations: `2026_11_06_000000_create_dues_tables` (new `dues` and `due_occurrences` tables). Not tried on a scratch MariaDB before release; `down()` drops the two tables whole (no lone index drops).
+- Backup: `~/domains/peoplescoopdtr.online/db-backup-2026-11-06-dues.sql` (taken 20:14 Manila on Nov 5; the file name carries the migration's date, not the day it was taken; 25 tables).
+- Data changes: `php artisan dues:import-from-tasks` (dry run first and reviewed, then `--apply`) created 5 dues from the 5 active monthly whole-office repeating tasks in Cubao and stopped those 5 repeat rules: Jason Bajet (9th), Sir Fajilagutan (23rd), Maria Luz Cabanilla (27th, PHP 18,108.19 found in the notes), CFT (3rd; two amounts in its notes, so left empty), Dumalag (5th, PHP 6,836.48). Titles lost their "- Every ..." suffix; the notes were kept as they were. The existing task copies on the board were NOT touched. To undo: delete the 5 dues in Admin > Dues > Manage dues (or `Due::query()->delete()`), then set `recurring_tasks.active = 1` for ids 1 to 5.
+- Verified: nothing was run in the test suite or a browser (owner asked for no testing). `npm run build` and PHP syntax checks passed before the push. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200, all 8 `admin.dues` routes registered. The Dues page controller was run on the server against the live data (not through the browser): November shows 5 lines, total 24,944.67 known amounts, 1 overdue (CFT, Nov 3), 3 with no amount yet. The page itself (layout, Mark paid and the other buttons) has NOT been seen on screen: Chrome was not connected.
+
 ## 2026-11-05 16:42 — a75d152 — My tasks board: remove the Doing and Done buttons
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `e5097be` → `a75d152`
