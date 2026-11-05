@@ -2,7 +2,16 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
-## 2026-11-05 11:35 — 0a0fb20 — Team tasks redesign: one filter box and clearer cards
+## 2026-11-05 09:33 — 29221c3 — Shared tasks: one task for several people
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `436e014` → `29221c3`
+- Migrations: `2026_11_05_120000_create_task_assignees_tables` (new `task_assignees` and `recurring_task_assignees` tables). Tested up, down and up again on a scratch MariaDB 10.4; rollback refuses while shared tasks exist.
+- Backup: `~/domains/peoplescoopdtr.online/db-backup-2026-11-05-shared-tasks.sql` (taken 09:32; 23 tables). To undo: delete any shared tasks, `php artisan migrate:rollback --step=1 --force`, then `git checkout 436e014`; no existing data was changed.
+- Data changes: none. 0 shared tasks exist; before the deploy no task had both no person and no office.
+- Verified: full suite 307 of 308 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint and build passed, Opus review found nothing Critical or Important and its one Minor was fixed with a test that fails without the fix. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200, task count unchanged at 54. Signed in as Kurt in Chrome (read-only): Team tasks shows the same numbers as before (To do 16, Doing 5, Done 2, 23 cards); in the New Task form, picking two people shows "How to give it" with "Each person gets their own copy" and "One shared task". Nothing was saved and no task created on live during the check.
+- Log correction: the times of the five entries above (0a56b15, 335a67b, d427308, 71022ee, 0a0fb20) were first written from memory and were later than the real ones. They were corrected from the server's git reflog (UTC converted to Manila).
+
+## 2026-11-05 08:50 — 0a0fb20 — Team tasks redesign: one filter box and clearer cards
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `71022ee` → `0a0fb20`
 - Migrations: none
@@ -10,7 +19,7 @@ What happened on the live site, https://peoplescoopdtr.online, newest first. `CH
 - Data changes: none
 - Verified: full suite 269 of 270 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint and build passed. The Opus review's Important finding (the card menu hidden under the next Done card) was fixed and re-checked in the browser. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome (read-only): the page shows office tabs All 21, Cubao 8, Fort Magsaysay 4, UPI Main 9, a People row without an Everyone pill, "Late only (7)" matching the "7 late" under To do, and cards with owner initials, a "List: ..." tag, "1 day late" text and a "⋯" menu (Edit, Delete) that opens on a Done card. Nothing was saved or changed on live during the check.
 
-## 2026-11-05 10:10 — 71022ee — Assign a task to several people
+## 2026-11-05 08:30 — 71022ee — Assign a task to several people
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `d427308` → `71022ee`
 - Migrations: none
@@ -18,7 +27,7 @@ What happened on the live site, https://peoplescoopdtr.online, newest first. `CH
 - Data changes: none
 - Verified: full suite 268 of 269 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint and build passed. The Opus review's Critical finding (editing a task failed silently) was fixed with a test that failed first and re-checked in the browser. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome (read-only): New Task shows Specific people / Whole office with a searchable list grouped by Cubao, Fort Magsaysay and UPI Main and a "0 selected (up to 25)" count; Edit on a card still shows the single Employee select. No task was created or saved on live during the check.
 
-## 2026-11-04 17:45 — d427308 — Team tasks office tabs and people row
+## 2026-11-04 16:39 — d427308 — Team tasks office tabs and people row
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `335a67b` → `d427308`
 - Migrations: none
@@ -26,7 +35,7 @@ What happened on the live site, https://peoplescoopdtr.online, newest first. `CH
 - Data changes: none
 - Verified: full suite 259 of 260 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint and build passed, Opus review found nothing Critical or Important. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome, Team tasks shows the office tabs All 20, Cubao Office 7, Fort Magsaysay Office 5, UPI Main Office 8. Choosing Cubao narrowed the people row to its three people, set the cards to 6 to do and 1 doing, and showed 7 cards on the board. Nothing was changed on the live site during the check.
 
-## 2026-11-04 17:05 — 335a67b — Team tasks status overview cards
+## 2026-11-04 16:22 — 335a67b — Team tasks status overview cards
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `0a56b15` → `335a67b`
 - Migrations: none
@@ -34,7 +43,7 @@ What happened on the live site, https://peoplescoopdtr.online, newest first. `CH
 - Data changes: none
 - Verified: full suite 258 of 259 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint and build passed, Opus review's Important finding fixed. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome, Team tasks shows To do 19, Doing 1, Done 1 (4% finished, last 30 days) with a progress bar, matching the board columns; the people pills are still there. Nothing was changed on the live site during the check.
 
-## 2026-11-04 16:35 — 0a56b15 — Team tasks people strip
+## 2026-11-04 16:12 — 0a56b15 — Team tasks people strip
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `973b19f` → `0a56b15`
 - Migrations: none
