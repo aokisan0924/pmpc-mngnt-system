@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from '@inertiajs/react'
 import Button from '@/Components/UI/Button'
+import PeoplePicker from '@/Components/PeoplePicker'
 
 const INPUT = 'w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all'
 const LEAD_DEFAULTS = { daily: 0, weekly: 2, monthly: 7, yearly: 14 }
@@ -23,14 +24,15 @@ export default function TaskFormModal({
     updateUrl,
     onClose,
 }) {
-    const { data, setData, post, patch, processing, errors } = useForm({
+    const [mode, setMode] = useState('people') // when creating as admin: pick people, or a whole office
+    const { data, setData, post, patch, processing, errors, transform } = useForm({
         title:       task?.title ?? '',
         description: task?.description ?? '',
         due_date:    task?.due_date?.slice(0, 10) ?? defaultDate,
         category:    task?.category ?? '',
         priority:    task?.priority ?? 'medium',
         ...(employees ? {
-            employee_id: task?.employee_id ?? '', office: task?.office ?? '',
+            employee_id: task?.employee_id ?? '', office: task?.office ?? '', employee_ids: [],
             repeat: '', repeat_day_of_week: '', repeat_day_of_month: '', repeat_last_day: false,
             repeat_month: '', repeat_lead_days: '', repeat_until: '',
         } : {}),
@@ -59,6 +61,12 @@ export default function TaskFormModal({
     function submit(e) {
         e.preventDefault()
         const options = { preserveScroll: true, onSuccess: onClose }
+        if (employees && !task) {
+            // People mode sends the list; whole-office mode sends only the office.
+            transform(d => mode === 'people'
+                ? { ...d, employee_id: '', office: '' }
+                : (({ employee_ids, ...rest }) => rest)(d))
+        }
         if (task) {
             patch(updateUrl(task), options)
         } else {
@@ -95,7 +103,38 @@ export default function TaskFormModal({
                 </div>
 
                 <form onSubmit={submit} className="space-y-4">
-                    {employees && (
+                    {employees && !task && (
+                        <div>
+                            <div className="flex gap-1 rounded-xl border border-border bg-field p-1 w-fit" role="group" aria-label="Who is this task for">
+                                {[['people', 'Specific people'], ['office', 'Whole office']].map(([key, label]) => (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        aria-pressed={mode === key}
+                                        onClick={() => setMode(key)}
+                                        className={`rounded-lg px-3 py-1 text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
+                                            mode === key ? 'border border-indigo-200 bg-white font-bold text-[#26215C] shadow-xs' : 'border border-transparent text-sub hover:text-text'
+                                        }`}
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                            {mode === 'people' && (
+                                <div className="mt-3">
+                                    <PeoplePicker
+                                        employees={employees}
+                                        offices={offices}
+                                        value={data.employee_ids}
+                                        onChange={ids => setData('employee_ids', ids)}
+                                        error={errors.employee_ids ?? Object.entries(errors).find(([k]) => k.startsWith('employee_ids.'))?.[1] ?? errors.employee_id}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {employees && task && (
                         <div>
                             <label htmlFor="task-form-employee-input" className={LABEL}>
                                 Employee
@@ -118,7 +157,7 @@ export default function TaskFormModal({
                         </div>
                     )}
 
-                    {employees && (
+                    {employees && (task || mode === 'office') && (
                         <div>
                             <label htmlFor="task-form-office-input" className={LABEL}>
                                 Office {!data.employee_id && <span className="text-rose-500">*</span>}
