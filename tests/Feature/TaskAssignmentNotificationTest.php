@@ -167,4 +167,18 @@ class TaskAssignmentNotificationTest extends TestCase
 
         $this->assertSame(0, EmployeeNotification::count());
     }
+
+    public function test_the_message_leaves_out_the_due_part_when_there_is_no_date(): void
+    {
+        $admin = $this->admin();
+        $maria = Employee::factory()->create();
+
+        $undated = Task::create(['assigned_by' => $admin->id, 'employee_id' => $maria->id, 'title' => 'Watch the page', 'priority' => 'low', 'status' => 'pending']);
+        app(TaskAssignmentNotifier::class)->notify($undated, $admin);
+        $this->assertSame('Watch the page · Assigned by Kurt Boss', $this->inbox($maria)->last()->message);
+
+        $dated = Task::create(['assigned_by' => $admin->id, 'employee_id' => $maria->id, 'title' => 'Watch the page', 'priority' => 'low', 'status' => 'pending', 'due_date' => '2026-11-20']);
+        app(TaskAssignmentNotifier::class)->notify($dated, $admin);
+        $this->assertSame('Watch the page · due Nov 20, 2026 · Assigned by Kurt Boss', $this->inbox($maria)->last()->message);
+    }
 }

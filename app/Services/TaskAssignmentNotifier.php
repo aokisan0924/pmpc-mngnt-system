@@ -30,12 +30,11 @@ class TaskAssignmentNotifier
             $recipients = $recipients->whereIn('id', $onlyEmployeeIds);
         }
 
-        $message = sprintf(
-            '%s · due %s · Assigned by %s',
+        $message = implode(' � ', array_filter([
             $task->title,
-            $task->due_date->format('M d, Y'),
-            trim($actor->first_name.' '.$actor->last_name)
-        );
+            $task->due_date ? 'due '.$task->due_date->format('M d, Y') : null,
+            'Assigned by '.trim($actor->first_name.' '.$actor->last_name),
+        ]));
 
         foreach ($recipients->reject(fn (Employee $recipient) => $recipient->id === $actor->id) as $recipient) {
             try {

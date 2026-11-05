@@ -112,7 +112,8 @@ class Task extends Model
 
     public function isOverdue(): bool
     {
-        return $this->due_date->toDateString() < now('Asia/Manila')->toDateString()
+        return $this->due_date !== null
+            && $this->due_date->toDateString() < now('Asia/Manila')->toDateString()
             && ! $this->isDone();
     }
 
@@ -128,13 +129,13 @@ class Task extends Model
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
-            'due_date' => $this->due_date->format('Y-m-d'),
-            'due_label' => $this->due_date->format('M d, Y'),
+            'due_date' => $this->due_date?->format('Y-m-d'),
+            'due_label' => $this->due_date?->format('M d, Y') ?? 'No due date',
             'category' => $this->category,
             'priority' => $this->priority,
             'status' => $this->status,
             'is_overdue' => $this->isOverdue(),
-            'due_in_days' => (int) now('Asia/Manila')->startOfDay()->diffInDays($this->due_date->copy()->startOfDay(), false),
+            'due_in_days' => $this->due_date === null ? null : (int) now('Asia/Manila')->startOfDay()->diffInDays($this->due_date->copy()->startOfDay(), false),
             'employee_id' => $this->employee_id,
             'office' => $this->office,
             'office_label' => $this->officeLabel(),
