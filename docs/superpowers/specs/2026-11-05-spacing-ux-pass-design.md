@@ -236,6 +236,15 @@ Board view and the All / Pending / Done filter are unchanged.
 2. D6: keep the shared purple banner as it is, and take the height back from the summary row instead.
 3. On phones, calendar days show a task count instead of cut-off chips (D5).
 
+## Gap-check resolutions (orchestrator calls, 2026-11-05)
+1. **Owner confirmations:** the five owner-facing calls (field order with "who" first and focus on "Specific people", banner unchanged, phone calendar shows a count per day, agenda list without an inner scroll box, 36px employee buttons) are presented to the owner for approval together with this design; building starts only after that approval.
+2. **Scroll trap with people already picked:** the scroll-trap fix is guaranteed for the first view (nothing picked) at 1366x768 and above. Once chips and the "How to give it" choices are added the form body may scroll; the sticky footer keeps Cancel and Add Task reachable and the chips wrap above the list. The list keeps a fixed height and is the only inner scroller. The two-column desktop layout is kept.
+3. **Employee card height:** admin cards must be at least 15% shorter. Employee cards may grow by at most 8px (touch targets win), and cards with two-line notes must not grow.
+4. **Deploys:** each phase ends with a review and then the owner is asked before deploying; each deploy is verified read-only on the live page and logged in `DEPLOYMENTS.md` (no database change, no backup needed).
+5. **The plan file is the plan.** Keep its measurement scripts (M1, M2, M2b, M3).
+6. **Done cards stay readable:** no card-level opacity and no extra background tint: Done cards use the normal card background (`bg-panel`), the title is struck through in `text-sub`, and the other text uses `text-sub`.
+7. **Factual corrections:** `AdminPageHeader` is used by 17 page files (not "about 20"); the edit form does show a Due Date field (without the "When is it due?" box); the employee meta row holds the due text as well as the badges today. `TaskDetailModal` imports `sharedNames` from `TaskBoard.jsx`, so that export must stay; `CardMenu` is used only by `TaskBoard`.
+
 ## Browser acceptance checklist
 
 Run each check against the local scratch database `database/taskboard-preview.sqlite`, served on localhost (see the plan, Task 0). Use the in-app browser (`mcp__Claude_Browser__*`) and run each JS snippet with `javascript_tool`. Record the before and after numbers in the phase's commit message body. The snippets are in the plan (M1–M3).
