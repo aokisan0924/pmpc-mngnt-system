@@ -8,7 +8,7 @@ const LINK = 'text-xs font-semibold text-[#26215C] hover:underline focus-visible
  * Searchable checklist of people grouped by office, with chips for who is picked.
  * `value` is an array of employee ids; `onChange` gets the next array.
  */
-export default function PeoplePicker({ employees = [], offices = [], value = [], onChange, error }) {
+export default function PeoplePicker({ employees = [], offices = [], value = [], onChange, error, listClassName = 'max-h-56' }) {
     const [query, setQuery] = useState('')
     const searchId = useId()
     const picked = new Set(value)
@@ -56,7 +56,7 @@ export default function PeoplePicker({ employees = [], offices = [], value = [],
 
             <input id={searchId} type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search people" className={INPUT} />
 
-            <div className="max-h-56 overflow-y-auto rounded-xl border border-border bg-field/40 p-2 space-y-3">
+            <div className={`${listClassName} overflow-y-auto rounded-xl border border-border bg-field/40 p-2 space-y-3`}>
                 {groups.length === 0 && <p className="px-1 py-2 text-sm text-sub">No one matches.</p>}
                 {groups.map(group => {
                     const ids = group.people.map(p => p.id)
