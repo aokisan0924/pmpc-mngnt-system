@@ -413,7 +413,9 @@ export default function Planner({ tasks = [] }) {
                                                     )}
                                                     {task.employee_id === null && (
                                                         <Badge variant="indigo" size="sm">
-                                                            {`Whole office${task.office_label ? ` · ${task.office_label}` : ''}`}
+                                                            {task.is_shared
+                                                                ? `Shared · ${task.assignees?.length ?? 0} people`
+                                                                : `Whole office${task.office_label ? ` · ${task.office_label}` : ''}`}
                                                         </Badge>
                                                     )}
                                                     {task.is_overdue && !done && (

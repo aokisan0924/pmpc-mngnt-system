@@ -20,6 +20,10 @@ function buildMonthGrid(viewDate) {
 }
 
 function ownerOf(task) {
+    if (task.is_shared) {
+        const people = task.assignees ?? []
+        return people.length ? `${people[0].name.split(' ')[0]}${people.length > 1 ? ` +${people.length - 1}` : ''}` : 'No one'
+    }
     if (task.employee_name) return task.employee_name.split(' ')[0]
     return task.office_label ? task.office_label.replace(' Office', '') : ''
 }

@@ -25,6 +25,8 @@ export default function TaskFormModal({
     onClose,
 }) {
     const [mode, setMode] = useState('people') // when creating as admin: pick people, or a whole office
+    const [share, setShare] = useState('copies') // with 2+ people: one copy each, or one shared task
+    const sharedEdit = Boolean(task?.is_shared)
     const { data, setData, post, patch, processing, errors, transform } = useForm({
         title:       task?.title ?? '',
         description: task?.description ?? '',
@@ -32,7 +34,7 @@ export default function TaskFormModal({
         category:    task?.category ?? '',
         priority:    task?.priority ?? 'medium',
         ...(employees ? {
-            employee_id: task?.employee_id ?? '', office: task?.office ?? '', employee_ids: [],
+            employee_id: task?.employee_id ?? '', office: task?.office ?? '', employee_ids: task?.is_shared ? task.assignees.map(a => a.id) : [],
             repeat: '', repeat_day_of_week: '', repeat_day_of_month: '', repeat_last_day: false,
             repeat_month: '', repeat_lead_days: '', repeat_until: '',
         } : {}),
@@ -58,13 +60,15 @@ export default function TaskFormModal({
         }))
     }
 
+    const pickerError = errors.employee_ids ?? Object.entries(errors).find(([k]) => k.startsWith('employee_ids.'))?.[1] ?? errors.employee_id
+
     function submit(e) {
         e.preventDefault()
         const options = { preserveScroll: true, onSuccess: onClose }
         if (employees && !task) {
             // People mode sends the list; whole-office mode sends only the office.
             transform(d => mode === 'people'
-                ? { ...d, employee_id: '', office: '' }
+                ? { ...d, employee_id: '', office: '', shared: share === 'shared' && d.employee_ids.length >= 2 }
                 : (({ employee_ids, ...rest }) => rest)(d))
         }
         if (task) {
@@ -127,14 +131,53 @@ export default function TaskFormModal({
                                         offices={offices}
                                         value={data.employee_ids}
                                         onChange={ids => setData('employee_ids', ids)}
-                                        error={errors.employee_ids ?? Object.entries(errors).find(([k]) => k.startsWith('employee_ids.'))?.[1] ?? errors.employee_id}
+                                        error={pickerError}
                                     />
+                                    {data.employee_ids.length >= 2 && (
+                                        <fieldset className="mt-3 space-y-2">
+                                            <legend className={LABEL}>How to give it</legend>
+                                            {[
+                                                ['copies', 'Each person gets their own copy', null],
+                                                ['shared', 'One shared task', 'One task for everyone on it; any of them can move it.'],
+                                            ].map(([key, label, hint]) => (
+                                                <label key={key} className="flex cursor-pointer items-start gap-2 text-sm font-medium text-text">
+                                                    <input
+                                                        type="radio"
+                                                        name="task-form-share"
+                                                        value={key}
+                                                        checked={share === key}
+                                                        onChange={() => setShare(key)}
+                                                        className="mt-0.5 h-4 w-4 accent-[#26215C]"
+                                                    />
+                                                    <span>
+                                                        {label}
+                                                        {hint && <span className="block text-xs font-normal text-sub">{hint}</span>}
+                                                    </span>
+                                                </label>
+                                            ))}
+                                        </fieldset>
+                                    )}
                                 </div>
                             )}
                         </div>
                     )}
 
-                    {employees && task && (
+                    {employees && sharedEdit && (
+                        <PeoplePicker
+                            employees={[
+                                ...employees,
+                                ...task.assignees
+                                    .filter(a => !a.active && !employees.some(e => e.id === a.id))
+                                    .map(a => ({ id: a.id, name: `${a.name} (inactive)`, office: a.office })),
+                            ]}
+                            offices={offices}
+                            value={data.employee_ids}
+                            onChange={ids => setData('employee_ids', ids)}
+                            error={pickerError}
+                        />
+                    )}
+
+                    {employees && task && !sharedEdit && (
                         <div>
                             <label htmlFor="task-form-employee-input" className={LABEL}>
                                 Employee
@@ -157,7 +200,7 @@ export default function TaskFormModal({
                         </div>
                     )}
 
-                    {employees && (task || mode === 'office') && (
+                    {employees && !sharedEdit && (task || mode === 'office') && (
                         <div>
                             <label htmlFor="task-form-office-input" className={LABEL}>
                                 Office {!data.employee_id && <span className="text-rose-500">*</span>}

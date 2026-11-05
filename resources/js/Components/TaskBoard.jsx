@@ -16,6 +16,10 @@ const PRIORITY_BADGE = {
 
 const initials = name => name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join('')
 
+/** Names on a shared task; people who were deactivated stay listed. */
+export const sharedNames = task => (task.assignees ?? [])
+    .map(a => a.active ? a.name : `${a.name} (inactive)`).join(', ') || 'No one yet'
+
 /** Plain-words due date: red when late, otherwise the date. Finished tasks keep the plain date. */
 function dueText(task) {
     if (task.status === 'done' || typeof task.due_in_days !== 'number') return { text: task.due_label, className: 'text-sub' }
@@ -96,18 +100,21 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                                 {task.title}
                                             </p>
                                         )}
-                                        {showOwner && (task.employee_name || task.office_label) && (
+                                        {showOwner && (task.employee_name || task.office_label || task.is_shared) && (
                                             <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-sub">
-                                                {task.employee_name && (
+                                                {task.employee_name && !task.is_shared && (
                                                     <span aria-hidden="true" className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-[#26215C] dark:bg-indigo-950 dark:text-indigo-200">
                                                         {initials(task.employee_name)}
                                                     </span>
                                                 )}
                                                 <span className="min-w-0 break-words">
-                                                    {task.employee_name
-                                                        ? `${task.employee_name}${task.office_label ? ` · ${task.office_label}` : ''}`
-                                                        : `Whole office · ${task.office_label}`}
+                                                    {task.is_shared
+                                                        ? sharedNames(task)
+                                                        : task.employee_name
+                                                            ? `${task.employee_name}${task.office_label ? ` · ${task.office_label}` : ''}`
+                                                            : `Whole office · ${task.office_label}`}
                                                 </span>
+                                                {task.is_shared && <Badge variant="indigo" size="sm">Shared</Badge>}
                                             </p>
                                         )}
                                         {task.description && (
@@ -118,7 +125,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                             {PRIORITY_BADGE[task.priority]}
                                             {task.category && <Badge variant="slate" size="sm">{`List: ${task.category}`}</Badge>}
                                             {readOnly(task) && (
-                                                <Badge variant="indigo" size="sm">{`Whole office${task.office_label ? ` · ${task.office_label}` : ''}`}</Badge>
+                                                <Badge variant="indigo" size="sm">{task.is_shared ? 'Shared' : `Whole office${task.office_label ? ` · ${task.office_label}` : ''}`}</Badge>
                                             )}
                                             {task.repeat_label && <Badge variant="slate" size="sm">↻ Repeats</Badge>}
                                         </div>

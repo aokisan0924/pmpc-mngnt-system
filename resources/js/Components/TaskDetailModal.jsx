@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
+import { sharedNames } from '@/Components/TaskBoard'
 
 const STATUSES = [
     { status: 'pending', label: 'To do' },
@@ -47,7 +48,8 @@ export default function TaskDetailModal({ task, onClose, onMove, onEdit, onDelet
 
     const priority = PRIORITY[task.priority]
     const statusLabel = STATUSES.find(s => s.status === task.status)?.label
-    const wholeOffice = task.employee_id === null
+    const shared = Boolean(task.is_shared)
+    const wholeOffice = !shared && task.employee_id === null
     const owner = task.employee_name ?? (wholeOffice && task.office_label ? `Whole office · ${task.office_label}` : null)
     const done = task.status === 'done'
 
@@ -93,7 +95,8 @@ export default function TaskDetailModal({ task, onClose, onMove, onEdit, onDelet
 
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Detail label="Due">{longDate(task.due_date)}</Detail>
-                    {(showOwner || wholeOffice) && owner && <Detail label={showOwner ? 'For' : 'Shared with'}>{owner}</Detail>}
+                    {shared && <Detail label="Shared with">{sharedNames(task)}</Detail>}
+                    {!shared && (showOwner || wholeOffice) && owner && <Detail label={showOwner ? 'For' : 'Shared with'}>{owner}</Detail>}
                     {task.office_label && !wholeOffice && <Detail label="Office">{task.office_label}</Detail>}
                     {task.assigned_by_name && <Detail label="Assigned by">{task.assigned_by_name}</Detail>}
                     {task.repeat_label && <Detail label="Repeats">{task.repeat_label.replace(/^Repeats /, '')}{task.repeat_active === false ? ' (stopped)' : ''}</Detail>}
