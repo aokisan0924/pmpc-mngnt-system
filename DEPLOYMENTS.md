@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-05 16:34 — e5097be — My tasks page: denser calendar and a more menu in the day list (spacing pass, phase 3)
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `c89d58e` → `e5097be`
+- Migrations: none
+- Backup: none (code-only deployment; layout only, no database records or schema changed)
+- Data changes: none
+- Verified: full suite 340 of 341 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`; one unrelated employee schedule test failed once for the reviewer and passed on re-run), build passed, Opus review's Important finding (the two-line title cut-off was cancelled by `display:block`) and its minor notes were fixed. Not seen on screen before the deploy: the long-title cut-off fix. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome (read-only, his own My tasks): the calendar shows 5 rows (421px tall) with today highlighted and two-line titles; the day list does not scroll inside its own box, shows View and a "..." menu, and the opened menu (Edit, Delete) sits on top; no View button under 36px; no sideways overflow. Nothing was saved or changed on live during the check.
+
 ## 2026-11-05 16:16 — c89d58e — Team tasks board: shorter cards and one compact status row (spacing pass, phase 2)
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `4a5d1da` → `c89d58e`
