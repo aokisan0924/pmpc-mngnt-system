@@ -83,6 +83,11 @@ class TeamTaskController extends Controller
     {
         $data = $request->validated();
 
+        // Recurring has no date field: the first copy is the next date on its schedule.
+        if ($request->input('due_type') === 'recurring') {
+            $data['due_date'] = $request->firstRepeatDate()->toDateString();
+        }
+
         if ($request->boolean('shared')) {
             $ids = array_map('intval', $data['employee_ids']);
             $task = DB::transaction(fn () => $this->createTask(

@@ -6,8 +6,10 @@ namespace App\Http\Requests;
 
 use App\Models\RecurringTask;
 use App\Models\Task;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class TeamTaskRequest extends FormRequest
 {
@@ -27,6 +29,7 @@ class TeamTaskRequest extends FormRequest
             'employee_ids.min' => $shared ? 'A shared task needs at least two people.' : 'Choose at least one person.',
             'employee_ids.required' => 'A shared task needs at least two people.',
             'employee_ids.max' => 'Choose up to 25 people.',
+            'repeat.required' => 'Choose how often it repeats.',
         ];
     }
 
@@ -43,12 +46,16 @@ class TeamTaskRequest extends FormRequest
         $shared = $this->boolean('shared') || $sharedEdit;
         // Editing a normal task never counts a people list as an owner, so it cannot end with no owner and no office.
         $listCounts = $task === null || $sharedEdit;
+        // "When is it due?" is chosen only when creating; an edit just keeps or clears the date.
+        $dueType = $task === null ? $this->input('due_type') : null;
         $currentAssigneeIds = $sharedEdit ? $task->assignees()->pluck('employees.id')->all() : [];
 
         return [
             'title' => ['required', 'string', 'max:200'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'due_date' => ['required', 'date'],
+            'due_type' => [Rule::excludeIf(fn () => $task !== null), 'nullable', Rule::in(['date', 'recurring', 'none'])],
+            // Optional on edit, except for a copy made by a repeat rule.
+            'due_date' => [Rule::excludeIf(in_array($dueType, ['recurring', 'none'], true)), Rule::requiredIf($task === null || $task->recurring_task_id !== null), 'nullable', 'date'],
             'category' => ['nullable', 'string', 'max:100'],
             'priority' => ['required', 'in:low,medium,high'],
             'employee_id' => [
@@ -80,7 +87,7 @@ class TeamTaskRequest extends FormRequest
             ],
 
             // Repeat settings are read only when a task is created.
-            'repeat' => ['nullable', Rule::in(RecurringTask::FREQUENCIES)],
+            'repeat' => ['nullable', Rule::requiredIf($dueType === 'recurring'), Rule::prohibitedIf($dueType === 'none'), Rule::in(RecurringTask::FREQUENCIES)],
             'repeat_day_of_week' => ['nullable', 'integer', 'between:0,6', 'required_if:repeat,weekly'],
             'repeat_day_of_month' => [
                 'nullable', 'integer', 'between:1,31',
@@ -90,7 +97,33 @@ class TeamTaskRequest extends FormRequest
             'repeat_last_day' => ['nullable', 'boolean'],
             'repeat_month' => ['nullable', 'integer', 'between:1,12', 'required_if:repeat,yearly'],
             'repeat_lead_days' => ['nullable', 'integer', 'between:0,60'],
-            'repeat_until' => ['nullable', 'date', 'after_or_equal:due_date'],
+            'repeat_until' => ['nullable', 'date', ...($dueType !== 'recurring' && $this->filled('due_date') ? ['after_or_equal:due_date'] : [])],
         ];
+    }
+
+    /** The first date on the chosen schedule on or after today (Manila), or null when "Stop after" comes first. */
+    public function firstRepeatDate(): ?CarbonImmutable
+    {
+        $frequency = $this->input('repeat');
+
+        return (new RecurringTask([
+            'frequency' => $frequency,
+            'day_of_week' => $this->input('repeat_day_of_week'),
+            'day_of_month' => $this->input('repeat_day_of_month'),
+            'last_day_of_month' => $frequency === 'monthly' && $this->boolean('repeat_last_day'),
+            'month' => $this->input('repeat_month'),
+            'ends_on' => $this->input('repeat_until'),
+        ]))->nextDueAfter(CarbonImmutable::now('Asia/Manila')->subDay());
+    }
+
+    /** @return array<int, \Closure(Validator): void> */
+    public function after(): array
+    {
+        return [function (Validator $validator): void {
+            if ($this->route('task') === null && $this->input('due_type') === 'recurring'
+                && $validator->errors()->isEmpty() && $this->firstRepeatDate() === null) {
+                $validator->errors()->add('repeat_until', 'The repeat would stop before its first date.');
+            }
+        }];
     }
 }
