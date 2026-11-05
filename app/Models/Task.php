@@ -106,6 +106,7 @@ class Task extends Model
             'priority' => $this->priority,
             'status' => $this->status,
             'is_overdue' => $this->isOverdue(),
+            'due_in_days' => (int) now('Asia/Manila')->startOfDay()->diffInDays($this->due_date->copy()->startOfDay(), false),
             'employee_id' => $this->employee_id,
             'office' => $this->office,
             'office_label' => $this->officeLabel(),
