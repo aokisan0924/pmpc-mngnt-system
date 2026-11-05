@@ -15,13 +15,20 @@ class TaskAssignmentNotifier
      * The actor (the admin who made the change or owns the rule) is never notified, and a failed
      * notification never blocks the save.
      */
-    public function notify(Task $task, Employee|int $actor): void
+    public function notify(Task $task, Employee|int $actor, ?array $onlyEmployeeIds = null): void
     {
         $actor = $actor instanceof Employee ? $actor : Employee::findOrFail($actor);
 
-        $recipients = $task->employee_id !== null
-            ? Employee::whereKey($task->employee_id)->where('status', 'active')->get()
-            : Employee::where('status', 'active')->where('payroll_office', $task->office)->get();
+        // Shared first: the office branch would turn a null office into IS NULL and reach everyone without one.
+        $recipients = match (true) {
+            $task->isShared() => $task->assignees()->where('employees.status', 'active')->get(),
+            $task->employee_id !== null => Employee::whereKey($task->employee_id)->where('status', 'active')->get(),
+            default => Employee::where('status', 'active')->where('payroll_office', $task->office)->get(),
+        };
+
+        if ($onlyEmployeeIds !== null) {
+            $recipients = $recipients->whereIn('id', $onlyEmployeeIds);
+        }
 
         $message = sprintf(
             '%s · due %s · Assigned by %s',

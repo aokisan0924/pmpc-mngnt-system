@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Models\Employee;
 use App\Models\EmployeeNotification;
 use App\Models\Task;
+use App\Services\TaskAssignmentNotifier;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -105,6 +106,57 @@ class TaskAssignmentNotificationTest extends TestCase
 
         $this->assertCount(1, $this->inbox($fort));
         $this->assertCount(0, $this->inbox($cubao));
+    }
+
+    private function sharedTask(Employee $admin, array $people): Task
+    {
+        $task = Task::create([
+            'assigned_by' => $admin->id, 'employee_id' => null, 'office' => null, 'title' => 'Shared',
+            'due_date' => '2026-11-20', 'priority' => 'low', 'status' => 'pending',
+        ]);
+        $task->assignees()->attach(array_map(fn (Employee $e) => $e->id, $people));
+
+        return $task;
+    }
+
+    public function test_a_shared_task_notifies_each_active_person_on_it_once(): void
+    {
+        $admin = $this->admin();
+        $maria = Employee::factory()->create(['payroll_office' => 'cubao']);
+        $juan = Employee::factory()->create(['payroll_office' => 'main_office']);
+        $gone = Employee::factory()->inactive()->create(['payroll_office' => 'cubao']);
+        $task = $this->sharedTask($admin, [$maria, $juan, $gone]);
+
+        app(TaskAssignmentNotifier::class)->notify($task, $admin);
+
+        $this->assertSame([1, 1, 0], [$this->inbox($maria)->count(), $this->inbox($juan)->count(), $this->inbox($gone)->count()]);
+        $this->assertCount(0, $this->inbox($admin));
+    }
+
+    public function test_a_shared_task_never_notifies_people_without_an_office(): void
+    {
+        $admin = $this->admin();
+        $maria = Employee::factory()->create(['payroll_office' => 'cubao']);
+        $drifter = Employee::factory()->create(['payroll_office' => null]);
+        $task = $this->sharedTask($admin, [$maria]);
+
+        app(TaskAssignmentNotifier::class)->notify($task, $admin);
+
+        $this->assertCount(1, $this->inbox($maria));
+        $this->assertCount(0, $this->inbox($drifter));
+    }
+
+    public function test_only_the_given_people_are_notified_when_a_list_is_passed(): void
+    {
+        $admin = $this->admin();
+        $maria = Employee::factory()->create(['payroll_office' => 'cubao']);
+        $juan = Employee::factory()->create(['payroll_office' => 'main_office']);
+        $task = $this->sharedTask($admin, [$maria, $juan]);
+
+        app(TaskAssignmentNotifier::class)->notify($task, $admin, [$juan->id]);
+
+        $this->assertCount(0, $this->inbox($maria));
+        $this->assertCount(1, $this->inbox($juan));
     }
 
     public function test_employees_creating_their_own_tasks_notify_nobody(): void
