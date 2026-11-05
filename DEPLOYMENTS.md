@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-05 10:10 — 71022ee — Assign a task to several people
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `d427308` → `71022ee`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: full suite 268 of 269 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint and build passed. The Opus review's Critical finding (editing a task failed silently) was fixed with a test that failed first and re-checked in the browser. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome (read-only): New Task shows Specific people / Whole office with a searchable list grouped by Cubao, Fort Magsaysay and UPI Main and a "0 selected (up to 25)" count; Edit on a card still shows the single Employee select. No task was created or saved on live during the check.
+
 ## 2026-11-04 17:45 — d427308 — Team tasks office tabs and people row
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `335a67b` → `d427308`
