@@ -374,7 +374,7 @@ export default function Planner({ tasks = [] }) {
                                         key={task.id}
                                         className={`relative focus-within:z-30 p-3 rounded-xl border transition-colors ${
                                             done
-                                                ? 'border-border/60 bg-field/60'
+                                                ? 'border-border/60 bg-panel'
                                                 : 'border-border bg-panel shadow-2xs hover:border-emerald-500/30'
                                         }`}
                                     >
@@ -403,9 +403,10 @@ export default function Planner({ tasks = [] }) {
                                                     type="button"
                                                     onClick={() => setDetailId(task.id)}
                                                     aria-haspopup="dialog"
-                                                    className={`block w-full text-left text-sm font-semibold line-clamp-2 break-words hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${done ? 'line-through text-sub' : 'text-text'}`}
+                                                    className={`block w-full text-left text-sm font-semibold hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${done ? 'line-through text-sub' : 'text-text'}`}
                                                 >
-                                                    {task.title}
+                                                    {/* The clamp lives on an inner span: display:block on the button would cancel it. */}
+                                                    <span className="line-clamp-2 break-words">{task.title}</span>
                                                 </button>
                                                 {task.description && (
                                                     <p className="text-xs text-sub mt-0.5 line-clamp-2">{task.description}</p>
