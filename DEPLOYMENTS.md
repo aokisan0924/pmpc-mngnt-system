@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-05 11:35 — 0a0fb20 — Team tasks redesign: one filter box and clearer cards
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `71022ee` → `0a0fb20`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: full suite 269 of 270 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint and build passed. The Opus review's Important finding (the card menu hidden under the next Done card) was fixed and re-checked in the browser. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome (read-only): the page shows office tabs All 21, Cubao 8, Fort Magsaysay 4, UPI Main 9, a People row without an Everyone pill, "Late only (7)" matching the "7 late" under To do, and cards with owner initials, a "List: ..." tag, "1 day late" text and a "⋯" menu (Edit, Delete) that opens on a Done card. Nothing was saved or changed on live during the check.
+
 ## 2026-11-05 10:10 — 71022ee — Assign a task to several people
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `d427308` → `71022ee`
