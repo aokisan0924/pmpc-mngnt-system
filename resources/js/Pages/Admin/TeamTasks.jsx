@@ -73,7 +73,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
 
     return (
         <AdminLayout>
-            <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
+            <div className="admin-page-shell space-y-3 sm:space-y-4 page-enter">
 
                 {flash?.success && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
