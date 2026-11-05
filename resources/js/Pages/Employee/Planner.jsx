@@ -259,6 +259,7 @@ export default function Planner({ tasks = [] }) {
                         onDelete={confirmDelete}
                         onOpen={task => setDetailId(task.id)}
                         accent="emerald"
+                        showMoveButtons={false}
                     />
                 )}
 
