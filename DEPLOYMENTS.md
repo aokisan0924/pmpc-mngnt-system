@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-05 15:19 — 38978f9 — "When is it due?" choice and tasks with no due date
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `29221c3` → `38978f9`
+- Migrations: `2026_11_05_130000_make_task_due_date_nullable` (`tasks.due_date` may now be empty). Tried up, refusal with an undated task, down and up again on a scratch MariaDB 10.4; the unique index on `recurring_task_id` + `due_date` was kept. Rolling it back is refused while any task has no due date.
+- Backup: `~/domains/peoplescoopdtr.online/db-backup-2026-11-05-due-type.sql` (taken 15:18; 25 tables, 58 tasks). To undo: give any undated tasks a date, `php artisan migrate:rollback --step=1 --force`, then `git checkout 29221c3`; no existing data was changed.
+- Data changes: none. Existing tasks all keep their dates.
+- Verified: full suite 340 of 341 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), Pint and build passed. The Opus review's one Important finding and two Minor ones were fixed, and a broken middle-dot character found during the build was repaired with a test. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome (read-only): Team tasks loads with the same board (To do 13, Doing 7, Done 7, 27 cards); the New Task form shows "When is it due?" with Has a due date (default, with the date field), Recurring (no date field, "How often" starts on monthly, hint about the next date) and No due date (no date field, "Ongoing" hint). Nothing was saved and no task created on live during the check.
+
 ## 2026-11-05 09:33 — 29221c3 — Shared tasks: one task for several people
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `436e014` → `29221c3`
