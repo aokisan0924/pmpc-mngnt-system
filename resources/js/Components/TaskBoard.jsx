@@ -20,6 +20,18 @@ const initials = name => name.split(/\s+/).filter(Boolean).slice(0, 2).map(part 
 export const sharedNames = task => (task.assignees ?? [])
     .map(a => a.active ? a.name : `${a.name} (inactive)`).join(', ') || 'No one yet'
 
+const PeopleIcon = () => (
+    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+)
+
+const OfficeIcon = () => (
+    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+    </svg>
+)
+
 /** Plain-words due date: red when late, otherwise the date. Finished tasks keep the plain date. */
 function dueText(task) {
     if (task.status === 'done' || typeof task.due_in_days !== 'number') return { text: task.due_label, className: 'text-sub' }
@@ -39,11 +51,37 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
 
     // Employees may move a whole-office task but not edit or delete it.
     const readOnly = task => !showOwner && task.employee_id === null
+    const inlineActions = !showMoveButtons
 
     const accentText = accent === 'indigo'
         ? 'text-[#26215C] dark:text-indigo-300'
         : 'text-[#0F6E56] dark:text-emerald-300'
     const focusRing = accent === 'indigo' ? 'focus-visible:outline-indigo-600' : 'focus-visible:outline-emerald-600'
+
+    // View and the "..." menu; they sit in the meta row (admin) or the move row (employee).
+    const actions = task => (
+        <>
+            {onOpen && (
+                <button
+                    type="button"
+                    onClick={() => onOpen(task)}
+                    aria-haspopup="dialog"
+                    aria-label={`View task "${task.title}"`}
+                    className={`inline-flex h-[36px] items-center rounded-lg border border-border bg-panel px-3 text-xs font-semibold text-text hover:bg-hover focus-visible:outline-2 ${focusRing}`}
+                >
+                    View
+                </button>
+            )}
+            <CardMenu
+                label={`More actions for "${task.title}"`}
+                focusRing={focusRing}
+                items={[
+                    ...(!readOnly(task) && onEdit ? [{ label: 'Edit', onClick: () => onEdit(task) }] : []),
+                    ...(onDelete && !readOnly(task) ? [{ label: 'Delete', onClick: () => onDelete(task), danger: true }] : []),
+                ]}
+            />
+        </>
+    )
 
     function handleDrop(e, status) {
         e.preventDefault()
@@ -84,29 +122,27 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                         onClick={e => {
                                             if (onOpen && !e.target.closest('button, select, a')) onOpen(task)
                                         }}
-                                        className={`relative focus-within:z-30 rounded-xl border border-border bg-panel p-3 shadow-2xs cursor-grab active:cursor-grabbing ${done ? 'opacity-60' : ''}`}
+                                        className={`relative focus-within:z-30 rounded-xl border border-border p-2.5 cursor-grab active:cursor-grabbing ${done ? 'bg-field/60' : 'bg-panel shadow-2xs'}`}
                                     >
                                         {onOpen ? (
                                             <button
                                                 type="button"
                                                 onClick={() => onOpen(task)}
                                                 aria-haspopup="dialog"
-                                                className={`block w-full text-left text-sm font-semibold hover:underline focus-visible:outline-2 ${focusRing} ${done ? 'line-through text-dim' : 'text-text'}`}
+                                                className={`block w-full text-left text-sm font-semibold hover:underline focus-visible:outline-2 ${focusRing} ${done ? 'line-through text-sub' : 'text-text'}`}
                                             >
                                                 {task.title}
                                             </button>
                                         ) : (
-                                            <p className={`text-sm font-semibold ${done ? 'line-through text-dim' : 'text-text'}`}>
+                                            <p className={`text-sm font-semibold ${done ? 'line-through text-sub' : 'text-text'}`}>
                                                 {task.title}
                                             </p>
                                         )}
                                         {showOwner && (task.employee_name || task.office_label || task.is_shared) && (
                                             <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-sub">
-                                                {task.employee_name && !task.is_shared && (
-                                                    <span aria-hidden="true" className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-[#26215C] dark:bg-indigo-950 dark:text-indigo-200">
-                                                        {initials(task.employee_name)}
-                                                    </span>
-                                                )}
+                                                <span aria-hidden="true" className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-[#26215C] dark:bg-indigo-950 dark:text-indigo-200">
+                                                    {task.is_shared ? <PeopleIcon /> : task.employee_name ? initials(task.employee_name) : <OfficeIcon />}
+                                                </span>
                                                 <span className="min-w-0 break-words">
                                                     {task.is_shared
                                                         ? sharedNames(task)
@@ -118,9 +154,9 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                             </p>
                                         )}
                                         {task.description && (
-                                            <p className="mt-1 text-xs text-sub line-clamp-2">{task.description}</p>
+                                            <p className="mt-1 text-xs text-sub line-clamp-1">{task.description}</p>
                                         )}
-                                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                                        <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-2">
                                             <span className={`text-xs ${dueText(task).className}`}>{dueText(task).text}</span>
                                             {PRIORITY_BADGE[task.priority]}
                                             {task.category && <Badge variant="slate" size="sm">{`List: ${task.category}`}</Badge>}
@@ -128,42 +164,25 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                                 <Badge variant="indigo" size="sm">{task.is_shared ? 'Shared' : `Whole office${task.office_label ? ` · ${task.office_label}` : ''}`}</Badge>
                                             )}
                                             {task.repeat_label && <Badge variant="slate" size="sm">↻ Repeats</Badge>}
+                                            {inlineActions && <div className="ml-auto flex shrink-0 items-center gap-1.5">{actions(task)}</div>}
                                         </div>
 
-                                        <div className="mt-3 flex items-center gap-2">
-                                            {showMoveButtons && COLUMNS.filter(c => c.status !== task.status).map(c => (
-                                                <button
-                                                    key={c.status}
-                                                    type="button"
-                                                    onClick={() => onMove(task, c.status)}
-                                                    aria-label={`Move "${task.title}" to ${c.label}`}
-                                                    className={`flex-1 rounded-lg border border-border bg-field px-2 py-1 text-xs font-semibold text-text hover:bg-hover focus-visible:outline-2 ${focusRing}`}
-                                                >
-                                                    {`→ ${c.label}`}
-                                                </button>
-                                            ))}
-                                            {onOpen && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => onOpen(task)}
-                                                    aria-haspopup="dialog"
-                                                    aria-label={`View task "${task.title}"`}
-                                                    className={`rounded-lg border border-border bg-panel px-2.5 py-1 text-xs font-semibold text-text hover:bg-hover focus-visible:outline-2 ${focusRing}`}
-                                                >
-                                                    View
-                                                </button>
-                                            )}
-                                            <div className="ml-auto">
-                                                <CardMenu
-                                                    label={`More actions for "${task.title}"`}
-                                                    focusRing={focusRing}
-                                                    items={[
-                                                        ...(!readOnly(task) && onEdit ? [{ label: 'Edit', onClick: () => onEdit(task) }] : []),
-                                                        ...(onDelete && !readOnly(task) ? [{ label: 'Delete', onClick: () => onDelete(task), danger: true }] : []),
-                                                    ]}
-                                                />
+                                        {!inlineActions && (
+                                            <div className="mt-1.5 flex items-center gap-2">
+                                                {COLUMNS.filter(c => c.status !== task.status).map(c => (
+                                                    <button
+                                                        key={c.status}
+                                                        type="button"
+                                                        onClick={() => onMove(task, c.status)}
+                                                        aria-label={`Move "${task.title}" to ${c.label}`}
+                                                        className={`flex-1 h-[36px] rounded-lg border border-border bg-field px-2 text-xs font-semibold text-text hover:bg-hover focus-visible:outline-2 ${focusRing}`}
+                                                    >
+                                                        {`→ ${c.label}`}
+                                                    </button>
+                                                ))}
+                                                <div className="ml-auto flex shrink-0 items-center gap-1.5">{actions(task)}</div>
                                             </div>
-                                        </div>
+                                        )}
                                     </article>
                                 )
                             })}

@@ -44,7 +44,7 @@ export default function CardMenu({ label, items, focusRing = 'focus-visible:outl
                 aria-controls={open ? menuId : undefined}
                 aria-label={label}
                 onClick={() => setOpen(v => !v)}
-                className={`rounded-lg border border-border bg-panel px-2 py-1 text-sm font-bold leading-none text-sub hover:bg-hover hover:text-text focus-visible:outline-2 ${focusRing}`}
+                className={`inline-flex h-[36px] w-[36px] items-center justify-center rounded-lg border border-border bg-panel text-sm font-bold leading-none text-sub hover:bg-hover hover:text-text focus-visible:outline-2 ${focusRing}`}
             >
                 <span aria-hidden="true">⋯</span>
             </button>
