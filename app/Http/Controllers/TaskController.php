@@ -16,7 +16,7 @@ class TaskController extends Controller
         $employee = $request->user();
 
         $tasks = Task::visibleTo($employee)
-            ->with(['assigner', 'recurringTask'])
+            ->with(['assigner', 'recurringTask', 'assignees'])
             ->orderBy('due_date')
             ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END")
             ->get()
@@ -90,13 +90,15 @@ class TaskController extends Controller
         return back()->with('success', 'Task deleted.');
     }
 
-    /** Moving a task between columns: its owner, or anyone in the office of an office-wide task. */
+    /** Moving a task between columns: its owner, anyone in the office of an office-wide task, or anyone on a shared task. */
     private function authorizeMove(Task $task, Request $request): void
     {
         $user = $request->user();
         $inOffice = $task->isOfficeWide() && $user->payroll_office !== null && $task->office === $user->payroll_office;
 
-        abort_unless($task->employee_id === $user->id || $inOffice, 403);
+        $onShared = $task->isShared() && $task->assignees()->whereKey($user->id)->exists();
+
+        abort_unless($task->employee_id === $user->id || $inOffice || $onShared, 403);
     }
 
     private function authorizeTask(Task $task, Request $request): void

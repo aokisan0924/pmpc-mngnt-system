@@ -65,6 +65,8 @@ class Task extends Model
             if ($employee->payroll_office) {
                 $q->orWhere(fn (Builder $office) => $office->whereNull('employee_id')->where('office', $employee->payroll_office));
             }
+
+            $q->orWhereHas('assignees', fn (Builder $a) => $a->where('employees.id', $employee->id));
         });
     }
 
