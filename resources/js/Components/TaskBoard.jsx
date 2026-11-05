@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Badge from '@/Components/UI/Badge'
+import CardMenu from '@/Components/CardMenu'
 
 const COLUMNS = [
     { status: 'pending', label: 'To do' },
@@ -11,6 +12,18 @@ const PRIORITY_BADGE = {
     high:   <Badge variant="rose" size="sm">High</Badge>,
     medium: <Badge variant="amber" size="sm">Medium</Badge>,
     low:    <Badge variant="indigo" size="sm">Low</Badge>,
+}
+
+const initials = name => name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0].toUpperCase()).join('')
+
+/** Plain-words due date: red when late, otherwise the date. Finished tasks keep the plain date. */
+function dueText(task) {
+    if (task.status === 'done' || typeof task.due_in_days !== 'number') return { text: task.due_label, className: 'text-sub' }
+    const n = task.due_in_days
+    if (n < 0) return { text: `${-n} ${n === -1 ? 'day' : 'days'} late`, className: 'text-rose-700 dark:text-rose-400 font-semibold' }
+    if (n === 0) return { text: 'Due today', className: 'text-amber-700 dark:text-amber-400 font-semibold' }
+    if (n === 1) return { text: 'Due tomorrow', className: 'text-text' }
+    return { text: task.due_label, className: 'text-sub' }
 }
 
 /**
@@ -84,23 +97,29 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                             </p>
                                         )}
                                         {showOwner && (task.employee_name || task.office_label) && (
-                                            <p className="mt-0.5 text-xs font-semibold text-sub">
-                                                {task.employee_name
-                                                    ? `${task.employee_name}${task.office_label ? ` · ${task.office_label}` : ''}`
-                                                    : `Whole office · ${task.office_label}`}
+                                            <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-sub">
+                                                {task.employee_name && (
+                                                    <span aria-hidden="true" className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-[#26215C] dark:bg-indigo-950 dark:text-indigo-200">
+                                                        {initials(task.employee_name)}
+                                                    </span>
+                                                )}
+                                                <span className="min-w-0 break-words">
+                                                    {task.employee_name
+                                                        ? `${task.employee_name}${task.office_label ? ` · ${task.office_label}` : ''}`
+                                                        : `Whole office · ${task.office_label}`}
+                                                </span>
                                             </p>
                                         )}
                                         {task.description && (
                                             <p className="mt-1 text-xs text-sub line-clamp-2">{task.description}</p>
                                         )}
                                         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                                            <span className="text-xs font-mono text-dim">{task.due_label}</span>
+                                            <span className={`text-xs ${dueText(task).className}`}>{dueText(task).text}</span>
                                             {PRIORITY_BADGE[task.priority]}
-                                            {task.category && <Badge variant="slate" size="sm">{task.category}</Badge>}
+                                            {task.category && <Badge variant="slate" size="sm">{`List: ${task.category}`}</Badge>}
                                             {readOnly(task) && (
                                                 <Badge variant="indigo" size="sm">{`Whole office${task.office_label ? ` · ${task.office_label}` : ''}`}</Badge>
                                             )}
-                                            {task.is_overdue && <Badge variant="rose" size="sm">Overdue</Badge>}
                                             {task.repeat_label && <Badge variant="slate" size="sm">↻ Repeats</Badge>}
                                         </div>
 
@@ -127,26 +146,16 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                                     View
                                                 </button>
                                             )}
-                                            {!readOnly(task) && (
-                                            <button
-                                                type="button"
-                                                onClick={() => onEdit(task)}
-                                                aria-label={`Edit task "${task.title}"`}
-                                                className={`rounded-lg border border-border bg-panel px-2.5 py-1 text-xs font-semibold text-sub hover:bg-hover hover:text-text focus-visible:outline-2 ${focusRing}`}
-                                            >
-                                                Edit
-                                            </button>
-                                            )}
-                                            {onDelete && !readOnly(task) && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => onDelete(task)}
-                                                    aria-label={`Delete task "${task.title}"`}
-                                                    className="rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-rose-600 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-400"
-                                                >
-                                                    Delete
-                                                </button>
-                                            )}
+                                            <div className="ml-auto">
+                                                <CardMenu
+                                                    label={`More actions for "${task.title}"`}
+                                                    focusRing={focusRing}
+                                                    items={[
+                                                        ...(!readOnly(task) && onEdit ? [{ label: 'Edit', onClick: () => onEdit(task) }] : []),
+                                                        ...(onDelete && !readOnly(task) ? [{ label: 'Delete', onClick: () => onDelete(task), danger: true }] : []),
+                                                    ]}
+                                                />
+                                            </div>
                                         </div>
                                     </article>
                                 )

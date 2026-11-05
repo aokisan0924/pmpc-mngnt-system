@@ -21,8 +21,6 @@ function Late({ count, onDark }) {
 export default function TeamPeopleStrip({ offices = [], people = [], employees = [], overview = {}, filters = {}, onFilter }) {
     const [expanded, setExpanded] = useState(false)
     const office = filters.office || ''
-    const officeRow = offices.find(o => o.key === office)
-    const showLate = (overview.overdue ?? 0) > 0 || filters.overdue
 
     const persons = people.filter(c => c.type === 'employee')
     // Keep the Whole office chip visible while it is the active filter, even when its last open task is gone.
@@ -34,7 +32,6 @@ export default function TeamPeopleStrip({ offices = [], people = [], employees =
         ?? (selectedId ? { type: 'employee', key: selectedId, label: employees.find(e => String(e.id) === selectedId)?.name ?? 'Selected person', open: 0, late: 0 } : null)
     const visiblePersons = expanded ? persons : chosen && !folded.includes(chosen) ? [...folded, chosen] : folded
     const hidden = persons.length - VISIBLE
-    const everyone = !selectedId && !filters.whole
 
     const tabs = [
         { key: '', label: 'All', count: overview.open ?? 0 },
@@ -42,7 +39,7 @@ export default function TeamPeopleStrip({ offices = [], people = [], employees =
     ]
 
     return (
-        <section aria-label="Filter by office and person" className="space-y-2.5">
+        <section aria-label="Filter by office and person" className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
                 <nav aria-label="Office" className="flex flex-wrap gap-1 rounded-xl border border-border bg-field p-1">
                     {tabs.map(tab => {
@@ -60,24 +57,10 @@ export default function TeamPeopleStrip({ offices = [], people = [], employees =
                         )
                     })}
                 </nav>
-
-                {showLate && (
-                    <button
-                        type="button"
-                        aria-pressed={Boolean(filters.overdue)}
-                        onClick={() => onFilter({ overdue: !filters.overdue })}
-                        className={`${CHIP} border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 ${filters.overdue ? 'ring-2 ring-rose-400' : ''}`}
-                    >
-                        <b className="tnum">{overview.overdue ?? 0}</b> late
-                    </button>
-                )}
             </div>
 
             <div role="group" aria-label="Person" className="flex flex-wrap items-center gap-2">
-                <button type="button" aria-pressed={everyone} onClick={() => onFilter({ employee_id: '', whole: '' })} className={`${CHIP} ${everyone ? ACTIVE : IDLE}`}>
-                    {officeRow ? `Everyone in ${officeRow.label}` : 'Everyone'} <b className="tnum">{officeRow ? officeRow.open : overview.open ?? 0}</b>
-                </button>
-
+                <span className="mr-1 text-xs font-bold uppercase tracking-wider text-sub">People</span>
                 {visiblePersons.map(chip => {
                     const selected = selectedId === chip.key
                     return (

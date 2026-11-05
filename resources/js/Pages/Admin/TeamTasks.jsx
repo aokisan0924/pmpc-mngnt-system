@@ -102,53 +102,61 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
 
                 <TeamStatusOverview counts={status_counts} older={Boolean(filters.older)} />
 
-                <TeamPeopleStrip offices={offices} people={people} employees={employees} overview={overview} filters={filters} onFilter={applyFilters} />
+                <div className="space-y-3 rounded-2xl border border-border bg-panel p-3 sm:p-4">
+                    <TeamPeopleStrip offices={offices} people={people} employees={employees} overview={overview} filters={filters} onFilter={applyFilters} />
 
-                <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-panel p-3">
-                    <div className="flex gap-1 rounded-xl border border-border bg-field p-1 shrink-0" role="group" aria-label="Team tasks view">
-                        {[['board', 'Board'], ['calendar', 'Calendar']].map(([key, label]) => (
-                            <button
-                                key={key}
-                                type="button"
-                                aria-pressed={view === key}
-                                onClick={() => setView(key)}
-                                className={`rounded-lg px-3 py-1 text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
-                                    view === key ? 'border border-indigo-200 bg-white font-bold text-[#26215C] shadow-xs' : 'text-sub hover:bg-panel/50 hover:text-text'
-                                }`}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-3">
+                        {view === 'board' && (
+                            <p className="text-xs text-sub">Drag cards between columns</p>
+                        )}
+                        <label className="flex items-center gap-2 text-xs font-semibold text-sub">
+                            Priority
+                            <select
+                                value={filters.priority ?? ''}
+                                onChange={e => applyFilters({ priority: e.target.value })}
+                                className={SELECT}
                             >
-                                {label}
-                            </button>
-                        ))}
+                                <option value="">Any</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs font-semibold text-text cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={Boolean(filters.overdue)}
+                                onChange={e => applyFilters({ overdue: e.target.checked })}
+                                className="h-4 w-4 rounded border-border accent-[#26215C]"
+                            />
+                            Late only ({status_counts.late ?? 0})
+                        </label>
+                        <label className="flex items-center gap-2 text-xs font-semibold text-text cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={Boolean(filters.older)}
+                                onChange={e => applyFilters({ older: e.target.checked })}
+                                className="h-4 w-4 rounded border-border accent-[#26215C]"
+                            />
+                            Show old completed
+                        </label>
+                        <div className="ml-auto flex gap-1 rounded-xl border border-border bg-field p-1 shrink-0" role="group" aria-label="Team tasks view">
+                            {[['board', 'Board'], ['calendar', 'Calendar']].map(([key, label]) => (
+                                <button
+                                    key={key}
+                                    type="button"
+                                    aria-pressed={view === key}
+                                    onClick={() => setView(key)}
+                                    className={`rounded-lg px-3 py-1 text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
+                                        view === key ? 'border border-indigo-200 bg-white font-bold text-[#26215C] shadow-xs' : 'border border-transparent text-sub hover:bg-panel/50 hover:text-text'
+                                    }`}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                    <label className="flex items-center gap-2 text-xs font-semibold text-sub">
-                        Priority
-                        <select
-                            value={filters.priority ?? ''}
-                            onChange={e => applyFilters({ priority: e.target.value })}
-                            className={SELECT}
-                        >
-                            <option value="">Any</option>
-                            <option value="high">High</option>
-                            <option value="medium">Medium</option>
-                            <option value="low">Low</option>
-                        </select>
-                    </label>
-                    <label className="flex items-center gap-2 text-xs font-semibold text-sub cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={Boolean(filters.older)}
-                            onChange={e => applyFilters({ older: e.target.checked })}
-                            className="h-4 w-4 rounded border-border accent-[#26215C]"
-                        />
-                        Show completed over 30 days old
-                    </label>
                 </div>
-
-                {view === 'board' && (
-                    <p className="text-xs text-sub">
-                        Drag a card to another column to move it. Open a card with View to change its status without dragging.
-                    </p>
-                )}
 
                 {view === 'calendar' && (
                     <TeamTaskCalendar tasks={tasks} onOpen={task => setDetailId(task.id)} />
