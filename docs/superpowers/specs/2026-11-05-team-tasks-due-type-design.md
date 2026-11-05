@@ -39,7 +39,7 @@ Some admin work has no deadline (monitor the Facebook page, keep the LRV updated
 1. **Explicit `due_type` field** (`date` | `recurring` | `none`) on create, instead of inferring "no due date" from a missing `due_date`. A missing date is then never accidental, and a request without `due_type` behaves exactly as today (due date required; repeat uses it as first occurrence).
 2. **A copy made by a repeat rule (`recurring_task_id` not null) keeps a required due date on edit.** The generator, the `(recurring_task_id, due_date)` unique index and the "next after last_due_date" cursor all assume each copy has a date. Confirmed as proposed.
 3. **No repeat on edit.** `due_type` is excluded on edit; repeat fields are already ignored on edit. Confirmed as proposed.
-4. **"Recurring" defaults to monthly** when picked, with the day pre-filled from today (the existing `chooseRepeat` pre-fill).
+4. **"Recurring" defaults to monthly** when picked, with the day pre-filled from today. Correction from the gap check: the existing `chooseRepeat` fills from `data.due_date` and only falls back to today when that is empty, so the builder must change it to always use today in Recurring mode (the first date is computed on the server anyway; the pre-fill is only a convenience).
 5. **The first-date rule lives on the server** (`RecurringTask::nextDueAfter(today - 1 day)`), not in the browser.
 6. **"No due date" with a repeat is refused** (`repeat` prohibited), rather than silently dropped.
 7. **Planner (employee) calendar** gets the same "No date" strip under its month grid as the admin calendar, so undated tasks are reachable from the calendar view as well as the board.

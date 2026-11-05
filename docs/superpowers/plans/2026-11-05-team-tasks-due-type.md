@@ -190,6 +190,7 @@
 - [ ] **Step 1: `TaskFormModal`:**
   - Add `const [dueType, setDueType] = useState('date')` and `const adminCreate = Boolean(employees) && !task`.
   - `chooseDueType(value)`: `setDueType(value)`; if `value === 'recurring' && !data.repeat` call `chooseRepeat('monthly')`.
+  - Gap-check correction: `chooseRepeat` currently pre-fills the weekday/day/month from `data.due_date` (falling back to today). In Recurring mode it must pre-fill from today only (use `new Date()`), so a date typed earlier or a calendar `defaultDate` does not leak into the schedule.
   - Date/priority grid: render the Due Date cell only when `!adminCreate`. In it, `const dateRequired = !employees || Boolean(task?.repeat_label)`; label "Due Date" + red `*` when `dateRequired`, else "Due Date (optional)"; `required={dateRequired}`; when not required show `<p className="mt-1 text-xs text-sub">Leave empty for no due date.</p>`. Employee form output stays identical.
   - Replace the `employees && !task` "Repeats" fieldset with a "When is it due?" fieldset (legend in the existing legend style). Three radios in the style of the "How to give it" radios: `name="task-form-due-type"`, values `date` "Has a due date", `recurring` "Recurring", `none` "No due date". Then:
     - `date`: the due date input (`id="task-form-due-date-input"`, `type="date"`, `required`) and `errors.due_date`.
