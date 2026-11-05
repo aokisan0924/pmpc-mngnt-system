@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-05 16:42 — a75d152 — My tasks board: remove the Doing and Done buttons
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `e5097be` → `a75d152`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: full suite 340 of 341 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), build passed. Fast release at the owner's request: no separate review. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome (read-only, his own My tasks > Board): 0 "→ Doing" / "→ Done" buttons, 7 cards each with View and still draggable, columns To do 5, Doing 1, Done 1. Nothing was moved or saved on live during the check. Cards can still be moved by dragging; the done checkbox in the calendar day list is unchanged.
+
 ## 2026-11-05 16:34 — e5097be — My tasks page: denser calendar and a more menu in the day list (spacing pass, phase 3)
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `c89d58e` → `e5097be`
