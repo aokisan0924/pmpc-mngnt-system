@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AdminDtrController;
 use App\Http\Controllers\Admin\DtrArchiveController;
 use App\Http\Controllers\Admin\DtrCorrectionController;
 use App\Http\Controllers\Admin\DtrEditRequestController;
+use App\Http\Controllers\Admin\DueController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\EmployeeSignatureController;
 use App\Http\Controllers\Admin\HolidayController;
@@ -118,6 +119,16 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::get('/account-setups', [AccountSetupReviewController::class, 'index'])->name('account-setups');
         Route::patch('/account-setups/{submission}', [AccountSetupReviewController::class, 'review'])->name('account-setups.review');
         Route::patch('/employees/{employee}/payroll-office', [AccountSetupReviewController::class, 'transfer'])->name('employees.payroll-office');
+
+        // Dues (bills)
+        Route::get('/dues', [DueController::class, 'index'])->name('dues');
+        Route::post('/dues', [DueController::class, 'store'])->name('dues.store');
+        Route::patch('/dues/occurrences/{occurrence}', [DueController::class, 'amount'])->name('dues.amount');
+        Route::post('/dues/occurrences/{occurrence}/pay', [DueController::class, 'pay'])->name('dues.pay');
+        Route::delete('/dues/occurrences/{occurrence}/pay', [DueController::class, 'unpay'])->name('dues.unpay');
+        Route::patch('/dues/{due}', [DueController::class, 'update'])->name('dues.update');
+        Route::post('/dues/{due}/toggle', [DueController::class, 'toggle'])->name('dues.toggle');
+        Route::delete('/dues/{due}', [DueController::class, 'destroy'])->name('dues.destroy');
 
         // Team tasks
         Route::get('/team-tasks', [TeamTaskController::class, 'index'])->name('team-tasks');
