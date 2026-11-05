@@ -14,6 +14,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class RecurringTaskGeneratorTest extends TestCase
@@ -216,5 +217,54 @@ class RecurringTaskGeneratorTest extends TestCase
         $this->artisan('tasks:generate-recurring')->expectsOutputToContain('1')->assertSuccessful();
 
         $this->assertSame(1, Task::count());
+    }
+
+    private function sharedRule(Employee $admin, Employee ...$people): RecurringTask
+    {
+        $rule = $this->rule(['created_by' => $admin->id, 'office' => null]);
+        $rule->assignees()->attach(array_map(fn (Employee $e) => $e->id, $people));
+
+        return $rule;
+    }
+
+    public function test_a_shared_rule_makes_one_shared_task_per_date_with_the_same_people(): void
+    {
+        $this->today('2026-11-01');
+        $admin = Employee::factory()->superAdmin()->create();
+        [$a, $b] = [Employee::factory()->create(), Employee::factory()->create()];
+        $this->sharedRule($admin, $a, $b);
+
+        app(RecurringTaskGenerator::class)->run();
+
+        $task = Task::with('assignees')->sole();
+        $this->assertNull($task->employee_id);
+        $this->assertNull($task->office);
+        $this->assertEqualsCanonicalizing([$a->id, $b->id], $task->assignees->pluck('id')->all());
+    }
+
+    public function test_running_a_shared_rule_twice_adds_no_task_and_no_pivot_row(): void
+    {
+        $this->today('2026-11-01');
+        $admin = Employee::factory()->superAdmin()->create();
+        $this->sharedRule($admin, Employee::factory()->create(), Employee::factory()->create());
+
+        app(RecurringTaskGenerator::class)->run();
+        app(RecurringTaskGenerator::class)->run();
+
+        $this->assertSame(1, Task::count());
+        $this->assertSame(2, DB::table('task_assignees')->count());
+    }
+
+    public function test_each_person_on_a_shared_copy_is_notified_once_and_the_admin_never(): void
+    {
+        $this->today('2026-11-01');
+        $admin = Employee::factory()->superAdmin()->create();
+        [$a, $b] = [Employee::factory()->create(), Employee::factory()->create()];
+        $this->sharedRule($admin, $a, $b);
+
+        app(RecurringTaskGenerator::class)->run();
+
+        $count = fn (Employee $e) => EmployeeNotification::where('employee_id', $e->id)->where('type', 'task_assigned')->count();
+        $this->assertSame([1, 1, 0], [$count($a), $count($b), $count($admin)]);
     }
 }

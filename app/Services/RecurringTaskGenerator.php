@@ -8,6 +8,7 @@ use App\Models\RecurringTask;
 use App\Models\Task;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class RecurringTaskGenerator
 {
@@ -25,7 +26,7 @@ class RecurringTaskGenerator
         $today = CarbonImmutable::now('Asia/Manila')->startOfDay();
         $created = 0;
 
-        RecurringTask::where('active', true)->orderBy('id')->each(function (RecurringTask $rule) use ($today, &$created) {
+        RecurringTask::where('active', true)->with('assignees:id')->orderBy('id')->each(function (RecurringTask $rule) use ($today, &$created) {
             $created += $this->generateFor($rule, $today);
         });
 
@@ -53,6 +54,7 @@ class RecurringTaskGenerator
     private function generateFor(RecurringTask $rule, CarbonImmutable $today): int
     {
         $created = 0;
+        $ids = $rule->assignees->pluck('id')->all();
         $cursor = CarbonImmutable::parse(($rule->last_due_date ?? $rule->starts_on->copy()->subDay())->toDateString());
 
         while ($created < self::MAX_PER_RULE && ($next = $rule->nextDueAfter($cursor)) !== null) {
@@ -66,19 +68,28 @@ class RecurringTaskGenerator
                 continue;
             }
 
-            $task = Task::firstOrCreate(
-                ['recurring_task_id' => $rule->id, 'due_date' => $next->toDateString()],
-                [
-                    'employee_id' => $rule->employee_id,
-                    'office' => $rule->office,
-                    'assigned_by' => $rule->created_by,
-                    'title' => $rule->title,
-                    'description' => $rule->description,
-                    'category' => $rule->category,
-                    'priority' => $rule->priority,
-                    'status' => 'pending',
-                ]
-            );
+            // One transaction: a shared task never exists without its people.
+            $task = DB::transaction(function () use ($rule, $next, $ids) {
+                $task = Task::firstOrCreate(
+                    ['recurring_task_id' => $rule->id, 'due_date' => $next->toDateString()],
+                    [
+                        'employee_id' => $rule->employee_id,
+                        'office' => $rule->office,
+                        'assigned_by' => $rule->created_by,
+                        'title' => $rule->title,
+                        'description' => $rule->description,
+                        'category' => $rule->category,
+                        'priority' => $rule->priority,
+                        'status' => 'pending',
+                    ]
+                );
+
+                if ($task->wasRecentlyCreated && $ids !== []) {
+                    $task->assignees()->sync($ids);
+                }
+
+                return $task;
+            });
 
             if ($task->wasRecentlyCreated) {
                 $created++;
