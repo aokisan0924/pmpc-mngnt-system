@@ -151,6 +151,15 @@ class TeamTaskDueTypeTest extends TestCase
         $this->create($this->payload(['due_type' => 'date']))->assertSessionHasErrors('due_date');
     }
 
+    public function test_a_leftover_stop_after_date_is_ignored_when_the_task_does_not_repeat(): void
+    {
+        // The form can still hold a "Stop after" date typed under Recurring before switching to Has a due date.
+        $this->create($this->payload(['due_type' => 'date', 'due_date' => '2026-12-01', 'repeat' => '', 'repeat_until' => '2026-11-20']))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('2026-12-01', $this->dateOf('Count the cash'));
+    }
+
     public function test_the_old_payload_without_due_type_still_needs_a_date(): void
     {
         $this->create($this->payload())->assertSessionHasErrors('due_date');

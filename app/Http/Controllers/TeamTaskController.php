@@ -17,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -85,7 +86,9 @@ class TeamTaskController extends Controller
 
         // Recurring has no date field: the first copy is the next date on its schedule.
         if ($request->input('due_type') === 'recurring') {
-            $data['due_date'] = $request->firstRepeatDate()->toDateString();
+            $first = $request->firstRepeatDate()
+                ?? throw ValidationException::withMessages(['repeat_until' => 'The repeat would stop before its first date.']);
+            $data['due_date'] = $first->toDateString();
         }
 
         if ($request->boolean('shared')) {

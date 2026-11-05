@@ -97,7 +97,7 @@ class TeamTaskRequest extends FormRequest
             'repeat_last_day' => ['nullable', 'boolean'],
             'repeat_month' => ['nullable', 'integer', 'between:1,12', 'required_if:repeat,yearly'],
             'repeat_lead_days' => ['nullable', 'integer', 'between:0,60'],
-            'repeat_until' => ['nullable', 'date', ...($dueType !== 'recurring' && $this->filled('due_date') ? ['after_or_equal:due_date'] : [])],
+            'repeat_until' => ['nullable', 'date', ...($dueType !== 'recurring' && $this->filled('due_date') && $this->filled('repeat') ? ['after_or_equal:due_date'] : [])],
         ];
     }
 

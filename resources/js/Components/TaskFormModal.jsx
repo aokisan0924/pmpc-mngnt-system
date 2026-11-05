@@ -80,6 +80,8 @@ export default function TaskFormModal({
                 due_type: dueType,
                 ...(dueType === 'date' ? { repeat: '' } : { due_date: '' }),
                 ...(dueType === 'none' ? { repeat: '' } : {}),
+                // A "Stop after" typed under Recurring must not follow the admin to another choice.
+                ...(dueType !== 'recurring' ? { repeat_until: '' } : {}),
             })
             transform(d => due(mode === 'people'
                 ? { ...d, employee_id: '', office: '', shared: share === 'shared' && d.employee_ids.length >= 2 }
