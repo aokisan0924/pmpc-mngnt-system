@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-05 16:16 — c89d58e — Team tasks board: shorter cards and one compact status row (spacing pass, phase 2)
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `4a5d1da` → `c89d58e`
+- Migrations: none
+- Backup: none (code-only deployment; layout only, no database records or schema changed)
+- Data changes: none
+- Verified: full suite 340 of 341 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), build passed, Opus review's two Important findings (Done card tint, employee move row on narrow cards) and its minor notes were fixed. Not seen on screen: the employee board at a narrow width. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome (read-only): the Team tasks status area is one row 73px tall (was about 108px) showing To do 13 (4 late), Doing 7, Done 7 (25% finished, last 30 days); all 27 cards have an owner badge (initials, building for whole office, people for shared); Done cards are at full opacity with a struck-through title; the "..." menu opened on a Done card sits on top of the card below (click test passed); no sideways overflow. Nothing was saved or changed on live during the check.
+
 ## 2026-11-05 15:57 — 4a5d1da — New Task form: wider, "who" and the due choice first (spacing pass, phase 1)
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `38978f9` → `4a5d1da`
