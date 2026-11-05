@@ -14,8 +14,8 @@ export default function CardMenu({ label, items, focusRing = 'focus-visible:outl
         if (!open) return
         root.current?.querySelector('[role=menuitem]')?.focus()
         const away = e => { if (!root.current?.contains(e.target)) setOpen(false) }
-        document.addEventListener('mousedown', away)
-        return () => document.removeEventListener('mousedown', away)
+        document.addEventListener('pointerdown', away)
+        return () => document.removeEventListener('pointerdown', away)
     }, [open])
 
     if (items.length === 0) return null
@@ -56,7 +56,7 @@ export default function CardMenu({ label, items, focusRing = 'focus-visible:outl
                             type="button"
                             role="menuitem"
                             onClick={() => { close(false); item.onClick() }}
-                            className={`block w-full rounded-lg px-3 py-1.5 text-left text-sm font-semibold focus:outline-none focus-visible:bg-hover ${item.danger ? 'text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40' : 'text-text hover:bg-hover'}`}
+                            className={`block w-full rounded-lg px-3 py-1.5 text-left text-sm font-semibold focus:outline-none focus-visible:bg-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-600 ${item.danger ? 'text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40' : 'text-text hover:bg-hover'}`}
                         >
                             {item.label}
                         </button>

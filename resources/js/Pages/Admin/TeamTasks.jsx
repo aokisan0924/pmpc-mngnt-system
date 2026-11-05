@@ -107,7 +107,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
 
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-3">
                         {view === 'board' && (
-                            <p className="text-xs text-sub">Drag cards between columns</p>
+                            <p className="text-xs text-sub">Drag cards between columns, or use View</p>
                         )}
                         <label className="flex items-center gap-2 text-xs font-semibold text-sub">
                             Priority

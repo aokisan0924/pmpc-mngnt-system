@@ -80,7 +80,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                         onClick={e => {
                                             if (onOpen && !e.target.closest('button, select, a')) onOpen(task)
                                         }}
-                                        className={`rounded-xl border border-border bg-panel p-3 shadow-2xs cursor-grab active:cursor-grabbing ${done ? 'opacity-60' : ''}`}
+                                        className={`relative focus-within:z-30 rounded-xl border border-border bg-panel p-3 shadow-2xs cursor-grab active:cursor-grabbing ${done ? 'opacity-60' : ''}`}
                                     >
                                         {onOpen ? (
                                             <button
@@ -99,7 +99,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                         {showOwner && (task.employee_name || task.office_label) && (
                                             <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-sub">
                                                 {task.employee_name && (
-                                                    <span aria-hidden="true" className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-[#26215C] dark:bg-indigo-950 dark:text-indigo-200">
+                                                    <span aria-hidden="true" className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-[#26215C] dark:bg-indigo-950 dark:text-indigo-200">
                                                         {initials(task.employee_name)}
                                                     </span>
                                                 )}

@@ -15,7 +15,7 @@ function Late({ count, onDark }) {
 }
 
 /**
- * Office tabs (All, each office, Late) and a row of people chips for the chosen office.
+ * Office tabs (All, each office) and a row of people chips for the chosen office.
  * `offices` and `people` come from the server; offices ignore the board filters, people follow the office only.
  */
 export default function TeamPeopleStrip({ offices = [], people = [], employees = [], overview = {}, filters = {}, onFilter }) {
@@ -49,7 +49,7 @@ export default function TeamPeopleStrip({ offices = [], people = [], employees =
                                 key={tab.key || 'all'}
                                 type="button"
                                 aria-pressed={selected}
-                                onClick={() => { if (!(selected && tab.key === '')) onFilter({ office: selected ? '' : tab.key, employee_id: '', whole: '' }) }}
+                                onClick={() => onFilter({ office: selected ? '' : tab.key, employee_id: '', whole: '' })}
                                 className={`${TAB} ${selected ? 'bg-white text-[#26215C] shadow-xs border border-indigo-200' : 'border border-transparent text-sub hover:bg-panel/60 hover:text-text'}`}
                             >
                                 {tab.label} <b className="tnum">{tab.count}</b>
