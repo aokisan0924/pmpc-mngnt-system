@@ -37,12 +37,12 @@ class TeamTaskController extends Controller
         $today = now('Asia/Manila')->toDateString();
 
         $scoped = fn () => Task::assignedByAdmin()
-            ->when($employeeId, fn ($q) => $q->where('employee_id', $employeeId))
+            ->when($employeeId, fn ($q) => $q->forPerson($employeeId))
             ->when($priority, fn ($q) => $q->where('priority', $priority))
-            ->when($office, fn ($q) => $q->where('office', $office))
-            ->when($whole, fn ($q) => $q->whereNull('employee_id'));
+            ->when($office, fn ($q) => $q->inOffice($office))
+            ->when($whole, fn ($q) => $q->whereNull('employee_id')->whereNotNull('office'));
 
-        $tasks = $scoped()->with(['employee', 'assigner', 'recurringTask'])
+        $tasks = $scoped()->with(['employee', 'assigner', 'recurringTask', 'assignees'])
             ->when(! $showOlder, fn ($q) => $q->where(fn ($w) => $w->where('status', '!=', 'done')->orWhere('updated_at', '>=', now()->subDays(30))))
             ->when($overdueOnly, fn ($q) => $q->where('due_date', '<', $today)->where('status', '!=', 'done'))
             ->orderBy('due_date')
@@ -253,10 +253,13 @@ class TeamTaskController extends Controller
     private function offices(): array
     {
         $today = CarbonImmutable::now('Asia/Manila')->toDateString();
-        $tasks = Task::assignedByAdmin()->where('status', '!=', 'done')->get(['id', 'office', 'due_date']);
+        $tasks = Task::assignedByAdmin()->where('status', '!=', 'done')
+            ->with('assignees:id,payroll_office')
+            ->get(['id', 'employee_id', 'office', 'due_date']);
 
         return collect(Task::OFFICES)->map(function (string $label, string $key) use ($tasks, $today): array {
-            $mine = $tasks->where('office', $key);
+            $mine = $tasks->filter(fn (Task $t) => $t->office === $key
+                || ($t->isShared() && $t->assignees->contains('payroll_office', $key)));
 
             return [
                 'key' => $key,
@@ -278,27 +281,30 @@ class TeamTaskController extends Controller
         $today = CarbonImmutable::now('Asia/Manila')->toDateString();
         $chips = [];
 
-        Task::assignedByAdmin()->where('status', '!=', 'done')
-            ->when($office, fn ($q) => $q->where('office', $office))
-            ->with('employee:id,first_name,last_name,status')
-            ->get(['id', 'employee_id', 'office', 'due_date'])
-            ->each(function (Task $task) use (&$chips, $today, $office): void {
-                if ($task->employee_id === null) {
-                    if (! $office) {
-                        return;
-                    }
-                    $id = 'whole';
-                    $chip = ['type' => 'whole', 'key' => $office, 'label' => 'Whole office'];
-                } elseif ($task->employee?->status === 'active') {
-                    $id = 'employee:'.$task->employee_id;
-                    $chip = ['type' => 'employee', 'key' => (string) $task->employee_id, 'label' => trim($task->employee->first_name.' '.$task->employee->last_name)];
-                } else {
-                    return;
-                }
+        $bump = function (string $id, array $chip, Task $task) use (&$chips, $today): void {
+            $chips[$id] ??= $chip + ['open' => 0, 'late' => 0];
+            $chips[$id]['open']++;
+            $chips[$id]['late'] += $task->due_date->toDateString() < $today ? 1 : 0;
+        };
 
-                $chips[$id] ??= $chip + ['open' => 0, 'late' => 0];
-                $chips[$id]['open']++;
-                $chips[$id]['late'] += $task->due_date->toDateString() < $today ? 1 : 0;
+        Task::assignedByAdmin()->where('status', '!=', 'done')
+            ->when($office, fn ($q) => $q->inOffice($office))
+            ->with(['employee:id,first_name,last_name,status', 'assignees:id,first_name,last_name,status,payroll_office'])
+            ->get(['id', 'employee_id', 'office', 'due_date'])
+            ->each(function (Task $task) use ($bump, $office): void {
+                if ($task->isShared()) {
+                    foreach ($task->assignees as $person) {
+                        if ($person->status === 'active' && (! $office || $person->payroll_office === $office)) {
+                            $bump('employee:'.$person->id, ['type' => 'employee', 'key' => (string) $person->id, 'label' => trim($person->first_name.' '.$person->last_name)], $task);
+                        }
+                    }
+                } elseif ($task->employee_id === null) {
+                    if ($office) {
+                        $bump('whole', ['type' => 'whole', 'key' => $office, 'label' => 'Whole office'], $task);
+                    }
+                } elseif ($task->employee?->status === 'active') {
+                    $bump('employee:'.$task->employee_id, ['type' => 'employee', 'key' => (string) $task->employee_id, 'label' => trim($task->employee->first_name.' '.$task->employee->last_name)], $task);
+                }
             });
 
         return collect($chips)

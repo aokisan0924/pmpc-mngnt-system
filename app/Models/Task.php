@@ -70,6 +70,20 @@ class Task extends Model
         });
     }
 
+    /** The person's own tasks, plus shared tasks they are on. */
+    public function scopeForPerson(Builder $query, int $employeeId): Builder
+    {
+        return $query->where(fn (Builder $q) => $q->where('employee_id', $employeeId)
+            ->orWhereHas('assignees', fn (Builder $a) => $a->where('employees.id', $employeeId)));
+    }
+
+    /** Tasks filed under the office, plus shared tasks with anyone from that office on them. */
+    public function scopeInOffice(Builder $query, string $office): Builder
+    {
+        return $query->where(fn (Builder $q) => $q->where('office', $office)
+            ->orWhereHas('assignees', fn (Builder $a) => $a->where('payroll_office', $office)));
+    }
+
     /** The people on a shared task (no person, no office). */
     public function assignees(): BelongsToMany
     {
