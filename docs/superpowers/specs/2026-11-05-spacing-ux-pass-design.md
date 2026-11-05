@@ -73,7 +73,7 @@ The panel becomes a three-part column: a fixed header, a scrolling body and a fi
 
 - Overlay: `fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs` (the phone gutter goes from 16px to 8px to gain width).
 - Panel: `flex w-full max-h-[calc(100dvh-1rem)] sm:max-h-[92vh] flex-col overflow-hidden rounded-2xl border border-border bg-panel shadow-2xl`, with a width that depends on the mode:
-  - admin create: `max-w-2xl lg:max-w-4xl` (672px, 896px from 1024px wide);
+  - admin create: `max-w-2xl lg:max-w-4xl` (672px at a 16px root, 784px at the app's 14px root, from 1024px wide);
   - every other mode (admin edit, employee create and edit): `max-w-lg` (512px).
 - Header: `shrink-0 flex items-center justify-between border-b border-border px-5 py-4 sm:px-6`. It holds the same title and close button as today.
 - `<form>`: `flex min-h-0 flex-1 flex-col`, wrapping the body and the footer, so Enter still submits and Add Task stays a submit button.
@@ -88,7 +88,7 @@ Two columns for admin create from `lg` (1024px):
 
 Scroll trap fix:
 - `PeoplePicker` gets one new prop, `listClassName = 'max-h-56'`, which replaces the hard-coded `max-h-56` on the list box.
-- Admin create passes `listClassName="max-h-56 lg:max-h-[min(26rem,50vh)]"`. On desktop the list fills the left column (up to 416px, or half the window height), and the body does not need to scroll in the default state (people mode, Has a due date). With nothing else scrolling, the wheel over the list never fights the form.
+- Admin create passes `listClassName="max-h-56 lg:max-h-[min(26rem,50vh)]"`. On desktop the list fills the left column (up to 364px at the app's 14px root, or half the window height), and the body does not need to scroll in the default state (people mode, Has a due date). With nothing else scrolling, the wheel over the list never fights the form.
 - The admin shared-edit picker keeps the default `max-h-56` (it is a single column, and edit has no due block).
 - Do not add `overscroll-contain` to the list. It would stop the wheel from passing to the form when the list reaches its end, which makes the trap worse.
 
@@ -97,10 +97,10 @@ Side by side:
 - Other modes: keep the existing `[Due Date | Priority]` `grid grid-cols-2 gap-3`, with Category full width below it (unchanged).
 
 Measurements at 1440×900, admin create, people mode, Has a due date, nothing picked:
-- the panel is 896px wide;
+- the panel is 784px wide (the app's root text size is 14px, so max-w-4xl renders 784px, not 896px);
 - the body does not scroll (`scrollHeight <= clientHeight + 1`);
 - Add Task is inside the viewport;
-- the people list is at most 416px tall.
+- the people list is at most 364px tall (26rem at a 14px root).
 
 At 1366×768 the same conditions hold, with the list at most 384px. With Recurring, monthly, the body may scroll, but the footer stays visible.
 
@@ -250,7 +250,7 @@ Board view and the All / Pending / Done filter are unchanged.
 Run each check against the local scratch database `database/taskboard-preview.sqlite`, served on localhost (see the plan, Task 0). Use the in-app browser (`mcp__Claude_Browser__*`) and run each JS snippet with `javascript_tool`. Record the before and after numbers in the phase's commit message body. The snippets are in the plan (M1–M3).
 
 **Phase 1:**
-- [ ] 1440×900, admin create: M1 gives `panelW` 896, `bodyScrolls` false, `addVisibleTop` and `addVisibleBottom` true, `listMaxH` "min(26rem, 50vh)" (or its pixel value), `dueBeforeTitle` true, `unlabelled` [], `hOverflow` false.
+- [ ] 1440×900, admin create: M1 gives `panelW` 784, `bodyScrolls` false, `addVisibleTop` and `addVisibleBottom` true, `listMaxH` "min(26rem, 50vh)" (or its pixel value), `dueBeforeTitle` true, `unlabelled` [], `hOverflow` false.
 - [ ] The same at 1366×768 and 1024×768. At 1024 with Recurring, monthly: no clipped labels (screenshot).
 - [ ] 375×812: admin create in each due choice, admin edit, and employee create: `hOverflow` false, `addVisibleTop` and `addVisibleBottom` true. Screenshots of admin create (Recurring) and the employee form.
 - [ ] Keyboard: Tab order runs toggle, search, people, share, due radios, due fields, title, description, priority, category, Cancel, Add Task. Escape closes the form.

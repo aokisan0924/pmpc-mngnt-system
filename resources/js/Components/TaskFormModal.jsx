@@ -44,7 +44,8 @@ export default function TaskFormModal({
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === 'Escape') onClose()
+            // Escape inside a filled search box clears the search (the browser does that); it must not close the form and lose the draft.
+            if (e.key === 'Escape' && !(e.target?.type === 'search' && e.target.value)) onClose()
         }
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
@@ -107,7 +108,7 @@ export default function TaskFormModal({
                                 aria-pressed={mode === key}
                                 onClick={() => setMode(key)}
                                 className={`rounded-lg px-3 py-1 text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
-                                    mode === key ? 'border border-indigo-200 bg-white font-bold text-[#26215C] shadow-xs' : 'border border-transparent text-sub hover:text-text'
+                                    mode === key ? 'border border-indigo-200 bg-white font-bold text-[#26215C] shadow-xs dark:border-indigo-800 dark:bg-indigo-950 dark:text-indigo-200' : 'border border-transparent text-sub hover:text-text'
                                 }`}
                             >
                                 {label}
