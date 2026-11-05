@@ -26,11 +26,13 @@ export default function TaskFormModal({
 }) {
     const [mode, setMode] = useState('people') // when creating as admin: pick people, or a whole office
     const [share, setShare] = useState('copies') // with 2+ people: one copy each, or one shared task
+    const [dueType, setDueType] = useState('date') // when creating as admin: a date, a schedule, or none
+    const adminCreate = Boolean(employees) && !task
     const sharedEdit = Boolean(task?.is_shared)
     const { data, setData, post, patch, processing, errors, transform } = useForm({
         title:       task?.title ?? '',
         description: task?.description ?? '',
-        due_date:    task?.due_date?.slice(0, 10) ?? defaultDate,
+        due_date:    task ? (task.due_date?.slice(0, 10) ?? '') : defaultDate,
         category:    task?.category ?? '',
         priority:    task?.priority ?? 'medium',
         ...(employees ? {
@@ -48,9 +50,9 @@ export default function TaskFormModal({
         return () => window.removeEventListener('keydown', handleKeyDown)
     }, [onClose])
 
-    // Choosing how often it repeats pre-fills the day from the due date.
+    // Choosing how often it repeats pre-fills the day from today, never from a date typed earlier.
     function chooseRepeat(value) {
-        const due = data.due_date ? new Date(`${data.due_date}T00:00:00`) : new Date()
+        const due = new Date()
         setData(d => ({
             ...d,
             repeat: value,
@@ -60,16 +62,28 @@ export default function TaskFormModal({
         }))
     }
 
+    function chooseDueType(value) {
+        setDueType(value)
+        if (value === 'recurring' && !data.repeat) chooseRepeat('monthly')
+    }
+
+    const dateRequired = employees ? Boolean(task?.repeat_label) : !(task && !task.due_date)
     const pickerError = errors.employee_ids ?? Object.entries(errors).find(([k]) => k.startsWith('employee_ids.'))?.[1] ?? errors.employee_id
 
     function submit(e) {
         e.preventDefault()
         const options = { preserveScroll: true, onSuccess: onClose }
-        if (employees && !task) {
+        if (adminCreate) {
             // People mode sends the list; whole-office mode sends only the office.
-            transform(d => mode === 'people'
+            const due = d => ({
+                ...d,
+                due_type: dueType,
+                ...(dueType === 'date' ? { repeat: '' } : { due_date: '' }),
+                ...(dueType === 'none' ? { repeat: '' } : {}),
+            })
+            transform(d => due(mode === 'people'
                 ? { ...d, employee_id: '', office: '', shared: share === 'shared' && d.employee_ids.length >= 2 }
-                : (({ employee_ids, ...rest }) => rest)(d))
+                : (({ employee_ids, ...rest }) => rest)(d)))
         }
         if (task) {
             patch(updateUrl(task), options)
@@ -252,21 +266,24 @@ export default function TaskFormModal({
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label htmlFor="task-form-due-date-input" className={LABEL}>
-                                Due Date <span className="text-rose-500">*</span>
-                            </label>
-                            <input
-                                id="task-form-due-date-input"
-                                type="date"
-                                value={data.due_date}
-                                onChange={e => setData('due_date', e.target.value)}
-                                className={`${INPUT} py-2 font-mono`}
-                                required
-                            />
-                            {errors.due_date && <p className="mt-1 text-xs text-rose-500">{errors.due_date}</p>}
-                        </div>
+                    <div className={adminCreate ? '' : 'grid grid-cols-2 gap-3'}>
+                        {!adminCreate && (
+                            <div>
+                                <label htmlFor="task-form-due-date-input" className={LABEL}>
+                                    Due Date {dateRequired ? <span className="text-rose-500">*</span> : '(optional)'}
+                                </label>
+                                <input
+                                    id="task-form-due-date-input"
+                                    type="date"
+                                    value={data.due_date}
+                                    onChange={e => setData('due_date', e.target.value)}
+                                    className={`${INPUT} py-2 font-mono`}
+                                    required={dateRequired}
+                                />
+                                {!dateRequired && <p className="mt-1 text-xs text-sub">Leave empty for no due date.</p>}
+                                {errors.due_date && <p className="mt-1 text-xs text-rose-500">{errors.due_date}</p>}
+                            </div>
+                        )}
                         <div>
                             <label htmlFor="task-form-priority-input" className={LABEL}>
                                 Priority
@@ -298,18 +315,52 @@ export default function TaskFormModal({
                         />
                     </div>
 
-                    {employees && !task && (
+                    {adminCreate && (
                         <fieldset className="space-y-3 rounded-xl border border-border p-3">
-                            <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-sub">Repeats</legend>
+                            <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-sub">When is it due?</legend>
+                            <div className="flex flex-wrap gap-x-4 gap-y-2">
+                                {[['date', 'Has a due date'], ['recurring', 'Recurring'], ['none', 'No due date']].map(([key, label]) => (
+                                    <label key={key} className="flex cursor-pointer items-center gap-2 text-sm font-medium text-text">
+                                        <input
+                                            type="radio"
+                                            name="task-form-due-type"
+                                            value={key}
+                                            checked={dueType === key}
+                                            onChange={() => chooseDueType(key)}
+                                            className="h-4 w-4 accent-[#26215C]"
+                                        />
+                                        {label}
+                                    </label>
+                                ))}
+                            </div>
+
+                            {dueType === 'date' && (
+                                <div>
+                                    <label htmlFor="task-form-due-date-input" className="sr-only">Due date</label>
+                                    <input
+                                        id="task-form-due-date-input"
+                                        type="date"
+                                        value={data.due_date}
+                                        onChange={e => setData('due_date', e.target.value)}
+                                        className={`${INPUT} py-2 font-mono`}
+                                        required
+                                    />
+                                    {errors.due_date && <p className="mt-1 text-xs text-rose-500">{errors.due_date}</p>}
+                                </div>
+                            )}
+
+                            {dueType === 'none' && <p className="text-xs text-sub">Ongoing: it stays open until someone marks it done.</p>}
+
+                            {dueType === 'recurring' && (<>
+                            <p className="text-xs text-sub">The first one is the next date on this schedule, from today.</p>
                             <div>
-                                <label htmlFor="task-form-repeat-input" className="sr-only">Repeats</label>
+                                <label htmlFor="task-form-repeat-input" className={LABEL}>How often</label>
                                 <select
                                     id="task-form-repeat-input"
                                     value={data.repeat}
                                     onChange={e => chooseRepeat(e.target.value)}
                                     className={INPUT}
                                 >
-                                    <option value="">Does not repeat</option>
                                     <option value="daily">Every day</option>
                                     <option value="weekly">Every week</option>
                                     <option value="monthly">Every month</option>
@@ -378,6 +429,7 @@ export default function TaskFormModal({
                                     </div>
                                 </div>
                             )}
+                            </>)}
                         </fieldset>
                     )}
 

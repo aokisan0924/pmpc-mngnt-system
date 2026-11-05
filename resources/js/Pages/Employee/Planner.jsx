@@ -8,6 +8,7 @@ import ConfirmModal from '@/Components/ConfirmModal'
 import TaskBoard from '@/Components/TaskBoard'
 import TaskFormModal from '@/Components/TaskFormModal'
 import TaskDetailModal from '@/Components/TaskDetailModal'
+import UndatedTaskStrip from '@/Components/UndatedTaskStrip'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -70,6 +71,7 @@ export default function Planner({ tasks = [] }) {
         return map
     }, [visibleTasks])
 
+    const undatedTasks = useMemo(() => visibleTasks.filter(t => !t.due_date), [visibleTasks])
     const cells = useMemo(() => buildMonthGrid(viewDate), [viewDate])
     const selectedTasks = tasksByDate[selectedDate] ?? []
 
@@ -339,6 +341,7 @@ export default function Planner({ tasks = [] }) {
                                 )
                             })}
                         </div>
+                        <UndatedTaskStrip tasks={undatedTasks} onOpen={t => setDetailId(t.id)} focusRing="focus-visible:outline-emerald-600" />
                     </Card>
 
                     {/* Day Agenda Panel (1 Col) */}

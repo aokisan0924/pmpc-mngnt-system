@@ -94,7 +94,7 @@ export default function TaskDetailModal({ task, onClose, onMove, onEdit, onDelet
                 </div>
 
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Detail label="Due">{longDate(task.due_date)}</Detail>
+                    <Detail label="Due">{task.due_date ? longDate(task.due_date) : 'No due date'}</Detail>
                     {shared && <Detail label="Shared with">{sharedNames(task)}</Detail>}
                     {!shared && (showOwner || wholeOffice) && owner && <Detail label={showOwner ? 'For' : 'Shared with'}>{owner}</Detail>}
                     {task.office_label && !wholeOffice && <Detail label="Office">{task.office_label}</Detail>}

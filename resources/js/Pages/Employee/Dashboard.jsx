@@ -609,7 +609,7 @@ export default function Dashboard({
                                                                     </p>
                                                                     <div className="flex items-center gap-2 text-[12px] text-dim">
                                                                         <span className={`font-medium ${task.is_overdue ? 'text-rose-600 dark:text-rose-400 font-semibold' : ''}`}>
-                                                                            Due: {task.due_label}
+                                                                            {task.due_date ? `Due: ${task.due_label}` : 'No due date'}
                                                                         </span>
                                                                         {task.priority && (
                                                                             <span className={`px-1.5 py-0.25 rounded text-[12px] uppercase font-semibold ${

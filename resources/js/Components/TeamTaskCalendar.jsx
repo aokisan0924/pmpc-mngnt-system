@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import UndatedTaskStrip from '@/Components/UndatedTaskStrip'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MAX_CHIPS = 3
@@ -42,6 +43,7 @@ export default function TeamTaskCalendar({ tasks, onOpen }) {
         return map
     }, [tasks])
 
+    const undated = useMemo(() => tasks.filter(t => !t.due_date), [tasks])
     const cells = useMemo(() => buildMonthGrid(viewDate), [viewDate])
     const todayKey = toKey(today)
     const shift = months => setViewDate(v => new Date(v.getFullYear(), v.getMonth() + months, 1))
@@ -114,6 +116,8 @@ export default function TeamTaskCalendar({ tasks, onOpen }) {
                     )
                 })}
             </div>
+
+            <UndatedTaskStrip tasks={undated} onOpen={onOpen} label={t => `${t.title}${ownerOf(t) ? ` · ${ownerOf(t)}` : ''}`} />
         </div>
     )
 }
