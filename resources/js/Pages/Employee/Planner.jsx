@@ -9,6 +9,7 @@ import TaskBoard from '@/Components/TaskBoard'
 import TaskFormModal from '@/Components/TaskFormModal'
 import TaskDetailModal from '@/Components/TaskDetailModal'
 import UndatedTaskStrip from '@/Components/UndatedTaskStrip'
+import CardMenu from '@/Components/CardMenu'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -32,7 +33,7 @@ function buildMonthGrid(viewDate) {
     for (let d = 1; d <= daysInMonth; d++) {
         cells.push(new Date(year, month, d))
     }
-    while (cells.length < 42) {
+    while (cells.length % 7 !== 0) {
         const last = cells[cells.length - 1]
         cells.push(new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1))
     }
@@ -295,7 +296,7 @@ export default function Planner({ tasks = [] }) {
                                         aria-label={cellAriaLabel}
                                         aria-pressed={isSelected}
                                         aria-current={isToday ? 'date' : undefined}
-                                        className={`relative text-left rounded-xl border p-1.5 sm:p-2 min-h-[72px] sm:min-h-[100px] flex flex-col gap-1 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
+                                        className={`relative text-left rounded-xl border p-1.5 sm:p-2 min-h-[52px] sm:min-h-[80px] flex flex-col gap-1 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                             isSelected
                                                 ? 'border-emerald-500 bg-emerald-500/5 ring-2 ring-emerald-500/20 shadow-xs'
                                                 : inMonth
@@ -311,15 +312,16 @@ export default function Planner({ tasks = [] }) {
                                             {date.getDate()}
                                         </span>
 
-                                        <div className="flex flex-col gap-1 overflow-hidden w-full">
+                                        <div className="hidden sm:flex flex-col gap-1 overflow-hidden w-full">
                                             {visible.map(t => {
                                                 const done = t.status === 'done'
                                                 return (
                                                     <span
                                                         key={t.id}
-                                                        className={`text-[12px] px-1.5 py-0.5 rounded-md truncate font-medium ${
+                                                        title={t.title}
+                                                        className={`line-clamp-2 break-words rounded-md px-1.5 py-0.5 text-[12px] leading-4 font-medium ${
                                                             done
-                                                                ? 'line-through opacity-50 bg-field text-dim'
+                                                                ? 'line-through bg-field text-sub'
                                                                 : t.priority === 'high'
                                                                     ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
                                                                     : t.priority === 'medium'
@@ -337,6 +339,7 @@ export default function Planner({ tasks = [] }) {
                                                 </span>
                                             )}
                                         </div>
+                                        {dayTasks.length > 0 && <span className="sm:hidden self-start rounded-full bg-[#0F6E56]/10 px-1.5 text-xs font-bold tnum text-[#0F6E56] dark:text-emerald-300">{dayTasks.length}</span>}
                                     </button>
                                 )
                             })}
@@ -363,15 +366,15 @@ export default function Planner({ tasks = [] }) {
                             </button>
                         }
                     >
-                        <div className="space-y-3 pt-2 max-h-[500px] overflow-y-auto pr-1">
+                        <div className="space-y-3 pt-2">
                             {selectedTasks.map(task => {
                                 const done = task.status === 'done'
                                 return (
                                     <div
                                         key={task.id}
-                                        className={`p-3.5 rounded-xl border transition-all ${
+                                        className={`relative focus-within:z-30 p-3 rounded-xl border transition-colors ${
                                             done
-                                                ? 'border-border/60 bg-field/40 opacity-60'
+                                                ? 'border-border/60 bg-field/60'
                                                 : 'border-border bg-panel shadow-2xs hover:border-emerald-500/30'
                                         }`}
                                     >
@@ -400,7 +403,7 @@ export default function Planner({ tasks = [] }) {
                                                     type="button"
                                                     onClick={() => setDetailId(task.id)}
                                                     aria-haspopup="dialog"
-                                                    className={`block w-full text-left text-sm font-semibold truncate hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${done ? 'line-through text-dim' : 'text-text'}`}
+                                                    className={`block w-full text-left text-sm font-semibold line-clamp-2 break-words hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${done ? 'line-through text-sub' : 'text-text'}`}
                                                 >
                                                     {task.title}
                                                 </button>
@@ -427,34 +430,26 @@ export default function Planner({ tasks = [] }) {
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-col gap-1 shrink-0">
+                                            <div className="flex shrink-0 items-center gap-1.5">
                                                 <button
                                                     type="button"
                                                     onClick={() => setDetailId(task.id)}
                                                     aria-haspopup="dialog"
                                                     aria-label={`View task "${task.title}"`}
-                                                    className="inline-flex h-8 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-[#0F6E56] shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                                    className="inline-flex h-[36px] items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-[#0F6E56] shadow-2xs transition-colors hover:bg-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
                                                 >
                                                     View
                                                 </button>
-                                                {task.employee_id !== null && (<>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => startEdit(task)}
-                                                    aria-label={`Edit task "${task.title}"`}
-                                                    className="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-panel px-3 text-xs font-semibold text-sub shadow-2xs transition-colors hover:bg-hover hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => confirmDelete(task)}
-                                                    aria-label={`Delete task "${task.title}"`}
-                                                    className="inline-flex h-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 px-3 text-xs font-semibold text-rose-600 shadow-2xs transition-colors hover:bg-rose-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-400 dark:hover:bg-rose-950/70"
-                                                >
-                                                    Delete
-                                                </button>
-                                                </>)}
+                                                {task.employee_id !== null && (
+                                                    <CardMenu
+                                                        label={`More actions for "${task.title}"`}
+                                                        focusRing="focus-visible:outline-emerald-600"
+                                                        items={[
+                                                            { label: 'Edit', onClick: () => startEdit(task) },
+                                                            { label: 'Delete', onClick: () => confirmDelete(task), danger: true },
+                                                        ]}
+                                                    />
+                                                )}
                                             </div>
                                         </div>
                                     </div>
