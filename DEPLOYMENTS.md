@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-05 15:57 — 4a5d1da — New Task form: wider, "who" and the due choice first (spacing pass, phase 1)
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `38978f9` → `4a5d1da`
+- Migrations: none
+- Backup: none (code-only deployment; layout only, no database records or schema changed)
+- Data changes: none
+- Verified: full suite 340 of 341 locally (the one error is the JPEG-less local PHP build in `EmployeeSignatureTest`), build passed, Opus review found nothing Critical or Important and its small items were fixed. Not re-checked in a browser: the Escape-in-search fix (one condition). On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Signed in as Kurt in Chrome (read-only): the New Task form is 784px wide with "who" in a left column and "When is it due?" first on the right, no inner scrolling, Add Task visible, the cursor starts on "Specific people", Escape closes it, no sideways overflow; the board shows the same 27 cards. Nothing was saved and no task created on live during the check.
+
 ## 2026-11-05 15:19 — 38978f9 — "When is it due?" choice and tasks with no due date
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `29221c3` → `38978f9`
