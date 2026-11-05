@@ -80,36 +80,48 @@ class TeamTaskController extends Controller
 
     public function store(TeamTaskRequest $request): RedirectResponse
     {
-        $data = $this->withOffice($request->validated());
+        $data = $request->validated();
+        // Several people means one separate task each; the array wins over employee_id and office.
+        $owners = ! empty($data['employee_ids']) ? array_map(fn ($id) => ['employee_id' => (int) $id, 'office' => null], $data['employee_ids']) : [Arr::only($data, ['employee_id', 'office'])];
+
+        $tasks = DB::transaction(fn () => array_map(function (array $owner) use ($request, $data): Task {
+            $one = $this->withOffice([...Arr::except($data, ['employee_ids', 'employee_id', 'office']), ...$owner]);
+
+            return $this->createTask($request, $one);
+        }, $owners));
+
+        foreach ($tasks as $task) {
+            app(TaskAssignmentNotifier::class)->notify($task, $request->user());
+        }
+
+        return back()->with('success', count($tasks) > 1 ? 'Task added for '.count($tasks).' people.' : 'Task added.');
+    }
+
+    /** Creates one task, and its repeat rule when the admin chose to repeat it. */
+    private function createTask(Request $request, array $data): Task
+    {
         $fields = Arr::only($data, ['employee_id', 'office', 'title', 'description', 'due_date', 'category', 'priority']);
+        $rule = null;
 
-        $task = DB::transaction(function () use ($request, $data, $fields): Task {
-            $rule = null;
+        if (! empty($data['repeat'])) {
+            $frequency = $data['repeat'];
+            $rule = RecurringTask::create([
+                ...Arr::except($fields, ['due_date']),
+                'created_by' => $request->user()->id,
+                'frequency' => $frequency,
+                'day_of_week' => $frequency === 'weekly' ? $data['repeat_day_of_week'] : null,
+                'day_of_month' => in_array($frequency, ['monthly', 'yearly'], true) ? ($data['repeat_day_of_month'] ?? null) : null,
+                'last_day_of_month' => $frequency === 'monthly' && $request->boolean('repeat_last_day'),
+                'month' => $frequency === 'yearly' ? $data['repeat_month'] : null,
+                'lead_days' => $data['repeat_lead_days'] ?? RecurringTask::DEFAULT_LEAD_DAYS[$frequency],
+                'starts_on' => $fields['due_date'],
+                'ends_on' => $data['repeat_until'] ?? null,
+                'active' => true,
+                'last_due_date' => $fields['due_date'],
+            ]);
+        }
 
-            if (! empty($data['repeat'])) {
-                $frequency = $data['repeat'];
-                $rule = RecurringTask::create([
-                    ...Arr::except($fields, ['due_date']),
-                    'created_by' => $request->user()->id,
-                    'frequency' => $frequency,
-                    'day_of_week' => $frequency === 'weekly' ? $data['repeat_day_of_week'] : null,
-                    'day_of_month' => in_array($frequency, ['monthly', 'yearly'], true) ? ($data['repeat_day_of_month'] ?? null) : null,
-                    'last_day_of_month' => $frequency === 'monthly' && $request->boolean('repeat_last_day'),
-                    'month' => $frequency === 'yearly' ? $data['repeat_month'] : null,
-                    'lead_days' => $data['repeat_lead_days'] ?? RecurringTask::DEFAULT_LEAD_DAYS[$frequency],
-                    'starts_on' => $fields['due_date'],
-                    'ends_on' => $data['repeat_until'] ?? null,
-                    'active' => true,
-                    'last_due_date' => $fields['due_date'],
-                ]);
-            }
-
-            return Task::create([...$fields, 'assigned_by' => $request->user()->id, 'recurring_task_id' => $rule?->id]);
-        });
-
-        app(TaskAssignmentNotifier::class)->notify($task, $request->user());
-
-        return back()->with('success', 'Task added.');
+        return Task::create([...$fields, 'assigned_by' => $request->user()->id, 'recurring_task_id' => $rule?->id]);
     }
 
     public function update(TeamTaskRequest $request, Task $task): RedirectResponse
