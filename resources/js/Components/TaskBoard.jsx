@@ -122,7 +122,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                         onClick={e => {
                                             if (onOpen && !e.target.closest('button, select, a')) onOpen(task)
                                         }}
-                                        className={`relative focus-within:z-30 rounded-xl border border-border p-2.5 cursor-grab active:cursor-grabbing ${done ? 'bg-field/60' : 'bg-panel shadow-2xs'}`}
+                                        className={`relative focus-within:z-30 rounded-xl border border-border p-2.5 cursor-grab active:cursor-grabbing bg-panel ${done ? '' : 'shadow-2xs'}`}
                                     >
                                         {onOpen ? (
                                             <button
@@ -168,7 +168,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                         </div>
 
                                         {!inlineActions && (
-                                            <div className="mt-1.5 flex items-center gap-2">
+                                            <div className="mt-1.5 flex flex-wrap items-center justify-end gap-2">
                                                 {COLUMNS.filter(c => c.status !== task.status).map(c => (
                                                     <button
                                                         key={c.status}

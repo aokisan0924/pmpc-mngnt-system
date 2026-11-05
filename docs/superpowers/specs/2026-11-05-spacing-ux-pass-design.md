@@ -245,6 +245,9 @@ Board view and the All / Pending / Done filter are unchanged.
 6. **Done cards stay readable:** no card-level opacity and no extra background tint: Done cards use the normal card background (`bg-panel`), the title is struck through in `text-sub`, and the other text uses `text-sub`.
 7. **Factual corrections:** `AdminPageHeader` is used by 17 page files (not "about 20"); the edit form does show a Due Date field (without the "When is it due?" box); the employee meta row holds the due text as well as the badges today. `TaskDetailModal` imports `sharedNames` from `TaskBoard.jsx`, so that export must stay; `CardMenu` is used only by `TaskBoard`.
 
+## Build notes (phase 2)
+To reach the card-height target with 36px buttons the builder used card padding `p-2.5` and a `mt-1.5` gap above the meta and action rows (the plan said `p-3` and `mt-2`); the targets still hold. Done cards use the normal `bg-panel` background (resolution 6 wins over the earlier D3 tint). The employee move-button row wraps (`flex-wrap justify-end`) so it stays inside narrow cards.
+
 ## Browser acceptance checklist
 
 Run each check against the local scratch database `database/taskboard-preview.sqlite`, served on localhost (see the plan, Task 0). Use the in-app browser (`mcp__Claude_Browser__*`) and run each JS snippet with `javascript_tool`. Record the before and after numbers in the phase's commit message body. The snippets are in the plan (M1–M3).
