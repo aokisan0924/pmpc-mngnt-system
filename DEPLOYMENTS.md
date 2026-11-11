@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-11 12:08 — 5583f76 — Repeating tasks can show as date spans
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `4aba7f7` → `5583f76`
+- Migrations: `2026_11_11_010000_add_show_as_span_to_recurring_tasks_table` (adds `recurring_tasks.show_as_span`, default false; `down()` drops the column).
+- Backup: `~/domains/peoplescoopdtr.online/db-backup-2026-11-11-recurring-span.sql` (taken 12:07 Manila; 27 tables, 955 KB).
+- Data changes: none. All 6 existing repeat rules keep `show_as_span` off and behave as before.
+- Verified: full suite 372 of 372 locally (PHP 8.3 with GD on), build passed; no separate review (small change). On a local test copy: created a monthly repeat for day 20 with 4 days before and the tick on through New Task; the card read "Starts Nov 16 → Nov 20" with Upcoming and the repeat marker. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200, column present. Opened New Task on Team tasks in Chrome as Kurt, chose Recurring, saw the "Show these days as a date span" tick, then cancelled; no console errors. Nothing was saved on live, so no spanned repeat exists there yet.
+
 ## 2026-11-11 12:00 — 4aba7f7 — Task date spans and tidier Team tasks page
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `0853203` → `4aba7f7`
