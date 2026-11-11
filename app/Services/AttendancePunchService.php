@@ -97,6 +97,13 @@ class AttendancePunchService
                 }
 
                 $slot = $input['expected_slot'];
+                // A two-punch time out within an hour of time in is a double tap, not the end of a shift.
+                if ($slot === 'pm_time_out' && $log->isTwoPunch() && $log->am_time_in) {
+                    $sinceIn = (now()->hour * 60 + now()->minute - (int) substr($log->am_time_in, 0, 2) * 60 - (int) substr($log->am_time_in, 3, 2) + 1440) % 1440;
+                    if ($sinceIn < 60) {
+                        throw ValidationException::withMessages(['punch' => "You clocked in {$sinceIn} minutes ago. Time out opens an hour after time in; ask HR to correct it if you are really leaving."]);
+                    }
+                }
                 $log->$slot = now()->format('H:i:s');
                 $log->ip_address = $ipAddress;
                 $log->computeHoursAndStatus();

@@ -181,4 +181,21 @@ class TwoPunchShiftTest extends TestCase
         $this->assertEquals(0.0, $tap->hours_rendered);
         $this->assertSame('undertime', $tap->status);
     }
+
+    public function test_time_out_within_an_hour_of_time_in_is_refused_as_a_double_tap(): void
+    {
+        $employee = $this->twoPunchEmployee('18:00', '06:00');
+        Carbon::setTestNow('2026-11-03 17:47:00');
+        $this->postAttendancePunch($employee)->assertSessionHasNoErrors();
+
+        Carbon::setTestNow('2026-11-03 17:58:00');
+        $this->postAttendancePunch($employee)->assertSessionHasErrors('punch');
+        $log = DtrLog::where('employee_id', $employee->id)->firstOrFail();
+        $this->assertNull($log->pm_time_out);
+        $this->assertSame('pm_time_out', $log->getNextPunchSlot());
+
+        Carbon::setTestNow('2026-11-04 06:05:00');
+        $this->postAttendancePunch($employee)->assertSessionHasNoErrors();
+        $this->assertSame('06:05:00', $log->fresh()->pm_time_out);
+    }
 }

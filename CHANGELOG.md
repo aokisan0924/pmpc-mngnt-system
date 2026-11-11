@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed repeated notification totals, redundant account identity in the admin header, duplicate sign-in and password-reset copy, and decorative grid/watermark layers. Shortened page descriptions while keeping the actions, filters, and payroll/DTR context.
 
 ### Fixed
+- Night shifts and other time-in/time-out shifts: a time out within an hour of time in is refused as a double tap, with a message saying how long ago the employee clocked in. Before, a second tap minutes later closed the shift and HR had to correct it. A real early departure inside that hour goes through HR's DTR correction.
 - Assignment notifications used a broken middle-dot character after a recent change; it is repaired and covered by a test.
 - Payroll batch pages now offer only the Management Excel workbook export; separate payslip PDF downloads remain available in their own areas.
 - Management payroll exports now default to Kurt Fariñas for preparation, Katherine Sevilleno for certification, and President Alexander L. Feria for approval on both cutoffs.
