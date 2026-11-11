@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-11 09:06 — f1aa72f — DTR hours count only shift time minus lunch
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `8e8b278` → `f1aa72f`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none. Days already saved keep their old hours; only new punches and corrections use the new rule.
+- Verified: locally 373 of 374 tests pass (the one failure is the signature upload test, which needs JPEG support missing from this machine's PHP), Pint clean; no frontend change, so no build. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. In tinker on live, an unsaved log with Diana's Nov 3 punches (07:51, 13:00, 13:00, 17:00) computes 8 hours, on time (was 9.15); nothing saved. No new errors in the Laravel log.
+
 ## 2026-11-11 12:41 — 8e8b278 — New Task date section asks two plain questions
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `5583f76` → `8e8b278`
