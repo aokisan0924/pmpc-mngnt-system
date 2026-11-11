@@ -122,13 +122,13 @@ class TeamTaskController extends Controller
     /** Creates one task, and its repeat rule when the admin chose to repeat it. */
     private function createTask(Request $request, array $data, array $assigneeIds = []): Task
     {
-        $fields = Arr::only($data, ['employee_id', 'office', 'title', 'description', 'due_date', 'category', 'priority']);
+        $fields = Arr::only($data, ['employee_id', 'office', 'title', 'description', 'due_date', 'start_date', 'category', 'priority']);
         $rule = null;
 
         if (! empty($data['repeat'])) {
             $frequency = $data['repeat'];
             $rule = RecurringTask::create([
-                ...Arr::except($fields, ['due_date']),
+                ...Arr::except($fields, ['due_date', 'start_date']),
                 'created_by' => $request->user()->id,
                 'frequency' => $frequency,
                 'day_of_week' => $frequency === 'weekly' ? $data['repeat_day_of_week'] : null,
@@ -159,7 +159,7 @@ class TeamTaskController extends Controller
 
         if ($task->isShared()) {
             $changes = DB::transaction(function () use ($request, $task): array {
-                $task->update(Arr::only($request->validated(), ['title', 'description', 'due_date', 'category', 'priority']));
+                $task->update(Arr::only($request->validated(), ['title', 'description', 'due_date', 'start_date', 'category', 'priority']));
 
                 return $task->assignees()->sync(array_map('intval', $request->validated('employee_ids')));
             });
@@ -174,7 +174,7 @@ class TeamTaskController extends Controller
         $previousEmployeeId = $task->employee_id;
         $previousOffice = $task->office;
 
-        $task->update(Arr::only($this->withOffice($request->validated()), ['employee_id', 'office', 'title', 'description', 'due_date', 'category', 'priority']));
+        $task->update(Arr::only($this->withOffice($request->validated()), ['employee_id', 'office', 'title', 'description', 'due_date', 'start_date', 'category', 'priority']));
 
         // Only a change of who the task is for tells anyone; plain edits stay quiet.
         if ($task->employee_id !== $previousEmployeeId || ($task->employee_id === null && $task->office !== $previousOffice)) {

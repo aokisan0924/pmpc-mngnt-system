@@ -53,9 +53,15 @@ class TeamTaskRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:200'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'due_type' => [Rule::excludeIf(fn () => $task !== null), 'nullable', Rule::in(['date', 'recurring', 'none'])],
+            'due_type' => [Rule::excludeIf(fn () => $task !== null), 'nullable', Rule::in(['date', 'span', 'recurring', 'none'])],
             // Optional on edit, except for a copy made by a repeat rule.
             'due_date' => [Rule::excludeIf(in_array($dueType, ['recurring', 'none'], true)), Rule::requiredIf($task === null || $task->recurring_task_id !== null), 'nullable', 'date'],
+            // A span: optional on edit, required with "Date span", never on a repeat schedule or its copies.
+            'start_date' => [
+                Rule::prohibitedIf(in_array($dueType, ['recurring', 'none'], true) || $task?->recurring_task_id !== null),
+                Rule::requiredIf($dueType === 'span'),
+                'nullable', 'date', 'before_or_equal:due_date',
+            ],
             'category' => ['nullable', 'string', 'max:100'],
             'priority' => ['required', 'in:low,medium,high'],
             'employee_id' => [
