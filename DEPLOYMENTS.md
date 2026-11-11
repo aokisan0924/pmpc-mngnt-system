@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-11 12:00 — 4aba7f7 — Task date spans and tidier Team tasks page
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `0853203` → `4aba7f7`
+- Migrations: `2026_11_11_000000_add_start_date_to_tasks_table` (adds nullable `tasks.start_date`; `down()` drops the column).
+- Backup: `~/domains/peoplescoopdtr.online/db-backup-2026-11-11-task-start-date.sql` (taken 11:58 Manila; 27 tables, 951 KB).
+- Data changes: none. All 65 existing tasks keep an empty `start_date` and look as before.
+- Verified: full suite 366 of 366 locally (PHP 8.3 with GD on), build passed, fresh whole-branch review with its two fixes applied (red late pill, bounded calendar span loop). On a local test copy: board, Upcoming filter, calendar spans and creating a Date span task through New Task, at desktop and 375px. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200, `start_date` column present. Opened Team tasks in Chrome as Kurt (read-only): counts in the header with the late count in red (14), office, person and priority dropdowns, Late only 14 / Upcoming 0 / Old completed chips, no sideways overflow, no console errors. Nothing was saved on live, so a Date span task has not yet been created on the live site, and the employee My tasks form has not been seen on screen.
+
 ## 2026-11-05 20:15 — 0853203 — Dues page, and five bills moved from tasks to dues
 - By: Claude Code (SSH key), requested by Kurt (fast release: "no testing, just push to main and live")
 - Code: `a75d152` → `0853203`
