@@ -7,6 +7,7 @@ use App\Models\DtrEditRequest;
 use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\EmployeeSchedule;
+use App\Models\Holiday;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
 use App\Models\Setting;
@@ -358,6 +359,7 @@ class AdminDashboardController extends Controller
         ];
 
         return Inertia::render('Admin/Dashboard', [
+            'holiday_types' => Holiday::TYPES,
             'stats' => [
                 'total_employees' => $totalEmployees,
                 'active_employees' => $activeEmployees,

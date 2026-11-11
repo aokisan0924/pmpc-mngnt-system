@@ -128,4 +128,14 @@ class HolidayAttendanceTest extends TestCase
 
         $this->assertTrue($employee->fresh()->auto_present_weekdays);
     }
+
+    public function test_dashboard_offers_the_holiday_types_for_marking_a_holiday(): void
+    {
+        $admin = Employee::factory()->superAdmin()->create();
+
+        $this->actingAs($admin)->get(route('admin.dashboard'))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Dashboard')
+                ->where('holiday_types', Holiday::TYPES));
+    }
 }
