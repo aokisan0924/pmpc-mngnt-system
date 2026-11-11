@@ -60,7 +60,7 @@ class TwoPunchShiftTest extends TestCase
         $this->assertSame(1, DtrLog::where('employee_id', $employee->id)->count());
         $log = DtrLog::where('employee_id', $employee->id)->firstOrFail();
         $this->assertSame('2026-10-20', $log->date->toDateString());
-        $this->assertSame(12.07, (float) $log->hours_rendered);
+        $this->assertSame(12.0, (float) $log->hours_rendered); // 19:58-08:02 counts only the 20:00-08:00 shift
         $this->assertSame('on_time', $log->status);
     }
 
@@ -161,5 +161,24 @@ class TwoPunchShiftTest extends TestCase
                 ->where('requests', fn ($requests) => collect($requests)
                     ->mapWithKeys(fn ($r) => [$r['employee_id'] => $r['two_punch']])
                     ->filter()->keys()->all() === [$twoPunch->employee_id]));
+    }
+
+    public function test_overnight_hours_count_only_shift_time_and_a_double_tap_is_not_a_full_shift(): void
+    {
+        $employee = $this->twoPunchEmployee('18:00', '06:00');
+        $log = fn (string $in, string $out) => tap(DtrLog::factory()->make([
+            'employee_id' => $employee->id, 'date' => '2026-11-03',
+            'am_time_in' => $in, 'am_time_out' => null, 'pm_time_in' => null, 'pm_time_out' => $out,
+        ]))->computeHoursAndStatus();
+
+        // Clocked in early and out late: only 18:00-06:00 counts.
+        $full = $log('17:47:00', '06:05:00');
+        $this->assertEquals(12.0, $full->hours_rendered);
+        $this->assertSame('on_time', $full->status);
+
+        // Time in and a second tap eleven minutes later, before the shift even began.
+        $tap = $log('17:47:00', '17:58:00');
+        $this->assertEquals(0.0, $tap->hours_rendered);
+        $this->assertSame('undertime', $tap->status);
     }
 }

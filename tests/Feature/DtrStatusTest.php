@@ -52,8 +52,34 @@ class DtrStatusTest extends TestCase
 
         $this->assertSame('on_time', $friday->status);
         $this->assertSame('undertime', $thursday->status);
-        $this->assertEquals(7.25, $friday->hours_rendered);
+        // Only shift time outside the lunch hour counts: 08:00-12:00 plus 13:00-16:00.
+        $this->assertEquals(7.0, $friday->hours_rendered);
         $this->assertEquals($thursday->hours_rendered, $friday->hours_rendered);
+    }
+
+    public function test_hours_count_only_shift_time_minus_the_lunch_hour(): void
+    {
+        foreach ([
+            // Early arrival and a skipped lunch add no hours.
+            [['07:51:00', '13:00:00', '13:00:00', '17:00:00'], 8.0],
+            // A short lunch and staying past shift end add no hours.
+            [['07:30:00', '12:04:00', '12:30:00', '17:05:00'], 8.0],
+            // Late arrival still loses the missed time.
+            [['08:30:00', '12:00:00', '13:00:00', '17:00:00'], 7.5],
+            // Lunch punches skipped: one pair across lunch still loses the lunch hour.
+            [['08:00:00', '17:00:00', null, null], 8.0],
+        ] as [[$amIn, $amOut, $pmIn, $pmOut], $hours]) {
+            $log = DtrLog::factory()->make([
+                'date' => '2026-11-10',
+                'am_time_in' => $amIn,
+                'am_time_out' => $amOut,
+                'pm_time_in' => $pmIn,
+                'pm_time_out' => $pmOut,
+            ]);
+            $log->computeHoursAndStatus();
+
+            $this->assertEquals($hours, $log->hours_rendered, "$amIn-$amOut / $pmIn-$pmOut");
+        }
     }
 
     public function test_historical_friday_status_is_displayed_without_rewriting_stored_attendance(): void

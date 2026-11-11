@@ -53,7 +53,7 @@ class AlwaysPresentAttendanceFillerTest extends TestCase
         $this->assertSame('08:00:00', $rows['2026-10-30']->am_time_in);
         $this->assertSame('17:00:00', $rows['2026-10-30']->pm_time_out);
         $this->assertSame('on_time', $rows['2026-10-30']->status);
-        $this->assertEquals(8, $rows['2026-10-30']->hours_rendered);
+        $this->assertEquals(7, $rows['2026-10-30']->hours_rendered); // Friday shift ends 16:00
         $this->assertSame(0, app(AlwaysPresentAttendanceFiller::class)->fill());
     }
 

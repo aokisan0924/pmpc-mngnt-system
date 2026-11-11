@@ -184,27 +184,32 @@ class DtrLog extends Model
         $totalMinutes = (int) $h * 60 + (int) $m + $graceMinutes;
         $graceTime = sprintf('%02d:%02d', intdiv($totalMinutes, 60), $totalMinutes % 60);
 
-        // Compute hours
-        $amMinutes = 0;
-        $pmMinutes = 0;
-
         if ($this->isTwoPunch()) {
             $this->computeTwoPunch($shiftStart, $shiftEnd, $graceMinutes);
 
             return;
         }
 
-        if ($this->am_time_in && $this->am_time_out) {
-            $amIn = $normalizeTime($this->am_time_in);
-            $amOut = $normalizeTime($this->am_time_out);
-            $amMinutes = abs(Carbon::parse($amIn)->diffInMinutes(Carbon::parse($amOut)));
-        }
+        $lunchStart = $normalizeTime((string) Setting::get('lunch_start', '12:00'));
+        $lunchEnd = $normalizeTime((string) Setting::get('lunch_end', '13:00'));
+        $toMinutes = fn (string $t): int => (int) substr($t, 0, 2) * 60 + (int) substr($t, 3, 2);
+        [$start, $end, $lunchFrom, $lunchTo] = array_map($toMinutes, [$shiftStart, $shiftEnd, $lunchStart, $lunchEnd]);
 
-        if ($this->pm_time_in && $this->pm_time_out) {
-            $pmIn = $normalizeTime($this->pm_time_in);
-            $pmOut = $normalizeTime($this->pm_time_out);
-            $pmMinutes = abs(Carbon::parse($pmIn)->diffInMinutes(Carbon::parse($pmOut)));
-        }
+        // Only time inside the shift and outside the lunch hour counts.
+        $minutesIn = function (?string $in, ?string $out) use ($toMinutes, $start, $end, $lunchFrom, $lunchTo): int {
+            if (! $in || ! $out) {
+                return 0;
+            }
+            [$a, $b] = [$toMinutes($in), $toMinutes($out)];
+            if ($end <= $start) {
+                return abs($b - $a); // shortcut: a four-punch shift across midnight keeps raw time; none exist today.
+            }
+            $overlap = fn (int $from, int $to): int => max(0, min($b, $to) - max($a, $from));
+
+            return $overlap($start, min($lunchFrom, $end)) + $overlap(max($lunchTo, $start), $end);
+        };
+        $amMinutes = $minutesIn($this->am_time_in, $this->am_time_out);
+        $pmMinutes = $minutesIn($this->pm_time_in, $this->pm_time_out);
 
         $this->hours_rendered = round(($amMinutes + $pmMinutes) / 60, 2);
 
@@ -216,8 +221,6 @@ class DtrLog extends Model
         $hasPm = $worked($this->pm_time_in, $this->pm_time_out)
             || ($this->pm_time_in && $this->pm_time_out && $normalizeTime($this->pm_time_in) >= $shiftEnd);
         // One real pair that runs past lunch on both sides (lunch punches skipped) is still a full day.
-        $lunchStart = $normalizeTime((string) Setting::get('lunch_start', '12:00'));
-        $lunchEnd = $normalizeTime((string) Setting::get('lunch_end', '13:00'));
         $acrossLunch = fn (?string $in, ?string $out): bool => $normalizeTime($in) <= $lunchStart && $normalizeTime($out) > $lunchEnd;
         $fullDay = ($hasAm && $hasPm)
             || ($hasAm && $acrossLunch($this->am_time_in, $this->am_time_out))
@@ -267,9 +270,11 @@ class DtrLog extends Model
 
         // Offsets from shift start, so an overnight shift compares correctly across midnight.
         $inOffset = ($in - $start + 1440 + 720) % 1440 - 720;
-        $outOffset = ($out - $start + 1440) % 1440;
+        // Time out measured from time in, so a second tap minutes later is not read as the next day.
+        $outOffset = $inOffset + ($out - $in + 1440) % 1440;
 
-        $this->hours_rendered = round((($out - $in + 1440) % 1440) / 60, 2);
+        // Only time inside the shift counts.
+        $this->hours_rendered = round(max(0, min($outOffset, $shiftLength) - max($inOffset, 0)) / 60, 2);
 
         $this->status = match (true) {
             $inOffset > $graceMinutes => 'late',

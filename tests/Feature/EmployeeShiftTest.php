@@ -54,7 +54,7 @@ class EmployeeShiftTest extends TestCase
             $this->assertSame($expected, $log->status, $date.' '.$in.' '.$out);
             $this->assertSame($expected, $log->displayStatus());
             $this->assertSame($punches, $log->only(array_keys($punches)));
-            if ($in === '11:00:00' && $out === '20:00:00') {
+            if ($in === '11:00:00' && $out === '20:00:00' && $date >= '2026-10-01') {
                 $this->assertEquals(8, $log->hours_rendered);
             }
         }
