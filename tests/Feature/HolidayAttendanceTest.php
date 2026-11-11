@@ -136,6 +136,6 @@ class HolidayAttendanceTest extends TestCase
         $this->actingAs($admin)->get(route('admin.dashboard'))
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('Admin/Dashboard')
-                ->where('holiday_types', Holiday::TYPES));
+                ->where('holiday_types', collect(Holiday::TYPES)->map(fn (array $type): string => $type['label'])->all()));
     }
 }

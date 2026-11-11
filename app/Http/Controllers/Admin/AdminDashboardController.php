@@ -359,7 +359,7 @@ class AdminDashboardController extends Controller
         ];
 
         return Inertia::render('Admin/Dashboard', [
-            'holiday_types' => Holiday::TYPES,
+            'holiday_types' => collect(Holiday::TYPES)->map(fn (array $type): string => $type['label']),
             'stats' => [
                 'total_employees' => $totalEmployees,
                 'active_employees' => $activeEmployees,
