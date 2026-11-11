@@ -6,6 +6,9 @@ const MAX_CHIPS = 3
 
 const toKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
+// "YYYY-MM-DD" as a local date; new Date('YYYY-MM-DD') would read it as UTC.
+const fromKey = key => { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d) }
+
 function buildMonthGrid(viewDate) {
     const year = viewDate.getFullYear()
     const month = viewDate.getMonth()
@@ -37,8 +40,12 @@ export default function TeamTaskCalendar({ tasks, onOpen }) {
     const byDate = useMemo(() => {
         const map = {}
         tasks.forEach(t => {
-            const key = t.due_date?.slice(0, 10)
-            if (key) (map[key] ??= []).push(t)
+            const due = t.due_date?.slice(0, 10)
+            if (!due) return
+            // A span sits on every day from its start to its due date.
+            for (let d = fromKey(t.start_date ?? due); toKey(d) <= due; d.setDate(d.getDate() + 1)) {
+                (map[toKey(d)] ??= []).push(t)
+            }
         })
         return map
     }, [tasks])
@@ -107,7 +114,7 @@ export default function TeamTaskCalendar({ tasks, onOpen }) {
                                                     : 'bg-indigo-500/10 text-[#26215C] dark:text-indigo-200'
                                         }`}
                                     >
-                                        {task.repeat_label ? '↻ ' : ''}{task.title}{ownerOf(task) ? ` · ${ownerOf(task)}` : ''}
+                                        {task.start_date && task.start_date < key ? '→ ' : ''}{task.repeat_label ? '↻ ' : ''}{task.title}{ownerOf(task) ? ` · ${ownerOf(task)}` : ''}
                                     </button>
                                 ))}
                                 {extra > 0 && <p className="px-1 text-xs font-semibold text-dim">+{extra} more</p>}
