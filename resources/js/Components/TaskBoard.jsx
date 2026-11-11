@@ -39,7 +39,25 @@ function dueText(task) {
     if (n < 0) return { text: `${-n} ${n === -1 ? 'day' : 'days'} late`, className: 'text-rose-700 dark:text-rose-400 font-semibold' }
     if (n === 0) return { text: 'Due today', className: 'text-amber-700 dark:text-amber-400 font-semibold' }
     if (n === 1) return { text: 'Due tomorrow', className: 'text-text' }
+    if (task.span_label) return { text: task.is_upcoming ? `Starts ${task.span_label}` : task.span_label, className: 'text-sub' }
     return { text: task.due_label, className: 'text-sub' }
+}
+
+/** Thin bar: how much of a span's time has gone by. Shown only for spans that are not done. */
+export function SpanProgress({ task, accent = 'emerald' }) {
+    if (task.span_progress === null || task.span_progress === undefined) return null
+    return (
+        <div
+            role="progressbar"
+            aria-label="Time used"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={task.span_progress}
+            className="mt-2 h-1 overflow-hidden rounded-full bg-field"
+        >
+            <div className={`h-full rounded-full ${accent === 'indigo' ? 'bg-[#26215C] dark:bg-indigo-400' : 'bg-[#0F6E56] dark:bg-emerald-400'}`} style={{ width: `${task.span_progress}%` }} />
+        </div>
+    )
 }
 
 /**
@@ -158,6 +176,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                         )}
                                         <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-2">
                                             <span className={`text-xs ${dueText(task).className}`}>{dueText(task).text}</span>
+                                            {task.is_upcoming && <Badge variant="violet" size="sm">Upcoming</Badge>}
                                             {PRIORITY_BADGE[task.priority]}
                                             {task.category && <Badge variant="slate" size="sm">{`List: ${task.category}`}</Badge>}
                                             {readOnly(task) && (
@@ -166,6 +185,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                             {task.repeat_label && <Badge variant="slate" size="sm">↻ Repeats</Badge>}
                                             {inlineActions && <div className="ml-auto flex shrink-0 items-center gap-1.5">{actions(task)}</div>}
                                         </div>
+                                        <SpanProgress task={task} accent={accent} />
 
                                         {!inlineActions && (
                                             <div className="mt-1.5 flex flex-wrap items-center justify-end gap-2">

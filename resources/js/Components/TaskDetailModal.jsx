@@ -78,6 +78,7 @@ export default function TaskDetailModal({ task, onClose, onMove, onEdit, onDelet
                             {priority && <Badge variant={priority.variant} size="sm">{priority.label}</Badge>}
                             {statusLabel && <Badge variant="slate" size="sm">{statusLabel}</Badge>}
                             {task.is_overdue && <Badge variant="rose" size="sm">Overdue</Badge>}
+                            {task.is_upcoming && <Badge variant="violet" size="sm">Upcoming</Badge>}
                         </div>
                     </div>
                     <button
@@ -94,6 +95,7 @@ export default function TaskDetailModal({ task, onClose, onMove, onEdit, onDelet
                 </div>
 
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {task.start_date && <Detail label="Start">{longDate(task.start_date)}</Detail>}
                     <Detail label="Due">{task.due_date ? longDate(task.due_date) : 'No due date'}</Detail>
                     {shared && <Detail label="Shared with">{sharedNames(task)}</Detail>}
                     {!shared && (showOwner || wholeOffice) && owner && <Detail label={showOwner ? 'For' : 'Shared with'}>{owner}</Detail>}
