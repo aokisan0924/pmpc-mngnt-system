@@ -78,6 +78,7 @@ class RecurringTaskGenerator
                         'assigned_by' => $rule->created_by,
                         'title' => $rule->title,
                         'description' => $rule->description,
+                        'start_date' => $rule->spanStartFor($next),
                         'category' => $rule->category,
                         'priority' => $rule->priority,
                         'status' => 'pending',

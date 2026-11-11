@@ -47,7 +47,7 @@ export default function TaskFormModal({
         ...(employees ? {
             employee_id: task?.employee_id ?? '', office: task?.office ?? '', employee_ids: task?.is_shared ? task.assignees.map(a => a.id) : [],
             repeat: '', repeat_day_of_week: '', repeat_day_of_month: '', repeat_last_day: false,
-            repeat_month: '', repeat_lead_days: '', repeat_until: '',
+            repeat_month: '', repeat_lead_days: '', repeat_until: '', repeat_as_span: false,
         } : {}),
     })
 
@@ -72,6 +72,9 @@ export default function TaskFormModal({
         }))
     }
 
+    // The days a copy shows before it is due; an empty box means the default for how often it repeats.
+    const leadDays = data.repeat_lead_days === '' ? (LEAD_DEFAULTS[data.repeat] ?? 0) : Number(data.repeat_lead_days)
+
     function chooseDueType(value) {
         setDueType(value)
         if (value === 'recurring' && !data.repeat) chooseRepeat('monthly')
@@ -93,7 +96,9 @@ export default function TaskFormModal({
                 ...(dueType !== 'span' ? { start_date: '' } : {}),
                 ...(dueType === 'none' ? { repeat: '' } : {}),
                 // A "Stop after" typed under Recurring must not follow the admin to another choice.
-                ...(dueType !== 'recurring' ? { repeat_until: '' } : {}),
+                ...(dueType !== 'recurring' ? { repeat_until: '', repeat_as_span: false } : {}),
+                // With no early days there is nothing to show as a span.
+                ...(leadDays === 0 ? { repeat_as_span: false } : {}),
             })
             transform(d => due(mode === 'people'
                 ? { ...d, employee_id: '', office: '', shared: share === 'shared' && d.employee_ids.length >= 2 }
@@ -384,6 +389,21 @@ export default function TaskFormModal({
                         </div>
                     </div>
                 )}
+
+                {data.repeat && leadDays > 0 && (
+                    <label className="flex cursor-pointer items-start gap-2 text-sm font-medium text-text">
+                        <input
+                            type="checkbox"
+                            checked={data.repeat_as_span}
+                            onChange={e => setData('repeat_as_span', e.target.checked)}
+                            className={`mt-0.5 h-4 w-4 rounded border-border ${accent}`}
+                        />
+                        <span>
+                            Show these days as a date span
+                            <span className="block text-xs font-normal text-sub">Each one starts {leadDays} {leadDays === 1 ? 'day' : 'days'} before it is due.</span>
+                        </span>
+                    </label>
+                )}
                 </>)}
             </fieldset>
     )
@@ -423,10 +443,10 @@ export default function TaskFormModal({
         </>
     )
 
-    // Employee form and every edit. Copies made by a repeat rule keep a single date.
+    // Employee form and every edit. A repeat's copy can only adjust a span its rule already gave it.
     const dueDateField = (
         <div className="space-y-2">
-            {!task?.repeat_label && (
+            {(!task?.repeat_label || task?.start_date) && (
                 <label className="flex w-fit cursor-pointer items-center gap-2 text-sm font-medium text-text">
                     <input type="checkbox" checked={spanOn} onChange={e => toggleSpan(e.target.checked)} className={`h-4 w-4 rounded border-border ${accent}`} />
                     Date span (start and due date)

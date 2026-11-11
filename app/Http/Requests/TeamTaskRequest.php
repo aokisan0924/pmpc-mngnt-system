@@ -56,9 +56,9 @@ class TeamTaskRequest extends FormRequest
             'due_type' => [Rule::excludeIf(fn () => $task !== null), 'nullable', Rule::in(['date', 'span', 'recurring', 'none'])],
             // Optional on edit, except for a copy made by a repeat rule.
             'due_date' => [Rule::excludeIf(in_array($dueType, ['recurring', 'none'], true)), Rule::requiredIf($task === null || $task->recurring_task_id !== null), 'nullable', 'date'],
-            // A span: optional on edit, required with "Date span", never on a repeat schedule or its copies.
+            // A span: optional on edit, required with "Date span". A repeat's span comes from its rule, so a copy without one cannot gain one.
             'start_date' => [
-                Rule::prohibitedIf(in_array($dueType, ['recurring', 'none'], true) || $task?->recurring_task_id !== null),
+                Rule::prohibitedIf(in_array($dueType, ['recurring', 'none'], true) || ($task?->recurring_task_id !== null && $task->start_date === null)),
                 Rule::requiredIf($dueType === 'span'),
                 'nullable', 'date', 'before_or_equal:due_date',
             ],
@@ -101,6 +101,7 @@ class TeamTaskRequest extends FormRequest
                     || ($this->input('repeat') === 'monthly' && ! $this->boolean('repeat_last_day'))),
             ],
             'repeat_last_day' => ['nullable', 'boolean'],
+            'repeat_as_span' => ['nullable', 'boolean'],
             'repeat_month' => ['nullable', 'integer', 'between:1,12', 'required_if:repeat,yearly'],
             'repeat_lead_days' => ['nullable', 'integer', 'between:0,60'],
             'repeat_until' => ['nullable', 'date', ...($dueType !== 'recurring' && $this->filled('due_date') && $this->filled('repeat') ? ['after_or_equal:due_date'] : [])],

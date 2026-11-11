@@ -56,8 +56,8 @@ class TaskController extends Controller
             'description' => ['nullable', 'string', 'max:1000'],
             // An ongoing task an admin gave this employee may stay undated; a dated one still needs its date.
             'due_date' => $task->due_date === null ? ['nullable', 'date'] : ['required', 'date'],
-            // Copies made by a repeat rule keep a single date.
-            'start_date' => [...($task->recurring_task_id !== null ? ['prohibited'] : []), 'nullable', 'date', 'before_or_equal:due_date'],
+            // A repeat's span comes from its rule, so a copy without one cannot gain one.
+            'start_date' => [...($task->recurring_task_id !== null && $task->start_date === null ? ['prohibited'] : []), 'nullable', 'date', 'before_or_equal:due_date'],
             'category' => ['nullable', 'string', 'max:100'],
             'priority' => ['required', 'in:low,medium,high'],
         ]);

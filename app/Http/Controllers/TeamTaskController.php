@@ -140,11 +140,16 @@ class TeamTaskController extends Controller
                 'last_day_of_month' => $frequency === 'monthly' && $request->boolean('repeat_last_day'),
                 'month' => $frequency === 'yearly' ? $data['repeat_month'] : null,
                 'lead_days' => $data['repeat_lead_days'] ?? RecurringTask::DEFAULT_LEAD_DAYS[$frequency],
+                'show_as_span' => $request->boolean('repeat_as_span'),
                 'starts_on' => $fields['due_date'],
                 'ends_on' => $data['repeat_until'] ?? null,
                 'active' => true,
                 'last_due_date' => $fields['due_date'],
             ]);
+        }
+
+        if ($rule !== null) {
+            $fields['start_date'] = $rule->spanStartFor(CarbonImmutable::parse($fields['due_date']));
         }
 
         $task = Task::create([...$fields, 'assigned_by' => $request->user()->id, 'recurring_task_id' => $rule?->id]);

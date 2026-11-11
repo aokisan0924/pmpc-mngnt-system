@@ -17,7 +17,7 @@ class RecurringTask extends Model
 
     protected $fillable = [
         'created_by', 'employee_id', 'office', 'title', 'description', 'category', 'priority', 'frequency',
-        'day_of_week', 'day_of_month', 'last_day_of_month', 'month', 'lead_days', 'starts_on', 'ends_on',
+        'day_of_week', 'day_of_month', 'last_day_of_month', 'month', 'lead_days', 'show_as_span', 'starts_on', 'ends_on',
         'active', 'last_due_date',
     ];
 
@@ -27,7 +27,14 @@ class RecurringTask extends Model
         'last_due_date' => 'date',
         'active' => 'boolean',
         'last_day_of_month' => 'boolean',
+        'show_as_span' => 'boolean',
     ];
+
+    /** A copy's start date: its due date minus the days it shows early, when this rule shows them as a span. */
+    public function spanStartFor(CarbonImmutable $due): ?string
+    {
+        return $this->show_as_span ? $due->subDays((int) $this->lead_days)->toDateString() : null;
+    }
 
     public function tasks()
     {
