@@ -7,10 +7,9 @@ import TaskBoard from '@/Components/TaskBoard'
 import TaskFormModal from '@/Components/TaskFormModal'
 import TaskDetailModal from '@/Components/TaskDetailModal'
 import TeamTaskCalendar from '@/Components/TeamTaskCalendar'
-import TeamPeopleStrip from '@/Components/TeamPeopleStrip'
-import TeamStatusOverview from '@/Components/TeamStatusOverview'
+import TeamTaskFilters from '@/Components/TeamTaskFilters'
 
-const SELECT = 'rounded-xl border border-border bg-field px-3 py-2 text-xs font-semibold text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+const COUNT = 'inline-flex items-center gap-1 rounded-lg bg-white/12 px-2.5 py-1 text-xs font-bold text-white'
 
 export default function TeamTasks({ tasks = [], employees = [], offices = [], filters = {}, overview = {}, people = [], status_counts = {} }) {
     const { flash } = usePage().props
@@ -30,6 +29,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
         if (merged.office)      query.office = merged.office
         if (merged.whole)       query.whole = 1
         if (merged.overdue)     query.overdue = 1
+        if (merged.upcoming)    query.upcoming = 1
         if (merged.older)       query.older = 1
         router.get('/admin/team-tasks', query, { preserveState: true, preserveScroll: true, replace: true })
     }
@@ -86,6 +86,19 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
 
                 <AdminPageHeader
                     title="Team tasks"
+                    meta={
+                        <>
+                            <span className={COUNT}><span className="tnum">{status_counts.todo ?? 0}</span> to do</span>
+                            <span className={COUNT}><span className="tnum">{status_counts.doing ?? 0}</span> doing</span>
+                            <span className={COUNT} title={filters.older ? 'All time' : 'Last 30 days'}>
+                                <span className="tnum">{status_counts.done ?? 0}</span> done
+                                <span className="sr-only">{filters.older ? ', all time' : ', last 30 days'}</span>
+                            </span>
+                            {(status_counts.late ?? 0) > 0 && (
+                                <span className={`${COUNT} bg-rose-600`}><span className="tnum">{status_counts.late}</span> late</span>
+                            )}
+                        </>
+                    }
                     action={
                         <button
                             type="button"
@@ -100,63 +113,17 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                     }
                 />
 
-                <TeamStatusOverview counts={status_counts} older={Boolean(filters.older)} />
-
-                <div className="space-y-3 rounded-2xl border border-border bg-panel p-3 sm:p-4">
-                    <TeamPeopleStrip offices={offices} people={people} employees={employees} overview={overview} filters={filters} onFilter={applyFilters} />
-
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-3">
-                        {view === 'board' && (
-                            <p className="text-xs text-sub">Drag cards between columns, or use View</p>
-                        )}
-                        <label className="flex items-center gap-2 text-xs font-semibold text-sub">
-                            Priority
-                            <select
-                                value={filters.priority ?? ''}
-                                onChange={e => applyFilters({ priority: e.target.value })}
-                                className={SELECT}
-                            >
-                                <option value="">Any</option>
-                                <option value="high">High</option>
-                                <option value="medium">Medium</option>
-                                <option value="low">Low</option>
-                            </select>
-                        </label>
-                        <label className="flex items-center gap-2 text-xs font-semibold text-text cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={Boolean(filters.overdue)}
-                                onChange={e => applyFilters({ overdue: e.target.checked })}
-                                className="h-4 w-4 rounded border-border accent-[#26215C]"
-                            />
-                            Late only ({status_counts.late ?? 0})
-                        </label>
-                        <label className="flex items-center gap-2 text-xs font-semibold text-text cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={Boolean(filters.older)}
-                                onChange={e => applyFilters({ older: e.target.checked })}
-                                className="h-4 w-4 rounded border-border accent-[#26215C]"
-                            />
-                            Show old completed
-                        </label>
-                        <div className="ml-auto flex gap-1 rounded-xl border border-border bg-field p-1 shrink-0" role="group" aria-label="Team tasks view">
-                            {[['board', 'Board'], ['calendar', 'Calendar']].map(([key, label]) => (
-                                <button
-                                    key={key}
-                                    type="button"
-                                    aria-pressed={view === key}
-                                    onClick={() => setView(key)}
-                                    className={`rounded-lg px-3 py-1 text-xs font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${
-                                        view === key ? 'border border-indigo-200 bg-white font-bold text-[#26215C] shadow-xs' : 'border border-transparent text-sub hover:bg-panel/50 hover:text-text'
-                                    }`}
-                                >
-                                    {label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+                <TeamTaskFilters
+                    offices={offices}
+                    people={people}
+                    employees={employees}
+                    overview={overview}
+                    filters={filters}
+                    counts={status_counts}
+                    onFilter={applyFilters}
+                    view={view}
+                    onView={setView}
+                />
 
                 {view === 'calendar' && (
                     <TeamTaskCalendar tasks={tasks} onOpen={task => setDetailId(task.id)} />
