@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-11 09:13 — 200fb8b — Night-shift double tap refused; holidays and CFT amount added
+- By: Claude Code (SSH key for the deploy; Chrome as Kurt for the data), requested by Kurt
+- Code: `f1aa72f` → `200fb8b`
+- Migrations: none
+- Backup: none (code change touches no schema; the data changes were single rows added or filled through the app's own forms)
+- Data changes: (1) Settings → Holidays: added Bonifacio Day Nov 30 (regular, id 2), Feast of the Immaculate Conception Dec 8 (special, id 3), Christmas Day Dec 25 (regular, id 4), Rizal Day Dec 30 (regular, id 5), Last Day of the Year Dec 31 (special, id 6). Undo: Remove each in Settings → Holidays. (2) Dues: CFT Nov 3 occurrence (id 4) amount set to ₱27,057.05, the Loan ₱12,757.05 + Savings ₱14,300 written in its note, for this month only. Undo: clear the amount on that line in Dues. Dec 24 was not added (not confirmed as a 2026 holiday).
+- Verified: locally 374 of 375 tests pass (the remaining one needs JPEG support missing from this machine's PHP), Pint clean; a new test shows a time out 11 minutes after time in is refused and a later one is accepted. On live: server tree clean before and after, no pending migrations, app back up, login returns 200, the new guard is in the deployed file. Tinker (read-only) lists holidays ids 1–6 with the dates above and CFT occurrence 4 at 27057.05; the Dues page shows Due this month ₱52,001.72 with 2 dues still without an amount.
+
 ## 2026-11-11 09:06 — f1aa72f — DTR hours count only shift time minus lunch
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `8e8b278` → `f1aa72f`
