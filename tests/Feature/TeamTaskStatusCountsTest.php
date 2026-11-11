@@ -52,7 +52,7 @@ class TeamTaskStatusCountsTest extends TestCase
         $this->task($maria, ['status' => 'done', 'due_date' => '2026-11-01']);
         $this->task($maria, ['due_date' => '2026-11-04']); // due today is not late yet
 
-        $this->assertSame(['todo' => 3, 'doing' => 1, 'done' => 1, 'late' => 2], $this->counts());
+        $this->assertSame(['todo' => 3, 'doing' => 1, 'done' => 1, 'late' => 2, 'upcoming' => 0], $this->counts());
     }
 
     public function test_done_is_limited_to_30_days_unless_older_is_ticked(): void
@@ -92,10 +92,42 @@ class TeamTaskStatusCountsTest extends TestCase
 
     public function test_personal_tasks_are_not_counted_and_zero_tasks_give_zeros(): void
     {
-        $this->assertSame(['todo' => 0, 'doing' => 0, 'done' => 0, 'late' => 0], $this->counts());
+        $this->assertSame(['todo' => 0, 'doing' => 0, 'done' => 0, 'late' => 0, 'upcoming' => 0], $this->counts());
 
         Task::create(['employee_id' => Employee::factory()->create()->id, 'title' => 'Private', 'due_date' => '2026-11-01', 'priority' => 'low', 'status' => 'pending']);
 
         $this->assertSame(0, $this->counts()['todo']);
+    }
+
+    public function test_upcoming_filter_shows_only_not_started_tasks(): void
+    {
+        $this->task(null, ['title' => 'Later', 'start_date' => '2026-11-10']);
+        $this->task(null, ['title' => 'Running', 'start_date' => '2026-11-01']);
+        $this->task(null, ['title' => 'Plain']);
+        $this->task(null, ['title' => 'Done later', 'start_date' => '2026-11-10', 'status' => 'done']);
+
+        $props = $this->actingAs($this->admin)->get('/admin/team-tasks?upcoming=1')->assertOk()->viewData('page')['props'];
+
+        $this->assertSame(['Later'], collect($props['tasks'])->pluck('title')->all());
+        $this->assertTrue($props['filters']['upcoming']);
+    }
+
+    public function test_upcoming_count_and_upcoming_still_count_as_todo(): void
+    {
+        $this->task(null, ['start_date' => '2026-11-10']);
+
+        $counts = $this->counts();
+        $this->assertSame(1, $counts['todo']);
+        $this->assertSame(1, $counts['upcoming']);
+    }
+
+    public function test_upcoming_wins_when_late_is_also_sent(): void
+    {
+        $this->task(null, ['title' => 'Later', 'start_date' => '2026-11-10']);
+        $this->task(null, ['title' => 'Late', 'due_date' => '2026-11-01']);
+
+        $props = $this->actingAs($this->admin)->get('/admin/team-tasks?upcoming=1&overdue=1')->assertOk()->viewData('page')['props'];
+
+        $this->assertSame(['Later'], collect($props['tasks'])->pluck('title')->all());
     }
 }

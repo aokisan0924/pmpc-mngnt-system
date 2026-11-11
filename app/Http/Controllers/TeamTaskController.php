@@ -33,7 +33,9 @@ class TeamTaskController extends Controller
             : null;
         $office = array_key_exists((string) $request->query('office'), Task::OFFICES) ? $request->query('office') : null;
         $whole = $request->boolean('whole') && $office && ! $employeeId;
-        $overdueOnly = $request->boolean('overdue');
+        // Upcoming and late never overlap; when both arrive, upcoming wins.
+        $upcomingOnly = $request->boolean('upcoming');
+        $overdueOnly = $request->boolean('overdue') && ! $upcomingOnly;
         $showOlder = $request->boolean('older');
         $today = now('Asia/Manila')->toDateString();
 
@@ -46,6 +48,7 @@ class TeamTaskController extends Controller
         $tasks = $scoped()->with(['employee', 'assigner', 'recurringTask', 'assignees'])
             ->when(! $showOlder, fn ($q) => $q->where(fn ($w) => $w->where('status', '!=', 'done')->orWhere('updated_at', '>=', now()->subDays(30))))
             ->when($overdueOnly, fn ($q) => $q->where('due_date', '<', $today)->where('status', '!=', 'done'))
+            ->when($upcomingOnly, fn ($q) => $q->whereDate('start_date', '>', $today)->where('status', '!=', 'done'))
             ->orderByRaw('due_date IS NULL')
             ->orderBy('due_date')
             ->orderByRaw("CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'low' THEN 3 ELSE 4 END")
@@ -75,6 +78,7 @@ class TeamTaskController extends Controller
                 'office' => $office,
                 'whole' => $whole,
                 'overdue' => $overdueOnly,
+                'upcoming' => $upcomingOnly,
                 'older' => $showOlder,
             ],
         ]);
@@ -251,6 +255,7 @@ class TeamTaskController extends Controller
             'doing' => $scoped()->where('status', 'doing')->count(),
             'done' => $scoped()->where('status', 'done')->when(! $showOlder, fn ($q) => $q->where('updated_at', '>=', now()->subDays(30)))->count(),
             'late' => $scoped()->where('status', '!=', 'done')->whereDate('due_date', '<', $today)->count(),
+            'upcoming' => $scoped()->where('status', '!=', 'done')->whereDate('start_date', '>', $today)->count(),
         ];
     }
 
