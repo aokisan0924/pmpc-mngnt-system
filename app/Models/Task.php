@@ -26,6 +26,7 @@ class Task extends Model
         'title',
         'description',
         'due_date',
+        'start_date',
         'category',
         'priority',
         'status',
@@ -33,7 +34,18 @@ class Task extends Model
 
     protected $casts = [
         'due_date' => 'date',
+        'start_date' => 'date',
     ];
+
+    protected static function booted(): void
+    {
+        // A span needs a due date, and a span of one day is just a dated task.
+        static::saving(function (Task $task): void {
+            if ($task->start_date !== null && ($task->due_date === null || $task->start_date->isSameDay($task->due_date))) {
+                $task->start_date = null;
+            }
+        });
+    }
 
     public function employee()
     {
@@ -117,6 +129,38 @@ class Task extends Model
             && ! $this->isDone();
     }
 
+    /** The span has a start date that is still ahead (Manila), and the task is not finished. */
+    public function isUpcoming(): bool
+    {
+        return $this->start_date !== null
+            && $this->start_date->toDateString() > now('Asia/Manila')->toDateString()
+            && ! $this->isDone();
+    }
+
+    /** "Nov 10 → Nov 20", with years only when the two ends fall in different years. */
+    private function spanLabel(): ?string
+    {
+        if ($this->start_date === null || $this->due_date === null) {
+            return null;
+        }
+        $format = $this->start_date->year === $this->due_date->year ? 'M j' : 'M j, Y';
+
+        return $this->start_date->format($format).' → '.$this->due_date->format($format);
+    }
+
+    /** Share of the span's days used so far, counting the start day as day 1; null when there is no span or it is done. */
+    private function spanProgress(): ?int
+    {
+        if ($this->start_date === null || $this->due_date === null || $this->isDone()) {
+            return null;
+        }
+        $today = now('Asia/Manila')->startOfDay();
+        $length = $this->start_date->copy()->startOfDay()->diffInDays($this->due_date->copy()->startOfDay()) + 1;
+        $used = $this->start_date->copy()->startOfDay()->diffInDays($today, false) + 1;
+
+        return (int) floor(max(0, min(1, $used / $length)) * 100);
+    }
+
     /**
      * Shape sent to the Planner and Team tasks pages. `employee_name` is only
      * filled when the `employee` relation is already loaded.
@@ -131,6 +175,10 @@ class Task extends Model
             'description' => $this->description,
             'due_date' => $this->due_date?->format('Y-m-d'),
             'due_label' => $this->due_date?->format('M d, Y') ?? 'No due date',
+            'start_date' => $this->start_date?->format('Y-m-d'),
+            'span_label' => $this->spanLabel(),
+            'is_upcoming' => $this->isUpcoming(),
+            'span_progress' => $this->spanProgress(),
             'category' => $this->category,
             'priority' => $this->priority,
             'status' => $this->status,
