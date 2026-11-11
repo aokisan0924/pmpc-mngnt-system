@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-11 17:22 — fcfb4e2 — Mark holiday on the dashboard; added holidays removed
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `200fb8b` → `dcf1508` (Mark holiday button) → `fcfb4e2` (hotfix: the first release sent the holiday types as objects and opening the form blanked the dashboard; it was live for about 3 minutes and nothing was saved through it)
+- Migrations: none
+- Backup: none (code-only deployment; the data change removed five rows that were added earlier today and are listed below)
+- Data changes: removed the five holidays Claude added at 17:13 (ids 2–6: Nov 30 Bonifacio Day, Dec 8 Feast of the Immaculate Conception, Dec 25 Christmas Day, Dec 30 Rizal Day, Dec 31 Last Day of the Year), so the admin marks holidays instead. Listed by id in tinker first, then deleted by id; only All Soul's Day (Nov 2, id 1) remains. Undo: add them again with Mark holiday or in Settings → Holidays. Also corrected the times of the two earlier entries today, which had been written in UTC (09:06 → 17:06, 09:13 → 17:13).
+- Verified: locally 375 of 376 tests pass (the remaining one needs JPEG support missing from this machine's PHP), including a new one for the dashboard's holiday types; Pint clean; build passed. On live: server tree clean before and after, no pending migrations, app back up. In Chrome as Kurt the Mark holiday button opens the form with today's date and the three types, no console errors; closed with Escape, nothing saved.
+
 ## 2026-11-11 17:13 — 200fb8b — Night-shift double tap refused; holidays and CFT amount added
 - By: Claude Code (SSH key for the deploy; Chrome as Kurt for the data), requested by Kurt
 - Code: `f1aa72f` → `200fb8b`
