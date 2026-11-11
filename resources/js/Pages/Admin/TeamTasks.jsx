@@ -9,7 +9,8 @@ import TaskDetailModal from '@/Components/TaskDetailModal'
 import TeamTaskCalendar from '@/Components/TeamTaskCalendar'
 import TeamTaskFilters from '@/Components/TeamTaskFilters'
 
-const COUNT = 'inline-flex items-center gap-1 rounded-lg bg-white/12 px-2.5 py-1 text-xs font-bold text-white'
+// No background here: each pill sets its own, so the late pill's rose is not overridden.
+const COUNT = 'inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold text-white'
 
 export default function TeamTasks({ tasks = [], employees = [], offices = [], filters = {}, overview = {}, people = [], status_counts = {} }) {
     const { flash } = usePage().props
@@ -88,9 +89,9 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                     title="Team tasks"
                     meta={
                         <>
-                            <span className={COUNT}><span className="tnum">{status_counts.todo ?? 0}</span> to do</span>
-                            <span className={COUNT}><span className="tnum">{status_counts.doing ?? 0}</span> doing</span>
-                            <span className={COUNT} title={filters.older ? 'All time' : 'Last 30 days'}>
+                            <span className={`${COUNT} bg-white/12`}><span className="tnum">{status_counts.todo ?? 0}</span> to do</span>
+                            <span className={`${COUNT} bg-white/12`}><span className="tnum">{status_counts.doing ?? 0}</span> doing</span>
+                            <span className={`${COUNT} bg-white/12`} title={filters.older ? 'All time' : 'Last 30 days'}>
                                 <span className="tnum">{status_counts.done ?? 0}</span> done
                                 <span className="sr-only">{filters.older ? ', all time' : ', last 30 days'}</span>
                             </span>

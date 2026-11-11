@@ -37,21 +37,28 @@ export default function TeamTaskCalendar({ tasks, onOpen }) {
     const today = useMemo(() => new Date(), [])
     const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
 
+    const cells = useMemo(() => buildMonthGrid(viewDate), [viewDate])
+
     const byDate = useMemo(() => {
         const map = {}
+        // Only the days on screen are filled, so a far-off start date cannot make this loop long.
+        const first = toKey(cells[0])
+        const last = toKey(cells[cells.length - 1])
         tasks.forEach(t => {
             const due = t.due_date?.slice(0, 10)
             if (!due) return
             // A span sits on every day from its start to its due date.
-            for (let d = fromKey(t.start_date ?? due); toKey(d) <= due; d.setDate(d.getDate() + 1)) {
+            const from = t.start_date && t.start_date > first ? t.start_date : first
+            const to = due < last ? due : last
+            if (!t.start_date) { (map[due] ??= []).push(t); return }
+            for (let d = fromKey(from); toKey(d) <= to; d.setDate(d.getDate() + 1)) {
                 (map[toKey(d)] ??= []).push(t)
             }
         })
         return map
-    }, [tasks])
+    }, [tasks, cells])
 
     const undated = useMemo(() => tasks.filter(t => !t.due_date), [tasks])
-    const cells = useMemo(() => buildMonthGrid(viewDate), [viewDate])
     const todayKey = toKey(today)
     const shift = months => setViewDate(v => new Date(v.getFullYear(), v.getMonth() + months, 1))
 
