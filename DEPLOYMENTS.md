@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-11 12:41 — 8e8b278 — New Task date section asks two plain questions
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `5583f76` → `8e8b278`
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: full suite 372 of 372 and 17 of 17 JS tests locally (PHP 8.3 with GD on), build passed; no separate review (form-only change). On a local test copy, six tasks were saved through the new form (range + monthly, range + weekly, range + just once, one day + monthly, one day + just once, no date) and each stored the right dates and repeat rule; no overflow at 375px. On live: server tree clean before and after, no pending migrations, app back from maintenance mode, login returns 200. Opened New Task on Team tasks in Chrome as Kurt: both questions show with their choices, and A range of days + Monthly + 16 to 20 reads "Every month, from the 16th to the 20th. First one: Nov 16 → Nov 20." Then cancelled; no console errors. Nothing was saved on live.
+
 ## 2026-11-11 12:08 — 5583f76 — Repeating tasks can show as date spans
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `4aba7f7` → `5583f76`
