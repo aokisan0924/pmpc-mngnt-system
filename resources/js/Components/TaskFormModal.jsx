@@ -7,6 +7,12 @@ const INPUT = 'w-full px-3.5 py-2.5 text-sm font-medium border border-border rou
 const LEAD_DEFAULTS = { daily: 0, weekly: 2, monthly: 7, yearly: 14 }
 const LABEL = 'block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5'
 
+/** Days from start to due, both counted ("Nov 10 → Nov 20" is 11 days); null until both are valid. */
+function spanDays(start, due) {
+    if (!start || !due || start > due) return null
+    return Math.round((Date.parse(due) - Date.parse(start)) / 86400000) + 1
+}
+
 /**
  * Create / edit dialog for a task. Render it only while open: it reads its
  * initial values from `task` / `defaultDate` when it mounts.
@@ -26,13 +32,16 @@ export default function TaskFormModal({
 }) {
     const [mode, setMode] = useState('people') // when creating as admin: pick people, or a whole office
     const [share, setShare] = useState('copies') // with 2+ people: one copy each, or one shared task
-    const [dueType, setDueType] = useState('date') // when creating as admin: a date, a schedule, or none
+    const [dueType, setDueType] = useState('date') // when creating as admin: a date, a span, a schedule, or none
+    const [spanOn, setSpanOn] = useState(Boolean(task?.start_date)) // employee form and edits: Start beside Due
+    const accent = employees ? 'accent-[#26215C]' : 'accent-[#0F6E56]'
     const adminCreate = Boolean(employees) && !task
     const sharedEdit = Boolean(task?.is_shared)
     const { data, setData, post, patch, processing, errors, transform } = useForm({
         title:       task?.title ?? '',
         description: task?.description ?? '',
         due_date:    task ? (task.due_date?.slice(0, 10) ?? '') : defaultDate,
+        start_date:  task?.start_date ?? '',
         category:    task?.category ?? '',
         priority:    task?.priority ?? 'medium',
         ...(employees ? {
@@ -79,7 +88,9 @@ export default function TaskFormModal({
             const due = d => ({
                 ...d,
                 due_type: dueType,
-                ...(dueType === 'date' ? { repeat: '' } : { due_date: '' }),
+                ...(dueType === 'date' || dueType === 'span' ? { repeat: '' } : { due_date: '' }),
+                // A Start typed under Date span must not follow the admin to another choice.
+                ...(dueType !== 'span' ? { start_date: '' } : {}),
                 ...(dueType === 'none' ? { repeat: '' } : {}),
                 // A "Stop after" typed under Recurring must not follow the admin to another choice.
                 ...(dueType !== 'recurring' ? { repeat_until: '' } : {}),
@@ -215,11 +226,53 @@ export default function TaskFormModal({
         </>
     )
 
+    const days = spanDays(data.start_date, data.due_date)
+
+    // Start → Due side by side, with the number of days between them.
+    const spanInputs = (
+        <div>
+            <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label htmlFor="task-form-start-date-input" className={LABEL}>Start <span className="text-rose-500">*</span></label>
+                    <input
+                        id="task-form-start-date-input"
+                        type="date"
+                        value={data.start_date}
+                        max={data.due_date || undefined}
+                        onChange={e => setData('start_date', e.target.value)}
+                        className={`${INPUT} py-2 font-mono`}
+                        required
+                    />
+                    {errors.start_date && <p className="mt-1 text-xs text-rose-500">{errors.start_date}</p>}
+                </div>
+                <div>
+                    <label htmlFor="task-form-due-date-input" className={LABEL}>Due <span className="text-rose-500">*</span></label>
+                    <input
+                        id="task-form-due-date-input"
+                        type="date"
+                        value={data.due_date}
+                        min={data.start_date || undefined}
+                        onChange={e => setData('due_date', e.target.value)}
+                        className={`${INPUT} py-2 font-mono`}
+                        required
+                    />
+                    {errors.due_date && <p className="mt-1 text-xs text-rose-500">{errors.due_date}</p>}
+                </div>
+            </div>
+            {days && <p className="mt-1 text-xs text-sub">{days === 1 ? '1 day' : `${days} days`}</p>}
+        </div>
+    )
+
+    function toggleSpan(on) {
+        setSpanOn(on)
+        if (!on) setData('start_date', '')
+    }
+
     const due = (
             <fieldset className="space-y-3 rounded-xl border border-border p-3">
                 <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-sub">When is it due?</legend>
                 <div className="flex flex-wrap gap-x-4 gap-y-2">
-                    {[['date', 'Has a due date'], ['recurring', 'Recurring'], ['none', 'No due date']].map(([key, label]) => (
+                    {[['date', 'Has a due date'], ['span', 'Date span'], ['recurring', 'Recurring'], ['none', 'No due date']].map(([key, label]) => (
                         <label key={key} className="flex cursor-pointer items-center gap-2 text-sm font-medium text-text">
                             <input
                                 type="radio"
@@ -248,6 +301,8 @@ export default function TaskFormModal({
                         {errors.due_date && <p className="mt-1 text-xs text-rose-500">{errors.due_date}</p>}
                     </div>
                 )}
+
+                {dueType === 'span' && spanInputs}
 
                 {dueType === 'none' && <p className="text-xs text-sub">Ongoing: it stays open until someone marks it done.</p>}
 
@@ -368,21 +423,32 @@ export default function TaskFormModal({
         </>
     )
 
+    // Employee form and every edit. Copies made by a repeat rule keep a single date.
     const dueDateField = (
-        <div>
-            <label htmlFor="task-form-due-date-input" className={LABEL}>
-                Due Date {dateRequired ? <span className="text-rose-500">*</span> : '(optional)'}
-            </label>
-            <input
-                id="task-form-due-date-input"
-                type="date"
-                value={data.due_date}
-                onChange={e => setData('due_date', e.target.value)}
-                className={`${INPUT} py-2 font-mono`}
-                required={dateRequired}
-            />
-            {!dateRequired && <p className="mt-1 text-xs text-sub">Leave empty for no due date.</p>}
-            {errors.due_date && <p className="mt-1 text-xs text-rose-500">{errors.due_date}</p>}
+        <div className="space-y-2">
+            {!task?.repeat_label && (
+                <label className="flex w-fit cursor-pointer items-center gap-2 text-sm font-medium text-text">
+                    <input type="checkbox" checked={spanOn} onChange={e => toggleSpan(e.target.checked)} className={`h-4 w-4 rounded border-border ${accent}`} />
+                    Date span (start and due date)
+                </label>
+            )}
+            {spanOn ? spanInputs : (
+                <div>
+                    <label htmlFor="task-form-due-date-input" className={LABEL}>
+                        Due Date {dateRequired ? <span className="text-rose-500">*</span> : '(optional)'}
+                    </label>
+                    <input
+                        id="task-form-due-date-input"
+                        type="date"
+                        value={data.due_date}
+                        onChange={e => setData('due_date', e.target.value)}
+                        className={`${INPUT} py-2 font-mono`}
+                        required={dateRequired}
+                    />
+                    {!dateRequired && <p className="mt-1 text-xs text-sub">Leave empty for no due date.</p>}
+                    {errors.due_date && <p className="mt-1 text-xs text-rose-500">{errors.due_date}</p>}
+                </div>
+            )}
         </div>
     )
 
@@ -429,11 +495,11 @@ export default function TaskFormModal({
                     {category}
                 </div>
             ) : (<>
-                <div className="grid grid-cols-2 gap-3">
-                    {dueDateField}
+                {dueDateField}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {priority}
+                    {category}
                 </div>
-                {category}
             </>)}
         </>
     )
