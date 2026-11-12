@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 17:00 — data only — SSS, PhilHealth and Pag-IBIG for Violie and Sibal
+- By: Claude Code (SSH key), requested by Kurt
+- Code: none
+- Migrations: none
+- Backup: `~/db-backups/pmpc-before-october-export-20261112-0749.sql` (both employees have 0.00 for all three in it)
+- Data changes: `employees.sss_deduction` 0.00 → 500.00, `philhealth_deduction` 0.00 → 250.00, `pagibig_deduction` 0.00 → 200.00 for Violie Malana (id 15, EMP-0005) and John Roy Sibal (id 16, EMP-0006), matching the amounts HR deducted from both on the October 2026 1st cutoff. Withholding tax stays 0.00. Dry run first showed exactly these two employees at 0.00. To undo: set the three fields back to 0.00 for ids 15 and 16.
+- Verified: 2 rows updated; the read-only Nov 1st-cutoff preview shows SSS ₱500, PhilHealth ₱250, Pag-IBIG ₱200 for both.
+
 ## 2026-11-12 16:55 — 9931963 — General Merchandise paid 30/31 days; profile basic pay
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `abaebea` → `9931963` (includes docs-only `d46aa93`): General Merchandise gets daily rate × the calendar days of each half month (1st–15th = 15; 16th–month end = 15 or 16) less missing hours; weekend relievers (custom schedules) stay on days worked; the employee profile's Compensation tab shows the matching monthly basic and rule text, and labels allowances as monthly.
