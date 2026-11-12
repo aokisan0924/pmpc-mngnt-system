@@ -158,6 +158,7 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::get('/payroll/create', [PayrollController::class, 'create'])->name('payroll.create');
         Route::get('/payroll/analytics', [PayrollAnalyticsController::class, 'index'])->name('payroll.analytics');
         Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
+        Route::post('/payroll/mockup-export', [PayrollController::class, 'mockupExport'])->name('payroll.mockup-export');
         Route::get('/payroll/{payroll}', [PayrollController::class, 'show'])->name('payroll.show');
         Route::get('/payroll/{payroll}/export', ManagementPayrollExportController::class)->name('payroll.export');
         Route::post('/payroll/{payroll}/finalize', [PayrollController::class, 'finalize'])->name('payroll.finalize');

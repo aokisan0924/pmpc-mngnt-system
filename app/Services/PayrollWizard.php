@@ -179,6 +179,24 @@ class PayrollWizard
         });
     }
 
+    /**
+     * The real save and export run inside a transaction that is always rolled back, so live data can be tried
+     * without leaving a batch behind (auto-increment ids still advance).
+     *
+     * @param  array<string, mixed>  $data  validated StorePayrollRequest data
+     */
+    public function mockupExport(array $data, Employee $user): string
+    {
+        DB::beginTransaction();
+        try {
+            $payroll = $this->save([...$data, 'finalize' => false], $user);
+
+            return $this->export->export($payroll->fresh());
+        } finally {
+            DB::rollBack();
+        }
+    }
+
     /** @return Collection<int, Employee> */
     private function employees(): Collection
     {

@@ -69,6 +69,32 @@ export default function PayrollWizard(props) {
         setStep(next)
         window.scrollTo({ top: 0 })
     }
+    const [mockup, setMockup] = useState({ busy: false, error: '' })
+    // Runs the real save and export on the server, then throws the batch away: nothing is kept.
+    async function downloadMockup() {
+        setMockup({ busy: true, error: '' })
+        form.clearErrors()
+        try {
+            const token = decodeURIComponent(document.cookie.split('; ').find((part) => part.startsWith('XSRF-TOKEN='))?.split('=')[1] ?? '')
+            const response = await fetch('/admin/payroll/mockup-export', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-XSRF-TOKEN': token },
+                body: JSON.stringify({ ...form.data, finalize: false }),
+            })
+            if (!response.ok) {
+                const body = await response.json().catch(() => ({}))
+                if (body.errors) form.setError(Object.fromEntries(Object.entries(body.errors).map(([key, list]) => [key, list[0]])))
+                return setMockup({ busy: false, error: body.message || 'The mockup could not be made. Try again.' })
+            }
+            const name = /filename="?([^"]+)"?/.exec(response.headers.get('content-disposition') ?? '')?.[1] ?? 'MOCKUP PAYROLL.xlsx'
+            const link = Object.assign(document.createElement('a'), { href: URL.createObjectURL(await response.blob()), download: name })
+            link.click()
+            URL.revokeObjectURL(link.href)
+            setMockup({ busy: false, error: '' })
+        } catch {
+            setMockup({ busy: false, error: 'The mockup could not be made. Check your connection and try again.' })
+        }
+    }
     function save(finalize) {
         form.transform((data) => ({ ...data, finalize }))
         form.post('/admin/payroll', { preserveScroll: true, onError: () => setStep(4) })
@@ -97,7 +123,7 @@ export default function PayrollWizard(props) {
                 {step === 1 && <StepCutoff {...props} />}
                 {step === 2 && <StepDtrCheck problems={problems} typedFor={typedFor} setTyped={setTyped} onRefresh={() => refreshDtr()} errors={form.errors} employees={employees} />}
                 {step === 3 && <StepEntries {...props} rows={rows} setTyped={setTyped} errors={form.errors} />}
-                {step === 4 && <StepConfirm {...props} rows={rows} changed={changed} form={form} onSave={save} />}
+                {step === 4 && <StepConfirm {...props} rows={rows} changed={changed} form={form} onSave={save} onMockup={downloadMockup} mockup={mockup} />}
 
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
                     <Button variant="outline" disabled={step === 1 || form.processing} onClick={() => go(step - 1)} className="min-h-[44px]">

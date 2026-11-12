@@ -5,7 +5,7 @@ import { peso } from './StepEntries'
 
 const sum = (rows, key) => rows.reduce((total, row) => total + (Number(row[key]) || 0), 0)
 
-export default function StepConfirm({ rows, offices, changed, form, cutoff_open, counted_through, period_title, onSave }) {
+export default function StepConfirm({ rows, offices, changed, form, cutoff_open, counted_through, period_title, onSave, onMockup, mockup }) {
     const [confirming, setConfirming] = useState(false)
     const errors = Object.values(form.errors)
     const groups = Object.entries(offices).map(([key, office]) => [office.label, rows.filter((row) => row.payroll_office === key)]).filter(([, list]) => list.length)
@@ -56,6 +56,13 @@ export default function StepConfirm({ rows, offices, changed, form, cutoff_open,
                     Save &amp; finalize
                 </Button>
                 {cutoff_open && <p className="text-sm text-amber-800 dark:text-amber-300" role="status">This cutoff isn't over yet: only days through {counted_through} are counted. Save the draft again after the last day.</p>}
+            </div>
+            <div className="space-y-2 rounded-xl border border-dashed border-border p-4">
+                <p className="text-sm text-sub">Want to check the numbers first? Download a mockup of the management Excel from this data. Nothing is saved.</p>
+                <Button variant="outline" disabled={mockup.busy || form.processing} loading={mockup.busy} onClick={onMockup} className="min-h-[44px]">
+                    Download mockup Excel
+                </Button>
+                {mockup.error && <p role="alert" className="text-sm text-rose-700">{mockup.error}</p>}
             </div>
             <ConfirmModal
                 open={confirming}

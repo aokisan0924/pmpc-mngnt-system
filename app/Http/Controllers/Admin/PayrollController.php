@@ -12,11 +12,13 @@ use App\Models\Payroll;
 use App\Services\ManagementPayrollExport;
 use App\Services\OfficePayrollCalculator;
 use App\Services\PayrollWizard;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class PayrollController extends Controller
 {
@@ -66,6 +68,17 @@ class PayrollController extends Controller
 
         return redirect()->route('admin.payroll.show', $payroll->id)
             ->with('success', $payroll->isFinalized() ? 'Payroll saved and finalized.' : 'Payroll saved.');
+    }
+
+    public function mockupExport(StorePayrollRequest $request, PayrollWizard $wizard): BinaryFileResponse
+    {
+        $data = $request->validated();
+
+        return response()->download(
+            $wizard->mockupExport($data, $request->user()),
+            'MOCKUP '.strtoupper(Carbon::parse($data['month'].'-01')->format('F Y')).' '.strtoupper($data['cutoff']).' CUTOFF PAYROLL.xlsx',
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'Cache-Control' => 'private, no-store'],
+        )->deleteFileAfterSend(true);
     }
 
     public function show(Payroll $payroll, ManagementPayrollExport $managementPayrollExport): Response

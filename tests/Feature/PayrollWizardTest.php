@@ -205,4 +205,26 @@ class PayrollWizardTest extends TestCase
         // The posted start date is ignored: Nov 2 (NWNP) to Nov 4 are still this cutoff's days, so the label must say so.
         $this->assertSame('2026-11-02', Payroll::firstOrFail()->period_from->toDateString());
     }
+
+    public function test_mockup_excel_downloads_without_saving_anything(): void
+    {
+        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload(['cutoff_transpo' => 100]))->assertRedirect();
+        $draft = Payroll::firstOrFail();
+
+        $response = $this->actingAs($this->admin)->postJson('/admin/payroll/mockup-export', $this->payload(['cutoff_transpo' => 999]));
+
+        $response->assertOk();
+        $this->assertStringContainsString('MOCKUP', (string) $response->headers->get('content-disposition'));
+        $this->assertStringStartsWith('PK', file_get_contents($response->getFile()->getPathname()));
+        // The existing draft is untouched and nothing new was saved.
+        $this->assertSame(1, Payroll::count());
+        $this->assertEquals(100, $draft->items()->firstOrFail()->cutoff_transpo);
+    }
+
+    public function test_mockup_excel_is_admin_only_and_validated(): void
+    {
+        $this->actingAs($this->staff)->postJson('/admin/payroll/mockup-export', $this->payload())->assertForbidden();
+        $this->actingAs($this->admin)->postJson('/admin/payroll/mockup-export', $this->payload(['deductions' => []]))->assertStatus(422);
+        $this->assertSame(0, Payroll::count());
+    }
 }

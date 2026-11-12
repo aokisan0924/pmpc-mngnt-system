@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Step 4 of the payroll wizard has a "Download mockup Excel" button: it builds the management Excel from the current numbers on live data without saving anything, so a cutoff can be tried out first.
 - Payroll is now processed in four steps (Cutoff, DTR check, OT & allowances, Confirm). The cutoff dates fill in by themselves (weekends skipped, holidays kept and shown as NWNP), days with missing punches must be fixed, typed or counted as 0 hours, and step 3 looks like the management payroll Excel. Save draft or Save & finalize.
 - Only one payroll batch per month and cutoff can exist; opening the same cutoff again reopens its draft.
 - On Dues, "Undo payment" and "Stop"/"Resume" now show an Undo link in the confirmation message. Undo puts back the same paid date, amount and note, or flips the due back.
