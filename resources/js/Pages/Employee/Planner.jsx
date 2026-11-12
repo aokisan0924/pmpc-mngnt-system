@@ -11,6 +11,7 @@ import TaskDetailModal from '@/Components/TaskDetailModal'
 import UndatedTaskStrip from '@/Components/UndatedTaskStrip'
 import TodayView from '@/Components/TodayView'
 import { manilaToday } from '@/Components/taskGroups'
+import useHideTodo from '@/Components/useHideTodo'
 import CardMenu from '@/Components/CardMenu'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -46,6 +47,7 @@ export default function Planner({ tasks = [] }) {
     const today = useMemo(() => new Date(), [])
     const todayKey = toKey(today)
 
+    const [hideTodo, setHideTodo]         = useHideTodo()
     const [viewDate, setViewDate]         = useState(startOfMonth(today))
     const [selectedDate, setSelectedDate] = useState(todayKey)
     const [showForm, setShowForm]         = useState(false)
@@ -260,6 +262,8 @@ export default function Planner({ tasks = [] }) {
                         onDelete={confirmDelete}
                         onOpen={task => setDetailId(task.id)}
                         accent="emerald"
+                        hideTodo={hideTodo}
+                        onHideTodoChange={setHideTodo}
                         showMoveButtons={false}
                     />
                 )}

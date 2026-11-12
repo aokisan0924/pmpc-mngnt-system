@@ -9,6 +9,7 @@ import TaskDetailModal from '@/Components/TaskDetailModal'
 import TeamTaskCalendar from '@/Components/TeamTaskCalendar'
 import TeamTaskFilters from '@/Components/TeamTaskFilters'
 import { boardColumns, manilaToday } from '@/Components/taskGroups'
+import useHideTodo from '@/Components/useHideTodo'
 
 // No background here: each pill sets its own, so the late pill's rose is not overridden.
 const COUNT = 'inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold text-white'
@@ -21,7 +22,8 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
     const [view, setView]                 = useState('board')
     const [stopAlso, setStopAlso]         = useState(false)
     const detailTask = tasks.find(t => t.id === detailId)
-    const columns = boardColumns(tasks, manilaToday())
+    const [hideTodo, setHideTodo] = useHideTodo()
+    const columns = boardColumns(tasks, manilaToday(), { hideTodo })
 
     function applyFilters(next) {
         const merged = { ...filters, ...next }
@@ -83,7 +85,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                         <>
                             {/* Same numbers as the board's four columns, so header and columns never disagree. */}
                             <span className={`${COUNT} bg-white/12`}><span className="tnum">{columns.pending.length}</span> to do</span>
-                            <span className={`${COUNT} bg-white/12`}><span className="tnum">{columns.today.length}</span> today</span>
+                            <span className={`${COUNT} bg-white/12`}><span className="tnum">{columns.late.length + columns.today.length}</span> today</span>
                             <span className={`${COUNT} bg-white/12`}><span className="tnum">{columns.doing.length}</span> doing</span>
                             <span className={`${COUNT} bg-white/12`}><span className="tnum">{columns.doneRecent.length}</span> done this week</span>
                         </>
@@ -126,6 +128,8 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                     onOpen={task => setDetailId(task.id)}
                     accent="indigo"
                     showOwner
+                    hideTodo={hideTodo}
+                    onHideTodoChange={setHideTodo}
                     showMoveButtons={false}
                 />}
             </div>

@@ -1,18 +1,19 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import Badge from '@/Components/UI/Badge'
 import CardMenu from '@/Components/CardMenu'
-import { boardColumns, daysUntil, manilaToday } from '@/Components/taskGroups'
+import { boardColumns, daysUntil, isDueToday, manilaToday } from '@/Components/taskGroups'
 
-// "Today" is not a status: a card due today stays in it, whatever its status, until it is done.
-// Late cards stay in To do / Doing with a red "days late" pill.
+// Today holds not-started tasks due today; dropping on it sets To do. A started task due today
+// shows in Doing with the Today (amber) look. Late cards keep a red "days late" pill; with To do
+// hidden, late not-started cards sit at the top of Today.
 const COLUMNS = [
     { key: 'pending', status: 'pending', label: 'To do' },
-    { key: 'today',   status: null,      label: 'Today' },
+    { key: 'today',   status: 'pending', label: 'Today' },
     { key: 'doing',   status: 'doing',   label: 'Doing' },
     { key: 'done',    status: 'done',    label: 'Done' },
 ]
-const STATUS_COLUMNS = COLUMNS.filter(c => c.status)
-const STATUS_LABEL = { pending: 'To do', doing: 'Doing' }
+const STATUS_COLUMNS = COLUMNS.filter(c => c.key !== 'today')
+const AMBER = 'border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30'
 
 export const PRIORITY_BADGE = {
     high:   <Badge variant="rose" size="sm">High</Badge>,
@@ -72,13 +73,15 @@ export function SpanProgress({ task, accent = 'emerald' }) {
  * Three-column task board. Cards can be dragged between columns or moved with
  * the "Move to" select (touch screens). `onMove(task, status)` does the saving.
  */
-export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, accent = 'emerald', showOwner = false, showMoveButtons = true }) {
+export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, accent = 'emerald', showOwner = false, showMoveButtons = true, hideTodo = false, onHideTodoChange }) {
     const [overColumn, setOverColumn] = useState(null)
     const [showOlder, setShowOlder] = useState(false)
-    const columns = boardColumns(tasks, manilaToday())
+    const todayKey = manilaToday()
+    const columns = boardColumns(tasks, todayKey, { hideTodo })
     const columnTasks = key => key === 'done'
         ? (showOlder ? [...columns.doneRecent, ...columns.doneOlder] : columns.doneRecent)
-        : columns[key]
+        : key === 'today' ? [...columns.late, ...columns.today] : columns[key]
+    const visibleColumns = hideTodo ? COLUMNS.filter(c => c.key !== 'pending') : COLUMNS
 
     // Employees may move a whole-office task but not edit or delete it.
     const readOnly = task => !showOwner && task.employee_id === null
@@ -122,47 +125,78 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
         if (task && task.status !== status) onMove(task, status)
     }
 
+    const toggleButton = `inline-flex h-[36px] items-center rounded-lg border border-border bg-panel px-3 text-xs font-semibold text-text hover:bg-hover focus-visible:outline-2 ${focusRing}`
+    const subLabel = (text, count, className) => (
+        <p className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wide ${className}`}>
+            {text}<span className="font-mono text-dim">{count}</span>
+        </p>
+    )
+
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
-            {COLUMNS.map(({ key, status, label }) => {
+        <div className="space-y-3">
+            {hideTodo && onHideTodoChange && (
+                <div className="flex justify-end">
+                    <button
+                        type="button"
+                        onClick={() => onHideTodoChange(false)}
+                        aria-label={`Show the To do column, ${columns.pending.length} tasks`}
+                        className={toggleButton}
+                    >
+                        Show To do ({columns.pending.length})
+                    </button>
+                </div>
+            )}
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 items-start ${hideTodo ? 'xl:grid-cols-3' : 'xl:grid-cols-4'}`}>
+            {visibleColumns.map(({ key, status, label }) => {
                 const list = columnTasks(key)
                 const isToday = key === 'today'
-                // Dropping on Today does nothing: it is not a status.
-                const dropProps = status ? {
-                    onDragOver: e => { e.preventDefault(); setOverColumn(status) },
-                    onDragLeave: () => setOverColumn(null),
-                    onDrop: e => handleDrop(e, status),
-                } : {}
+                const lateCount = isToday ? columns.late.length : 0
                 return (
                     <section
                         key={key}
                         aria-label={`${label} tasks`}
-                        {...dropProps}
+                        onDragOver={e => { e.preventDefault(); setOverColumn(key) }}
+                        onDragLeave={() => setOverColumn(null)}
+                        onDrop={e => handleDrop(e, status)}
                         className={`rounded-2xl border p-3 min-h-40 transition-colors ${
-                            overColumn === status && status
+                            overColumn === key
                                 ? 'border-dashed border-sub bg-field'
-                                : isToday
-                                    ? 'border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30'
-                                    : 'border-border bg-field/50'
+                                : isToday ? AMBER : 'border-border bg-field/50'
                         }`}
                     >
-                        <h3 className={`mb-3 flex items-center gap-2 text-sm font-bold ${isToday ? 'text-amber-800 dark:text-amber-300' : accentText}`}>
+                        <div className="mb-3 flex items-center gap-2">
+                        <h3 className={`flex items-center gap-2 text-sm font-bold ${isToday ? 'text-amber-800 dark:text-amber-300' : accentText}`}>
                             {label}
                             <span className="text-xs font-mono font-semibold text-dim">{list.length}</span>
                         </h3>
+                            {key === 'pending' && onHideTodoChange && (
+                                <button
+                                    type="button"
+                                    onClick={() => onHideTodoChange(true)}
+                                    aria-label="Hide the To do column"
+                                    className={`ml-auto ${toggleButton}`}
+                                >
+                                    Hide
+                                </button>
+                            )}
+                        </div>
 
                         <div className="space-y-2.5">
-                            {list.map(task => {
+                            {list.map((task, index) => {
                                 const done = task.status === 'done'
+                                // Outside the Today column, a task due today keeps the Today (amber) look.
+                                const dueTodayElsewhere = !isToday && isDueToday(task, todayKey)
                                 return (
+                                    <Fragment key={task.id}>
+                                    {lateCount > 0 && index === 0 && subLabel('Late', lateCount, 'text-rose-700 dark:text-rose-300')}
+                                    {lateCount > 0 && index === lateCount && subLabel('Due today', columns.today.length, 'text-amber-800 dark:text-amber-300')}
                                     <article
-                                        key={task.id}
                                         draggable
                                         onDragStart={e => e.dataTransfer.setData('text/plain', String(task.id))}
                                         onClick={e => {
                                             if (onOpen && !e.target.closest('button, select, a')) onOpen(task)
                                         }}
-                                        className={`relative focus-within:z-30 rounded-xl border border-border p-2.5 cursor-grab active:cursor-grabbing bg-panel ${done ? '' : 'shadow-2xs'}`}
+                                        className={`relative focus-within:z-30 rounded-xl border p-2.5 cursor-grab active:cursor-grabbing ${dueTodayElsewhere ? AMBER : 'border-border bg-panel'} ${done ? '' : 'shadow-2xs'}`}
                                     >
                                         {onOpen ? (
                                             <button
@@ -198,7 +232,6 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                         <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-2">
                                             <span className={`text-xs ${dueText(task).className}`}>{dueText(task).text}</span>
                                             {PRIORITY_BADGE[task.priority]}
-                                            {isToday && <Badge variant="slate" size="sm">{STATUS_LABEL[task.status]}</Badge>}
                                             {readOnly(task) && (
                                                 <Badge variant="indigo" size="sm">{task.is_shared ? 'Shared' : `Whole office${task.office_label ? ` · ${task.office_label}` : ''}`}</Badge>
                                             )}
@@ -223,6 +256,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                             </div>
                                         )}
                                     </article>
+                                    </Fragment>
                                 )
                             })}
 
@@ -246,6 +280,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                     </section>
                 )
             })}
+        </div>
         </div>
     )
 }
