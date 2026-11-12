@@ -57,7 +57,8 @@ class DtrPayrollAttendanceCalculator
                 $source = 'dtr';
                 $worked = (float) ($log?->hours_rendered ?? 0);
 
-                if ($log === null && Employee::isAlwaysPresent($employeeId)) {
+                // Always-present staff skip punching, not holidays: a holiday is no work, no pay for them too.
+                if ($log === null && Employee::isAlwaysPresent($employeeId) && ! $holidays->has($date)) {
                     $worked = $shiftHours;
                 } elseif (in_array($status, ['missing_out', 'in_progress'], true)) {
                     $source = 'unresolved';

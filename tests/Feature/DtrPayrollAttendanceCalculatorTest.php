@@ -107,4 +107,17 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
         $this->assertSame([], $result['unresolved_dates']);
         Carbon::setTestNow();
     }
+
+    public function test_always_present_employee_is_paid_on_work_days_but_not_on_holidays(): void
+    {
+        Carbon::setTestNow('2026-11-14 08:00:00');
+        Holiday::create(['date' => '2026-11-02', 'name' => "All Soul's Day", 'type' => 'special']);
+        $president = Employee::factory()->create(['date_hired' => '2026-01-01', 'auto_present_weekdays' => true]);
+
+        $byDate = collect($this->hoursFor($president, '2026-11-02', '2026-11-03')['days'])->keyBy('date');
+
+        $this->assertSame(0.0, $byDate['2026-11-02']['worked_hours']);
+        $this->assertSame(8.0, $byDate['2026-11-03']['worked_hours']);
+        Carbon::setTestNow();
+    }
 }
