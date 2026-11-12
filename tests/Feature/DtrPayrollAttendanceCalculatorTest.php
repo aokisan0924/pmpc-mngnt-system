@@ -41,7 +41,7 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
         $employee = Employee::factory()->create(['date_hired' => '2026-01-01']);
         $days = ['2026-11-03' => 8, '2026-11-04' => 6, '2026-11-05' => 9, '2026-11-06' => 8, '2026-11-09' => 8, '2026-11-10' => 8, '2026-11-11' => 8, '2026-11-12' => 8, '2026-11-13' => 8];
         $this->logs($employee, $days);
-        // The 6-hour day left early: undertime, so its actual hours count.
+        // The 6-hour day left early: undertime is not deducted, so it is a full day too.
         DtrLog::where('employee_id', $employee->id)->whereDate('date', '2026-11-04')->update(['status' => 'undertime']);
 
         $result = $this->hoursFor($employee, '2026-10-31', '2026-11-13');
@@ -50,7 +50,7 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
         $this->assertSame(10.0, $result['days_of_work']);
         $this->assertTrue($byDate['2026-11-02']['holiday']);
         $this->assertSame(0.0, $byDate['2026-11-02']['worked_hours']);
-        $this->assertSame(6.0, $byDate['2026-11-04']['worked_hours']);
+        $this->assertSame(8.0, $byDate['2026-11-04']['worked_hours']);
         $this->assertSame(8.0, $byDate['2026-11-05']['worked_hours']);
         $this->assertSame([], $result['unresolved_dates']);
         Carbon::setTestNow();
@@ -187,7 +187,7 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
         EmployeeSchedule::create(['employee_id' => $night->id, 'effective_from' => '2026-01-01', 'type' => 'two_punch', 'shift_start' => '18:00', 'shift_end' => '06:00', 'work_days' => '0,1,2,3,4,5,6']);
         // 8:12 with 5 grace minutes: 7 minutes late; the 12 lost minutes are not also taken off as hours.
         DtrLog::factory()->create(['employee_id' => $office->id, 'date' => '2026-11-05', 'am_time_in' => '08:12:00', 'hours_rendered' => 7.8, 'status' => 'late']);
-        // Left early on top of a late arrival: the early part still comes off as hours.
+        // Left early on top of a late arrival: only the late minutes count; leaving early is not deducted.
         DtrLog::factory()->create(['employee_id' => $office->id, 'date' => '2026-11-06', 'am_time_in' => '08:12:00', 'pm_time_out' => '16:00:00', 'hours_rendered' => 6.8, 'status' => 'late']);
         DtrLog::factory()->create(['employee_id' => $night->id, 'date' => '2026-11-05', 'am_time_in' => '18:20:00', 'am_time_out' => null, 'pm_time_in' => null, 'pm_time_out' => '06:00:00', 'hours_rendered' => 11.67, 'status' => 'late']);
 
@@ -196,9 +196,19 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
 
         $this->assertSame(7.0, $office_days['2026-11-05']['late_minutes']);
         $this->assertSame(8.0, $office_days['2026-11-05']['worked_hours']);
-        $this->assertSame(7.0, $office_days['2026-11-06']['worked_hours']);
+        $this->assertSame(8.0, $office_days['2026-11-06']['worked_hours']);
         $this->assertSame(15.0, $night_result['days'][0]['late_minutes']);
         $this->assertSame(15.0, $night_result['tardiness_minutes']);
+        Carbon::setTestNow();
+    }
+
+    public function test_half_days_still_count_missing_time(): void
+    {
+        Carbon::setTestNow('2026-11-14 08:00:00');
+        $employee = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        DtrLog::factory()->create(['employee_id' => $employee->id, 'date' => '2026-11-05', 'pm_time_in' => null, 'pm_time_out' => null, 'hours_rendered' => 4, 'status' => 'half_day']);
+
+        $this->assertSame(4.0, $this->hoursFor($employee, '2026-11-05', '2026-11-05')['days'][0]['worked_hours']);
         Carbon::setTestNow();
     }
 }

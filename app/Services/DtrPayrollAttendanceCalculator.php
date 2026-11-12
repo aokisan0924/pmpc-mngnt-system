@@ -68,15 +68,14 @@ class DtrPayrollAttendanceCalculator
                 $source = 'dtr';
                 $worked = (float) ($log?->hours_rendered ?? 0);
 
-                // A complete, on-time office day is a full shift; minutes are only counted on late/undertime/half days.
-                if ($log !== null && $status === 'on_time' && ! (EmployeeSchedule::shiftFor($employeeId, $day)['two_punch'] ?? false)) {
-                    $worked = $shiftHours;
-                }
-                // A late arrival is charged as tardiness (October formula), so its lost minutes are not also missing hours.
+                // A complete day (on time, late or left early) pays the full shift: leaving early is never deducted,
+                // and a late arrival is charged only as tardiness (October formula), not as missing hours.
                 $lateMinutes = 0.0;
-                if ($log !== null && $status === 'late') {
-                    [$lostMinutes, $lateMinutes] = $this->lateness($log);
-                    $worked += $lostMinutes / 60;
+                if ($log !== null && in_array($status, ['on_time', 'late', 'undertime'], true)) {
+                    $worked = $shiftHours;
+                    if ($status === 'late') {
+                        $lateMinutes = $this->lateness($log)[1];
+                    }
                 }
                 // Always-present staff skip punching, not holidays: a holiday is no work, no pay for them too.
                 if ($log === null && Employee::isAlwaysPresent($employeeId) && ! $holidays->has($date)) {

@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Payroll step 3: the deductions table no longer overlaps the payroll table on narrower screens; the sheet scrolls sideways with roomier cells.
 
 ### Changed
+- Payroll: leaving early (undertime) is never deducted. Any complete day — on time, late or undertime, office or store shift — pays the full shift; lates are deducted only as tardiness (daily rate ÷ 8 ÷ 60 × minutes). Half days and absences still count the missing time.
 - Allowances on a new payroll start from each employee's monthly allowances, half per cutoff (as in the October 2026 payroll), and can still be changed.
 - Default signatories follow the October 2026 payroll: Prepared by Reynold D. Valdez, Certified Correct Katherine Sevilleno, Approved by Alexander L. Feria, Noted by Kurt Vincent F. Fariñas.
 - The voucher shows the October payee ("Alexander Feria et. al.") and a voucher number counted from October 2026 = 0017 (November 2026 = 0018).
