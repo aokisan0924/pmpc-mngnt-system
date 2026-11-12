@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 14:55 — data only — Cubao rent for Kurt and Kath set to ₱1,250 per cutoff
+- By: Claude Code (SSH key), requested by Kurt
+- Code: none
+- Migrations: none
+- Backup: `~/db-backups/pmpc-before-payroll-wizard-20261112-0629.sql` (both values are 0.00 in it)
+- Data changes: `employees.rental_deduction` (monthly, split in half each cutoff) from 0.00 to 2500.00 for Kurt Vincent Fariñas (id 12, EMP-0002) and Katherine Sevilleno (id 13, EMP-0003). The two Ferias (ids 3 and 4) stay at 2000.00 (₱1,000 per cutoff), as the owner asked. Dry run first showed the four Cubao values. To undo: set `rental_deduction` back to 0.00 for ids 12 and 13.
+- Verified: 2 rows updated; the read-only Nov 1st-cutoff preview now shows rental ₱1,250 for Kurt and Kath and ₱1,000 for both Ferias.
+
 ## 2026-11-12 14:45 — data only — President's Nov 2 holiday DTR row removed
 - By: Claude Code (SSH key), requested by Kurt
 - Code: none
