@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 19:45 — 1df74bf — Undertime never deducted; only lates
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `0d111db` → `1df74bf` (includes docs-only `bf458a3`): any complete DTR day (on time, late or undertime, office or store shift) pays the full shift; leaving early is never deducted; lates are deducted only as tardiness (daily rate ÷ 8 ÷ 60 × minutes). Half days and absences still count missing time.
+- Migrations: none
+- Backup: none (no schema or data change)
+- Data changes: none on live.
+- Verified: locally 423 of 428 PHP tests (5 GD-only) passed, including updated undertime tests and a new half-day test. On live: app back up, maintenance off, login 200, HEAD `1df74bf`; a read-only mockup preview of Nov 2–13 now shows only the Nov 2 NWNP day as absent for office staff, Mariel S. Lucero ₱1,200 and Diana B. Pasco ₱600 for days with no DTR, John Roy C. Sibal ₱600 for the unresolved Nov 11 (his Nov 3 short punch now counts as a full day), and lates only for Kurt (2 min, ₱3.33) and Alexander A. Feria Jr. (112 min, ₱205.29).
+
 ## 2026-11-12 19:20 — 0d111db — Plain message for typed hours without a note
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `d39e783` → `0d111db` (includes docs-only `d0a25e4`): a "Type hours" DTR day missing its hours or note now says so in plain words with the employee and date, and step 2's Next stays disabled until both are filled (was the technical "items.7.day_resolutions.2026-11-11.note field is required…").
