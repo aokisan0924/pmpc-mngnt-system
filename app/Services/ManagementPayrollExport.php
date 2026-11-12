@@ -10,7 +10,6 @@ use App\Models\PayrollItem;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Illuminate\Validation\ValidationException;
 use Throwable;
@@ -23,34 +22,22 @@ class ManagementPayrollExport
 
     private const NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 
-    private const LAYOUT = [
-        'main_office' => ['sheet' => 1, 'capacity' => 4, 'second' => ['O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', null, 'W', 'X', 'Y'], 'monthly' => 'AB', 'first_ded' => 'AM', 'second_ded' => 'AX', 'ot_first' => 'AM', 'ot_second' => 'AX', 'ot_row' => 22],
-        'fort_magsaysay' => ['sheet' => 2, 'capacity' => 2, 'second' => ['O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], 'monthly' => 'AC', 'first_ded' => 'AN', 'second_ded' => 'AY', 'ot_first' => 'AN', 'ot_second' => 'AY', 'ot_row' => 18],
-        'gen_mdse' => ['sheet' => 3, 'capacity' => 2, 'second' => ['L', 'M', 'N', 'O', null, null, null, null, 'P', 'Q', 'R', 'S'], 'monthly' => 'X', 'first_ded' => 'AI', 'second_ded' => 'AT', 'ot_first' => 'AI', 'ot_second' => 'AT', 'ot_row' => 18],
-        'cubao' => ['sheet' => 4, 'capacity' => 4, 'second' => ['O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'], 'monthly' => 'AC', 'first_ded' => 'AO', 'second_ded' => 'AZ', 'ot_first' => 'AO', 'ot_second' => 'AZ', 'ot_row' => 20],
-    ];
+    /** Office sheet number in the October-layout template; columns are found by header text. */
+    private const SHEETS = ['main_office' => 1, 'fort_magsaysay' => 2, 'gen_mdse' => 3, 'cubao' => 4];
 
-    /** Original workbook journal block per office: label/debit/credit columns and row per account. */
+    private const CAPACITY = 6;
+
+    private const FIRST_ROW = 11;
+
+    /** Journal label prefixes (lower case, longest first) => amount key; debits are gross and employer. */
     private const JOURNAL = [
-        'main_office' => ['debit' => 'R', 'credit' => 'S', 'employer' => null, 'savings' => true,
-            'rows' => ['gross' => 25, 'tax_deduction' => 26, 'sss_deduction' => 27, 'philhealth_deduction' => 28, 'pagibig_deduction' => 29, 'loan_deduction' => 30, 'capital_contribution_deduction' => 32, 'rental_deduction' => 33, 'savings_deduction' => 34, 'cash_advance_deduction' => 36, 'other' => 37, 'net_pay' => 38, 'benefit' => 35, 'total' => 39]],
-        'fort_magsaysay' => ['debit' => 'R', 'credit' => 'S', 'employer' => 36, 'savings' => false,
-            'rows' => ['gross' => 21, 'tax_deduction' => 22, 'sss_deduction' => 23, 'philhealth_deduction' => 24, 'pagibig_deduction' => 25, 'loan_deduction' => 26, 'capital_contribution_deduction' => 28, 'rental_deduction' => 29, 'cash_advance_deduction' => 30, 'other' => 32, 'net_pay' => 33, 'benefit' => 31, 'total' => 34]],
-        'gen_mdse' => ['debit' => 'O', 'credit' => 'P', 'employer' => 36, 'savings' => false,
-            'rows' => ['gross' => 21, 'tax_deduction' => 22, 'sss_deduction' => 23, 'philhealth_deduction' => 24, 'pagibig_deduction' => 25, 'loan_deduction' => 26, 'capital_contribution_deduction' => 28, 'rental_deduction' => 29, 'cash_advance_deduction' => 30, 'other' => 32, 'net_pay' => 33, 'benefit' => 31, 'total' => 34]],
-        'cubao' => ['debit' => 'R', 'credit' => 'S', 'employer' => 39, 'savings' => true,
-            'rows' => ['gross' => 23, 'tax_deduction' => 24, 'sss_deduction' => 25, 'philhealth_deduction' => 26, 'pagibig_deduction' => 27, 'loan_deduction' => 28, 'capital_contribution_deduction' => 30, 'rental_deduction' => 31, 'savings_deduction' => 32, 'cash_advance_deduction' => 34, 'other' => 35, 'net_pay' => 36, 'benefit' => 33, 'total' => 37]],
+        'salaries and wages' => 'gross', 'sss, philhealth' => 'employer',
+        'sss payable - emp' => 'sss', 'phil health payable - emp' => 'philhealth', 'pagibig contribution - emp' => 'pagibig',
+        'wholding tax' => 'tax', 'sss payable' => 'sss', 'phil health payable' => 'philhealth', 'pagibig contribution' => 'pagibig',
+        'loans re' => 'loan', 'interest income' => 'zero', 'share capital' => 'cc', 'rental income' => 'rental',
+        'tardiness/absent' => 'tardiness_absent', 'savings deposit' => 'savings', 'cash advance' => 'cash',
+        'advances to officers' => 'cash', "employees' benefit" => 'zero', 'other income' => 'other', 'cash in bank' => 'net',
     ];
-
-    /** Static voucher text and chart-of-account codes from the original September workbook. */
-    private const VOUCHER_TEXT = [
-        'B3' => "PEOPLE'S MULTI-PURPOSE COOPERATIVE", 'B4' => 'Stall #2 Principe Building, Maharlika Highway', 'B5' => 'Upi, Gamu, Isabela',
-        'B6' => 'CDA Registration No.: 9520-0200-8847', 'B7' => 'Mobile Nos. 0919-498-3770/ 0953-033-1580', 'B9' => 'DISBURSEMENT VOUCHER',
-        'B11' => 'Payee:', 'H11' => 'Voucher No.:', 'B12' => 'Addressee:', 'C12' => '20e 2nd Camarilla St. Cubao, Quezon City', 'H12' => 'Voucher Date:',
-        'B14' => 'Date', 'C14' => 'Ref No.', 'D14' => 'Account Name', 'G14' => 'Code', 'H14' => 'DR', 'I14' => 'CR',
-    ];
-
-    private const VOUCHER_CODES = [15 => 73110, 16 => 21340, 17 => 61245, 18 => 61247, 19 => 61248, 20 => 30130, 21 => 11210, 22 => 40110, 23 => 40650, 24 => 21110, 25 => 73120, 26 => 11115];
 
     /** Notes and supplemental detail sit below the original layout and outside the print area. */
     private const DETAIL_ROW = 90;
@@ -87,17 +74,17 @@ class ManagementPayrollExport
             $this->reject('There are no saved payroll items to export.');
         }
         foreach ($items as $item) {
-            if (! isset(self::LAYOUT[$item->payroll_office]) || ! $item->employee) {
+            if (! isset(self::SHEETS[$item->payroll_office]) || ! $item->employee) {
                 $this->reject('Every exported item needs a verified payroll office and employee. Historical items without an office cannot use this export.');
             }
-            if (! isset(self::LAYOUT[$this->exportOffice($item)])) {
+            if (! isset(self::SHEETS[$this->exportOffice($item)])) {
                 $this->reject('Every exported item needs a supported payroll section.');
             }
         }
         $itemsByOffice = $items->groupBy(fn (PayrollItem $item): string => $this->exportOffice($item));
-        foreach (self::LAYOUT as $office => $layout) {
-            if ($itemsByOffice->get($office, collect())->pluck('employee_id')->unique()->count() > $layout['capacity']) {
-                $this->reject(OfficePayrollCalculator::OFFICES[$office]['label'].' exceeds the supplied template capacity ('.$layout['capacity'].' employees). Expand the approved template before exporting; no rows have been omitted.');
+        foreach (array_keys(self::SHEETS) as $office) {
+            if ($itemsByOffice->get($office, collect())->pluck('employee_id')->unique()->count() > self::CAPACITY) {
+                $this->reject(OfficePayrollCalculator::OFFICES[$office]['label'].' exceeds the supplied template capacity ('.self::CAPACITY.' employees). Expand the approved template before exporting; no rows have been omitted.');
             }
         }
         File::ensureDirectoryExists(storage_path('app/private'));
@@ -110,16 +97,41 @@ class ManagementPayrollExport
             if ($zip->open($path) !== true) {
                 throw new \RuntimeException('Could not open the management template.');
             }
-            foreach (self::LAYOUT as $office => $layout) {
-                $doc = $this->document($zip->getFromName('xl/worksheets/sheet'.$layout['sheet'].'.xml'));
+            $month = [];
+            foreach (self::SHEETS as $office => $sheet) {
+                $doc = $this->document($zip->getFromName('xl/worksheets/sheet'.$sheet.'.xml'));
+                $texts = $this->texts($doc);
+                $headers = [];
+                foreach ($texts as $address => $text) {
+                    [$col, $row] = self::split($address);
+                    if ($row === 10) {
+                        $headers[$col] = mb_strtoupper($text);
+                    }
+                }
+                ksort($headers);
+                $blocks = [];
+                foreach ($headers as $col => $header) {
+                    if ($header === 'EMPLOYEE NAME') {
+                        $blocks[] = [];
+                    }
+                    if ($blocks !== []) {
+                        $blocks[array_key_last($blocks)][$col] = str_starts_with($header, 'RENTAL') ? 'RENTAL' : $header;
+                    }
+                }
+                $ot = collect($texts)->filter(fn (string $text, string $address): bool => self::split($address)[1] > 17 && in_array(mb_strtoupper($text), ['OVERTIME PAY', '1.3% OVERTIME'], true))
+                    ->keys()->map(fn (string $address): array => self::split($address))->sortBy(0)->values();
+                if (count($blocks) !== 6 || $ot->count() !== 4) {
+                    throw new \RuntimeException('The management template layout is not recognised.');
+                }
                 $officeItems = $itemsByOffice->get($office, collect());
                 $ids = $officeItems->sortBy(fn ($i) => mb_strtolower($i->employee->last_name.' '.$i->employee->first_name))->pluck('employee_id')->unique()->values();
-                foreach (['first', 'second'] as $cutoff) {
+                $sums = [];
+                // Blocks: 1st grid, 2nd grid, 1st govt source, 1st deductions, 2nd deductions, 2nd govt source.
+                foreach (['first' => ['grid' => 0, 'ded' => 3, 'govt' => 2], 'second' => ['grid' => 1, 'ded' => 4, 'govt' => 5]] as $cutoff => $parts) {
                     $batch = $batches->firstWhere('cutoff', $cutoff);
-                    $start = $cutoff === 'first' ? 'B' : $layout['second'][0];
-                    $this->put($doc, $start.'9', $batch ? strtoupper($batch->period_from->format('F j').' - '.$batch->period_to->format('j, Y')) : 'CUTOFF NOT AVAILABLE');
-                    $cols = $cutoff === 'second' ? $layout['second'] : ($office === 'gen_mdse' ? ['B', 'C', 'D', 'E', null, null, null, null, 'F', 'G', 'H', 'I'] : ['B', 'C', 'D', 'E', 'F', 'H', 'I', 'J', 'G', 'K', 'L', 'M']);
+                    $this->put($doc, self::letter(array_key_first($blocks[$parts['grid']])).'9', $batch ? strtoupper($batch->period_from->format('F j').' - '.$batch->period_to->format('j, Y')) : 'CUTOFF NOT AVAILABLE');
                     $cutoffItems = $officeItems->where('cutoff', $cutoff);
+                    $totals = [];
                     foreach ($ids as $offset => $id) {
                         $item = $cutoffItems->firstWhere('employee_id', $id);
                         if (! $item && $batch) {
@@ -128,51 +140,56 @@ class ManagementPayrollExport
                         if (! $item) {
                             continue;
                         }
-                        $row = 11 + $offset;
-                        [$basicBefore, $absenceAmount] = $this->absenceAmounts($item);
-                        $values = [$this->sheetName($item->employee, $office), $item->employee->position, (float) $item->paid_days_basis, $cols[8] ? $basicBefore : $item->cutoff_basic, $item->total_ot_pay, $item->cutoff_transpo, $item->cutoff_rep, $item->cutoff_quarterly, $absenceAmount, $item->gross_pay, $item->total_deductions, $item->net_pay];
-                        foreach ($cols as $index => $col) {
-                            if ($col) {
-                                $this->put($doc, $col.$row, $values[$index]);
+                        $values = $this->rowValues($item, $blocks[$parts['grid']], $blocks[$parts['govt']], $this->sheetName($item->employee, $office), $cutoff);
+                        foreach ($parts as $kind => $index) {
+                            foreach ($blocks[$index] as $col => $header) {
+                                if (array_key_exists($header, $values[$kind])) {
+                                    $value = $values[$kind][$header];
+                                    $this->put($doc, self::letter($col).(self::FIRST_ROW + $offset), $value);
+                                    if (! is_string($value)) {
+                                        $totals[$col] = ($totals[$col] ?? 0) + $value;
+                                    }
+                                }
                             }
                         }
-                        $dedStart = $layout[$cutoff === 'first' ? 'first_ded' : 'second_ded'];
-                        $this->deductions($doc, $dedStart, $row, $item, $office);
-                        $ot = self::column($layout[$cutoff === 'first' ? 'ot_first' : 'ot_second']);
-                        foreach ([$this->sheetName($item->employee, $office), $item->weekday_ot_hours, $item->weekday_ot_pay, null, null, $this->sheetName($item->employee, $office), $item->weekend_ot_hours, $item->weekend_ot_pay] as $j => $value) {
-                            if ($value !== null) {
-                                $this->put($doc, self::letter($ot + $j).($layout['ot_row'] + $offset), $value);
+                        foreach ([0, 1] as $table) {
+                            [$col, $row] = $ot[($cutoff === 'first' ? 0 : 2) + $table];
+                            $hours = $table === 0 ? $item->weekday_ot_hours : $item->weekend_ot_hours;
+                            $pay = $table === 0 ? $item->weekday_ot_pay : $item->weekend_ot_pay;
+                            foreach ([$values['grid']['EMPLOYEE NAME'], (float) $hours, (float) $pay] as $j => $value) {
+                                $this->put($doc, self::letter($col + $j).($row + 2 + $offset), $value);
                             }
+                        }
+                        foreach ($values['journal'] as $key => $amount) {
+                            $sums[$key] = ($sums[$key] ?? 0) + $amount;
                         }
                     }
-                    $totalRow = 11 + $layout['capacity'];
                     if ($batch) {
-                        $this->signOff($doc, $office, $cutoff, $signatories[$cutoff] ?? [], $people);
-                        $this->put($doc, $cols[0].$totalRow, 'TOTAL');
-                        foreach ([9 => 'gross_pay', 10 => 'total_deductions', 11 => 'net_pay'] as $j => $field) {
-                            $this->put($doc, $cols[$j].$totalRow, round($cutoffItems->sum($field), 2));
+                        foreach ($totals as $col => $total) {
+                            $this->put($doc, self::letter($col).(self::FIRST_ROW + self::CAPACITY), round($total, 2));
                         }
-                        $aggregate = $this->aggregate($cutoffItems);
-                        $dedStart = $layout[$cutoff === 'first' ? 'first_ded' : 'second_ded'];
-                        $this->deductions($doc, $dedStart, $totalRow, $aggregate, $office);
                     }
                 }
-                $this->deductions($doc, $layout['monthly'], 11 + $layout['capacity'], $this->aggregate($officeItems), $office);
-                foreach ($ids as $offset => $id) {
-                    $employeeItems = $officeItems->where('employee_id', $id);
-                    $combined = new PayrollItem;
-                    $combined->setRelation('employee', $employeeItems->first()->employee);
-                    foreach (array_merge(OfficePayrollCalculator::DEDUCTIONS, ['tardiness_deduction', 'total_deductions']) as $field) {
-                        $combined->{$field} = round($employeeItems->sum($field), 2);
+                // Grid sign-offs sit left of the 1st govt table; in each pair the right half is the 2nd cutoff.
+                foreach ($texts as $address => $text) {
+                    if (preg_match('/^\{\{(prepared|certified|approved)\}\}$/', $text, $marker)) {
+                        $col = self::split($address)[0];
+                        $second = $col < array_key_first($blocks[2]) ? $col >= array_key_first($blocks[1]) : $col >= $ot[2][0];
+                        $cutoff = $second ? 'second' : 'first';
+                        $person = $batches->firstWhere('cutoff', $cutoff) ? $people->get($signatories[$cutoff][$marker[1]] ?? null) : null;
+                        $this->put($doc, $address, $person?->full_name);
                     }
-                    $this->deductions($doc, $layout['monthly'], 11 + $offset, $combined, $office);
                 }
-                $this->journal($doc, $office, $officeItems);
+                $sums = array_map(fn (float|int $sum): float => round($sum, 2), $sums);
+                $this->journal($doc, $texts, $sums);
+                foreach ($sums as $key => $sum) {
+                    $month[$key] = round(($month[$key] ?? 0) + $sum, 2);
+                }
                 $detail = self::DETAIL_ROW;
                 $this->put($doc, 'B'.($detail - 2), 'Status: '.$batches->map(fn ($p) => $p->cutoff.' cutoff '.$p->status)->implode(', ').'. Saved figures only; gross includes entered holiday pay. Interest income from loans is not split by the system.');
                 $this->put($doc, 'B'.($detail - 1), 'Supplemental detail (amounts without a dedicated column in the original layout). Not part of the printed payroll.');
-                $headers = ['Employee ID', 'Employee', 'Cutoff', 'Paid days basis', 'Absence days', 'Transport', 'Representation', 'Quarterly', 'Weekday OT', 'Rest day OT', 'Savings', 'Other deductions', 'Tardiness', 'Cash advance', 'Holiday pay', 'Late minutes'];
-                foreach ($headers as $j => $header) {
+                $detailHeaders = ['Employee ID', 'Employee', 'Cutoff', 'Paid days basis', 'Absence days', 'Transport', 'Representation', 'Quarterly', 'Weekday OT', 'Rest day OT', 'Savings', 'Other deductions', 'Tardiness', 'Cash advance', 'Holiday pay', 'Late minutes'];
+                foreach ($detailHeaders as $j => $header) {
                     $this->put($doc, self::letter(2 + $j).$detail, $header);
                 }
                 foreach ($officeItems->values() as $offset => $item) {
@@ -181,33 +198,27 @@ class ManagementPayrollExport
                         $this->put($doc, self::letter(2 + $j).($detail + 1 + $offset), $value);
                     }
                 }
-                $zip->addFromString('xl/worksheets/sheet'.$layout['sheet'].'.xml', $doc->saveXML());
+                $zip->addFromString('xl/worksheets/sheet'.$sheet.'.xml', $doc->saveXML());
             }
             $voucher = $this->document($zip->getFromName('xl/worksheets/sheet5.xml'));
             $monthEnd = $selected->period_from->copy()->endOfMonth()->format('n/j/Y');
-            foreach (self::VOUCHER_TEXT as $cell => $text) {
-                $this->put($voucher, $cell, $text);
+            foreach (['I12', 'B15', 'C34'] as $cell) {
+                $this->put($voucher, $cell, $monthEnd);
             }
-            $this->put($voucher, 'I12', $monthEnd);
-            $this->put($voucher, 'B15', $monthEnd);
-            foreach (self::VOUCHER_CODES as $row => $code) {
-                $this->put($voucher, 'G'.$row, $code);
+            $this->put($voucher, 'H15', $month['gross'] ?? 0.0);
+            // The voucher has no cash-advance or other-income row: book them with savings (row 25) so it balances.
+            $month['savings_other'] = round(($month['savings'] ?? 0) + ($month['cash'] ?? 0) + ($month['other'] ?? 0), 2);
+            if (($month['cash'] ?? 0) + ($month['other'] ?? 0) > 0) {
+                $this->put($voucher, 'D25', '      Savings Deposit / Advances / Other Income');
             }
-            $this->put($voucher, 'H15', round($items->sum('gross_pay'), 2));
-            // Interest income (row 22) and Employees' Benefit stay for manual entry; the system stores one loan amount.
-            $credits = [16 => 'tax_deduction', 17 => 'sss_deduction', 18 => 'philhealth_deduction', 19 => 'pagibig_deduction', 20 => 'capital_contribution_deduction', 21 => 'loan_deduction', 23 => 'rental_deduction', 24 => 'savings_deduction', 26 => 'net_pay'];
-            foreach ($credits as $row => $field) {
-                $this->put($voucher, 'I'.$row, round($items->sum($field), 2));
+            $credits = [16 => 'tax', 17 => 'sss', 18 => 'philhealth', 19 => 'pagibig', 20 => 'cc', 21 => 'loan', 22 => 'zero', 23 => 'rental', 24 => 'tardiness_absent', 25 => 'savings_other', 26 => 'zero', 27 => 'net'];
+            foreach ($credits as $row => $key) {
+                $this->put($voucher, 'I'.$row, $month[$key] ?? 0.0);
             }
-            $otherIncome = round($items->sum('other_deductions') + $items->sum('tardiness_deduction') + $items->sum('cash_advance_deduction'), 2);
-            if ($otherIncome > 0) {
-                $this->put($voucher, 'D25', '      Other Income / Advances to Officers & Employees');
-            }
-            $this->put($voucher, 'I25', $otherIncome);
-            $this->put($voucher, 'H27', round($items->sum('gross_pay'), 2));
-            $this->put($voucher, 'I27', round($items->sum('total_deductions') + $items->sum('net_pay'), 2));
-            $this->put($voucher, 'D27', 'To record salaries and wages for the month of '.$selected->period_from->format('F Y'));
-            foreach (['prepared' => 'C30', 'certified' => 'D30', 'approved' => 'H30'] as $role => $cell) {
+            $this->put($voucher, 'H28', $month['gross'] ?? 0.0);
+            $this->put($voucher, 'I28', round(array_sum(array_map(fn (string $key): float => $month[$key] ?? 0.0, $credits)), 2));
+            $this->put($voucher, 'D28', 'To record salaries and wages for the month of '.$selected->period_from->format('F Y'));
+            foreach (['prepared' => 'C31', 'certified' => 'D31', 'approved' => 'H31'] as $role => $cell) {
                 $person = $people->get($signatories[$selected->cutoff][$role] ?? null);
                 if ($person) {
                     $this->put($voucher, $cell, mb_strtoupper($person->full_name));
@@ -217,31 +228,7 @@ class ManagementPayrollExport
             $book = $this->document($zip->getFromName('xl/workbook.xml'));
             $xpath = new DOMXPath($book);
             $xpath->registerNamespace('s', self::NS);
-            $sheets = $xpath->query('//s:sheet');
-            $sheets->item(4)->setAttribute('name', strtoupper($selected->period_from->format('F Y')).' VOUCHER');
-            // Print the same first/second-cutoff blocks, then the deductions/detail block.
-            $definedNames = $xpath->query('//s:definedNames')->item(0);
-            foreach (iterator_to_array($xpath->query('//s:definedName[@name="_xlnm.Print_Area"]')) as $oldName) {
-                $oldName->parentNode->removeChild($oldName);
-            }
-            if (! $definedNames) {
-                $definedNames = $book->createElementNS(self::NS, 'definedNames');
-                $book->documentElement->insertBefore($definedNames, $xpath->query('//s:calcPr')->item(0));
-            }
-            foreach (range(0, 4) as $index) {
-                $name = $book->createElementNS(self::NS, 'definedName');
-                $name->setAttribute('name', '_xlnm.Print_Area');
-                $name->setAttribute('localSheetId', (string) $index);
-                $definedNames->appendChild($name);
-                $sheetName = $sheets->item($index)->getAttribute('name');
-                $name->nodeValue = "'".$sheetName."'!".match ($index) {
-                    0 => '$B$1:$M$20,\''.$sheetName.'\'!$O$1:$Y$20,\''.$sheetName.'\'!$AB$1:$BH$33',
-                    1 => '$B$1:$M$19,\''.$sheetName.'\'!$O$1:$Z$19,\''.$sheetName.'\'!$AC$1:$BI$29',
-                    2 => '$B$1:$J$19,\''.$sheetName.'\'!$L$1:$S$19,\''.$sheetName.'\'!$X$1:$BD$29',
-                    3 => '$B$1:$M$21,\''.$sheetName.'\'!$O$1:$Z$21,\''.$sheetName.'\'!$AC$1:$BJ$32',
-                    default => '$B$3:$I$33',
-                };
-            }
+            $xpath->query('//s:sheet')->item(4)->setAttribute('name', strtoupper($selected->period_from->format('F Y')).' VOUCHER');
             $zip->addFromString('xl/workbook.xml', $book->saveXML());
             if (! $zip->close()) {
                 throw new \RuntimeException('Could not finish the payroll export.');
@@ -259,15 +246,41 @@ class ManagementPayrollExport
         }
     }
 
-    private function aggregate(Collection $items): PayrollItem
+    /** One employee's cutoff row keyed by header (grid, deduction table, govt source table) plus journal amounts. */
+    private function rowValues(PayrollItem $item, array $grid, array $govtHeaders, string $name, string $cutoff): array
     {
-        $item = new PayrollItem;
-        $item->setRelation('employee', new Employee(['first_name' => '', 'last_name' => '']));
-        foreach (array_merge(OfficePayrollCalculator::DEDUCTIONS, ['tardiness_deduction', 'total_deductions']) as $field) {
-            $item->{$field} = round($items->sum($field), 2);
+        $field = fn (string $key): float => (float) $item->{$key};
+        $absence = $field('absence_deduction');
+        $gridNpw = in_array('NPW- HOLIDAY', $grid, true) ? $field('nwnp_deduction') : 0.0;
+        $gridAbsent = in_array('ABSENT', $grid, true) ? round($absence - $gridNpw, 2) : 0.0;
+        $tableAbsent = round($absence - $gridNpw - $gridAbsent, 2);
+        $basic = $item->basic_before_absence !== null ? $field('basic_before_absence') : round($field('cutoff_basic') + $absence, 2);
+        $overtime = round($field('total_ot_pay') + $field('holiday_pay'), 2);
+        $allowances = $field('cutoff_transpo') + $field('cutoff_rep') + $field('cutoff_quarterly');
+        $gross = round($basic + $overtime + $allowances - $gridNpw - $gridAbsent, 2);
+        $deductions = round($field('total_deductions') + $tableAbsent, 2);
+        $net = $field('net_pay');
+        if (abs(round($gross - $deductions - $net, 2)) > 0.01) {
+            $this->reject("The saved {$cutoff} cutoff item for {$name} does not balance: gross {$gross} minus deductions {$deductions} is not the net pay {$net}. Re-save that payroll before exporting.");
+        }
+        $pesos = array_map($field, ['W/H TAX' => 'tax_deduction', 'SSS' => 'sss_deduction', 'PHILHEALTH' => 'philhealth_deduction', 'PAGIBIG' => 'pagibig_deduction', 'LOAN' => 'loan_deduction', 'CC' => 'capital_contribution_deduction', 'SAVINGS' => 'savings_deduction', 'CASH ADVANCE' => 'cash_advance_deduction', 'RENTAL' => 'rental_deduction']);
+        // HR types monthly figures in the govt source table: government shares as deducted, the rest twice the cutoff amount.
+        $govt = [];
+        foreach ($pesos as $header => $amount) {
+            $govt[$header] = in_array($header, ['SSS', 'PHILHEALTH', 'PAGIBIG'], true) ? $amount : round($amount * 2, 2);
         }
 
-        return $item;
+        return [
+            'grid' => ['EMPLOYEE NAME' => $name, 'POSITION' => mb_strtoupper((string) $item->employee->position), 'DAYS OF WORK' => $field('days_present'), 'BASIC PAY' => $basic,
+                'OVERTIME PAY' => $overtime, 'TRANSPO ALLOW' => $field('cutoff_transpo'), 'REP ALLOW' => $field('cutoff_rep'), 'QUART ALLOW' => $field('cutoff_quarterly'),
+                'NPW- HOLIDAY' => $gridNpw, 'ABSENT' => $gridAbsent, 'GROSS PAY' => $gross, 'DEDUCTIONS' => $deductions, 'NET PAY' => $net],
+            'ded' => ['EMPLOYEE NAME' => $name] + $pesos + ['TARDINESS' => $field('tardiness_deduction'), 'ABSENT' => $tableAbsent, 'TOTAL DEDUCTIONS' => $deductions],
+            'govt' => ['EMPLOYEE NAME' => $name] + $govt + ['ABSENT' => $field('absence_days'), 'TARDINESS' => $field('tardiness_minutes'),
+                'TOTAL DEDUCTIONS' => round(array_sum(array_intersect_key($govt, array_flip($govtHeaders))), 2)],
+            'journal' => ['gross' => $gross, 'tax' => $pesos['W/H TAX'], 'sss' => $pesos['SSS'], 'philhealth' => $pesos['PHILHEALTH'], 'pagibig' => $pesos['PAGIBIG'],
+                'loan' => $pesos['LOAN'], 'cc' => $pesos['CC'], 'rental' => $pesos['RENTAL'], 'tardiness_absent' => $tableAbsent + $field('tardiness_deduction'),
+                'savings' => $pesos['SAVINGS'], 'cash' => $pesos['CASH ADVANCE'], 'other' => $field('other_deductions'), 'net' => $net],
+        ];
     }
 
     private function exportOffice(PayrollItem $item): string
@@ -281,79 +294,11 @@ class ManagementPayrollExport
     {
         $item = new PayrollItem;
         $item->setRelation('employee', $employee);
-        foreach (array_merge(OfficePayrollCalculator::DEDUCTIONS, ['paid_days_basis', 'absence_days', 'cutoff_basic', 'basic_before_absence', 'absence_deduction', 'cutoff_transpo', 'cutoff_rep', 'cutoff_quarterly', 'weekday_ot_hours', 'weekday_ot_pay', 'weekend_ot_hours', 'weekend_ot_pay', 'total_ot_pay', 'gross_pay', 'tardiness_deduction', 'total_deductions', 'net_pay']) as $field) {
+        foreach (array_merge(OfficePayrollCalculator::DEDUCTIONS, ['paid_days_basis', 'days_present', 'absence_days', 'nwnp_deduction', 'holiday_pay', 'tardiness_minutes', 'cutoff_basic', 'basic_before_absence', 'absence_deduction', 'cutoff_transpo', 'cutoff_rep', 'cutoff_quarterly', 'weekday_ot_hours', 'weekday_ot_pay', 'weekend_ot_hours', 'weekend_ot_pay', 'total_ot_pay', 'gross_pay', 'tardiness_deduction', 'total_deductions', 'net_pay']) as $field) {
             $item->{$field} = 0;
         }
 
         return $item;
-    }
-
-    private function absenceAmounts(PayrollItem $item): array
-    {
-        if ($item->basic_before_absence !== null && $item->absence_deduction !== null) {
-            return [$item->basic_before_absence, $item->absence_deduction];
-        }
-        $paid = (float) $item->paid_days_basis;
-        $absence = (float) $item->absence_days;
-        if ($absence === 0.0) {
-            return [$item->cutoff_basic, 0.0];
-        }
-        if ($paid <= $absence) {
-            $this->reject('An older item with all paid days absent has no absence-amount snapshot. Verify that payroll before using the original-format export.');
-        }
-        $basic = round($item->cutoff_basic / ($paid - $absence) * $paid, 2);
-
-        return [$basic, round($basic - $item->cutoff_basic, 2)];
-    }
-
-    private function signOff(DOMDocument $doc, string $office, string $cutoff, array $roles, Collection $people): void
-    {
-        $nameRow = match ($office) {
-            'cubao' => 20, 'main_office' => 19, default => 18,
-        };
-        $columns = $cutoff === 'first'
-            ? ($office === 'gen_mdse' ? ['B', 'E', 'H'] : ['B', 'F', 'K'])
-            : match ($office) {
-                'main_office' => ['O', 'Q', 'W'], 'fort_magsaysay', 'cubao' => ['O', 'R', 'X'], 'gen_mdse' => ['L', 'O', 'R']
-            };
-        $otColumns = match ($office) {
-            'main_office' => $cutoff === 'first' ? ['AM', 'AQ', 'AU'] : ['AX', 'BB', 'BF'],
-            'fort_magsaysay' => $cutoff === 'first' ? ['AN', 'AR', 'AV'] : ['AY', 'BC', 'BG'],
-            'gen_mdse' => $cutoff === 'first' ? ['AI', 'AM', 'AQ'] : ['AT', 'AX', 'BB'],
-            'cubao' => $cutoff === 'first' ? ['AO', 'AS', 'AW'] : ['AZ', 'BD', 'BH'],
-        };
-        $otRow = match ($office) {
-            'main_office' => 30, 'cubao' => 29, default => 27,
-        };
-        foreach (['prepared', 'certified', 'approved'] as $index => $role) {
-            $person = $people->get($roles[$role] ?? null);
-            if ($person) {
-                foreach ([[$columns[$index], $nameRow], [$otColumns[$index], $otRow]] as [$column, $row]) {
-                    $this->put($doc, $column.$row, $person->full_name);
-                }
-            }
-        }
-    }
-
-    private function deductions(DOMDocument $doc, string $start, int $row, PayrollItem $item, string $office): void
-    {
-        $cubao = $office === 'cubao';
-        $fields = ['tax_deduction', 'sss_deduction', 'philhealth_deduction', 'pagibig_deduction', 'loan_deduction', 'capital_contribution_deduction'];
-        if ($cubao && $start === 'AC') {
-            $fields = array_merge($fields, ['savings_deduction', 'cash_advance_deduction', 'rental_deduction', 'total_deductions']);
-        } else {
-            $fields = array_merge($fields, [$cubao ? 'savings_deduction' : 'cash_advance_deduction', 'rental_deduction']);
-            if (in_array($start, ['AX', 'AY', 'AT', 'AZ'], true)) {
-                $fields[] = 'tardiness_deduction';
-            }
-            $fields[] = 'total_deductions';
-        }
-        $column = self::column($start);
-        $name = $this->sheetName($item->employee, $office);
-        $this->put($doc, $start.$row, $name !== '' ? $name : null);
-        foreach ($fields as $j => $field) {
-            $this->put($doc, self::letter($column + $j + 1).$row, (float) $item->{$field});
-        }
     }
 
     /** Names as the original sheets write them: "LAST, FIRST M." on Main Office and Cubao, "FIRST M. LAST" elsewhere. */
@@ -373,31 +318,56 @@ class ManagementPayrollExport
         return mb_strtoupper($name);
     }
 
-    /** Monthly journal entry beside each office payroll, as laid out in the original workbook. */
-    private function journal(DOMDocument $doc, string $office, Collection $items): void
+    /** Month journal beside each office payroll: labels found by prefix, debit two columns right, credit three. */
+    private function journal(DOMDocument $doc, array $texts, array $sums): void
     {
-        $layout = self::JOURNAL[$office];
-        $sum = fn (string $field): float => round($items->sum($field), 2);
-        $rows = $layout['rows'];
-        $other = $sum('other_deductions') + $sum('tardiness_deduction') + ($layout['savings'] ? 0 : $sum('savings_deduction'));
-        $this->put($doc, $layout['debit'].$rows['gross'], $sum('gross_pay'));
-        foreach ($rows as $field => $row) {
-            if (! in_array($field, ['gross', 'other', 'total', 'benefit'], true)) {
-                $this->put($doc, $layout['credit'].$row, $sum($field));
+        $sums += ['zero' => 0.0, 'employer' => round(($sums['sss'] ?? 0) + ($sums['philhealth'] ?? 0) + ($sums['pagibig'] ?? 0), 2)];
+        $start = collect($texts)->filter(fn (string $text, string $address): bool => self::split($address)[1] > 17 && str_starts_with(mb_strtolower($text), 'salaries and wages'))->keys()->first();
+        if ($start === null) {
+            throw new \RuntimeException('The management template journal is not recognised.');
+        }
+        [$labelCol, $startRow] = self::split($start);
+        $entries = [];
+        foreach ($texts as $address => $text) {
+            [$col, $row] = self::split($address);
+            if ($col === $labelCol && $row >= $startRow) {
+                foreach (self::JOURNAL as $prefix => $key) {
+                    if (str_starts_with(mb_strtolower($text), $prefix)) {
+                        $entries[$row] = $key;
+                        break;
+                    }
+                }
             }
         }
-        $this->put($doc, $layout['credit'].$rows['other'], round($other, 2));
-        $this->put($doc, $layout['credit'].$rows['benefit'], 0);
-        $this->put($doc, $layout['debit'].$rows['total'], $sum('gross_pay'));
-        $this->put($doc, $layout['credit'].$rows['total'], round($sum('total_deductions') + $sum('net_pay'), 2));
-        if ($layout['employer'] !== null) {
-            // The original workbook records the employer share equal to the employee contributions.
-            $row = $layout['employer'];
-            $this->put($doc, $layout['debit'].$row, round($sum('sss_deduction') + $sum('philhealth_deduction') + $sum('pagibig_deduction'), 2));
-            foreach (['sss_deduction', 'philhealth_deduction', 'pagibig_deduction'] as $j => $field) {
-                $this->put($doc, $layout['credit'].($row + 1 + $j), $sum($field));
+        if (! in_array('savings', $entries, true)) {
+            // Sheets without a Savings Deposit line book savings as other income so the entry still balances.
+            $sums['other'] = round(($sums['other'] ?? 0) + ($sums['savings'] ?? 0), 2);
+        }
+        foreach ($entries as $row => $key) {
+            $debit = in_array($key, ['gross', 'employer'], true);
+            $this->put($doc, self::letter($labelCol + ($debit ? 2 : 3)).$row, $sums[$key] ?? 0.0);
+        }
+    }
+
+    /** Text of every inline-string cell, keyed by address. */
+    private function texts(DOMDocument $doc): array
+    {
+        $texts = [];
+        foreach ($doc->getElementsByTagName('c') as $cell) {
+            if ($cell->getAttribute('t') === 'inlineStr' && trim($cell->textContent) !== '') {
+                $texts[$cell->getAttribute('r')] = trim($cell->textContent);
             }
         }
+
+        return $texts;
+    }
+
+    /** @return array{int, int} column number and row of an A1 address */
+    private static function split(string $address): array
+    {
+        preg_match('/^([A-Z]+)(\d+)$/', $address, $parts);
+
+        return [self::column($parts[1]), (int) $parts[2]];
     }
 
     private function document(string|false $xml): DOMDocument
