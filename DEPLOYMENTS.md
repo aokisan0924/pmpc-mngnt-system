@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 11:34 — 3f282d0 — UI polish phases and message box fixes
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `6411dd4` → `3f282d0` (includes `abfeec0` docs-only and `fa6034a`)
+- Migrations: none
+- Backup: none (front-end only; no database records or schema changed)
+- Data changes: none on live. Locally only, the scratch database `taskboard-preview.sqlite` got a test password on one employee, a test due ("UI test water bill") and its November line's date trimmed to `2026-11-05`.
+- Verified: a fresh reviewer read the diff (verdict: ship with fixes); its findings 1 to 6 were fixed in `3f282d0`. Locally: build passed, 27 of 27 JS tests, 373 of 378 PHP tests (the 5 signature tests need GD, missing on this machine); Dues Undo payment and Stop → Undo restored the same data with a single message; a Settings save showed one message and none after two background refreshes. On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `3f282d0`, new bundle `app-Cezri_8a.js`. In Chrome as Kurt (read only): 15 pages load with the page header first and no errors, small text is 11.2px, no stray messages during 45 seconds of background refreshes. No save was done on live this time.
+
 ## 2026-11-12 11:09 — 6411dd4 — One message box for save results, errors and empty lists
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `a346156` → `6411dd4` (includes the docs-only commit `37540a0`)
