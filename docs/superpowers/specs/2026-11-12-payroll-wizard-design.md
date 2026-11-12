@@ -134,3 +134,8 @@ A step bar ("1 Cutoff · 2 DTR check · 3 OT & allowances · 4 Confirm") sits at
   (Cubao); the two Ferias keep ₱1,000. A data change logged in `DEPLOYMENTS.md`, not part of the build.
 - Legal check for the owner's accountant: Philippine labor law usually treats hours past 8 in a day as
   overtime with a premium; the 12-hour flat rate for the Gen Mdse staff should be confirmed.
+
+## Change after plan review (owner, 2026-11-12)
+
+Holidays stay inside the cutoff dates (Nov 2026 1st cutoff = Nov 2–13). A holiday not worked is NWNP
+(no work, no pay): it counts in DAYS OF WORK and its pay shows in ABSENT, labelled NWNP on screen.

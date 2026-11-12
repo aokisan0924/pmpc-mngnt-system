@@ -22,8 +22,8 @@
 
 ## Decisions this plan takes (the spec left them open)
 
-1. **Each DTR day belongs to exactly one cutoff.** A cutoff's DTR window runs from the day after the previous cutoff's `period_to` through this cutoff's `period_to`. Example: Nov 2026 1st cutoff is labelled Nov 3–13, window Oct 31–Nov 13 (Oct 2nd cutoff ends Fri Oct 30). Gen Mdse staff are paid for every day they work and no day is counted twice; Mon–Fri staff get the same days as the label. This makes "save after the cutoff's last day" safe for everyone.
-2. **A counted day** = a scheduled work day (`Employee::isWorkDay`) on or after `Employee::startDateFor`, that is not a `holidays` date, plus any holiday that has DTR hours > 0. Days of work = count of counted days.
+1. **Each DTR day belongs to exactly one cutoff.** A cutoff's DTR window runs from the day after the previous cutoff's `period_to` through this cutoff's `period_to`. Example: Nov 2026 1st cutoff is labelled Nov 2–13, window Oct 31–Nov 13 (Oct 2nd cutoff ends Fri Oct 30). Gen Mdse staff are paid for every day they work and no day is counted twice; Mon–Fri staff get the same days as the label. This makes "save after the cutoff's last day" safe for everyone.
+2. **A counted day** = a scheduled work day (`Employee::isWorkDay`) on or after `Employee::startDateFor`. Holidays on a work day ARE counted (owner, 2026-11-12: "still include Nov 2"); not worked = NWNP (no work, no pay), so the day's pay lands in ABSENT with `holiday: true` so the screen can label it NWNP. Days of work = count of counted days.
 3. **Per-day pay** = `daily_rate × min(worked_hours, shift_hours) / shift_hours`, rounded at the total. Basic before absence = counted days × daily rate. Absence = basic before absence − Σ per-day pay.
 4. **Hourly rate for OT** = `daily_rate / shift_hours` of the last counted day (8 if none). Weekday OT × 1.25, rest-day OT × 1.30.
 5. **Withholding tax:** full `employees.tax_deduction` on the 1st cutoff, 0 on the 2nd (spec: "SSS, PhilHealth, Pag-IBIG and withholding tax on the 1st cutoff only"; today's code halves it per cutoff — owner to confirm at plan review).
@@ -48,13 +48,13 @@
 
 **Interfaces:**
 - Produces:
-  - `PayrollCutoffPeriod::suggest(string $month, string $cutoff): array{from: CarbonImmutable, to: CarbonImmutable}` — `$month` is `Y-m`, `$cutoff` `first|second`. First work day on/after the 1st (16th) to last work day on/or before the 15th (month end); work day = Mon–Fri not in `holidays`.
+  - `PayrollCutoffPeriod::suggest(string $month, string $cutoff): array{from: CarbonImmutable, to: CarbonImmutable}` — `$month` is `Y-m`, `$cutoff` `first|second`. First weekday on/after the 1st (16th) to last weekday on/or before the 15th (month end). Holidays are NOT skipped (owner: include Nov 2, shown as NWNP).
   - `PayrollCutoffPeriod::window(string $month, string $cutoff, CarbonInterface $to): array{from: CarbonImmutable, to: CarbonImmutable}` — `from` = day after the previous cutoff's `suggest()['to']`.
   - `PayrollCutoffPeriod::withinHalf(CarbonInterface $from, CarbonInterface $to, string $month, string $cutoff): bool` — both dates in that month half, `from <= to`.
   - `PayrollCutoffPeriod::canSaveOn(CarbonInterface $to, CarbonInterface $today): bool` — `$today > $to` by date.
 
 - [ ] **Step 1: Write failing tests**
-  - `test_november_first_cutoff_skips_holiday_and_weekend`: with `Holiday::create(['date'=>'2026-11-02','name'=>"All Soul's Day",'type'=>'special'])`, `suggest('2026-11','first')` → from `2026-11-03`, to `2026-11-13`.
+  - `test_november_first_cutoff_keeps_holiday_and_skips_weekend`: with `Holiday::create(['date'=>'2026-11-02','name'=>"All Soul's Day",'type'=>'special'])`, `suggest('2026-11','first')` → from `2026-11-02`, to `2026-11-13` (holiday kept, weekend Nov 1/14/15 skipped).
   - `test_second_cutoff_ends_on_last_weekday`: `suggest('2026-10','second')` → `2026-10-16`, `2026-10-30`.
   - `test_window_starts_after_previous_cutoff`: `window('2026-11','first', 2026-11-13)` → from `2026-10-31`; `window('2026-11','second', 2026-11-30)` → from `2026-11-14` (with the Nov 2 holiday row).
   - `test_within_half_rejects_dates_outside_or_reversed`: `withinHalf(11-03, 11-13, '2026-11','first')` true; `(11-03, 11-16)` false; `(11-13, 11-03)` false.
@@ -101,8 +101,8 @@
   - `absent` / no log → worked 0, not unresolved.
 
 - [ ] **Step 1: Write failing tests** (all with `Carbon::setTestNow('2026-11-14 08:00:00')`):
-  - `test_hours_are_capped_at_shift_and_holiday_is_skipped`: Mon–Fri employee, logs Nov 3–13 with `hours_rendered` 8 except Nov 4 = 6 and Nov 5 = 9; Nov 2 holiday → `days_of_work` 9, Nov 4 worked 6.0, Nov 5 worked 8.0, no `2026-11-02` entry.
-  - `test_gen_mdse_two_punch_counts_weekends_in_window`: two_punch 06:00–18:00 row, `work_days` all 7, logs Oct 31–Nov 13 with 12.18 h → every day 12.0, `days_of_work` 13 (Nov 2 holiday not worked → skipped).
+  - `test_hours_are_capped_at_shift_and_holiday_is_skipped`: Mon–Fri employee, logs Nov 3–13 with `hours_rendered` 8 except Nov 4 = 6 and Nov 5 = 9; Nov 2 holiday with no log → `days_of_work` 10, Nov 2 entry `holiday: true` worked 0.0, Nov 4 worked 6.0, Nov 5 worked 8.0.
+  - `test_gen_mdse_two_punch_counts_weekends_in_window`: two_punch 06:00–18:00 row, `work_days` all 7, logs Oct 31–Nov 13 with 12.18 h → every day 12.0 except Nov 2 (no log, holiday, 0.0), `days_of_work` 14.
   - `test_missing_punch_is_unresolved_until_resolved`: Nov 11 log `am_time_in` only, status `missing_out` → in `unresolved_dates`; with resolution `['type'=>'hours','hours'=>14,'note'=>'Forgot to clock out']` → worked 8.0 source `typed`; with `['type'=>'zero']` → 0.0 source `zero`, not unresolved.
   - `test_days_before_hire_are_not_counted`: `date_hired 2026-11-09` → `days_of_work` 5.
 - [ ] **Step 2: Run** `php artisan test --filter=DtrPayrollAttendanceCalculatorTest` — Expected: new tests FAIL.
@@ -127,6 +127,7 @@
 - JS: export `calculateHoursItem(item)` that mirrors the same formulas from `item.days` + typed inputs; delete `calculateOfficeItem`/`tardinessFor` in Task 6 with their last caller.
 
 - [ ] **Step 1: Write failing tests**
+  - `test_holiday_not_worked_is_nwnp_in_absent`: daily 600, 10 counted days (one holiday, 0 h), 9 × 8 h → `basic_before_absence` 6000.00, `absence_deduction` 600.00, `cutoff_basic` 5400.00.
   - `test_mariel_example`: daily 600, 9 counted days of 8 h shift, two with 0 h → `basic_before_absence` 5400.00, `absence_deduction` 1200.00, `cutoff_basic` 4200.00, `paid_days_basis` 9.0, `absence_days` 2.0.
   - `test_violie_is_fifty_per_hour`: daily 600, 11 days at 12 h shift, all 12 h → `cutoff_basic` 6600.00; one day 6 h → 6300.00; 2 weekday OT h → `weekday_ot_pay` 125.00 (50 × 1.25 × 2).
   - `test_typed_allowances_are_used_and_profile_allowances_ignored`: employee `transpo_allowance` 1000, input `cutoff_transpo` 0 → 0.00; input 750 → 750.00 and in `gross_pay`.
@@ -171,7 +172,7 @@
 - Page behaviour (spec "The four steps"): step bar; step 2 lists unresolved days with **Fix DTR** (opens `/admin/dtr/<employee>?date=` in a new tab — use the existing admin DTR route; grep `routes/web.php`), **Type hours** (+ note), **Count as 0 hours**, and a **Refresh DTR** button (`router.reload({ only: ['employees'] })`, keeps typed state); Next disabled until each unresolved day has hours or zero. Step 3 renders the Excel-look grid from `excel-look-v2.html` (office tabs, MANAGEMENT PAYROLL table, GOVT & OTHER DEDUCTIONS table, OT tables, signatories, yellow = inputs). Step 4 reloads `employees`, lists names whose `days` changed since step 2, shows totals, and two buttons **Save draft** / **Save & finalize** (confirm dialog "This can't be undone"), both disabled with "You can save after <save_after>" when `!can_save`.
 
 - [ ] **Step 1: Write failing feature tests** (`Carbon::setTestNow` in Asia/Manila):
-  - `test_create_prefills_november_dates_and_skips_holiday` → props `period_from 2026-11-03`, `period_to 2026-11-13`, `skipped` contains `2026-11-02` holiday.
+  - `test_create_prefills_november_dates_and_marks_holiday_nwnp` → props `period_from 2026-11-02`, `period_to 2026-11-13`, `holidays` contains `2026-11-02` labelled NWNP.
   - `test_save_is_refused_before_cutoff_ends` (now `2026-11-13 18:00`) → error on `period_to` "You can save after Fri, Nov 13."; at `2026-11-14 00:00` → redirect to show.
   - `test_store_recomputes_hours_and_ignores_client_money` (post `cutoff_basic` 999999 in an item → saved value from DTR).
   - `test_unresolved_day_requires_a_choice` then passes with `zero`.
