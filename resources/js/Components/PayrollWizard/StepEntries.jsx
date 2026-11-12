@@ -48,35 +48,35 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                         <p className="mb-1 text-center text-sm font-bold text-black dark:text-white">{period_title}</p>
                         <table className="w-full border-collapse text-xs">
                             <thead>
-                                <tr>{['Employee name', 'Position', 'Days of work', 'Basic pay', 'Overtime pay', 'Absent', 'Transpo allow', 'Rep allow', 'Quart allow', 'Gross pay', 'Deductions', 'Net pay'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
+                                <tr>{['Employee name', 'Position', 'Days of work', 'Basic pay', 'Overtime pay', 'Transpo allow', 'Rep allow', 'Quart allow', 'NPW- Holiday', 'Gross pay', 'Deductions', 'Net pay'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
                             </thead>
                             <tbody>
                                 {visible.map((row) => (
                                     <tr key={row.id}>
                                         <td className={name}>{row.sheet_name}</td>
                                         <td className={`${td} !text-left !whitespace-normal min-w-[150px]`}>{row.position}</td>
-                                        <td className={td}>{row.days_of_work}</td>
+                                        <td className={td}>{row.days_present}</td>
                                         <td className={td}>{peso(row.basic_before_absence)}</td>
-                                        <td className={td}>{peso(row.total_ot_pay)}</td>
-                                        <td className={td} title={row.days.some((day) => day.holiday && !day.worked_hours) ? 'Includes NWNP holiday' : undefined}>{peso(row.absence_deduction)}</td>
+                                        <td className={td} title={Number(row.holiday_pay) ? 'Includes the typed holiday premium, as in the Excel' : undefined}>{peso(Number(row.total_ot_pay) + Number(row.holiday_pay || 0))}</td>
                                         <Cell label={`Transport allowance for ${row.full_name}`} value={row.cutoff_transpo} onChange={(value) => setTyped(row.id, 'cutoff_transpo', value)} error={err(row, 'cutoff_transpo')} />
                                         <Cell label={`Representation allowance for ${row.full_name}`} value={row.cutoff_rep} onChange={(value) => setTyped(row.id, 'cutoff_rep', value)} error={err(row, 'cutoff_rep')} />
                                         <Cell label={`Quarterly allowance for ${row.full_name}`} value={row.cutoff_quarterly} onChange={(value) => setTyped(row.id, 'cutoff_quarterly', value)} error={err(row, 'cutoff_quarterly')} />
-                                        <td className={strong}>{peso(row.gross_pay)}</td>
-                                        <td className={td}>{peso(row.total_deductions)}</td>
+                                        <td className={td} title="Holiday not worked: no work, no pay">{peso(row.nwnp_deduction)}</td>
+                                        <td className={strong}>{peso(row.sheet_gross)}</td>
+                                        <td className={td}>{peso(row.sheet_deductions)}</td>
                                         <td className={`${strong} ${row.net_pay < 0 ? '!text-rose-700 dark:!text-rose-400' : ''}`} title={row.net_pay < 0 ? 'Net pay is below zero' : undefined}>{row.net_pay < 0 ? `(${peso(-row.net_pay)})` : peso(row.net_pay)}</td>
                                     </tr>
                                 ))}
-                                <tr><td colSpan={9} className={total}>TOTAL</td><td className={total}>{peso(sum(visible, 'gross_pay'))}</td><td className={total}>{peso(sum(visible, 'total_deductions'))}</td><td className={total}>{peso(sum(visible, 'net_pay'))}</td></tr>
+                                <tr><td colSpan={9} className={total}>TOTAL</td><td className={total}>{peso(sum(visible, 'sheet_gross'))}</td><td className={total}>{peso(sum(visible, 'sheet_deductions'))}</td><td className={total}>{peso(sum(visible, 'net_pay'))}</td></tr>
                             </tbody>
                         </table>
-                        {holidays.length > 0 && <p className="mt-1 text-xs text-black dark:text-slate-300">ABSENT includes NWNP: {holidays.map((holiday) => holiday.label).join(', ')}.</p>}
+                        {holidays.length > 0 && <p className="mt-1 text-xs text-black dark:text-slate-300">NPW- Holiday: {holidays.map((holiday) => holiday.label).join(', ')} (no work, no pay). Other absences, lates and early-outs are under ABSENT in the deductions.</p>}
                     </div>
                     <div className="shrink-0">
                         <p className="text-center text-base font-bold text-black dark:text-white">GOVT &amp; OTHER DEDUCTIONS</p>
                         <table className="mt-1 w-full border-collapse text-xs">
                             <thead>
-                                <tr>{['Employee name', 'W/H tax', 'SSS', 'PhilHealth', 'Pag-IBIG', 'Loan', 'CC', 'Cash advance', 'Rental', 'Total'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
+                                <tr>{['Employee name', 'W/H tax', 'SSS', 'PhilHealth', 'Pag-IBIG', 'Loan', 'CC', 'Cash advance', 'Absent', 'Rental', 'Total'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
                             </thead>
                             <tbody>
                                 {visible.map((row) => (
@@ -86,8 +86,9 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                         {[['loan_deduction', 'Loan'], ['capital_contribution_deduction', 'Capital contribution'], ['cash_advance_deduction', 'Cash advance']].map(([field, label]) => (
                                             <Cell key={field} label={`${label} for ${row.full_name}`} value={row.deductions[field]} onChange={(value) => deduction(row, field, value)} error={err(row, `deductions.${field}`)} />
                                         ))}
+                                        <td className={td}>{peso(row.other_absence)}</td>
                                         <td className={td}>{peso(row.deductions.rental_deduction)}</td>
-                                        <td className={strong}>{peso(row.total_deductions)}</td>
+                                        <td className={strong}>{peso(row.sheet_deductions)}</td>
                                     </tr>
                                 ))}
                             </tbody>

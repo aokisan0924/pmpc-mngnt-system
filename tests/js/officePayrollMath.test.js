@@ -35,3 +35,13 @@ test('office staff: fixed half month minus missing hours (Kurt, 800 x 22 / 2)', 
     assert.equal(row.absence_deduction, 1200)
     assert.equal(row.cutoff_basic, 7600)
 })
+
+test('October sheet: holiday in NPW- HOLIDAY, other absences in deductions, net unchanged', () => {
+    const row = calculateHoursItem(item({ daily_rate: 800, fixed_days: 11, days: days(8, [0, 8, 8, 8, 4, 8, 8, 8, 8, 8]).map((day, i) => ({ ...day, holiday: i === 0 })) }), true)
+    assert.equal(row.nwnp_deduction, 800)
+    assert.equal(row.other_absence, 400)
+    assert.equal(row.days_present, 9.5)
+    assert.equal(row.sheet_gross, 8000)
+    assert.equal(row.sheet_deductions, row.total_deductions + 400)
+    assert.equal(row.sheet_gross - row.sheet_deductions, row.net_pay)
+})
