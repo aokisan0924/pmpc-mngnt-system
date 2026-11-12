@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 16:55 — 9931963 — General Merchandise paid 30/31 days; profile basic pay
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `abaebea` → `9931963` (includes docs-only `d46aa93`): General Merchandise gets daily rate × the calendar days of each half month (1st–15th = 15; 16th–month end = 15 or 16) less missing hours; weekend relievers (custom schedules) stay on days worked; the employee profile's Compensation tab shows the matching monthly basic and rule text, and labels allowances as monthly.
+- Migrations: none
+- Backup: none (no schema or data change; no payroll batches exist on live)
+- Data changes: none on live. Locally only, Kurt's account on the `pmpc_live_preview` copy was used to view three profiles.
+- Verified: locally 413 of 418 PHP tests (5 GD-only), including a new test for 15 / 15 / 16 days (Nov 1st, Nov 2nd, Oct 2nd); build passed; on the local live-data copy the profiles show Kurt ₱17,600 (rate × 22), Violie ₱18,000 (rate × 30, this month), Ricalde "Days worked". On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `9931963`; the read-only Nov 1st-cutoff preview gives Violie R. Malana and John Roy C. Sibal 15 fixed days and Princess Kynna Ricalde days worked.
+
 ## 2026-11-12 16:35 — abaebea — NPW-HOLIDAY column on payroll step 3
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `892fa2e` → `abaebea` (includes docs-only `e30169f`): step 3 shows the October 2026 sheet layout — NPW- HOLIDAY column after QUART ALLOW for unworked holidays, other absences under ABSENT in the deductions table, DAYS OF WORK as days actually paid, the typed holiday premium shown with overtime. Saved amounts and net pay are unchanged.
