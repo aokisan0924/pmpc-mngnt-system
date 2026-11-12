@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Payroll step 3 has an "Overtime & holiday pay" panel at the top (approved weekday and rest-day overtime hours and the holiday premium for everyone) with an "Add a holiday" button for admins; the overtime tables under the sheet now just show the result.
+- A fourth signatory, "Noted by" (default Kurt Vincent F. Fariñas), on every sign-off block of the Excel and on the voucher; the export form has a Noted by picker.
 - Payroll runs has a "Make a mockup" button: the wizard opens in mockup mode (nothing can be saved), real DTR is used for past days and every remaining day up to the end date counts as present (holidays stay no work, no pay for office staff), and step 4 downloads the mockup Excel. It works even when the cutoff is already finalized.
 - Attendance records: DTR correctors get a "Correct a day" button on each employee's row. It opens the same correction form as the employee's DTR page, with a date picker that pre-fills that day's punches.
 - Payroll step 4 warns in red when anyone's net pay is below zero and lists who; step 3 shows that net pay in red brackets.
@@ -23,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Payroll step 3: the deductions table no longer overlaps the payroll table on narrower screens; the sheet scrolls sideways with roomier cells.
 
 ### Changed
+- Allowances on a new payroll start from each employee's monthly allowances, half per cutoff (as in the October 2026 payroll), and can still be changed.
+- Default signatories follow the October 2026 payroll: Prepared by Reynold D. Valdez, Certified Correct Katherine Sevilleno, Approved by Alexander L. Feria, Noted by Kurt Vincent F. Fariñas.
+- The voucher shows the October payee ("Alexander Feria et. al.") and a voucher number counted from October 2026 = 0017 (November 2026 = 0018).
 - Lates are a separate deduction again, with the October formula: daily rate ÷ 8 ÷ 60 × minutes late (minutes counted from shift start after the grace period, overnight shifts included). The late minutes are no longer also taken off as missing hours; leaving early still is. Payroll step 3 shows a LATE column (amount and minutes) in the deductions table, and the Excel TARDINESS columns are filled.
 - The DTR page's correction column is now "Edit" with "Edit day" / "Add day" buttons; the Attendance records list button reads "Edit a day".
 - Payroll: a complete, on-time office day (4-punch schedule) counts as the full 8-hour shift; actual hours are only counted on late, undertime or half days. Two-punch shifts (General Merchandise) still use their DTR hours.

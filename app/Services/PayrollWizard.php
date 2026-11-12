@@ -119,9 +119,10 @@ class PayrollWizard
                     'weekday_ot_hours' => (float) ($item->weekday_ot_hours ?? 0),
                     'weekend_ot_hours' => (float) ($item->weekend_ot_hours ?? 0),
                     'holiday_pay' => (float) ($item->holiday_pay ?? 0),
-                    'cutoff_transpo' => (float) ($item->cutoff_transpo ?? 0),
-                    'cutoff_rep' => (float) ($item->cutoff_rep ?? 0),
-                    'cutoff_quarterly' => (float) ($item->cutoff_quarterly ?? 0),
+                    // A new cutoff starts from the record's monthly allowances, half per cutoff; HR can change them.
+                    'cutoff_transpo' => (float) ($item->cutoff_transpo ?? round((float) $employee->transpo_allowance / 2, 2)),
+                    'cutoff_rep' => (float) ($item->cutoff_rep ?? round((float) $employee->rep_allowance / 2, 2)),
+                    'cutoff_quarterly' => (float) ($item->cutoff_quarterly ?? round((float) $employee->quarterly_allowance / 2, 2)),
                     'deductions' => collect(OfficePayrollCalculator::DEDUCTIONS)->mapWithKeys(fn (string $field): array => [
                         $field => (float) ($item ? $item->{$field} : $suggested[$field]),
                     ])->all(),

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import MarkHolidayModal from '@/Components/MarkHolidayModal'
 
 export const peso = (value) => (Number(value) ? Number(value).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-')
 const th = 'border border-black px-2.5 py-2 text-center text-[11px] font-bold uppercase leading-tight text-black dark:border-slate-500 dark:text-slate-100'
@@ -21,7 +22,8 @@ function Cell({ label, value, onChange, step = '0.01', error }) {
 
 const sum = (rows, key) => rows.reduce((total, row) => total + (Number(row[key]) || 0), 0)
 
-export default function StepEntries({ rows, offices, period_title, holidays, signatories, setTyped, employees, errors = {} }) {
+export default function StepEntries({ rows, offices, period_title, holidays, signatories, setTyped, employees, errors = {}, can_mark_holiday = false, holiday_types = {} }) {
+    const [markingHoliday, setMarkingHoliday] = useState(false)
     const officeKeys = Object.keys(offices).filter((key) => rows.some((row) => row.payroll_office === key))
     const [office, setOffice] = useState(officeKeys[0])
     const visible = rows.filter((row) => row.payroll_office === office)
@@ -31,6 +33,52 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
     return (
         <section aria-labelledby="entries-title" className="space-y-3">
             <h2 id="entries-title" className="sr-only">Overtime and allowances</h2>
+            <div className="rounded-2xl border border-border bg-panel p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <h3 className="font-heading text-base font-bold text-text">Overtime &amp; holiday pay</h3>
+                        <p className="mt-0.5 text-sm text-sub">Approved overtime hours and the premium for anyone who worked a holiday. Everyone in this payroll, all offices.</p>
+                        <p className="mt-1 text-xs text-sub">
+                            Holidays in this cutoff: {holidays.length ? holidays.map((holiday) => `${holiday.label} (${holiday.name})`).join(', ') : 'none'}.
+                        </p>
+                    </div>
+                    {can_mark_holiday && (
+                        <button type="button" onClick={() => setMarkingHoliday(true)} className="min-h-[44px] rounded-xl border border-border px-3 text-sm font-semibold text-[#26215C] hover:bg-field dark:text-indigo-300">
+                            + Add a holiday
+                        </button>
+                    )}
+                </div>
+                <div className="mt-3 overflow-x-auto">
+                    <table className="w-full min-w-[640px] border-collapse text-xs">
+                        <thead>
+                            <tr className="text-left text-sub">
+                                {['Employee', 'Weekday OT hours (125%)', 'Rest-day OT hours (130%)', 'Holiday premium ₱', 'Overtime + premium'].map((label) => <th key={label} className="px-2 py-2 font-semibold">{label}</th>)}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows.map((row) => (
+                                <tr key={row.id} className="border-t border-border">
+                                    <td className="px-2 py-1.5 text-text">{row.full_name}</td>
+                                    {[['weekday_ot_hours', 'Weekday overtime hours', '0.5'], ['weekend_ot_hours', 'Rest-day overtime hours', '0.5'], ['holiday_pay', 'Holiday premium', '0.01']].map(([field, text, step]) => (
+                                        <td key={field} className="px-2 py-1.5">
+                                            <input
+                                                type="number" min="0" step={step} value={row[field]} aria-label={`${text} for ${row.full_name}`}
+                                                aria-invalid={!!err(row, field)} title={err(row, field)}
+                                                onChange={(event) => setTyped(row.id, field, event.target.value)}
+                                                className={`h-10 w-28 rounded-lg border bg-yellow-50 px-2 text-right tabular-nums text-text dark:bg-yellow-950/40 ${err(row, field) ? 'border-rose-600' : 'border-border'}`}
+                                            />
+                                        </td>
+                                    ))}
+                                    <td className="px-2 py-1.5 text-right font-semibold tabular-nums text-text">₱ {peso(Number(row.total_ot_pay) + Number(row.holiday_pay || 0))}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {markingHoliday && (
+                <MarkHolidayModal holidayTypes={holiday_types} preserveState onClose={() => setMarkingHoliday(false)} onDone={() => {}} />
+            )}
             <div role="tablist" aria-label="Office" className="flex flex-wrap gap-1">
                 {officeKeys.map((key) => (
                     <button
@@ -109,18 +157,18 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                         {visible.map((row) => (
                             <tr key={row.id}>
                                 <td className={name}>{row.sheet_name}</td>
-                                <Cell label={`Weekday overtime hours for ${row.full_name}`} step="0.5" value={row.weekday_ot_hours} onChange={(value) => setTyped(row.id, 'weekday_ot_hours', value)} error={err(row, 'weekday_ot_hours')} />
+                                <td className={td}>{Number(row.weekday_ot_hours) || '-'}</td>
                                 <td className={td}>{peso(row.weekday_ot_pay)}</td>
-                                <Cell label={`Rest-day overtime hours for ${row.full_name}`} step="0.5" value={row.weekend_ot_hours} onChange={(value) => setTyped(row.id, 'weekend_ot_hours', value)} error={err(row, 'weekend_ot_hours')} />
+                                <td className={td}>{Number(row.weekend_ot_hours) || '-'}</td>
                                 <td className={td}>{peso(row.weekend_ot_pay)}</td>
-                                <Cell label={`Holiday pay for ${row.full_name}`} value={row.holiday_pay} onChange={(value) => setTyped(row.id, 'holiday_pay', value)} error={err(row, 'holiday_pay')} />
+                                <td className={td}>{peso(row.holiday_pay)}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
 
-                <div className="mt-10 grid max-w-3xl grid-cols-3 gap-8 text-xs text-black dark:text-slate-200">
-                    {[['prepared', 'Prepared by:'], ['certified', 'Certified correct:'], ['approved', 'Approved by:']].map(([key, label]) => (
+                <div className="mt-10 grid max-w-4xl grid-cols-4 gap-8 text-xs text-black dark:text-slate-200">
+                    {[['prepared', 'Prepared by:'], ['certified', 'Certified correct:'], ['approved', 'Approved by:'], ['noted', 'Noted by:']].map(([key, label]) => (
                         <div key={key}>
                             {label}
                             <p className="mt-4 font-bold underline">{signatories?.[key]?.name ?? '—'}</p>
@@ -129,7 +177,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                     ))}
                 </div>
             </div>
-            <p className="text-xs text-sub">Scroll sideways inside the sheet to see every column. Yellow cells are typed by HR. Only approved overtime goes in. Everything else comes from the DTR and employee records.</p>
+            <p className="text-xs text-sub">Scroll sideways inside the sheet to see every column. Yellow cells are typed by HR; overtime and holiday pay go in the panel above. Only approved overtime goes in. Everything else comes from the DTR and employee records.</p>
         </section>
     )
 }

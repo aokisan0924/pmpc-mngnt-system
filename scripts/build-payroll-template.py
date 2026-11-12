@@ -4,7 +4,8 @@ Usage: python scripts/build-payroll-template.py "<path to source .xlsx>"
 
 Keeps labels, header rows, styles, column widths, merged cells and print areas. Removes every formula,
 employee value, signatory name and voucher amount, gives each office sheet 6 employee rows and puts
-{{prepared}} / {{certified}} / {{approved}} markers where the signatory names were.
+{{prepared}} / {{certified}} / {{approved}} markers where the signatory names were, plus a
+{{noted}} / {{noted_title}} "Noted by" sign-off beside each block.
 Keeps only pictures anchored in rows 1-4 (the PMPC logos); every lower picture is a real signature and is dropped.
 """
 
@@ -89,6 +90,36 @@ def clean_office(ws):
             marker = MARKERS.get(str(c.value or '').strip())
             if marker and c.row > 1:
                 ws.cell(c.row - 1, c.column).value = marker
+    add_noted_by(ws, total)
+
+
+def free(ws, row, col, rows=3):
+    return col > 0 and all(ws.cell(r, col).value in (None, '') for r in range(row, row + rows))
+
+
+def add_noted_by(ws, total):
+    """A fourth sign-off, "Noted by", in the first free columns to the right of each "Approved by" block.
+
+    The search stays left of the next block (the next "Prepared by:" label on the same row), so it never
+    writes over another table.
+    """
+    for title in [c for row in ws.iter_rows(min_row=total + 1) for c in row if str(c.value or '').strip() == 'PRESIDENT']:
+        name_row, label_row = title.row - 1, title.row - 3
+        next_block = min([c.column for c in ws[label_row] if str(c.value or '').strip() == 'Prepared by:' and c.column > title.column] or [ws.max_column + 1])
+        right = [col for col in range(title.column + 2, min(title.column + 10, next_block - 1))
+                 if all(free(ws, label_row, x, rows=4) for x in (col, col + 1))]
+        if right:
+            spot = (label_row, right[0])
+        else:
+            # No room beside it: one line under the block, below "Prepared by".
+            prepared = next(c for c in ws[label_row] if str(c.value or '').strip() == 'Prepared by:' and c.column < title.column and c.column >= title.column - 15)
+            spot = (title.row + 2, prepared.column)
+            if not all(free(ws, spot[0], x, rows=4) for x in (spot[1], spot[1] + 1)):
+                raise SystemExit(f'No room for Noted by on {ws.title} near {title.coordinate}')
+        row, col = spot
+        ws.cell(row, col).value = 'Noted by:'
+        ws.cell(row + 2, col).value = '{{noted}}'
+        ws.cell(row + 3, col).value = '{{noted_title}}'
 
 
 def clean_voucher(ws):
@@ -100,8 +131,10 @@ def clean_voucher(ws):
             code = isinstance(v, (int, float)) and c.column_letter == 'G'
             if (isinstance(v, (int, float)) and not code) or (isinstance(v, str) and v.startswith('=')) or not isinstance(v, (str, int, float)):
                 c.value = None
-    for ref in ('C11', 'I11', 'C31', 'D31', 'H31'):
+    for ref in ('I11', 'C31', 'D31', 'H31', 'H32'):
         ws[ref].value = None
+    # As on the October voucher: the payee is fixed; Noted by (H31/H32) is filled by the export.
+    ws['C11'].value = 'Alexander Feria et. al.'
 
 
 def main():

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CreatePayrollRequest;
 use App\Http\Requests\Admin\StorePayrollRequest;
 use App\Models\Employee;
+use App\Models\Holiday;
 use App\Models\Payroll;
 use App\Services\ManagementPayrollExport;
 use App\Services\OfficePayrollCalculator;
@@ -60,7 +61,12 @@ class PayrollController extends Controller
             ? ['from' => $existing->period_from, 'to' => $existing->period_to]
             : $wizard->period($month, $cutoff, $request->validated('period_to'));
 
-        return Inertia::render('Admin/PayrollWizard', $wizard->preview($month, $cutoff, $period['from'], $period['to'], $mock));
+        return Inertia::render('Admin/PayrollWizard', [
+            ...$wizard->preview($month, $cutoff, $period['from'], $period['to'], $mock),
+            // Only admins may add a missing holiday from the payroll screen (payroll processors ask an admin).
+            'can_mark_holiday' => $request->user()->isSuperAdmin(),
+            'holiday_types' => collect(Holiday::TYPES)->map(fn (array $type): string => $type['label']),
+        ]);
     }
 
     public function store(StorePayrollRequest $request, PayrollWizard $wizard): RedirectResponse

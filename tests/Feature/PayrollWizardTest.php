@@ -75,7 +75,8 @@ class PayrollWizardTest extends TestCase
                 ->where('holidays.0.date', '2026-11-02')
                 ->where('cutoff_open', false)
                 ->where('employees.0.days_of_work', 10)
-                ->where('employees.0.cutoff_transpo', 0)
+                // Allowances start from the employee record (monthly ÷ 2), as in the October payroll.
+                ->where('employees.0.cutoff_transpo', 500)
                 ->where('employees.0.deductions.sss_deduction', 500));
     }
 

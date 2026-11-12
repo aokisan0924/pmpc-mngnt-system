@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Employee;
 use App\Models\Payroll;
 use App\Models\PayrollItem;
+use Carbon\CarbonImmutable;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
@@ -46,9 +47,11 @@ class ManagementPayrollExport
     {
         $employees = Employee::where('status', 'active')->get(['id', 'employee_id', 'first_name', 'last_name', 'position']);
         $defaults = [
-            'prepared' => $employees->firstWhere('employee_id', 'EMP-0002')?->id,
+            // As on the October 2026 payroll: Reynold prepares, Katherine certifies, the President approves; Kurt notes.
+            'prepared' => $employees->firstWhere('employee_id', 'EMP-0001')?->id,
             'certified' => $employees->first(fn (Employee $employee): bool => $employee->first_name === 'Katherine' && $employee->last_name === 'Sevilleno')?->id,
             'approved' => $employees->first(fn (Employee $employee): bool => $employee->first_name === 'Alexander L.' && $employee->last_name === 'Feria' && $employee->position === 'President')?->id,
+            'noted' => $employees->firstWhere('employee_id', 'EMP-0002')?->id,
         ];
 
         return ['first' => $defaults, 'second' => $defaults];
@@ -172,12 +175,12 @@ class ManagementPayrollExport
                 }
                 // Grid sign-offs sit left of the 1st govt table; in each pair the right half is the 2nd cutoff.
                 foreach ($texts as $address => $text) {
-                    if (preg_match('/^\{\{(prepared|certified|approved)\}\}$/', $text, $marker)) {
+                    if (preg_match('/^\{\{(prepared|certified|approved|noted)(_title)?\}\}$/', $text, $marker)) {
                         $col = self::split($address)[0];
                         $second = $col < array_key_first($blocks[2]) ? $col >= array_key_first($blocks[1]) : $col >= $ot[2][0];
                         $cutoff = $second ? 'second' : 'first';
                         $person = $batches->firstWhere('cutoff', $cutoff) ? $people->get($signatories[$cutoff][$marker[1]] ?? null) : null;
-                        $this->put($doc, $address, $person?->full_name);
+                        $this->put($doc, $address, ($marker[2] ?? '') === '_title' ? ($person ? mb_strtoupper((string) $person->position) : null) : $person?->full_name);
                     }
                 }
                 $sums = array_map(fn (float|int $sum): float => round($sum, 2), $sums);
@@ -218,12 +221,17 @@ class ManagementPayrollExport
             $this->put($voucher, 'H28', $month['gross'] ?? 0.0);
             $this->put($voucher, 'I28', round(array_sum(array_map(fn (string $key): float => $month[$key] ?? 0.0, $credits)), 2));
             $this->put($voucher, 'D28', 'To record salaries and wages for the month of '.$selected->period_from->format('F Y'));
-            foreach (['prepared' => 'C31', 'certified' => 'D31', 'approved' => 'H31'] as $role => $cell) {
+            foreach (['prepared' => 'C31', 'certified' => 'D31', 'noted' => 'H31'] as $role => $cell) {
                 $person = $people->get($signatories[$selected->cutoff][$role] ?? null);
                 if ($person) {
                     $this->put($voucher, $cell, mb_strtoupper($person->full_name));
                 }
             }
+            $noted = $people->get($signatories[$selected->cutoff]['noted'] ?? null);
+            $this->put($voucher, 'H32', $noted?->position);
+            // October 2026 was voucher 0017; each month after counts up by one.
+            $months = (int) CarbonImmutable::create(2026, 10, 1)->diffInMonths($selected->period_from->copy()->startOfMonth(), false);
+            $this->put($voucher, 'I11', sprintf('%04d', max(1, 17 + $months)));
             $zip->addFromString('xl/worksheets/sheet5.xml', $voucher->saveXML());
             $book = $this->document($zip->getFromName('xl/workbook.xml'));
             $xpath = new DOMXPath($book);

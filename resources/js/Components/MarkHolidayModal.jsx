@@ -8,7 +8,7 @@ const LABEL = 'block text-xs font-semibold text-sub uppercase tracking-wider mb-
 const todayInManila = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' })
 
 /** Lets an admin mark one date as a holiday for everyone, from the dashboard. */
-export default function MarkHolidayModal({ holidayTypes, onClose, onDone }) {
+export default function MarkHolidayModal({ holidayTypes, onClose, onDone, preserveState = false }) {
     const { data, setData, post, processing, errors } = useForm({ date: todayInManila(), name: '', type: 'regular' })
 
     useEffect(() => {
@@ -21,6 +21,7 @@ export default function MarkHolidayModal({ holidayTypes, onClose, onDone }) {
         event.preventDefault()
         post('/admin/holidays', {
             preserveScroll: true,
+            preserveState,
             onSuccess: () => { onDone(`${data.name} is marked as a holiday.`); onClose() },
         })
     }

@@ -3,8 +3,8 @@ import { useForm, usePage } from '@inertiajs/react'
 export default function PayrollExcelExport({ payroll, employees, defaultSignatories }) {
     const { errors } = usePage().props
     const form = useForm({
-        first: { prepared: '', certified: '', approved: '', ...defaultSignatories?.first },
-        second: { prepared: '', certified: '', approved: '', ...defaultSignatories?.second },
+        first: { prepared: '', certified: '', approved: '', noted: '', ...defaultSignatories?.first },
+        second: { prepared: '', certified: '', approved: '', noted: '', ...defaultSignatories?.second },
     })
     return (
         <section id="payroll-excel-export" className="pt-4 space-y-4" aria-labelledby="excel-export-title">
@@ -12,12 +12,12 @@ export default function PayrollExcelExport({ payroll, employees, defaultSignator
                 Management Excel export
             </h3>
             <p className="text-sm text-sub">
-                Choose who prepared, certified and approved each cutoff. Only their names print in the sign-off areas;
+                Choose who prepared, certified, approved and noted each cutoff. Only their names print in the sign-off areas;
                 signature pictures are never added to the export. Leave a selection blank for an empty area.
             </p>
             <form action={`/admin/payroll/${payroll.id}/export`} method="get" className="space-y-4">
                 {['first', 'second'].map((cutoff) => (
-                    <fieldset key={cutoff} className="grid gap-3 sm:grid-cols-3">
+                    <fieldset key={cutoff} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <legend className="mb-2 text-sm font-semibold text-text">
                             {cutoff === 'first' ? 'First cutoff' : 'Second cutoff'}
                         </legend>
@@ -25,6 +25,7 @@ export default function PayrollExcelExport({ payroll, employees, defaultSignator
                             prepared: 'Prepared by',
                             certified: 'Certified Correct',
                             approved: 'Approved by',
+                            noted: 'Noted by',
                         }).map(([role, label]) => {
                             const error = errors?.[`signatories.${cutoff}.${role}`]
                             return (
