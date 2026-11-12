@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 16:30 — b1fdacf — Tax split per cutoff; Ferias' rent ₱1,250 per cutoff
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `09b6391` → `b1fdacf` (includes docs-only `96841b6` and test-only `ce7bcde`): withholding tax is now half of the monthly amount on each cutoff, matching the October 2026 payroll file; SSS, PhilHealth and Pag-IBIG stay on the 1st cutoff only.
+- Migrations: none
+- Backup: `~/db-backups/pmpc-before-payroll-wizard-20261112-0629.sql` (both rent values are 2000.00 in it)
+- Data changes: `employees.rental_deduction` from 2000.00 to 2500.00 (₱1,250 per cutoff) for Alexander L. Feria (id 3) and Alexander A. Feria Jr. (id 4), matching the October 2026 payroll file where all four Cubao staff pay ₱2,500 a month. Dry run first showed both at 2000.00. To undo: set them back to 2000.00.
+- Verified: locally 28 payroll PHP tests and 3 JS tests passed, build passed. On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `b1fdacf`; 2 rows updated; the read-only Nov 1st-cutoff preview shows rental ₱1,250 for all four Cubao staff and W/H tax ₱425 for Alexander L. Feria.
+
 ## 2026-11-12 15:55 — 09b6391 — Payroll-only access for Katherine
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `757b447` → `09b6391` (includes docs-only `4917fc8`)
