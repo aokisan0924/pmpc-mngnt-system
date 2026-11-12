@@ -34,15 +34,23 @@ class OfficePayrollCalculator
         $days = $attendance['days'];
         $earned = array_sum(array_map(fn (array $day): float => $day['shift_hours'] > 0 ? $rate * $day['worked_hours'] / $day['shift_hours'] : 0.0, $days));
         $hourly = $rate / ((float) (end($days)['shift_hours'] ?? 8) ?: 8.0);
-        $basicBefore = round($rate * (float) $attendance['days_of_work'], 2);
-        $basic = round($earned, 2);
+        $fixedDays = $attendance['fixed_days'] ?? null;
+        if ($fixedDays !== null) {
+            // Fixed half month: unworked hours on counted days (absences, lates, NWNP holidays) come off it.
+            $basicBefore = round($rate * (float) $fixedDays, 2);
+            $missing = array_sum(array_map(fn (array $day): float => $day['shift_hours'] > 0 ? $rate * ($day['shift_hours'] - $day['worked_hours']) / $day['shift_hours'] : 0.0, $days));
+            $basic = round(max(0.0, $basicBefore - $missing), 2);
+        } else {
+            $basicBefore = round($rate * (float) $attendance['days_of_work'], 2);
+            $basic = round($earned, 2);
+        }
 
         $amounts = [
             'basic_before_absence' => $basicBefore,
             'absence_deduction' => round($basicBefore - $basic, 2),
             // Unworked part of holidays (no work, no pay); already included in absence_deduction.
             'nwnp_deduction' => round(array_sum(array_map(fn (array $day): float => ($day['holiday'] ?? false) && $day['shift_hours'] > 0 ? $rate * ($day['shift_hours'] - $day['worked_hours']) / $day['shift_hours'] : 0.0, $days)), 2),
-            'paid_days_basis' => (float) $attendance['days_of_work'],
+            'paid_days_basis' => (float) ($fixedDays ?? $attendance['days_of_work']),
             'absence_days' => $rate > 0 ? round(($basicBefore - $basic) / $rate, 2) : 0.0,
             'paid_hours' => round(array_sum(array_column($days, 'worked_hours')), 2),
             'scheduled_hours' => round(array_sum(array_column($days, 'shift_hours')), 2),

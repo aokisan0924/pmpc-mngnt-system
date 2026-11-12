@@ -8,8 +8,11 @@ export function calculateHoursItem(item, isFirst) {
     const days = item.days || []
     const earned = days.reduce((sum, day) => sum + (day.shift_hours > 0 ? rate * day.worked_hours / day.shift_hours : 0), 0)
     const hourly = rate / (Number(days.at(-1)?.shift_hours) || 8)
-    const basic_before_absence = money(rate * days.length)
-    const cutoff_basic = money(earned)
+    // Monday-to-Friday staff: fixed half month (rate x 22 / 2) minus unworked hours; others: days worked.
+    const fixed = item.fixed_days ?? null
+    const basic_before_absence = money(rate * (fixed ?? days.length))
+    const missing = days.reduce((sum, day) => sum + (day.shift_hours > 0 ? rate * (day.shift_hours - day.worked_hours) / day.shift_hours : 0), 0)
+    const cutoff_basic = fixed === null ? money(earned) : money(Math.max(0, basic_before_absence - missing))
     const absence_deduction = money(basic_before_absence - cutoff_basic)
     const cutoff_transpo = money(item.cutoff_transpo)
     const cutoff_rep = money(item.cutoff_rep)
@@ -21,5 +24,5 @@ export function calculateHoursItem(item, isFirst) {
     const deductions = { ...item.deductions }
     if (!isFirst) ['sss_deduction', 'philhealth_deduction', 'pagibig_deduction'].forEach((key) => { deductions[key] = 0 })
     const total_deductions = money(Object.values(deductions).reduce((sum, value) => sum + money(value), 0))
-    return { ...item, deductions, days_of_work: days.length, basic_before_absence, absence_deduction, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, weekday_ot_pay, weekend_ot_pay, total_ot_pay: money(weekday_ot_pay + weekend_ot_pay), holiday_pay, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
+    return { ...item, deductions, days_of_work: fixed ?? days.length, basic_before_absence, absence_deduction, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, weekday_ot_pay, weekend_ot_pay, total_ot_pay: money(weekday_ot_pay + weekend_ot_pay), holiday_pay, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
 }

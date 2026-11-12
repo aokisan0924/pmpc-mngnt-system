@@ -28,3 +28,10 @@ test('typed allowances and holiday pay add to gross; SSS & co. only on the 1st c
     const second = calculateHoursItem(item({ days: days(8, [8]), deductions: { sss_deduction: 500, tax_deduction: 425 } }), false)
     assert.equal(second.total_deductions, 425)
 })
+
+test('office staff: fixed half month minus missing hours (Kurt, 800 x 22 / 2)', () => {
+    const row = calculateHoursItem(item({ daily_rate: 800, fixed_days: 11, days: days(8, [0, 8, 8, 8, 4, 8, 8, 8, 8, 8]) }), true)
+    assert.equal(row.basic_before_absence, 8800)
+    assert.equal(row.absence_deduction, 1200)
+    assert.equal(row.cutoff_basic, 7600)
+})

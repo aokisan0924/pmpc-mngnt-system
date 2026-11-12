@@ -82,7 +82,15 @@ class DtrPayrollAttendanceCalculator
                 ];
             }
 
-            return [$employeeId => ['days' => $days, 'days_of_work' => (float) count($days), 'unresolved_dates' => $unresolved]];
+            // Monday-to-Friday staff earn a fixed half month (daily rate x 22 / 2); weekdays before the hire date come off.
+            $fixedDays = null;
+            if (! Employee::hasCustomWorkDays($employeeId, $from, $to)) {
+                $beforeStart = $start === null ? 0 : collect(CarbonPeriod::create($from, $to))
+                    ->filter(fn ($day): bool => $day->isWeekday() && $day->toDateString() < $start)->count();
+                $fixedDays = (float) max(0, 11 - $beforeStart);
+            }
+
+            return [$employeeId => ['days' => $days, 'days_of_work' => (float) count($days), 'fixed_days' => $fixedDays, 'unresolved_dates' => $unresolved]];
         });
     }
 }

@@ -116,4 +116,29 @@ class HoursPayrollCalculatorTest extends TestCase
         $this->assertSame(1250.0, $result['rental_deduction']);
         $this->assertSame(40.0, $result['net_pay']);
     }
+
+    public function test_office_staff_get_a_fixed_half_month_minus_missing_hours(): void
+    {
+        // Kurt: 800 x 22 = 17,600 a month, 8,800 a cutoff. Nov 2-13 has 10 counted days: Nov 2 holiday (NWNP), one day 4 h late.
+        $attendance = $this->attendance(8, [0, 8, 8, 8, 4, 8, 8, 8, 8, 8], [0]);
+        $attendance['fixed_days'] = 11.0;
+        $result = $this->calc($this->employee(['daily_rate' => 800]), $attendance);
+
+        $this->assertSame(8800.0, $result['basic_before_absence']);
+        $this->assertSame(1200.0, $result['absence_deduction']);
+        $this->assertSame(800.0, $result['nwnp_deduction']);
+        $this->assertSame(7600.0, $result['cutoff_basic']);
+        $this->assertSame(11.0, $result['paid_days_basis']);
+        $this->assertSame(9.5, $result['days_present']);
+    }
+
+    public function test_fixed_half_month_never_goes_below_zero(): void
+    {
+        $attendance = $this->attendance(8, array_fill(0, 12, 0.0));
+        $attendance['fixed_days'] = 11.0;
+        $result = $this->calc($this->employee(), $attendance);
+
+        $this->assertSame(6600.0, $result['absence_deduction']);
+        $this->assertSame(0.0, $result['cutoff_basic']);
+    }
 }

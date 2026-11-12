@@ -120,4 +120,19 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
         $this->assertSame(8.0, $byDate['2026-11-03']['worked_hours']);
         Carbon::setTestNow();
     }
+
+    public function test_fixed_days_for_monday_to_friday_staff_only(): void
+    {
+        Carbon::setTestNow('2026-11-14 08:00:00');
+        $office = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        $newHire = Employee::factory()->create(['date_hired' => '2026-11-09']);
+        $store = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        EmployeeSchedule::create(['employee_id' => $store->id, 'effective_from' => '2026-01-01', 'type' => 'two_punch', 'shift_start' => '06:00', 'shift_end' => '18:00', 'work_days' => '0,1,2,3,4,5,6']);
+
+        $this->assertSame(11.0, $this->hoursFor($office, '2026-10-31', '2026-11-13')['fixed_days']);
+        // Hired Nov 9: the five weekdays Nov 2-6 before the hire date come off the 11 days.
+        $this->assertSame(6.0, $this->hoursFor($newHire, '2026-10-31', '2026-11-13')['fixed_days']);
+        $this->assertNull($this->hoursFor($store, '2026-10-31', '2026-11-13')['fixed_days']);
+        Carbon::setTestNow();
+    }
 }

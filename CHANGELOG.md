@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Payroll step 3: the deductions table no longer overlaps the payroll table on narrower screens; the sheet scrolls sideways with roomier cells.
 
 ### Changed
-- Pay is now worked out from DTR hours: daily rate ÷ shift hours × hours worked, capped at the shift (8 hours, or 12 for 12-hour shifts). Lates and early-outs are simply unpaid hours, so there is no separate late deduction. Holidays not worked are no work, no pay.
+- Basic pay for Monday-to-Friday staff is a fixed half month (daily rate × 22 ÷ 2, e.g. ₱800 → ₱8,800 a cutoff); unworked hours (absences, lates, NWNP holidays) come off it at daily rate ÷ shift hours. Staff on custom schedules (General Merchandise, relievers) are paid for the hours they worked, capped at their shift (8 hours, or 12 for 12-hour shifts). Lates and early-outs are simply unpaid hours, so there is no separate late deduction. Holidays not worked are no work, no pay.
 - Transport, representation and quarterly allowances are typed for each cutoff (they start at ₱0). Withholding tax is split across both cutoffs; SSS, PhilHealth and Pag-IBIG come off the 1st cutoff only (as in the October 2026 payroll).
 - A payroll can be saved at any time; before the cutoff ends only past days are counted, and the screen says so. If the DTR changes while preparing it, saving uses the latest DTR instead of refusing.
 - On both task boards (Team tasks and My tasks → Board), a task due today can be dragged into Doing and now really moves there. It keeps the amber Today colour and its "Due today" pill so it still stands out. Dragging it back to To do or onto Today returns it to Today; dropping any card on Today sets it to To do.

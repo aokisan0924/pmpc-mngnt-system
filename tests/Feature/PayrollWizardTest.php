@@ -83,10 +83,10 @@ class PayrollWizardTest extends TestCase
         Carbon::setTestNow('2026-11-13 18:00:00');
         $this->actingAs($this->admin)->post('/admin/payroll', $this->payload())->assertSessionHasNoErrors()->assertRedirect();
 
-        // Nov 13 is today and not counted yet: 9 days (Nov 2 NWNP, 5 and 6 absent) instead of 10.
+        // Fixed half month 600 x 11 = 6,600; Nov 13 (today) is not judged yet, so only Nov 2 (NWNP), 5 and 6 come off.
         $item = Payroll::firstOrFail()->items()->firstOrFail();
-        $this->assertEquals(9, $item->paid_days_basis);
-        $this->assertEquals(3600, $item->cutoff_basic);
+        $this->assertEquals(11, $item->paid_days_basis);
+        $this->assertEquals(4800, $item->cutoff_basic);
     }
 
     public function test_store_recomputes_hours_and_ignores_client_money(): void
@@ -95,13 +95,14 @@ class PayrollWizardTest extends TestCase
             ->assertRedirect();
 
         $item = Payroll::firstOrFail()->items()->firstOrFail();
-        // 10 days x 600 = 6000; Nov 2 (NWNP), 5 and 6 unpaid = 1800 absent.
-        $this->assertEquals(6000, $item->basic_before_absence);
+        // Fixed half month 600 x 22 / 2 = 6,600; Nov 2 (NWNP), 5 and 6 unpaid = 1,800 off.
+        $this->assertEquals(6600, $item->basic_before_absence);
         $this->assertEquals(1800, $item->absence_deduction);
-        $this->assertEquals(4200, $item->cutoff_basic);
+        $this->assertEquals(600, $item->nwnp_deduction);
+        $this->assertEquals(4800, $item->cutoff_basic);
         $this->assertEquals(500, $item->cutoff_transpo);
-        $this->assertEquals(4700, $item->gross_pay);
-        $this->assertEquals(3750, $item->net_pay);
+        $this->assertEquals(5300, $item->gross_pay);
+        $this->assertEquals(4350, $item->net_pay);
         $this->assertEquals(56, $item->paid_hours);
         $this->assertSame('2026-11', Payroll::firstOrFail()->period_month);
     }
@@ -116,7 +117,8 @@ class PayrollWizardTest extends TestCase
         $this->actingAs($this->admin)->post('/admin/payroll', $this->payload(['day_resolutions' => ['2026-11-11' => ['type' => 'hours', 'hours' => 5, 'note' => 'Left early, confirmed by supervisor']]]))
             ->assertRedirect();
         $item = Payroll::firstOrFail()->items()->firstOrFail();
-        $this->assertEquals(3975, $item->cutoff_basic);
+        // 5 of 8 hours typed for Nov 11: 3 h x 75 more off.
+        $this->assertEquals(4575, $item->cutoff_basic);
         $this->assertStringContainsString('2026-11-11: Left early', (string) $item->dtr_reconciliation_note);
     }
 
@@ -167,10 +169,10 @@ class PayrollWizardTest extends TestCase
 
         // October layout: days actually paid, full basic, and the absences (incl. the Nov 2 NWNP holiday,
         // as the 1st-cutoff grid has no NPW column) in that cutoff's deduction table.
-        $this->assertEquals(7, $this->underHeader($fort, 0, 'DAYS OF WORK', 11));
-        $this->assertEquals(6000, $this->underHeader($fort, 0, 'BASIC PAY', 11));
+        $this->assertEquals(8, $this->underHeader($fort, 0, 'DAYS OF WORK', 11));
+        $this->assertEquals(6600, $this->underHeader($fort, 0, 'BASIC PAY', 11));
         $this->assertEquals(1800, $this->underHeader($fort, 3, 'ABSENT', 11));
-        $this->assertEquals(3250, $this->underHeader($fort, 0, 'NET PAY', 11));
+        $this->assertEquals(3850, $this->underHeader($fort, 0, 'NET PAY', 11));
         $this->assertEquals('NOVEMBER 2 - 13, 2026', $fort['B9']);
     }
 
