@@ -13,7 +13,7 @@ const COLUMNS = [
 const STATUS_COLUMNS = COLUMNS.filter(c => c.status)
 const STATUS_LABEL = { pending: 'To do', doing: 'Doing' }
 
-const PRIORITY_BADGE = {
+export const PRIORITY_BADGE = {
     high:   <Badge variant="rose" size="sm">High</Badge>,
     medium: <Badge variant="amber" size="sm">Medium</Badge>,
     low:    <Badge variant="indigo" size="sm">Low</Badge>,

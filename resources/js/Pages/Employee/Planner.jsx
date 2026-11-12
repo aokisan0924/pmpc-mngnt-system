@@ -9,6 +9,7 @@ import TaskBoard from '@/Components/TaskBoard'
 import TaskFormModal from '@/Components/TaskFormModal'
 import TaskDetailModal from '@/Components/TaskDetailModal'
 import UndatedTaskStrip from '@/Components/UndatedTaskStrip'
+import TodayView from '@/Components/TodayView'
 import CardMenu from '@/Components/CardMenu'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -52,7 +53,7 @@ export default function Planner({ tasks = [] }) {
     const [formDate, setFormDate]         = useState('')
     const [taskToDelete, setTaskToDelete] = useState(null)
     const [filter, setFilter]             = useState('all')
-    const [view, setView]                 = useState('calendar')
+    const [view, setView]                 = useState('today')
     const [detailId, setDetailId]         = useState(null)
     const detailTask = tasks.find(t => t.id === detailId)
 
@@ -177,7 +178,7 @@ export default function Planner({ tasks = [] }) {
                 <div className="employee-toolbar flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-2.5 rounded-2xl border">
                     <div className="flex flex-wrap items-center gap-2">
                         <div className="flex gap-1 p-1 bg-field rounded-xl border border-border" role="group" aria-label="Planner view">
-                            {[['calendar', 'Calendar'], ['board', 'Board']].map(([key, label]) => (
+                            {[['today', 'Today'], ['calendar', 'Calendar'], ['board', 'Board']].map(([key, label]) => (
                                 <button
                                     key={key}
                                     type="button"
@@ -250,6 +251,15 @@ export default function Planner({ tasks = [] }) {
                         ))}
                     </div>
                 </div>
+
+                {view === 'today' && (
+                    <TodayView
+                        tasks={tasks}
+                        onToggle={toggleDone}
+                        onOpen={task => setDetailId(task.id)}
+                        onNew={() => openNewTaskForm(todayKey)}
+                    />
+                )}
 
                 {view === 'board' && (
                     <TaskBoard
