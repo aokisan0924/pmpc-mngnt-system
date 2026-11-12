@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 10:45 — a346156 — Today column after To do; Dues hidden from the menu
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `4d2ed16` → `a346156` (includes the docs-only commit `0ac16c0`)
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed; Dues records untouched)
+- Data changes: none
+- Verified: locally 27 of 27 JS tests and 372 of 372 PHP tests pass (the JPEG-only signature test excluded); build passed; on the scratch copy the columns read To do, Today, Doing, Done with late cards at the top of To do, and /admin/dues still opens. On live: server tree clean before and after, nothing to migrate, app back up, login returns 200, HEAD `a346156`. In Chrome as Kurt (read only): Team tasks columns To do 21, Today 0, Doing 5, Done 8, header the same; late cards at the top of To do; Dues no longer in the menu; no console errors.
+
 ## 2026-11-12 10:42 — 4d2ed16 — Team tasks header matches the columns; Manila dates after midnight
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `ba3264a` → `4d2ed16` (includes the docs-only commit `e1675f1`)
