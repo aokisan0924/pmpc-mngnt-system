@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 15:55 — 09b6391 — Payroll-only access for Katherine
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `757b447` → `09b6391` (includes docs-only `4917fc8`)
+- Migrations: none
+- Backup: none (no schema or data change; access comes from config `pmpc.payroll_processors`, default `EMP-0003`, no `.env` entry on the server)
+- Data changes: none on live. Locally only, Katherine's account in the `pmpc_live_preview` copy got a temporary test password for the browser check.
+- Verified: locally 404 of 409 PHP tests (the 5 signature tests need GD, missing on this machine), including new tests that a listed processor can open, save, mock up and finalize payroll but is turned away from the admin dashboard, employees, DTR and payroll analytics, and that other employees still cannot reach payroll; build passed. On the local live-data copy as Katherine: "Process payroll" link in her portal, payroll pages show only My attendance, My tasks and Payroll runs. On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `09b6391`, `canProcessPayroll()` true for EMP-0003 and false for EMP-0004.
+
 ## 2026-11-12 15:35 — 757b447 — Payroll step 3 tables no longer overlap
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `d011962` → `757b447` (includes docs-only `ce1476f`)
