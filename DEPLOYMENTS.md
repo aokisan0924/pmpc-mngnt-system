@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 10:34 — ba3264a — Today view on My tasks; Today & late column on the task boards
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `fcfb4e2` → `ba3264a` (includes the docs-only commit `3bab572`)
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed — tasks now also send a `done_on` date read from `updated_at`)
+- Data changes: none
+- Verified: locally 26 of 26 JS tests and 377 of 378 PHP tests pass (the remaining one needs JPEG support missing from this machine's PHP); build passed; a fresh reviewer found no critical or important issues. On live: server tree clean before and after, no pending migrations, app back up, login returns 200, HEAD `ba3264a`. In Chrome as Kurt (read only, nothing moved or ticked): Team tasks shows Today & late (13), To do (12), Doing (1), Done (8) with Show older (8); My tasks opens on Today with "Nothing due today" and one task under Coming up tomorrow; no console errors on either page.
+
 ## 2026-11-11 17:22 — fcfb4e2 — Mark holiday on the dashboard; added holidays removed
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `200fb8b` → `dcf1508` (Mark holiday button) → `fcfb4e2` (hotfix: the first release sent the holiday types as objects and opening the form blanked the dashboard; it was live for about 3 minutes and nothing was saved through it)
