@@ -168,7 +168,7 @@ export default function Employees({ employees = [] }) {
                                     {filtered.length === 0 && (
                                         <tr>
                                             <td colSpan={7}>
-                                                <EmployeesEmpty search={search} filter={filter} onClear={() => { setSearch(''); setFilter('all') }} />
+                                                <EmployeesEmpty total={employees.length} search={search} filter={filter} onClear={() => { setSearch(''); setFilter('all') }} />
                                             </td>
                                         </tr>
                                     )}
@@ -179,7 +179,7 @@ export default function Employees({ employees = [] }) {
                         {/* Mobile Cards View */}
                         <div className="md:hidden divide-y divide-border/60">
                             {filtered.length === 0 && (
-                                <EmployeesEmpty search={search} filter={filter} onClear={() => { setSearch(''); setFilter('all') }} />
+                                <EmployeesEmpty total={employees.length} search={search} filter={filter} onClear={() => { setSearch(''); setFilter('all') }} />
                             )}
                             {filtered.map(emp => (
                                 <Link
@@ -213,9 +213,9 @@ export default function Employees({ employees = [] }) {
     )
 }
 
-function EmployeesEmpty({ search, filter, onClear }) {
+function EmployeesEmpty({ total, search, filter, onClear }) {
     const q = search.trim()
-    if (!q && filter === 'all') {
+    if (total === 0) {
         return <EmptyState title="No employees yet" body="Add the first employee with New Employee above." />
     }
     return (

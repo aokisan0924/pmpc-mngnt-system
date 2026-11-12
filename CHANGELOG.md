@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Task tick boxes on the employee dashboard and My tasks are easier to tap on phones; the box looks the same but the tappable area is larger.
 
 ### Fixed
+- A save message no longer pops up again every 15 seconds while you stay on an admin page (the background refresh was showing the old message again). This also kept the Dues Undo link from disappearing.
+- Background refreshes no longer show "No connection" or "Something went wrong" when you did not click anything.
+- Messages with an Undo link stay open while the mouse is over them or a keyboard user is on them, and closing one returns keyboard focus to the page. Screen readers read each message once.
+- A form error that is already shown on screen next to the field no longer also appears in the message box.
+- With no employees at all, Employees says "No employees yet" instead of "No active employees".
 - An employee's DTR page header and whole-office task cards no longer show a stray "·" when the department or office is missing.
 - The empty-list message on DTR Edit Requests no longer leaves a single word on its own line.
 - Every page in both portals now confirms saves the same way: a small message box at the bottom-right (at the top on phones). Success messages fade after a few seconds; problems stay until closed. Previously each page showed its own green banner at the top, which was easy to miss on long pages.

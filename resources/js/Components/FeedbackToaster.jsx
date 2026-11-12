@@ -1,4 +1,4 @@
-import { useEffect, useSyncExternalStore } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { router } from '@inertiajs/react'
 
 // One feedback channel for the whole app. Lives outside React so toasts survive page swaps
@@ -26,9 +26,14 @@ export function toast({ type = 'success', title, body, action }) {
     emit()
 }
 
+// Partial reloads (usePoll, router.reload with only/except) keep the previous flash object,
+// so the same object must not be shown twice.
+let lastFlash
 function showFlash(flash) {
-    if (flash?.success) toast({ type: 'success', title: flash.success })
-    if (flash?.error) toast({ type: 'error', title: flash.error })
+    if (!flash || flash === lastFlash) return
+    lastFlash = flash
+    if (flash.success) toast({ type: 'success', title: flash.success })
+    if (flash.error) toast({ type: 'error', title: flash.error })
 }
 
 function firstError(errors) {
@@ -36,11 +41,27 @@ function firstError(errors) {
     return Array.isArray(value) ? value[0] : value
 }
 
+// True when the message is already on screen next to the field, so the toast would only repeat it.
+function shownInline(message) {
+    return [...document.querySelectorAll('#main-content [role=alert], #main-content p, #main-content span')].some(el => {
+        if (el.textContent.trim() !== message || !el.offsetParent) return false
+        const r = el.getBoundingClientRect()
+        return r.top >= 0 && r.bottom <= window.innerHeight
+    })
+}
+
+// Background GETs (polls, partial reloads) must not report failures the user did not cause.
+const isBackground = visit => visit.method === 'get' && (visit.only?.length > 0 || visit.except?.length > 0 || visit.prefetch)
+let userVisits = 0
+
 let registered = false
 export function registerFeedback(initialPage) {
     if (registered) return
     registered = true
     showFlash(initialPage?.props?.flash)
+
+    router.on('start', event => { if (!isBackground(event.detail.visit)) userVisits++ })
+    router.on('finish', event => { if (!isBackground(event.detail.visit)) userVisits = Math.max(0, userVisits - 1) })
 
     router.on('success', event => showFlash(event.detail.page.props.flash))
 
@@ -48,14 +69,19 @@ export function registerFeedback(initialPage) {
         // Sign-in pages are one short form that already shows its errors inline.
         if (event.detail.page && !event.detail.page.props?.auth?.employee) return
         const message = firstError(event.detail.errors)
-        toast({
-            type: 'error',
-            title: 'Please check this',
-            body: message ? `${message}` : 'Check the highlighted fields and try again.',
-        })
+        // Wait for React to render the inline errors before deciding.
+        setTimeout(() => {
+            if (message && shownInline(message)) return
+            toast({
+                type: 'error',
+                title: 'Please check this',
+                body: message ? `${message}` : 'Check the highlighted fields and try again.',
+            })
+        }, 50)
     })
 
     router.on('networkError', () => {
+        if (userVisits === 0) return
         toast({
             type: 'error',
             title: 'No connection',
@@ -65,21 +91,23 @@ export function registerFeedback(initialPage) {
 
     router.on('httpException', event => {
         const status = event.detail.response?.status
-        if (status === 419) {
-            toast({
-                type: 'error',
-                title: 'Your session expired',
-                body: 'Reload the page and sign in again. Nothing was saved.',
-                action: { label: 'Reload', onClick: () => window.location.reload() },
-            })
-        } else if (status === 403) {
-            toast({ type: 'error', title: 'Not allowed', body: 'Your account cannot do this action.' })
-        } else {
-            toast({
-                type: 'error',
-                title: 'Something went wrong',
-                body: 'The server could not finish this. Nothing was saved. Try again in a moment.',
-            })
+        if (userVisits > 0) {
+            if (status === 419) {
+                toast({
+                    type: 'error',
+                    title: 'Your session expired',
+                    body: 'Reload the page and sign in again. Nothing was saved.',
+                    action: { label: 'Reload', onClick: () => window.location.reload() },
+                })
+            } else if (status === 403) {
+                toast({ type: 'error', title: 'Not allowed', body: 'Your account cannot do this action.' })
+            } else {
+                toast({
+                    type: 'error',
+                    title: 'Something went wrong',
+                    body: 'The server could not finish this. Nothing was saved. Try again in a moment.',
+                })
+            }
         }
         // Keep Laravel's debug modal while developing; hide raw error pages from users.
         if (import.meta.env.PROD) return false
@@ -94,15 +122,30 @@ const STYLES = {
 
 function Toast({ t }) {
     const style = STYLES[t.type] ?? STYLES.info
+    const ref = useRef(null)
+    const [hovered, setHovered] = useState(false)
+    const [focused, setFocused] = useState(false)
+
+    // Closing a toast that holds focus would drop focus to <body>; send it to the page instead.
+    const close = () => {
+        const hadFocus = ref.current?.contains(document.activeElement)
+        dismissToast(t.id)
+        if (hadFocus) document.getElementById('main-content')?.focus()
+    }
 
     useEffect(() => {
-        if (t.type === 'error') return
-        const timer = setTimeout(() => dismissToast(t.id), t.action ? 7000 : 4500)
+        if (t.type === 'error' || hovered || focused) return
+        const timer = setTimeout(close, t.action ? 7000 : 4500)
         return () => clearTimeout(timer)
-    }, [t.id, t.type, t.action])
+    }, [t.id, t.type, t.action, hovered, focused])
 
     return (
         <div
+            ref={ref}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            onFocus={() => setFocused(true)}
+            onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false) }}
             role={t.type === 'error' ? 'alert' : 'status'}
             className="pointer-events-auto flex items-start gap-3 rounded-xl border border-border bg-panel p-3.5 shadow-lg page-enter"
         >
@@ -117,7 +160,7 @@ function Toast({ t }) {
                 {t.action && (
                     <button
                         type="button"
-                        onClick={() => { dismissToast(t.id); t.action.onClick() }}
+                        onClick={() => { close(); t.action.onClick() }}
                         className="mt-1.5 rounded text-sm font-bold text-text underline underline-offset-2 hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2"
                     >
                         {t.action.label}
@@ -126,7 +169,7 @@ function Toast({ t }) {
             </div>
             <button
                 type="button"
-                onClick={() => dismissToast(t.id)}
+                onClick={close}
                 aria-label="Close message"
                 className="-m-1 rounded-lg p-1.5 text-dim hover:bg-field hover:text-text focus-visible:outline-2"
             >
@@ -147,7 +190,6 @@ export default function FeedbackToaster() {
     // Phones: under the top bar, clear of the bottom nav and punch bar. Desktop: bottom-right.
     return (
         <div
-            aria-live="polite"
             className="pointer-events-none fixed inset-x-3 top-16 z-[60] flex flex-col gap-2 md:inset-x-auto md:top-auto md:bottom-5 md:right-5 md:w-96"
         >
             {list.map(t => <Toast key={t.id} t={t} />)}

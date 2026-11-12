@@ -1,0 +1,1 @@
+import{O as e,l as t}from"./app-Cezri_8a.js";var n=e(t(),1),r=`pmpc-theme`;function i(){(0,n.useEffect)(()=>{document.documentElement.classList.remove(`dark`);try{window.localStorage.setItem(r,`light`)}catch{}},[])}export{i as t};
