@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 14:30 — aefa564 — Four-step payroll wizard with hours-based pay
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `0f8b819` → `aefa564` (includes docs-only `cfaf68d`, `e60be29`, `d18454b`, `990f6a3`)
+- Migrations: `2026_11_13_000001_add_payroll_month_and_hours_snapshots` (adds `payrolls.period_month` with a unique index on month + cutoff, and `payroll_items.paid_hours`, `scheduled_hours`, `day_resolutions`). The live `payrolls` table was empty, so nothing was backfilled.
+- Backup: `~/db-backups/pmpc-before-payroll-wizard-20261112-0629.sql` (1.06 MB, dump completed, mode 600)
+- Data changes: none on live. Locally only, a throwaway `wizard-preview.sqlite` with seeded DTR was used for the browser check and then deleted.
+- Verified: locally 397 of 402 PHP tests (the 5 signature tests need GD, missing on this machine), build passed; a fresh reviewer found no critical issues, and its two important findings (an edited end date could repeat or drop days in the next cutoff; the editable start date had no effect) were fixed with tests. All four steps were walked on the local copy. On live: server tree clean before and after, migration ran, app back up, login 200, HEAD `aefa564`, unique index present. A read-only preview of the Nov 1st cutoff on live data shows Nov 2–13 with Nov 2 as NWNP, a DTR window from Oct 31, days counted through Wed, Nov 11, 12 staff, Violie and Sibal on 12-hour days, and one open day for Sibal. No payroll was saved on live.
+
 ## 2026-11-12 13:12 — 0f8b819 — Late tasks always at the top of Today
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `53eb2bb` → `0f8b819` (includes docs-only `03f3d72`)
