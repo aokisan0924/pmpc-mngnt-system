@@ -183,11 +183,10 @@ class PayrollWizard
                     'payroll_office' => $employee->payroll_office,
                     'weekday_ot_hours' => (float) ($row['weekday_ot_hours'] ?? 0),
                     'weekend_ot_hours' => (float) ($row['weekend_ot_hours'] ?? 0),
-                    'tardiness_minutes' => 0,
                     'default_paid_days_basis' => $attendance['days_of_work'],
                     'dtr_days_present' => $amounts['days_present'],
                     'dtr_absence_days' => $amounts['absence_days'],
-                    'dtr_tardiness_minutes' => 0,
+                    'dtr_tardiness_minutes' => $attendance['tardiness_minutes'] ?? 0,
                     'dtr_unresolved_dates' => [],
                     'day_resolutions' => $row['day_resolutions'] ?? [],
                     'dtr_reconciliation_note' => collect($row['day_resolutions'] ?? [])->filter(fn (array $r): bool => $r['type'] === 'hours')

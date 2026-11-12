@@ -8,6 +8,7 @@ use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\EmployeeSchedule;
 use App\Models\Holiday;
+use App\Models\Setting;
 use App\Services\DtrPayrollAttendanceCalculator;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -144,13 +145,14 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
         $employee = Employee::factory()->create(['date_hired' => '2026-01-01']);
         // On time, but back from lunch 5 minutes late: 7.92 h rendered, still a full day.
         DtrLog::factory()->create(['employee_id' => $employee->id, 'date' => '2026-11-06', 'pm_time_in' => '13:05:00', 'hours_rendered' => 7.92, 'status' => 'on_time']);
-        // Late arrival: actual hours still count.
+        // Late arrival: the late minutes become tardiness, not missing hours (October formula).
         DtrLog::factory()->create(['employee_id' => $employee->id, 'date' => '2026-11-05', 'am_time_in' => '08:30:00', 'hours_rendered' => 7.5, 'status' => 'late']);
 
         $byDate = collect($this->hoursFor($employee, '2026-11-05', '2026-11-06')['days'])->keyBy('date');
 
         $this->assertSame(8.0, $byDate['2026-11-06']['worked_hours']);
-        $this->assertSame(7.5, $byDate['2026-11-05']['worked_hours']);
+        $this->assertSame(8.0, $byDate['2026-11-05']['worked_hours']);
+        $this->assertSame(30.0, $byDate['2026-11-05']['late_minutes']);
         Carbon::setTestNow();
     }
 
@@ -173,6 +175,30 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
         $this->assertSame(0.0, $office_days['2026-11-13']['worked_hours']);
         $this->assertSame(12.0, $store_days['2026-11-13']['worked_hours']);
         $this->assertSame([], $result->get($office->id)['unresolved_dates']);
+        Carbon::setTestNow();
+    }
+
+    public function test_late_minutes_follow_the_grace_period_and_overnight_shifts(): void
+    {
+        Carbon::setTestNow('2026-11-14 08:00:00');
+        Setting::set('late_grace_minutes', '5');
+        $office = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        $night = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        EmployeeSchedule::create(['employee_id' => $night->id, 'effective_from' => '2026-01-01', 'type' => 'two_punch', 'shift_start' => '18:00', 'shift_end' => '06:00', 'work_days' => '0,1,2,3,4,5,6']);
+        // 8:12 with 5 grace minutes: 7 minutes late; the 12 lost minutes are not also taken off as hours.
+        DtrLog::factory()->create(['employee_id' => $office->id, 'date' => '2026-11-05', 'am_time_in' => '08:12:00', 'hours_rendered' => 7.8, 'status' => 'late']);
+        // Left early on top of a late arrival: the early part still comes off as hours.
+        DtrLog::factory()->create(['employee_id' => $office->id, 'date' => '2026-11-06', 'am_time_in' => '08:12:00', 'pm_time_out' => '16:00:00', 'hours_rendered' => 6.8, 'status' => 'late']);
+        DtrLog::factory()->create(['employee_id' => $night->id, 'date' => '2026-11-05', 'am_time_in' => '18:20:00', 'am_time_out' => null, 'pm_time_in' => null, 'pm_time_out' => '06:00:00', 'hours_rendered' => 11.67, 'status' => 'late']);
+
+        $office_days = collect($this->hoursFor($office, '2026-11-05', '2026-11-06')['days'])->keyBy('date');
+        $night_result = $this->hoursFor($night, '2026-11-05', '2026-11-05');
+
+        $this->assertSame(7.0, $office_days['2026-11-05']['late_minutes']);
+        $this->assertSame(8.0, $office_days['2026-11-05']['worked_hours']);
+        $this->assertSame(7.0, $office_days['2026-11-06']['worked_hours']);
+        $this->assertSame(15.0, $night_result['days'][0]['late_minutes']);
+        $this->assertSame(15.0, $night_result['tardiness_minutes']);
         Carbon::setTestNow();
     }
 }

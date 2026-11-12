@@ -76,7 +76,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                         <p className="text-center text-base font-bold text-black dark:text-white">GOVT &amp; OTHER DEDUCTIONS</p>
                         <table className="mt-1 w-full border-collapse text-xs">
                             <thead>
-                                <tr>{['Employee name', 'W/H tax', 'SSS', 'PhilHealth', 'Pag-IBIG', 'Loan', 'CC', 'Cash advance', 'Absent', 'Rental', 'Total'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
+                                <tr>{['Employee name', 'W/H tax', 'SSS', 'PhilHealth', 'Pag-IBIG', 'Loan', 'CC', 'Cash advance', 'Absent', 'Late', 'Rental', 'Total'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
                             </thead>
                             <tbody>
                                 {visible.map((row) => (
@@ -87,6 +87,10 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                             <Cell key={field} label={`${label} for ${row.full_name}`} value={row.deductions[field]} onChange={(value) => deduction(row, field, value)} error={err(row, `deductions.${field}`)} />
                                         ))}
                                         <td className={td}>{peso(row.other_absence)}</td>
+                                        <td className={td} title={Number(row.tardiness_minutes) ? `${row.tardiness_minutes} minutes late × daily rate ÷ 8 ÷ 60` : undefined}>
+                                            {peso(row.tardiness_deduction)}
+                                            {Number(row.tardiness_minutes) > 0 && <span className="block text-[11px] font-normal text-slate-600 dark:text-slate-400">{row.tardiness_minutes} min</span>}
+                                        </td>
                                         <td className={td}>{peso(row.deductions.rental_deduction)}</td>
                                         <td className={strong}>{peso(row.sheet_deductions)}</td>
                                     </tr>

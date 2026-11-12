@@ -26,8 +26,10 @@ export function calculateHoursItem(item, isFirst) {
     const gross_pay = money(cutoff_basic + cutoff_transpo + cutoff_rep + cutoff_quarterly + weekday_ot_pay + weekend_ot_pay + holiday_pay)
     const deductions = { ...item.deductions }
     if (!isFirst) ['sss_deduction', 'philhealth_deduction', 'pagibig_deduction'].forEach((key) => { deductions[key] = 0 })
-    const total_deductions = money(Object.values(deductions).reduce((sum, value) => sum + money(value), 0))
+    // October formula for lates: daily rate / 8 / 60 x minutes late.
+    const tardiness_deduction = money(rate / 8 / 60 * Number(item.tardiness_minutes || 0))
+    const total_deductions = money(Object.values(deductions).reduce((sum, value) => sum + money(value), 0) + tardiness_deduction)
     const days_of_work = fixed ?? days.length
     const days_present = rate > 0 ? Math.round((days_of_work - absence_deduction / rate) * 100) / 100 : 0
-    return { ...item, deductions, days_of_work, days_present, nwnp_deduction, other_absence, sheet_gross: money(gross_pay + absence_deduction - nwnp_deduction), sheet_deductions: money(total_deductions + other_absence), basic_before_absence, absence_deduction, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, weekday_ot_pay, weekend_ot_pay, total_ot_pay: money(weekday_ot_pay + weekend_ot_pay), holiday_pay, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
+    return { ...item, deductions, tardiness_deduction, days_of_work, days_present, nwnp_deduction, other_absence, sheet_gross: money(gross_pay + absence_deduction - nwnp_deduction), sheet_deductions: money(total_deductions + other_absence), basic_before_absence, absence_deduction, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, weekday_ot_pay, weekend_ot_pay, total_ot_pay: money(weekday_ot_pay + weekend_ot_pay), holiday_pay, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
 }

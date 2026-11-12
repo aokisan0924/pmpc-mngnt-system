@@ -65,7 +65,9 @@ class OfficePayrollCalculator
             'pagibig_deduction' => $isFirst ? (float) $employee->pagibig_deduction : 0.0,
             // Monthly withholding tax is split across both cutoffs, as in the October 2026 workbook.
             'tax_deduction' => round((float) $employee->tax_deduction / 2, 2),
-            'tardiness_deduction' => 0.0,
+            // October formula: daily rate / 8 / 60 x minutes late (also / 8 for 12-hour store shifts, as in October).
+            'tardiness_minutes' => (float) ($attendance['tardiness_minutes'] ?? 0),
+            'tardiness_deduction' => round($rate / 8 / 60 * (float) ($attendance['tardiness_minutes'] ?? 0), 2),
             'holiday_pay' => round((float) ($inputs['holiday_pay'] ?? 0), 2),
         ];
         $amounts['days_present'] = round($amounts['paid_days_basis'] - $amounts['absence_days'], 2);

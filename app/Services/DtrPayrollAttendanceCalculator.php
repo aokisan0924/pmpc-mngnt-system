@@ -8,6 +8,7 @@ use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\EmployeeSchedule;
 use App\Models\Holiday;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Carbon\CarbonPeriod;
@@ -71,6 +72,12 @@ class DtrPayrollAttendanceCalculator
                 if ($log !== null && $status === 'on_time' && ! (EmployeeSchedule::shiftFor($employeeId, $day)['two_punch'] ?? false)) {
                     $worked = $shiftHours;
                 }
+                // A late arrival is charged as tardiness (October formula), so its lost minutes are not also missing hours.
+                $lateMinutes = 0.0;
+                if ($log !== null && $status === 'late') {
+                    [$lostMinutes, $lateMinutes] = $this->lateness($log);
+                    $worked += $lostMinutes / 60;
+                }
                 // Always-present staff skip punching, not holidays: a holiday is no work, no pay for them too.
                 if ($log === null && Employee::isAlwaysPresent($employeeId) && ! $holidays->has($date)) {
                     $worked = $shiftHours;
@@ -81,7 +88,10 @@ class DtrPayrollAttendanceCalculator
                 if ($resolution !== null && ($resolution['type'] ?? null) === 'hours') {
                     [$source, $worked] = ['typed', (float) ($resolution['hours'] ?? 0)];
                 } elseif ($resolution !== null && ($resolution['type'] ?? null) === 'zero') {
-                    [$source, $worked] = ['zero', 0.0];
+                    [$source, $worked, $lateMinutes] = ['zero', 0.0, 0.0];
+                }
+                if ($source === 'typed') {
+                    $lateMinutes = 0.0;
                 }
                 if ($source === 'unresolved') {
                     $unresolved[] = $date;
@@ -93,6 +103,7 @@ class DtrPayrollAttendanceCalculator
                     'worked_hours' => round(min(max($worked, 0.0), $shiftHours), 2),
                     'holiday' => $holidays->has($date),
                     'source' => $source,
+                    'late_minutes' => $lateMinutes,
                 ];
             }
 
@@ -104,7 +115,32 @@ class DtrPayrollAttendanceCalculator
                 $fixedDays = (float) max(0, 11 - $beforeStart);
             }
 
-            return [$employeeId => ['days' => $days, 'days_of_work' => (float) count($days), 'fixed_days' => $fixedDays, 'unresolved_dates' => $unresolved]];
+            return [$employeeId => ['days' => $days, 'days_of_work' => (float) count($days), 'fixed_days' => $fixedDays, 'tardiness_minutes' => (float) array_sum(array_column($days, 'late_minutes')), 'unresolved_dates' => $unresolved]];
         });
+    }
+
+    /**
+     * Minutes between shift start and the first punch, and the late minutes after the grace period.
+     *
+     * @return array{0: float, 1: float}
+     */
+    private function lateness(DtrLog $log): array
+    {
+        $employeeId = (int) $log->employee_id;
+        $shiftStart = (string) (EmployeeSchedule::shiftFor($employeeId, $log->date)['start'] ?? Setting::get('shift_start', '08:00'));
+        $startMinute = (int) substr($shiftStart, 0, 2) * 60 + (int) substr($shiftStart, 3, 2);
+        // A PM-only punch is not morning tardiness for an afternoon half day.
+        $arrival = $log->am_time_in ?: ($startMinute >= 720 ? $log->pm_time_in : null);
+        if (! $arrival) {
+            return [0.0, 0.0];
+        }
+        $arrivalMinute = (int) substr((string) $arrival, 0, 2) * 60 + (int) substr((string) $arrival, 3, 2);
+        // Overnight shifts may record a clock-in shortly after midnight.
+        if ($arrivalMinute < $startMinute && $startMinute - $arrivalMinute > 720) {
+            $arrivalMinute += 1440;
+        }
+        $lost = (float) max(0, $arrivalMinute - $startMinute);
+
+        return [$lost, (float) max(0, $lost - (int) Setting::get('late_grace_minutes', '0'))];
     }
 }

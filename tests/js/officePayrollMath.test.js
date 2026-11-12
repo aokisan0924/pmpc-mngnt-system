@@ -45,3 +45,9 @@ test('October sheet: holiday in NPW- HOLIDAY, other absences in deductions, net 
     assert.equal(row.sheet_deductions, row.total_deductions + 400)
     assert.equal(row.sheet_gross - row.sheet_deductions, row.net_pay)
 })
+
+test('lates use the October formula: rate / 8 / 60 x minutes', () => {
+    const row = calculateHoursItem(item({ daily_rate: 800, fixed_days: 11, tardiness_minutes: 4, deductions: {}, days: days(8, [8, 8]) }), false)
+    assert.equal(row.tardiness_deduction, 6.67)
+    assert.equal(row.total_deductions, 6.67)
+})

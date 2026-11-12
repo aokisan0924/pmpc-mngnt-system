@@ -141,4 +141,21 @@ class HoursPayrollCalculatorTest extends TestCase
         $this->assertSame(6600.0, $result['absence_deduction']);
         $this->assertSame(0.0, $result['cutoff_basic']);
     }
+
+    public function test_tardiness_uses_the_october_formula(): void
+    {
+        // Kurt, 4 minutes late: 800 / 8 / 60 x 4 = 6.67 (October 2nd cutoff). Gen Mdse also uses / 8, as in October.
+        $attendance = $this->attendance(8, [8, 8]);
+        $attendance['fixed_days'] = 11.0;
+        $attendance['tardiness_minutes'] = 4.0;
+        $kurt = $this->calc($this->employee(['daily_rate' => 800]), $attendance);
+        $this->assertSame(6.67, $kurt['tardiness_deduction']);
+        $this->assertSame(4.0, $kurt['tardiness_minutes']);
+        $this->assertSame(8800.0, $kurt['cutoff_basic']);
+        $this->assertSame(6.67, $kurt['total_deductions']);
+
+        $store = $this->attendance(12, [12]);
+        $store['tardiness_minutes'] = 15.0;
+        $this->assertSame(18.75, $this->calc($this->employee(), $store)['tardiness_deduction']);
+    }
 }
