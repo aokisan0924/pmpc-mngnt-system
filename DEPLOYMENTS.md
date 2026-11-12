@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 17:40 — 78aebb5 — Correct a day from Attendance records; full shift for on-time days
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `9931963` → `78aebb5` (includes docs-only `ff82243`, `fee0586`, `68c18d6`): Attendance records shows "Correct a day" on each employee row for DTR correctors (same correction form as the DTR page, now a shared component, with a date picker that pre-fills that day's punches); in payroll a complete on-time office day (4-punch schedule) counts as the full shift, while late, undertime and half days still count actual hours.
+- Migrations: none
+- Backup: none (no schema or data change; no payroll batches exist on live)
+- Data changes: none on live. Locally only, the correction form was opened for John Roy C. Sibal on Nov 3 on the `pmpc_live_preview` copy and cancelled.
+- Verified: locally 414 of 420 PHP tests before the last fix, then the DTR, wizard and payroll suites (30 tests) passed, including new tests for the list's per-day punches (correctors only) and the full-shift rule; build passed; on the local copy the list's form showed "Correct Tue, Nov 3" with Sibal's 5:47 pm / 5:58 pm punches. On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `78aebb5`; the read-only Nov 1st-cutoff preview now shows only the Nov 2 NWNP day as absent for Yvonne, Jerome, Reynold, Kurt, Katherine and Alexander L. Feria.
+
 ## 2026-11-12 17:15 — data only — Rent for Jerome A. Santos
 - By: Claude Code (SSH key), requested by Kurt
 - Code: none
