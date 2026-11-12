@@ -10,6 +10,7 @@ import TaskFormModal from '@/Components/TaskFormModal'
 import TaskDetailModal from '@/Components/TaskDetailModal'
 import UndatedTaskStrip from '@/Components/UndatedTaskStrip'
 import TodayView from '@/Components/TodayView'
+import { manilaToday } from '@/Components/taskGroups'
 import CardMenu from '@/Components/CardMenu'
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -257,7 +258,7 @@ export default function Planner({ tasks = [] }) {
                         tasks={tasks}
                         onToggle={toggleDone}
                         onOpen={task => setDetailId(task.id)}
-                        onNew={() => openNewTaskForm(todayKey)}
+                        onNew={() => openNewTaskForm(manilaToday())}
                     />
                 )}
 

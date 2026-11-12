@@ -17,6 +17,7 @@ class TaskDoneOnTest extends TestCase
     protected function tearDown(): void
     {
         Carbon::setTestNow();
+        date_default_timezone_set(config('app.timezone'));
         parent::tearDown();
     }
 
@@ -29,7 +30,9 @@ class TaskDoneOnTest extends TestCase
 
     public function test_done_tasks_say_the_manila_date_they_were_finished(): void
     {
-        Carbon::setTestNow(Carbon::parse('2026-11-12 07:00', 'Asia/Manila')); // still Nov 11 in UTC
+        // Run the clock in UTC (still Nov 11 there) so the test fails if the Manila conversion is dropped.
+        date_default_timezone_set('UTC');
+        Carbon::setTestNow(Carbon::parse('2026-11-12 07:00', 'Asia/Manila'));
 
         $this->assertSame('2026-11-12', $this->task('done')->toPlannerArray()['done_on']);
     }

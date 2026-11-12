@@ -1,10 +1,24 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { boardColumns, isTodayOrLate, manilaToday, todayGroups } from '../../resources/js/Components/taskGroups.js'
+import { boardColumns, daysUntil, isTodayOrLate, manilaToday, todayGroups } from '../../resources/js/Components/taskGroups.js'
 
 const todayKey = '2026-11-12'
+const keyPlus = n => { const d = new Date(2026, 10, 12 + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
 let nextId = 1
-const t = overrides => ({ id: nextId++, status: 'pending', priority: 'low', due_in_days: null, start_date: null, done_on: null, ...overrides })
+// Tests give due_in_days for readability; it becomes a due_date, and due_in_days is set to a stale value the helper must ignore.
+const t = ({ due_in_days = null, ...overrides } = {}) => ({
+    id: nextId++, status: 'pending', priority: 'low', start_date: null, done_on: null,
+    due_date: due_in_days === null ? null : keyPlus(due_in_days), due_in_days: due_in_days === null ? null : 99,
+    ...overrides,
+})
+
+test('day counts come from due_date and the given today, so a page left open past midnight stays right', () => {
+    const task = t({ due_in_days: 1 })
+    assert.equal(daysUntil(task, todayKey), 1)
+    assert.equal(daysUntil(task, '2026-11-13'), 0)
+    assert.equal(isTodayOrLate(task, '2026-11-13'), true)
+    assert.equal(daysUntil(t(), todayKey), null)
+})
 const ids = list => list.map(x => x.id)
 
 test('boardColumns puts late and due-today open tasks in today, late first', () => {

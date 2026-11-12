@@ -8,6 +8,7 @@ import TaskFormModal from '@/Components/TaskFormModal'
 import TaskDetailModal from '@/Components/TaskDetailModal'
 import TeamTaskCalendar from '@/Components/TeamTaskCalendar'
 import TeamTaskFilters from '@/Components/TeamTaskFilters'
+import { boardColumns, manilaToday } from '@/Components/taskGroups'
 
 // No background here: each pill sets its own, so the late pill's rose is not overridden.
 const COUNT = 'inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold text-white'
@@ -21,6 +22,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
     const [view, setView]                 = useState('board')
     const [stopAlso, setStopAlso]         = useState(false)
     const detailTask = tasks.find(t => t.id === detailId)
+    const columns = boardColumns(tasks, manilaToday())
 
     function applyFilters(next) {
         const merged = { ...filters, ...next }
@@ -89,15 +91,11 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                     title="Team tasks"
                     meta={
                         <>
-                            <span className={`${COUNT} bg-white/12`}><span className="tnum">{status_counts.todo ?? 0}</span> to do</span>
-                            <span className={`${COUNT} bg-white/12`}><span className="tnum">{status_counts.doing ?? 0}</span> doing</span>
-                            <span className={`${COUNT} bg-white/12`} title={filters.older ? 'All time' : 'Last 30 days'}>
-                                <span className="tnum">{status_counts.done ?? 0}</span> done
-                                <span className="sr-only">{filters.older ? ', all time' : ', last 30 days'}</span>
-                            </span>
-                            {(status_counts.late ?? 0) > 0 && (
-                                <span className={`${COUNT} bg-rose-600`}><span className="tnum">{status_counts.late}</span> late</span>
-                            )}
+                            {/* Same numbers as the board's four columns, so header and columns never disagree. */}
+                            <span className={`${COUNT} ${columns.today.length > 0 ? 'bg-rose-600' : 'bg-white/12'}`}><span className="tnum">{columns.today.length}</span> today &amp; late</span>
+                            <span className={`${COUNT} bg-white/12`}><span className="tnum">{columns.pending.length}</span> to do</span>
+                            <span className={`${COUNT} bg-white/12`}><span className="tnum">{columns.doing.length}</span> doing</span>
+                            <span className={`${COUNT} bg-white/12`}><span className="tnum">{columns.doneRecent.length}</span> done this week</span>
                         </>
                     }
                     action={

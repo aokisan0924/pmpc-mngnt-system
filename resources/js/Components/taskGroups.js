@@ -1,37 +1,44 @@
 /**
- * Groups planner tasks for the Today view and the task board. Late / today come from the
- * server's Manila-based `due_in_days`; `todayKey` is the Manila date as YYYY-MM-DD.
+ * Groups planner tasks for the Today view and the task board. Day counts come from each task's
+ * `due_date` and `todayKey` (the Manila date as YYYY-MM-DD), not the server's `due_in_days`, so a
+ * page left open past midnight regroups correctly on its next render.
  */
 export const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 }
 
 const rank = task => PRIORITY_ORDER[task.priority] ?? 3
 const byPriority = (a, b) => rank(a) - rank(b)
-const byLateness = (a, b) => a.due_in_days - b.due_in_days || byPriority(a, b)
 const isDone = task => task.status === 'done'
 
 export function manilaToday() {
     return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' })
 }
 
+const dayNumber = key => Date.UTC(Number(key.slice(0, 4)), Number(key.slice(5, 7)) - 1, Number(key.slice(8, 10))) / 86400000
+
 function shiftKey(key, days) {
-    const d = new Date(`${key}T00:00:00`)
-    d.setDate(d.getDate() + days)
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    return new Date((dayNumber(key) + days) * 86400000).toISOString().slice(0, 10)
+}
+
+/** Whole days from today until the due date: negative when late, null when undated. */
+export function daysUntil(task, todayKey) {
+    return task.due_date ? dayNumber(task.due_date.slice(0, 10)) - dayNumber(todayKey) : null
 }
 
 // A task marked done a moment ago (optimistic update) has no done_on yet: it was finished today.
 const doneOn = (task, todayKey) => task.done_on ?? todayKey
 
-export function isTodayOrLate(task) {
-    return !isDone(task) && typeof task.due_in_days === 'number' && task.due_in_days <= 0
+export function isTodayOrLate(task, todayKey) {
+    const n = daysUntil(task, todayKey)
+    return !isDone(task) && n !== null && n <= 0
 }
 
 export function boardColumns(tasks, todayKey) {
     const weekAgo = shiftKey(todayKey, -6)
-    const open = tasks.filter(t => !isDone(t) && !isTodayOrLate(t))
+    const byLateness = (a, b) => daysUntil(a, todayKey) - daysUntil(b, todayKey) || byPriority(a, b)
+    const open = tasks.filter(t => !isDone(t) && !isTodayOrLate(t, todayKey))
     const done = tasks.filter(isDone)
     return {
-        today: tasks.filter(isTodayOrLate).sort(byLateness),
+        today: tasks.filter(t => isTodayOrLate(t, todayKey)).sort(byLateness),
         pending: open.filter(t => t.status === 'pending'),
         doing: open.filter(t => t.status === 'doing'),
         doneRecent: done.filter(t => doneOn(t, todayKey) >= weekAgo),
@@ -41,14 +48,16 @@ export function boardColumns(tasks, todayKey) {
 
 export function todayGroups(tasks, todayKey) {
     const tomorrowKey = shiftKey(todayKey, 1)
-    const open = tasks.filter(t => !isDone(t) && typeof t.due_in_days === 'number')
-    const running = open.filter(t => t.start_date && t.start_date <= todayKey && t.due_in_days > 0)
+    const days = t => daysUntil(t, todayKey)
+    const byLateness = (a, b) => days(a) - days(b) || byPriority(a, b)
+    const open = tasks.filter(t => !isDone(t) && days(t) !== null)
+    const running = open.filter(t => t.start_date && t.start_date <= todayKey && days(t) > 0)
     return {
-        late: open.filter(t => t.due_in_days < 0).sort(byLateness),
-        dueToday: open.filter(t => t.due_in_days === 0).sort(byPriority),
+        late: open.filter(t => days(t) < 0).sort(byLateness),
+        dueToday: open.filter(t => days(t) === 0).sort(byPriority),
         running: running.sort(byPriority),
         tomorrow: open
-            .filter(t => !running.includes(t) && (t.due_in_days === 1 || t.start_date === tomorrowKey))
+            .filter(t => !running.includes(t) && (days(t) === 1 || t.start_date === tomorrowKey))
             .sort(byPriority),
         doneToday: tasks.filter(t => isDone(t) && doneOn(t, todayKey) === todayKey).sort(byPriority),
     }

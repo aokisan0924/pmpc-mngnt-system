@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Per-employee two-punch shifts (time in / time out, no lunch, may end after midnight), set in the employee compensation tab; an overnight clock-out closes the log opened the evening before. Two-punch days show Time In/Time Out in DTR tables, print and archive, an unclosed day is flagged "Missing time out" (pays 0 until HR corrects it), and HR corrections accept overnight times.
 
 ### Changed
+- The Team tasks header now counts exactly what the four board columns show: today & late, to do, doing, and done this week.
 - Task cards on the boards show only the due date and priority; the list, repeat, upcoming and shared details are in the task's View window. Late and due-today dates are tinted pills. The Done column shows the last 7 days, with a Show older button for the rest.
 - DTR hours now count only time inside the shift, minus the lunch hour. Clocking in early, skipping or shortening lunch, or staying past shift end no longer adds hours, so a full day shows 8 hours (7 on Fridays, when the shift ends at 16:00). Night shifts count only their shift hours, and a second tap minutes after time in now shows 0 hours and undertime instead of a full on-time shift. Pay is unchanged: payroll counts days present, not hours. The new rule applies to new punches and to corrections; days already saved keep their old hours (`dtr:recompute-status` deliberately leaves hours alone).
 - The date part of New Task on Team tasks now asks two questions: "How long is it?" (One day, A range of days, No date) and "Does it repeat?" (Just once, Daily, Weekly, Monthly, Yearly). A plain sentence confirms the schedule and its first date. "Stop repeating on" and "Days early it appears" moved under More options.
@@ -60,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed repeated notification totals, redundant account identity in the admin header, duplicate sign-in and password-reset copy, and decorative grid/watermark layers. Shortened page descriptions while keeping the actions, filters, and payroll/DTR context.
 
 ### Fixed
+- Task boards and the Today view work out late and due-today from the due date and the current Manila date, so a page left open past midnight regroups correctly. "+ New task" in the Today view now fills in the Manila date, not the device date.
 - Night shifts and other time-in/time-out shifts: a time out within an hour of time in is refused as a double tap, with a message saying how long ago the employee clocked in. Before, a second tap minutes later closed the shift and HR had to correct it. A real early departure inside that hour goes through HR's DTR correction.
 - Assignment notifications used a broken middle-dot character after a recent change; it is repaired and covered by a test.
 - Payroll batch pages now offer only the Management Excel workbook export; separate payslip PDF downloads remain available in their own areas.

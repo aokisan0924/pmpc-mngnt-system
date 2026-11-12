@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Badge from '@/Components/UI/Badge'
 import CardMenu from '@/Components/CardMenu'
-import { boardColumns, manilaToday } from '@/Components/taskGroups'
+import { boardColumns, daysUntil, manilaToday } from '@/Components/taskGroups'
 
 // "Today & late" is not a status: cards stay in it, whatever their status, until they are done.
 const COLUMNS = [
@@ -41,8 +41,8 @@ const PILL = 'rounded px-1.5 py-0.5 font-semibold'
 
 /** Plain-words due date: a red pill when late, amber when due today, otherwise the date. Finished tasks keep the plain date. */
 export function dueText(task) {
-    if (task.status === 'done' || typeof task.due_in_days !== 'number') return { text: task.due_label, className: 'text-sub' }
-    const n = task.due_in_days
+    const n = daysUntil(task, manilaToday())
+    if (task.status === 'done' || n === null) return { text: task.due_label, className: 'text-sub' }
     if (n < 0) return { text: `${-n} ${n === -1 ? 'day' : 'days'} late`, className: `${PILL} bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300` }
     if (n === 0) return { text: 'Due today', className: `${PILL} bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300` }
     if (n === 1) return { text: 'Due tomorrow', className: 'text-text' }
