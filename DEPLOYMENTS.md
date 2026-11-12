@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 16:05 — 5ba3485 — Warning when a net pay is below zero
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `70a960b` → `5ba3485` (includes docs-only `eabe838`): payroll step 4 lists anyone whose net pay is below zero in a red warning; step 3 shows that net pay in red brackets. Saving is not blocked.
+- Migrations: none
+- Backup: none (front-end only)
+- Data changes: none on live.
+- Verified: build passed; on the local live-data copy as Katherine, October 2nd cutoff with a test loan of ₱9,000 typed for Yvonne N. Condo, step 4 showed "Net pay is below zero for 1 employee" with "Yvonne N. Condo: ₱ -1,427.40" (₱7,572.60 − ₱9,000); nothing was saved. On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `5ba3485`.
+
 ## 2026-11-12 15:50 — 70a960b — Management Excel in the October 2026 layout
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `b1fdacf` → `70a960b` (includes docs-only `8bc2568`, `5aa6040`): the NWNP holiday amount is saved on its own (`240f31a`); the Download Management Excel / mockup Excel now fill a template built from HR's October 2026 workbook (`scripts/build-payroll-template.py`; logos kept, signature pictures, names, amounts, formulas and the file's author removed); columns are found by header text; the unworked holiday goes in NPW- HOLIDAY, absences in the deduction tables; rows, journals and the voucher balance.
