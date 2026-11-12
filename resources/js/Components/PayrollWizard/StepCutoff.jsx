@@ -5,9 +5,9 @@ import Button from '@/Components/UI/Button'
 const control = 'min-h-[44px] w-full min-w-0 rounded-xl border border-border bg-field px-3 py-2 text-sm text-text'
 
 export default function StepCutoff({ month, cutoff, period_from, period_to, period_title, holidays, draft_id, can_save, save_after, employees, errors = {} }) {
-    const [dates, setDates] = useState({ period_from, period_to })
+    const [end, setEnd] = useState(period_to)
     const unverified = employees.filter((employee) => !employee.office_verified)
-    const changedDates = dates.period_from !== period_from || dates.period_to !== period_to
+    const changedDates = end !== period_to
 
     return (
         <section aria-labelledby="cutoff-title" className="space-y-4 rounded-2xl border border-border bg-panel p-5">
@@ -32,17 +32,16 @@ export default function StepCutoff({ month, cutoff, period_from, period_to, peri
                 className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]"
                 onSubmit={(event) => {
                     event.preventDefault()
-                    router.get('/admin/payroll/create', { month, cutoff, ...dates })
+                    router.get('/admin/payroll/create', { month, cutoff, period_to: end })
                 }}
             >
-                {[['period_from', 'Start date'], ['period_to', 'End date']].map(([field, label]) => (
-                    <label key={field} className="block text-xs font-semibold text-sub">
-                        {label}
-                        <input type="date" value={dates[field]} onInput={(event) => setDates({ ...dates, [field]: event.currentTarget.value })} className={`${control} mt-2`} aria-invalid={!!errors[field]} />
-                        {errors[field] && <span role="alert" className="mt-1 block text-rose-700">{errors[field]}</span>}
-                    </label>
-                ))}
-                <Button type="submit" variant="outline" disabled={!changedDates} className="min-h-[44px]">Use these dates</Button>
+                <p className="text-sm text-sub">Starts {new Date(`${period_from}T00:00:00`).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })} (right after the previous cutoff). Typed entries reset if you change the end date.</p>
+                <label className="block text-xs font-semibold text-sub">
+                    End date
+                    <input type="date" value={end} onInput={(event) => setEnd(event.currentTarget.value)} className={`${control} mt-2`} aria-invalid={!!errors.period_to} />
+                    {errors.period_to && <span role="alert" className="mt-1 block text-rose-700">{errors.period_to}</span>}
+                </label>
+                <Button type="submit" variant="outline" disabled={!changedDates} className="min-h-[44px]">Use this end date</Button>
             </form>
             {unverified.length > 0 && (
                 <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-800 dark:bg-rose-950/40 dark:text-rose-200">

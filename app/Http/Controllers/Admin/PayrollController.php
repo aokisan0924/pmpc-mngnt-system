@@ -53,9 +53,9 @@ class PayrollController extends Controller
             return redirect()->route('admin.payroll.show', $existing->id)
                 ->with('success', 'This cutoff is already finalized.');
         }
-        $period = $existing && ! $request->filled('period_from')
+        $period = $existing && ! $request->filled('period_to')
             ? ['from' => $existing->period_from, 'to' => $existing->period_to]
-            : $wizard->period($month, $cutoff, $request->validated('period_from'), $request->validated('period_to'));
+            : $wizard->period($month, $cutoff, $request->validated('period_to'));
 
         return Inertia::render('Admin/PayrollWizard', $wizard->preview($month, $cutoff, $period['from'], $period['to']));
     }

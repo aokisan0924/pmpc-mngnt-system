@@ -161,8 +161,8 @@ class AuditFixRegressionTest extends TestCase
         $employee->forceFill(['payroll_office' => 'fort_magsaysay', 'setup_completed_at' => now(), 'office_verified_at' => now()])->save();
 
         $this->actingAs($admin)
-            ->get(route('admin.payroll.create', ['month' => '2026-10', 'cutoff' => 'second', 'period_from' => '2026-10-01', 'period_to' => '2026-10-15']))
-            ->assertSessionHasErrors('period_from');
+            ->get(route('admin.payroll.create', ['month' => '2026-10', 'cutoff' => 'second', 'period_to' => '2026-10-15']))
+            ->assertSessionHasErrors('period_to');
 
         $payload = $this->wizardPayload([$employee], '2026-10', 'second', [], ['period_from' => '2026-10-01', 'period_to' => '2026-10-15']);
         $this->post(route('admin.payroll.store'), $payload)->assertSessionHasErrors('period_from');

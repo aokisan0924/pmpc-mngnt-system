@@ -179,4 +179,31 @@ class PayrollWizardTest extends TestCase
         $this->assertEquals(1800, $cell('G11'));
         $this->assertEquals('NOVEMBER 2 - 13, 2026', $cell('B9'));
     }
+
+    public function test_next_cutoff_starts_after_the_saved_end_date_not_the_suggested_one(): void
+    {
+        Carbon::setTestNow('2026-12-01 08:00:00');
+        // Saved with an edited end of Nov 12: Nov 13 must move into the 2nd cutoff, not be lost.
+        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload([], ['period_to' => '2026-11-12']))->assertRedirect();
+
+        $this->get('/admin/payroll/create?month=2026-11&cutoff=second')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('window_from', '2026-11-13')->where('employees.0.days.0.date', '2026-11-13'));
+    }
+
+    public function test_extended_first_cutoff_is_not_paid_again_in_the_second(): void
+    {
+        Carbon::setTestNow('2026-12-01 08:00:00');
+        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload([], ['period_to' => '2026-11-15']))->assertRedirect();
+
+        $this->get('/admin/payroll/create?month=2026-11&cutoff=second')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('window_from', '2026-11-16'));
+    }
+
+    public function test_start_date_always_follows_the_previous_cutoff(): void
+    {
+        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload([], ['period_from' => '2026-11-05']))->assertRedirect();
+
+        // The posted start date is ignored: Nov 2 (NWNP) to Nov 4 are still this cutoff's days, so the label must say so.
+        $this->assertSame('2026-11-02', Payroll::firstOrFail()->period_from->toDateString());
+    }
 }

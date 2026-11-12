@@ -23,15 +23,25 @@ class PayrollWizard
         private readonly ManagementPayrollExport $export,
     ) {}
 
-    /** @return array{from: CarbonImmutable, to: CarbonImmutable} */
-    public function period(string $month, string $cutoff, ?string $from = null, ?string $to = null): array
+    /**
+     * The start is always the suggested one: the DTR window, not the label, decides which days are paid.
+     *
+     * @return array{from: CarbonImmutable, to: CarbonImmutable}
+     */
+    public function period(string $month, string $cutoff, ?string $to = null): array
     {
         $suggested = PayrollCutoffPeriod::suggest($month, $cutoff);
 
-        return [
-            'from' => $from ? CarbonImmutable::parse($from) : $suggested['from'],
-            'to' => $to ? CarbonImmutable::parse($to) : $suggested['to'],
-        ];
+        return ['from' => $suggested['from'], 'to' => $to ? CarbonImmutable::parse($to) : $suggested['to']];
+    }
+
+    /** @return array{from: CarbonImmutable, to: CarbonImmutable} */
+    private function window(string $month, string $cutoff, CarbonInterface $to): array
+    {
+        [$previousMonth, $previousCutoff] = PayrollCutoffPeriod::previous($month, $cutoff);
+        $previous = Payroll::where('period_month', $previousMonth)->where('cutoff', $previousCutoff)->value('period_to');
+
+        return PayrollCutoffPeriod::window($month, $cutoff, $to, $previous ? CarbonImmutable::parse($previous) : null);
     }
 
     public function existing(string $month, string $cutoff): ?Payroll
@@ -46,7 +56,7 @@ class PayrollWizard
         $saved = $draft?->items->keyBy('employee_id') ?? collect();
         $employees = $this->employees();
         $resolutions = $saved->mapWithKeys(fn (PayrollItem $item): array => [$item->employee_id => $item->day_resolutions ?? []])->all();
-        $window = PayrollCutoffPeriod::window($month, $cutoff, $to);
+        $window = $this->window($month, $cutoff, $to);
         $hours = $this->attendance->hoursFor($employees, $window['from'], $window['to'], $resolutions);
         $isFirst = $cutoff === 'first';
 
@@ -100,7 +110,7 @@ class PayrollWizard
         return DB::transaction(function () use ($data, $user): Payroll {
             $month = (string) $data['month'];
             $cutoff = (string) $data['cutoff'];
-            $from = CarbonImmutable::parse($data['period_from']);
+            $from = $this->period($month, $cutoff)['from'];
             $to = CarbonImmutable::parse($data['period_to']);
             $payroll = Payroll::where('period_month', $month)->where('cutoff', $cutoff)->lockForUpdate()->first();
             if ($payroll?->isFinalized()) {
@@ -113,7 +123,7 @@ class PayrollWizard
                 throw ValidationException::withMessages(['items' => 'An employee is no longer available. Reload the payroll.']);
             }
             $resolutions = $posted->map(fn (array $row): array => $row['day_resolutions'] ?? [])->all();
-            $window = PayrollCutoffPeriod::window($month, $cutoff, $to);
+            $window = $this->window($month, $cutoff, $to);
             $hours = $this->attendance->hoursFor($employees, $window['from'], $window['to'], $resolutions);
             $missing = $employees->first(fn (Employee $employee): bool => $hours->get((int) $employee->id)['unresolved_dates'] !== []);
             if ($missing !== null) {

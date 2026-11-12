@@ -1,133 +1,133 @@
 {
-  "_AccountSetupNotice-3WXIWnRk.js": {
-    "file": "assets/AccountSetupNotice-3WXIWnRk.js",
+  "_AccountSetupNotice-Cl6QvRRn.js": {
+    "file": "assets/AccountSetupNotice-Cl6QvRRn.js",
     "name": "AccountSetupNotice",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_AdminLayout-vGmKhSGz.js": {
-    "file": "assets/AdminLayout-vGmKhSGz.js",
+  "_AdminLayout-Xg6fJ-4N.js": {
+    "file": "assets/AdminLayout-Xg6fJ-4N.js",
     "name": "AdminLayout",
     "imports": [
       "resources/js/app.jsx",
-      "_AccountSetupNotice-3WXIWnRk.js",
-      "_useTheme-Dd39AOIM.js"
+      "_AccountSetupNotice-Cl6QvRRn.js",
+      "_useTheme-BHt0wVx6.js"
     ]
   },
-  "_AdminPageHeader-DKnPAhCp.js": {
-    "file": "assets/AdminPageHeader-DKnPAhCp.js",
+  "_AdminPageHeader-o95GKuy7.js": {
+    "file": "assets/AdminPageHeader-o95GKuy7.js",
     "name": "AdminPageHeader",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_Badge-BxvNhXvx.js": {
-    "file": "assets/Badge-BxvNhXvx.js",
+  "_Badge-BW7KCl-q.js": {
+    "file": "assets/Badge-BW7KCl-q.js",
     "name": "Badge",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_Button-DMm_m8WF.js": {
-    "file": "assets/Button-DMm_m8WF.js",
+  "_Button-SQt5xNRO.js": {
+    "file": "assets/Button-SQt5xNRO.js",
     "name": "Button",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_Card-D7RjTGwa.js": {
-    "file": "assets/Card-D7RjTGwa.js",
+  "_Card-CLzy-hjV.js": {
+    "file": "assets/Card-CLzy-hjV.js",
     "name": "Card",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_CardMenu-YngKZK6V.js": {
-    "file": "assets/CardMenu-YngKZK6V.js",
+  "_CardMenu-QWxT8ZDb.js": {
+    "file": "assets/CardMenu-QWxT8ZDb.js",
     "name": "CardMenu",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_ConfirmModal-CepybzMQ.js": {
-    "file": "assets/ConfirmModal-CepybzMQ.js",
+  "_ConfirmModal-DnO6IBGL.js": {
+    "file": "assets/ConfirmModal-DnO6IBGL.js",
     "name": "ConfirmModal",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_EmployeeLayout-CyCZFThQ.js": {
-    "file": "assets/EmployeeLayout-CyCZFThQ.js",
+  "_EmployeeLayout-DpaVYj4W.js": {
+    "file": "assets/EmployeeLayout-DpaVYj4W.js",
     "name": "EmployeeLayout",
     "imports": [
       "resources/js/app.jsx",
-      "_AccountSetupNotice-3WXIWnRk.js",
-      "_useTheme-Dd39AOIM.js"
+      "_AccountSetupNotice-Cl6QvRRn.js",
+      "_useTheme-BHt0wVx6.js"
     ]
   },
-  "_EmployeePageHeader-BpNF1Emn.js": {
-    "file": "assets/EmployeePageHeader-BpNF1Emn.js",
+  "_EmployeePageHeader-BuQiOSZ8.js": {
+    "file": "assets/EmployeePageHeader-BuQiOSZ8.js",
     "name": "EmployeePageHeader",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_EmployeeSignatureUpload-CcrdzqUc.js": {
-    "file": "assets/EmployeeSignatureUpload-CcrdzqUc.js",
+  "_EmployeeSignatureUpload-Cuj_rySl.js": {
+    "file": "assets/EmployeeSignatureUpload-Cuj_rySl.js",
     "name": "EmployeeSignatureUpload",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_EmptyState-DUcPnw76.js": {
-    "file": "assets/EmptyState-DUcPnw76.js",
+  "_EmptyState-BYlR9I0K.js": {
+    "file": "assets/EmptyState-BYlR9I0K.js",
     "name": "EmptyState",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_StatCard-B15KUpyE.js": {
-    "file": "assets/StatCard-B15KUpyE.js",
+  "_StatCard-BT7Q47wh.js": {
+    "file": "assets/StatCard-BT7Q47wh.js",
     "name": "StatCard",
     "imports": [
       "resources/js/app.jsx",
-      "_Card-D7RjTGwa.js"
+      "_Card-CLzy-hjV.js"
     ]
   },
-  "_useAttendancePunch-g1tUdwyd.js": {
-    "file": "assets/useAttendancePunch-g1tUdwyd.js",
+  "_useAttendancePunch-C2N8DSeT.js": {
+    "file": "assets/useAttendancePunch-C2N8DSeT.js",
     "name": "useAttendancePunch",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_useDtrToday-C3DsgLic.js": {
-    "file": "assets/useDtrToday-C3DsgLic.js",
+  "_useDtrToday-BR9tPO7v.js": {
+    "file": "assets/useDtrToday-BR9tPO7v.js",
     "name": "useDtrToday",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
-  "_useHideTodo-BMfxMCsH.js": {
-    "file": "assets/useHideTodo-BMfxMCsH.js",
+  "_useHideTodo-o8z5545S.js": {
+    "file": "assets/useHideTodo-o8z5545S.js",
     "name": "useHideTodo",
     "imports": [
       "resources/js/app.jsx",
-      "_Button-DMm_m8WF.js",
-      "_Badge-BxvNhXvx.js",
-      "_CardMenu-YngKZK6V.js"
+      "_Button-SQt5xNRO.js",
+      "_Badge-BW7KCl-q.js",
+      "_CardMenu-QWxT8ZDb.js"
     ]
   },
-  "_useTheme-Dd39AOIM.js": {
-    "file": "assets/useTheme-Dd39AOIM.js",
+  "_useTheme-BHt0wVx6.js": {
+    "file": "assets/useTheme-BHt0wVx6.js",
     "name": "useTheme",
     "imports": [
       "resources/js/app.jsx"
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-OLffSe3K.css",
+    "file": "assets/app--YWIhouG.css",
     "name": "app",
     "names": [
       "app.css"
@@ -140,255 +140,255 @@
     "src": "resources/images/pmpc_ems.png"
   },
   "resources/js/Pages/Admin/AccountSetupReviews.jsx": {
-    "file": "assets/AccountSetupReviews-B22wLnXU.js",
+    "file": "assets/AccountSetupReviews-CgzevvSX.js",
     "name": "AccountSetupReviews",
     "src": "resources/js/Pages/Admin/AccountSetupReviews.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js"
     ]
   },
   "resources/js/Pages/Admin/Archives.jsx": {
-    "file": "assets/Archives-DeVD1n8k.js",
+    "file": "assets/Archives-Cn9qOZg4.js",
     "name": "Archives",
     "src": "resources/js/Pages/Admin/Archives.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_Card-D7RjTGwa.js",
-      "_Badge-BxvNhXvx.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_Card-CLzy-hjV.js",
+      "_Badge-BW7KCl-q.js"
     ]
   },
   "resources/js/Pages/Admin/Dashboard.jsx": {
-    "file": "assets/Dashboard-XOen7lPn.js",
+    "file": "assets/Dashboard-KxT5yeD3.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Admin/Dashboard.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_Button-DMm_m8WF.js",
-      "_Card-D7RjTGwa.js",
-      "_Badge-BxvNhXvx.js",
-      "_StatCard-B15KUpyE.js",
-      "_useAttendancePunch-g1tUdwyd.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_Button-SQt5xNRO.js",
+      "_Card-CLzy-hjV.js",
+      "_Badge-BW7KCl-q.js",
+      "_StatCard-BT7Q47wh.js",
+      "_useAttendancePunch-C2N8DSeT.js"
     ]
   },
   "resources/js/Pages/Admin/Dtr.jsx": {
-    "file": "assets/Dtr-B1wPYoui.js",
+    "file": "assets/Dtr-CTgKpNK-.js",
     "name": "Dtr",
     "src": "resources/js/Pages/Admin/Dtr.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_Card-D7RjTGwa.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_Card-CLzy-hjV.js"
     ]
   },
   "resources/js/Pages/Admin/DtrEditRequests.jsx": {
-    "file": "assets/DtrEditRequests-Btwlbq95.js",
+    "file": "assets/DtrEditRequests-BMLTj-6u.js",
     "name": "DtrEditRequests",
     "src": "resources/js/Pages/Admin/DtrEditRequests.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_Card-D7RjTGwa.js",
-      "_Badge-BxvNhXvx.js",
-      "_EmptyState-DUcPnw76.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_Card-CLzy-hjV.js",
+      "_Badge-BW7KCl-q.js",
+      "_EmptyState-BYlR9I0K.js"
     ]
   },
   "resources/js/Pages/Admin/DtrShow.jsx": {
-    "file": "assets/DtrShow-DVa3LA2E.js",
+    "file": "assets/DtrShow-DPHXpLiC.js",
     "name": "DtrShow",
     "src": "resources/js/Pages/Admin/DtrShow.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_Card-D7RjTGwa.js",
-      "_Badge-BxvNhXvx.js",
-      "_useDtrToday-C3DsgLic.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_Card-CLzy-hjV.js",
+      "_Badge-BW7KCl-q.js",
+      "_useDtrToday-BR9tPO7v.js"
     ]
   },
   "resources/js/Pages/Admin/Dues.jsx": {
-    "file": "assets/Dues-6r0Ib-VI.js",
+    "file": "assets/Dues-Be3C-f1j.js",
     "name": "Dues",
     "src": "resources/js/Pages/Admin/Dues.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_ConfirmModal-CepybzMQ.js",
-      "_CardMenu-YngKZK6V.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_ConfirmModal-DnO6IBGL.js",
+      "_CardMenu-QWxT8ZDb.js"
     ]
   },
   "resources/js/Pages/Admin/EmployeeShow.jsx": {
-    "file": "assets/EmployeeShow-BGzSCSjm.js",
+    "file": "assets/EmployeeShow-Bq2M-9rO.js",
     "name": "EmployeeShow",
     "src": "resources/js/Pages/Admin/EmployeeShow.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_ConfirmModal-CepybzMQ.js",
-      "_EmployeeSignatureUpload-CcrdzqUc.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_ConfirmModal-DnO6IBGL.js",
+      "_EmployeeSignatureUpload-Cuj_rySl.js"
     ]
   },
   "resources/js/Pages/Admin/Employees.jsx": {
-    "file": "assets/Employees-C5kI0aJP.js",
+    "file": "assets/Employees-CG6EF8sl.js",
     "name": "Employees",
     "src": "resources/js/Pages/Admin/Employees.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_Card-D7RjTGwa.js",
-      "_Badge-BxvNhXvx.js",
-      "_EmptyState-DUcPnw76.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_Card-CLzy-hjV.js",
+      "_Badge-BW7KCl-q.js",
+      "_EmptyState-BYlR9I0K.js"
     ]
   },
   "resources/js/Pages/Admin/Payroll.jsx": {
-    "file": "assets/Payroll-7Wy2xzSF.js",
+    "file": "assets/Payroll-BYlNVFxc.js",
     "name": "Payroll",
     "src": "resources/js/Pages/Admin/Payroll.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_Badge-BxvNhXvx.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_Badge-BW7KCl-q.js"
     ]
   },
   "resources/js/Pages/Admin/PayrollAnalytics.jsx": {
-    "file": "assets/PayrollAnalytics-NYADHG97.js",
+    "file": "assets/PayrollAnalytics-C0pi4ppa.js",
     "name": "PayrollAnalytics",
     "src": "resources/js/Pages/Admin/PayrollAnalytics.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Card-D7RjTGwa.js",
-      "_StatCard-B15KUpyE.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Card-CLzy-hjV.js",
+      "_StatCard-BT7Q47wh.js"
     ]
   },
   "resources/js/Pages/Admin/PayrollShow.jsx": {
-    "file": "assets/PayrollShow-1IAa5vJw.js",
+    "file": "assets/PayrollShow-DCRIDgx3.js",
     "name": "PayrollShow",
     "src": "resources/js/Pages/Admin/PayrollShow.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_ConfirmModal-CepybzMQ.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_ConfirmModal-DnO6IBGL.js"
     ]
   },
   "resources/js/Pages/Admin/PayrollWizard.jsx": {
-    "file": "assets/PayrollWizard-DOtWTeu-.js",
+    "file": "assets/PayrollWizard-DJ-C1bAS.js",
     "name": "PayrollWizard",
     "src": "resources/js/Pages/Admin/PayrollWizard.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_ConfirmModal-CepybzMQ.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_ConfirmModal-DnO6IBGL.js"
     ]
   },
   "resources/js/Pages/Admin/Settings.jsx": {
-    "file": "assets/Settings-If_WGwSo.js",
+    "file": "assets/Settings-DXijuNzQ.js",
     "name": "Settings",
     "src": "resources/js/Pages/Admin/Settings.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_Card-D7RjTGwa.js",
-      "_Badge-BxvNhXvx.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_Card-CLzy-hjV.js",
+      "_Badge-BW7KCl-q.js"
     ]
   },
   "resources/js/Pages/Admin/TeamTasks.jsx": {
-    "file": "assets/TeamTasks-5SKhrRcf.js",
+    "file": "assets/TeamTasks-CDbUPtnW.js",
     "name": "TeamTasks",
     "src": "resources/js/Pages/Admin/TeamTasks.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_ConfirmModal-CepybzMQ.js",
-      "_useHideTodo-BMfxMCsH.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_ConfirmModal-DnO6IBGL.js",
+      "_useHideTodo-o8z5545S.js"
     ]
   },
   "resources/js/Pages/Admin/ThirteenthMonth.jsx": {
-    "file": "assets/ThirteenthMonth-Ctx3dvg5.js",
+    "file": "assets/ThirteenthMonth-GIBIWGxW.js",
     "name": "ThirteenthMonth",
     "src": "resources/js/Pages/Admin/ThirteenthMonth.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_Card-D7RjTGwa.js",
-      "_Badge-BxvNhXvx.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_Card-CLzy-hjV.js",
+      "_Badge-BW7KCl-q.js"
     ]
   },
   "resources/js/Pages/Admin/ThirteenthMonthCompute.jsx": {
-    "file": "assets/ThirteenthMonthCompute-UY72-R9g.js",
+    "file": "assets/ThirteenthMonthCompute-BwommtIB.js",
     "name": "ThirteenthMonthCompute",
     "src": "resources/js/Pages/Admin/ThirteenthMonthCompute.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_Card-D7RjTGwa.js",
-      "_Badge-BxvNhXvx.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_Card-CLzy-hjV.js",
+      "_Badge-BW7KCl-q.js"
     ]
   },
   "resources/js/Pages/Admin/ThirteenthMonthShow.jsx": {
-    "file": "assets/ThirteenthMonthShow-Dhuuj4E8.js",
+    "file": "assets/ThirteenthMonthShow-OG3rXDlf.js",
     "name": "ThirteenthMonthShow",
     "src": "resources/js/Pages/Admin/ThirteenthMonthShow.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_Card-D7RjTGwa.js",
-      "_ConfirmModal-CepybzMQ.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_Card-CLzy-hjV.js",
+      "_ConfirmModal-DnO6IBGL.js"
     ]
   },
   "resources/js/Pages/Auth/ForgotPassword.jsx": {
-    "file": "assets/ForgotPassword-DJmnqK-Y.js",
+    "file": "assets/ForgotPassword-irZ2Lujt.js",
     "name": "ForgotPassword",
     "src": "resources/js/Pages/Auth/ForgotPassword.jsx",
     "isDynamicEntry": true,
@@ -397,17 +397,17 @@
     ]
   },
   "resources/js/Pages/Auth/Login.jsx": {
-    "file": "assets/Login-B3VYVnZ2.js",
+    "file": "assets/Login-C3o2jr5e.js",
     "name": "Login",
     "src": "resources/js/Pages/Auth/Login.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_useTheme-Dd39AOIM.js"
+      "_useTheme-BHt0wVx6.js"
     ]
   },
   "resources/js/Pages/Auth/ResetPassword.jsx": {
-    "file": "assets/ResetPassword-B8ndDDb5.js",
+    "file": "assets/ResetPassword-ByPkolqJ.js",
     "name": "ResetPassword",
     "src": "resources/js/Pages/Auth/ResetPassword.jsx",
     "isDynamicEntry": true,
@@ -416,108 +416,108 @@
     ]
   },
   "resources/js/Pages/Employee/AccountSetup.jsx": {
-    "file": "assets/AccountSetup-CxTRS2JJ.js",
+    "file": "assets/AccountSetup-BOKoiEXY.js",
     "name": "AccountSetup",
     "src": "resources/js/Pages/Employee/AccountSetup.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_AdminLayout-vGmKhSGz.js",
-      "_AdminPageHeader-DKnPAhCp.js",
-      "_Button-DMm_m8WF.js",
-      "_EmployeeSignatureUpload-CcrdzqUc.js",
-      "_EmployeeLayout-CyCZFThQ.js",
-      "_EmployeePageHeader-BpNF1Emn.js"
+      "_AdminLayout-Xg6fJ-4N.js",
+      "_AdminPageHeader-o95GKuy7.js",
+      "_Button-SQt5xNRO.js",
+      "_EmployeeSignatureUpload-Cuj_rySl.js",
+      "_EmployeeLayout-DpaVYj4W.js",
+      "_EmployeePageHeader-BuQiOSZ8.js"
     ]
   },
   "resources/js/Pages/Employee/Dashboard.jsx": {
-    "file": "assets/Dashboard-BlTjrfNi.js",
+    "file": "assets/Dashboard-DCKCSnYB.js",
     "name": "Dashboard",
     "src": "resources/js/Pages/Employee/Dashboard.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_Button-DMm_m8WF.js",
-      "_Card-D7RjTGwa.js",
-      "_Badge-BxvNhXvx.js",
-      "_StatCard-B15KUpyE.js",
-      "_useAttendancePunch-g1tUdwyd.js",
-      "_EmployeeLayout-CyCZFThQ.js"
+      "_Button-SQt5xNRO.js",
+      "_Card-CLzy-hjV.js",
+      "_Badge-BW7KCl-q.js",
+      "_StatCard-BT7Q47wh.js",
+      "_useAttendancePunch-C2N8DSeT.js",
+      "_EmployeeLayout-DpaVYj4W.js"
     ]
   },
   "resources/js/Pages/Employee/Dtr.jsx": {
-    "file": "assets/Dtr-DIy7UUPQ.js",
+    "file": "assets/Dtr-CR2EL0-T.js",
     "name": "Dtr",
     "src": "resources/js/Pages/Employee/Dtr.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_Card-D7RjTGwa.js",
-      "_Badge-BxvNhXvx.js",
-      "_StatCard-B15KUpyE.js",
-      "_useDtrToday-C3DsgLic.js",
-      "_EmployeeLayout-CyCZFThQ.js",
-      "_EmployeePageHeader-BpNF1Emn.js"
+      "_Card-CLzy-hjV.js",
+      "_Badge-BW7KCl-q.js",
+      "_StatCard-BT7Q47wh.js",
+      "_useDtrToday-BR9tPO7v.js",
+      "_EmployeeLayout-DpaVYj4W.js",
+      "_EmployeePageHeader-BuQiOSZ8.js"
     ]
   },
   "resources/js/Pages/Employee/Notifications.jsx": {
-    "file": "assets/Notifications-Wg60Uzzn.js",
+    "file": "assets/Notifications-DtlE4Yf6.js",
     "name": "Notifications",
     "src": "resources/js/Pages/Employee/Notifications.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_Card-D7RjTGwa.js",
-      "_Badge-BxvNhXvx.js",
-      "_EmployeeLayout-CyCZFThQ.js",
-      "_EmployeePageHeader-BpNF1Emn.js"
+      "_Card-CLzy-hjV.js",
+      "_Badge-BW7KCl-q.js",
+      "_EmployeeLayout-DpaVYj4W.js",
+      "_EmployeePageHeader-BuQiOSZ8.js"
     ]
   },
   "resources/js/Pages/Employee/Payslips.jsx": {
-    "file": "assets/Payslips-D6Y3dp5i.js",
+    "file": "assets/Payslips-fvITLfNg.js",
     "name": "Payslips",
     "src": "resources/js/Pages/Employee/Payslips.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_Card-D7RjTGwa.js",
-      "_Badge-BxvNhXvx.js",
-      "_StatCard-B15KUpyE.js",
-      "_EmployeeLayout-CyCZFThQ.js",
-      "_EmployeePageHeader-BpNF1Emn.js"
+      "_Card-CLzy-hjV.js",
+      "_Badge-BW7KCl-q.js",
+      "_StatCard-BT7Q47wh.js",
+      "_EmployeeLayout-DpaVYj4W.js",
+      "_EmployeePageHeader-BuQiOSZ8.js"
     ]
   },
   "resources/js/Pages/Employee/Planner.jsx": {
-    "file": "assets/Planner-CqYbOV_2.js",
+    "file": "assets/Planner-C2V1Ri4N.js",
     "name": "Planner",
     "src": "resources/js/Pages/Employee/Planner.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_Card-D7RjTGwa.js",
-      "_Badge-BxvNhXvx.js",
-      "_ConfirmModal-CepybzMQ.js",
-      "_CardMenu-YngKZK6V.js",
-      "_useHideTodo-BMfxMCsH.js",
-      "_EmployeeLayout-CyCZFThQ.js",
-      "_EmployeePageHeader-BpNF1Emn.js"
+      "_Card-CLzy-hjV.js",
+      "_Badge-BW7KCl-q.js",
+      "_ConfirmModal-DnO6IBGL.js",
+      "_CardMenu-QWxT8ZDb.js",
+      "_useHideTodo-o8z5545S.js",
+      "_EmployeeLayout-DpaVYj4W.js",
+      "_EmployeePageHeader-BuQiOSZ8.js"
     ]
   },
   "resources/js/Pages/Employee/Profile.jsx": {
-    "file": "assets/Profile-C0n7i5Be.js",
+    "file": "assets/Profile-CvukGs7b.js",
     "name": "Profile",
     "src": "resources/js/Pages/Employee/Profile.jsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.jsx",
-      "_Button-DMm_m8WF.js",
-      "_Card-D7RjTGwa.js",
-      "_EmployeeLayout-CyCZFThQ.js",
-      "_EmployeePageHeader-BpNF1Emn.js"
+      "_Button-SQt5xNRO.js",
+      "_Card-CLzy-hjV.js",
+      "_EmployeeLayout-DpaVYj4W.js",
+      "_EmployeePageHeader-BuQiOSZ8.js"
     ]
   },
   "resources/js/app.jsx": {
-    "file": "assets/app-bNGMA8CC.js",
+    "file": "assets/app-O9BMRoOq.js",
     "name": "app",
     "src": "resources/js/app.jsx",
     "isEntry": true,
@@ -552,7 +552,7 @@
       "resources/js/Pages/Employee/Profile.jsx"
     ],
     "css": [
-      "assets/app-OLffSe3K.css"
+      "assets/app--YWIhouG.css"
     ],
     "assets": [
       "assets/pmpc_ems-KvZCSiQ0.png"

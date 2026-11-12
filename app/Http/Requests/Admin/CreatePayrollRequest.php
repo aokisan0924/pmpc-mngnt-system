@@ -25,19 +25,18 @@ class CreatePayrollRequest extends FormRequest
         return [
             'month' => ['required', 'date_format:Y-m'],
             'cutoff' => ['required', 'in:first,second'],
-            'period_from' => ['nullable', 'date', 'required_with:period_to'],
-            'period_to' => ['nullable', 'date', 'required_with:period_from'],
+            'period_to' => ['nullable', 'date'],
         ];
     }
 
     public function after(): array
     {
         return [function (Validator $validator): void {
-            if ($validator->errors()->isNotEmpty() || ! $this->filled('period_from')) {
+            if ($validator->errors()->isNotEmpty() || ! $this->filled('period_to')) {
                 return;
             }
-            if (! PayrollCutoffPeriod::withinHalf(Carbon::parse($this->period_from), Carbon::parse($this->period_to), $this->month, $this->cutoff)) {
-                $validator->errors()->add('period_from', 'Dates must stay inside the chosen cutoff (1st–15th or 16th–month end), start date first.');
+            if (! PayrollCutoffPeriod::withinHalf(PayrollCutoffPeriod::suggest($this->month, $this->cutoff)['from'], Carbon::parse($this->period_to), $this->month, $this->cutoff)) {
+                $validator->errors()->add('period_to', 'The end date must stay inside the chosen cutoff (1st–15th or 16th–month end).');
             }
         }];
     }

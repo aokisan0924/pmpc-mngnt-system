@@ -31,19 +31,29 @@ final class PayrollCutoffPeriod
     }
 
     /**
-     * The DTR days a cutoff pays: the day after the previous cutoff's suggested end through $to,
+     * The DTR days a cutoff pays: the day after the previous cutoff's end (saved, else suggested) through $to,
      * so each day belongs to exactly one cutoff (weekend workers included).
      *
      * @return array{from: CarbonImmutable, to: CarbonImmutable}
      */
-    public static function window(string $month, string $cutoff, CarbonInterface $to): array
+    public static function window(string $month, string $cutoff, CarbonInterface $to, ?CarbonInterface $previousTo = null): array
     {
         $first = CarbonImmutable::createFromFormat('!Y-m', $month);
         $previous = $cutoff === 'first'
             ? self::suggest($first->subMonth()->format('Y-m'), 'second')
             : self::suggest($month, 'first');
+        // A saved previous batch wins over the suggestion, so an edited end date never drops or repeats a day.
+        $end = $previousTo !== null ? CarbonImmutable::parse($previousTo->toDateString()) : $previous['to'];
 
-        return ['from' => $previous['to']->addDay(), 'to' => CarbonImmutable::parse($to->toDateString())];
+        return ['from' => $end->addDay(), 'to' => CarbonImmutable::parse($to->toDateString())];
+    }
+
+    /** @return array{0: string, 1: string} month and cutoff of the cutoff before this one */
+    public static function previous(string $month, string $cutoff): array
+    {
+        return $cutoff === 'first'
+            ? [CarbonImmutable::createFromFormat('!Y-m', $month)->subMonth()->format('Y-m'), 'second']
+            : [$month, 'first'];
     }
 
     public static function withinHalf(CarbonInterface $from, CarbonInterface $to, string $month, string $cutoff): bool
