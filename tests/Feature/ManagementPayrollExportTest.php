@@ -13,11 +13,13 @@ use DOMXPath;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
+use Tests\Concerns\ReadsPayrollExport;
 use Tests\TestCase;
 use ZipArchive;
 
 class ManagementPayrollExportTest extends TestCase
 {
+    use ReadsPayrollExport;
     use RefreshDatabase;
 
     private array $files = [];
@@ -61,6 +63,23 @@ class ManagementPayrollExportTest extends TestCase
         return $xpath->query('//s:c[@r="'.$cell.'"]')->item(0)?->textContent;
     }
 
+    /** Sum of the journal's debit and credit columns from "Salaries and Wages" down. */
+    private function journalTotals(array $cells): array
+    {
+        $start = collect($cells)->filter(fn (string $text, string $address): bool => (int) preg_replace('/\D/', '', $address) > 17 && str_starts_with($text, 'Salaries and Wages'))->keys()->first();
+        preg_match('/^([A-Z]+)(\d+)$/', $start, $match);
+        [$debit, $credit] = [0.0, 0.0];
+        foreach ($cells as $address => $text) {
+            preg_match('/^([A-Z]+)(\d+)$/', $address, $cell);
+            if ($cell[1] === $match[1] && (int) $cell[2] >= (int) $match[2] && (int) $cell[2] < 80 && $text !== '') {
+                $debit += (float) ($this->journal([$address => $text] + $cells, $text, true) ?? 0);
+                $credit += (float) ($this->journal([$address => $text] + $cells, $text) ?? 0);
+            }
+        }
+
+        return [round($debit, 2), round($credit, 2)];
+    }
+
     public function test_all_offices_use_saved_figures_and_partial_month_is_explicit(): void
     {
         $batch = $this->batch();
@@ -69,22 +88,25 @@ class ManagementPayrollExportTest extends TestCase
             $item->employee->update(['daily_rate' => 9999, 'transpo_allowance' => 9999]);
         }
         $path = $this->exported($batch);
-        foreach ([1 => 'Y11', 2 => 'Z11', 3 => 'S11', 4 => 'Z11'] as $sheet => $net) {
-            $this->assertEquals(6760, $this->value($path, $sheet, $net));
-            $this->assertEquals('CUTOFF NOT AVAILABLE', $this->value($path, $sheet, 'B9'));
-            $this->assertEmpty($this->value($path, $sheet, 'E11'));
-            // Supplemental detail sits below the original layout (header row 90).
-            $this->assertEquals(30, $this->value($path, $sheet, 'O91'));
+        foreach (range(1, 4) as $sheet) {
+            $cells = $this->sheetCells($path, $sheet);
+            $this->assertEquals(6760, $this->underHeader($cells, 1, 'NET PAY', 11));
+            $this->assertEquals('CUTOFF NOT AVAILABLE', $cells[$this->headerColumn($cells, 0, 'EMPLOYEE NAME').'9']);
+            $this->assertEmpty($this->underHeader($cells, 0, 'BASIC PAY', 11));
+            // Supplemental detail sits below the printed layout (header row 90).
+            $this->assertEquals(30, $cells['O91']);
         }
-        $this->assertEquals(6000, $this->value($path, 1, 'R11'));
-        $this->assertEquals(375, $this->value($path, 4, 'BJ11'));
-        $this->assertSame('Payee:', $this->value($path, 5, 'B11'));
-        $this->assertStringNotContainsString('first cutoff', $this->value($path, 1, 'B88'));
-        $this->assertEquals(28540, $this->value($path, 5, 'H27'));
-        $this->assertEquals(28540, $this->value($path, 5, 'I27'));
-        // Interest income is split manually; other deductions, tardiness and cash advances share the Other Income line.
-        $this->assertEmpty($this->value($path, 5, 'I22'));
-        $this->assertEquals(320, $this->value($path, 5, 'I25'));
+        $main = $this->sheetCells($path, 1);
+        $this->assertEquals(6000, $this->underHeader($main, 1, 'BASIC PAY', 11));
+        $this->assertEquals(375, $this->underHeader($this->sheetCells($path, 4), 4, 'TOTAL DEDUCTIONS', 11));
+        $voucher = $this->sheetCells($path, 5);
+        $this->assertSame('Payee:', $voucher['B11']);
+        $this->assertEquals(28540, $voucher['H15']);
+        $this->assertEquals(28540, $voucher['I28']);
+        // Interest income is entered by hand; savings, cash advances and other deductions share row 25.
+        $this->assertEquals(0, $voucher['I22']);
+        $this->assertEquals(440, $voucher['I25']);
+        $this->assertStringNotContainsString('first cutoff', $main['B88']);
         // Keep a synthetic export outside the repository for visual verification.
         copy($path, sys_get_temp_dir().'/management-payroll-synthetic.xlsx');
     }
@@ -96,29 +118,75 @@ class ManagementPayrollExportTest extends TestCase
         $item = $this->item($first, 'cubao');
         $this->item($second, 'cubao', $item->employee);
         $path = $this->exported($second);
-        $this->assertEquals(6760, $this->value($path, 4, 'M11'));
-        $this->assertEquals(6760, $this->value($path, 4, 'Z11'));
-        $this->assertEquals(750, $this->value($path, 4, 'AM11'));
-        $this->assertEquals(750, $this->value($path, 4, 'AM15'));
-        $this->assertEquals(14270, $this->value($path, 5, 'I27'));
-        $this->assertStringContainsString('first cutoff', $this->value($path, 4, 'B88'));
-        $this->assertStringContainsString('second cutoff', $this->value($path, 4, 'B88'));
+        $cubao = $this->sheetCells($path, 4);
+        $this->assertEquals(6760, $this->underHeader($cubao, 0, 'NET PAY', 11));
+        $this->assertEquals(6760, $this->underHeader($cubao, 1, 'NET PAY', 11));
+        $this->assertEquals(375, $this->underHeader($cubao, 3, 'TOTAL DEDUCTIONS', 11));
+        $this->assertEquals(375, $this->underHeader($cubao, 4, 'TOTAL DEDUCTIONS', 17));
+        $this->assertEquals(14270, $this->sheetCells($path, 5)['I28']);
+        $this->assertStringContainsString('first cutoff', $cubao['B88']);
+        $this->assertStringContainsString('second cutoff', $cubao['B88']);
     }
 
-    public function test_main_office_fits_four_employees_with_totals_and_journal_below(): void
+    public function test_main_office_fits_six_employees_with_totals_and_journal_below(): void
     {
         $batch = $this->batch();
-        foreach (range(1, 4) as $unused) {
+        foreach (range(1, 6) as $unused) {
             $this->item($batch);
         }
+        $main = $this->sheetCells($this->exported($batch), 1);
+        $this->assertEquals(6760, $this->underHeader($main, 1, 'NET PAY', 16));
+        $this->assertSame('TOTAL', $main[$this->headerColumn($main, 1, 'EMPLOYEE NAME').'17']);
+        $this->assertEquals(40560, $this->underHeader($main, 1, 'NET PAY', 17));
+        $this->assertEquals(42810, $this->journal($main, 'Salaries and Wages', true));
+        $this->assertEquals(40560, $this->journal($main, 'Cash in Bank'));
+    }
+
+    public function test_every_row_balances_and_every_journal_balances(): void
+    {
+        $first = $this->batch('first');
+        $second = $this->batch();
+        foreach (['main_office', 'fort_magsaysay', 'gen_mdse', 'cubao'] as $office) {
+            $item = $this->item($first, $office);
+            $item->update(['basic_before_absence' => 6600, 'absence_deduction' => 600, 'nwnp_deduction' => 0]);
+            $this->item($second, $office, $item->employee)->update(['basic_before_absence' => 6600, 'absence_deduction' => 600, 'nwnp_deduction' => 600]);
+        }
+        $path = $this->exported($second);
+        foreach (range(1, 4) as $sheet) {
+            $cells = $this->sheetCells($path, $sheet);
+            foreach ([0, 1] as $grid) {
+                $gross = (float) $this->underHeader($cells, $grid, 'GROSS PAY', 11);
+                $deductions = (float) $this->underHeader($cells, $grid, 'DEDUCTIONS', 11);
+                $this->assertEqualsWithDelta(6760, $gross - $deductions, 0.001, "sheet $sheet grid $grid");
+            }
+            [$debit, $credit] = $this->journalTotals($cells);
+            $this->assertGreaterThan(0, $debit);
+            $this->assertEqualsWithDelta($debit, $credit, 0.001, "journal on sheet $sheet");
+        }
+        // Main Office 2nd grid has an NPW- HOLIDAY column: the unworked holiday shows there, not as absent.
+        $main = $this->sheetCells($path, 1);
+        $this->assertEquals(600, $this->underHeader($main, 1, 'NPW- HOLIDAY', 11));
+        $this->assertEquals(0, $this->underHeader($main, 4, 'ABSENT', 11));
+        // Cubao 2nd grid has none: the same amount goes to its deduction table's ABSENT.
+        $this->assertEquals(600, $this->underHeader($this->sheetCells($path, 4), 4, 'ABSENT', 11));
+        // Gen Mdse 1st grid has its own ABSENT column; the deduction table then shows 0.
+        $gen = $this->sheetCells($path, 3);
+        $this->assertEquals(600, $this->underHeader($gen, 0, 'ABSENT', 11));
+        $this->assertEquals(0, $this->underHeader($gen, 3, 'ABSENT', 11));
+    }
+
+    public function test_fort_second_grid_uses_its_own_column_order_and_markers_are_replaced(): void
+    {
+        $batch = $this->batch();
+        $this->item($batch, 'fort_magsaysay')->update(['cutoff_transpo' => 111, 'cutoff_rep' => 222, 'cutoff_quarterly' => 333, 'gross_pay' => 6951, 'net_pay' => 6576]);
         $path = $this->exported($batch);
-        $this->assertEquals(6760, $this->value($path, 1, 'Y14'));
-        $this->assertSame('TOTAL', $this->value($path, 1, 'O15'));
-        $this->assertEquals(27040, $this->value($path, 1, 'Y15'));
-        $this->assertEquals(97.5, $this->value($path, 1, 'BE25'));
-        $this->assertSame('Salaries and Wages', $this->value($path, 1, 'P25'));
-        $this->assertEquals(28540, $this->value($path, 1, 'R25'));
-        $this->assertEquals(28540, $this->value($path, 1, 'R39'));
+        $fort = $this->sheetCells($path, 2);
+        $this->assertEquals(111, $this->underHeader($fort, 1, 'TRANSPO', 11));
+        $this->assertEquals(222, $this->underHeader($fort, 1, 'REP', 11));
+        $this->assertEquals(333, $this->underHeader($fort, 1, 'QUART', 11));
+        foreach (range(1, 5) as $sheet) {
+            $this->assertStringNotContainsString('{{', implode('|', $this->sheetCells($path, $sheet)));
+        }
     }
 
     public function test_download_is_admin_only_and_returns_a_real_xlsx(): void
@@ -135,11 +203,11 @@ class ManagementPayrollExportTest extends TestCase
     public function test_over_capacity_reports_error_without_omitting_rows(): void
     {
         $batch = $this->batch();
-        foreach (range(1, 5) as $unused) {
+        foreach (range(1, 7) as $unused) {
             $this->item($batch);
         }
         $this->actingAs(Employee::findOrFail($batch->created_by))->from(route('admin.payroll.show', $batch))->get(route('admin.payroll.export', $batch))->assertRedirect(route('admin.payroll.show', $batch))->assertSessionHasErrors('export');
-        $this->assertDatabaseCount('payroll_items', 5);
+        $this->assertDatabaseCount('payroll_items', 7);
     }
 
     public function test_legacy_office_data_is_rejected_and_duplicate_cutoffs_cannot_be_saved(): void

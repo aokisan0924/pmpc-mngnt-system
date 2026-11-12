@@ -11,15 +11,14 @@ use App\Models\Payroll;
 use App\Services\ManagementPayrollExport;
 use App\Services\OfficePayrollCalculator;
 use Carbon\Carbon;
-use DOMDocument;
-use DOMXPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
+use Tests\Concerns\ReadsPayrollExport;
 use Tests\TestCase;
-use ZipArchive;
 
 class PayrollWizardTest extends TestCase
 {
+    use ReadsPayrollExport;
     use RefreshDatabase;
 
     private Employee $admin;
@@ -163,20 +162,16 @@ class PayrollWizardTest extends TestCase
         $this->actingAs($this->admin)->post('/admin/payroll', $this->payload());
         $path = app(ManagementPayrollExport::class)->export(Payroll::firstOrFail());
 
-        $zip = new ZipArchive;
-        $zip->open($path);
-        $doc = new DOMDocument;
-        $doc->loadXML($zip->getFromName('xl/worksheets/sheet2.xml'));
-        $zip->close();
+        $fort = $this->sheetCells($path, 2);
         @unlink($path);
-        $xpath = new DOMXPath($doc);
-        $xpath->registerNamespace('s', 'http://schemas.openxmlformats.org/spreadsheetml/2006/main');
-        $cell = fn (string $ref): ?string => $xpath->query('//s:c[@r="'.$ref.'"]')->item(0)?->textContent;
 
-        $this->assertEquals(10, $cell('D11'));
-        $this->assertEquals(6000, $cell('E11'));
-        $this->assertEquals(1800, $cell('G11'));
-        $this->assertEquals('NOVEMBER 2 - 13, 2026', $cell('B9'));
+        // October layout: days actually paid, full basic, and the absences (incl. the Nov 2 NWNP holiday,
+        // as the 1st-cutoff grid has no NPW column) in that cutoff's deduction table.
+        $this->assertEquals(7, $this->underHeader($fort, 0, 'DAYS OF WORK', 11));
+        $this->assertEquals(6000, $this->underHeader($fort, 0, 'BASIC PAY', 11));
+        $this->assertEquals(1800, $this->underHeader($fort, 3, 'ABSENT', 11));
+        $this->assertEquals(3250, $this->underHeader($fort, 0, 'NET PAY', 11));
+        $this->assertEquals('NOVEMBER 2 - 13, 2026', $fort['B9']);
     }
 
     public function test_next_cutoff_starts_after_the_saved_end_date_not_the_suggested_one(): void
