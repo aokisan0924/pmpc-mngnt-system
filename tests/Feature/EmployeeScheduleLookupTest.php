@@ -46,4 +46,32 @@ class EmployeeScheduleLookupTest extends TestCase
 
         $this->assertSame(['start' => '07:00', 'end' => '16:00', 'two_punch' => false], EmployeeSchedule::shiftFor($e->id, $date));
     }
+
+    public function test_shift_hours_default_is_eight(): void
+    {
+        $e = Employee::factory()->create();
+
+        $this->assertSame(8.0, EmployeeSchedule::shiftHoursFor($e->id, Carbon::parse('2026-11-03')));
+    }
+
+    public function test_shift_hours_two_punch_day_and_overnight_are_twelve(): void
+    {
+        $day = Employee::factory()->create();
+        $night = Employee::factory()->create();
+        EmployeeSchedule::create(['employee_id' => $day->id, 'effective_from' => '2026-10-01', 'type' => 'two_punch', 'shift_start' => '06:00', 'shift_end' => '18:00', 'work_days' => '0,1,2,3,4,5,6']);
+        EmployeeSchedule::create(['employee_id' => $night->id, 'effective_from' => '2026-10-01', 'type' => 'two_punch', 'shift_start' => '18:00', 'shift_end' => '06:00', 'work_days' => '0,1,2,3,4,5,6']);
+
+        $this->assertSame(12.0, EmployeeSchedule::shiftHoursFor($day->id, Carbon::parse('2026-11-03')));
+        $this->assertSame(12.0, EmployeeSchedule::shiftHoursFor($night->id, Carbon::parse('2026-11-03')));
+    }
+
+    public function test_shift_hours_follow_the_row_in_effect_on_the_date(): void
+    {
+        $e = Employee::factory()->create();
+        EmployeeSchedule::create(['employee_id' => $e->id, 'effective_from' => '2026-10-01', 'type' => 'custom', 'shift_start' => '07:00', 'shift_end' => '16:00', 'work_days' => '1,2,3,4,5']);
+        EmployeeSchedule::create(['employee_id' => $e->id, 'effective_from' => '2026-11-09', 'type' => 'two_punch', 'shift_start' => '06:00', 'shift_end' => '18:00', 'work_days' => '1,2,3,4,5']);
+
+        $this->assertSame(8.0, EmployeeSchedule::shiftHoursFor($e->id, Carbon::parse('2026-11-06')));
+        $this->assertSame(12.0, EmployeeSchedule::shiftHoursFor($e->id, Carbon::parse('2026-11-09')));
+    }
 }

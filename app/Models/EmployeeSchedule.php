@@ -56,6 +56,25 @@ class EmployeeSchedule extends Model
         return ['start' => $row->shift_start, 'end' => $row->shift_end, 'two_punch' => $row->type === 'two_punch'];
     }
 
+    /** Paid hours in a full shift on the date: two-punch shifts run straight through, others drop the lunch hour. */
+    public static function shiftHoursFor(int $employeeId, CarbonInterface $date): float
+    {
+        $shift = static::shiftFor($employeeId, $date)
+            ?? ['start' => (string) Setting::get('shift_start', '08:00'), 'end' => (string) Setting::get('shift_end', '17:00'), 'two_punch' => false];
+        $minutes = fn (string $time): int => (int) substr($time, 0, 2) * 60 + (int) substr($time, 3, 2);
+        [$start, $end] = [$minutes($shift['start']), $minutes($shift['end'])];
+        if ($end <= $start) {
+            $end += 1440;
+        }
+        $length = $end - $start;
+        if (! $shift['two_punch']) {
+            [$lunchFrom, $lunchTo] = [$minutes((string) Setting::get('lunch_start', '12:00')), $minutes((string) Setting::get('lunch_end', '13:00'))];
+            $length -= max(0, min($end, $lunchTo) - max($start, $lunchFrom));
+        }
+
+        return round($length / 60, 2);
+    }
+
     /** @return array<int> */
     public static function workDaysFor(int $employeeId, CarbonInterface $date): array
     {
