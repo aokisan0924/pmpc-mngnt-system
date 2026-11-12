@@ -40,6 +40,8 @@ class OfficePayrollCalculator
         $amounts = [
             'basic_before_absence' => $basicBefore,
             'absence_deduction' => round($basicBefore - $basic, 2),
+            // Unworked part of holidays (no work, no pay); already included in absence_deduction.
+            'nwnp_deduction' => round(array_sum(array_map(fn (array $day): float => ($day['holiday'] ?? false) && $day['shift_hours'] > 0 ? $rate * ($day['shift_hours'] - $day['worked_hours']) / $day['shift_hours'] : 0.0, $days)), 2),
             'paid_days_basis' => (float) $attendance['days_of_work'],
             'absence_days' => $rate > 0 ? round(($basicBefore - $basic) / $rate, 2) : 0.0,
             'paid_hours' => round(array_sum(array_column($days, 'worked_hours')), 2),

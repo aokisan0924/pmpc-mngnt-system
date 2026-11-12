@@ -50,6 +50,8 @@ class HoursPayrollCalculatorTest extends TestCase
 
         $this->assertSame(6000.0, $result['basic_before_absence']);
         $this->assertSame(600.0, $result['absence_deduction']);
+        // The unworked holiday is reported on its own (NPW-HOLIDAY column); it is part of absence_deduction.
+        $this->assertSame(600.0, $result['nwnp_deduction']);
         $this->assertSame(5400.0, $result['cutoff_basic']);
         $this->assertSame(10.0, $result['paid_days_basis']);
     }
@@ -60,6 +62,7 @@ class HoursPayrollCalculatorTest extends TestCase
 
         $this->assertSame(5400.0, $result['basic_before_absence']);
         $this->assertSame(1200.0, $result['absence_deduction']);
+        $this->assertSame(0.0, $result['nwnp_deduction']);
         $this->assertSame(4200.0, $result['cutoff_basic']);
         $this->assertSame(9.0, $result['paid_days_basis']);
         $this->assertSame(2.0, $result['absence_days']);

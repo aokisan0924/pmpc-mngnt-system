@@ -12,6 +12,7 @@ class PayrollItem extends Model
     protected $fillable = [
         'basic_before_absence',
         'absence_deduction',
+        'nwnp_deduction',
         'payroll_id',
         'employee_id',
         'cutoff',
@@ -60,6 +61,7 @@ class PayrollItem extends Model
     protected $casts = [
         'basic_before_absence' => 'float',
         'absence_deduction' => 'float',
+        'nwnp_deduction' => 'float',
         'dtr_days_present' => 'float',
         'default_paid_days_basis' => 'float',
         'dtr_absence_days' => 'float',
