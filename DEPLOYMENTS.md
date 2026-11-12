@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 11:09 — 6411dd4 — One message box for save results, errors and empty lists
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `a346156` → `6411dd4` (includes the docs-only commit `37540a0`)
+- Migrations: none
+- Backup: none (front-end only; no database records or schema changed)
+- Data changes: none on live. Locally only, the scratch database `taskboard-preview.sqlite` got a new test password on ADM-0001 for the browser check.
+- Verified: locally the build passed, 27 JS test files passed, and 373 of 378 PHP tests passed (the 5 signature tests need the GD extension missing from this machine's PHP). On the scratch copy: wrong login shows only the inline error; saving Settings shows the success box bottom-right on desktop and under the top bar on phones; an Employees search with no match shows the new empty state; no console errors. On live: server tree clean before and after, nothing to migrate, app back up, login returns 200, HEAD `6411dd4`, login page serves the new bundle `app-CMDgX48c.js`. Not yet checked while signed in on live.
+
 ## 2026-11-12 10:45 — a346156 — Today column after To do; Dues hidden from the menu
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `4d2ed16` → `a346156` (includes the docs-only commit `0ac16c0`)
