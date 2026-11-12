@@ -118,25 +118,13 @@ When performing specialized workflows, activate the corresponding skill:
 
 ### 4.3 Payroll batch creation
 
-**Entry point:** `resources/js/Pages/Admin/Payroll.jsx`.
+**Entry point:** `resources/js/Pages/Admin/Payroll.jsx` (month + cutoff form) or the dashboard cutoff card → `GET /admin/payroll/create?month=Y-m&cutoff=first|second` → `resources/js/Pages/Admin/PayrollWizard.jsx` with steps in `resources/js/Components/PayrollWizard/`.
 
-**Trigger:** The “Process new payroll” control calls `startPayroll()`, which validates the two dates in the browser and invokes `router.get('/admin/payroll/create', ...)`. On `resources/js/Pages/Admin/PayrollCreate.jsx`, the “Save payroll” button uses `onClick={submit}` and calls `submit()`.
+**Flow:** Step 1 shows the suggested dates (`PayrollCutoffPeriod::suggest`: weekdays only, holidays kept as NWNP). Step 2 lists days with missing punches; each needs Fix DTR, Type hours (+ note, saved on the payroll item only) or Count as 0 hours. Step 3 is the management-payroll grid (allowances, OT hours, loan/CC/cash advance typed). Step 4 reloads the DTR, shows who changed, and offers Save draft / Save & finalize.
 
-**Request:** Both requests are Inertia visits: `GET /admin/payroll/create` with `period_from`, `period_to`, and `cutoff` query data, followed by `POST /admin/payroll` via `router.post`. These are not raw API calls.
+**Server:** `PayrollController::create/store` delegate to `App\Services\PayrollWizard`. Validation in `CreatePayrollRequest` / `StorePayrollRequest` (dates inside the cutoff half; save only after `period_to`). Hours come from `DtrPayrollAttendanceCalculator::hoursFor` over `PayrollCutoffPeriod::window` (day after the previous cutoff's end through `period_to`, so every DTR day belongs to one cutoff). Money comes from `OfficePayrollCalculator::calculateHours`; client amounts are never trusted. Saving replaces the existing draft's items inside one `DB::transaction`; `payrolls (period_month, cutoff)` is unique.
 
-**Handler:** `create` and `store` on `App\Http\Controllers\Admin\PayrollController` in `app/Http/Controllers/Admin/PayrollController.php`.
-
-**Validation:**
-
-- Client-side: `startPayroll()` requires both dates and rejects an end date before the start date in `resources/js/Pages/Admin/Payroll.jsx`. `PayrollCreate` permits only non-negative overtime inputs through input attributes, but submits no additional client-side validation in `resources/js/Pages/Admin/PayrollCreate.jsx`.
-- Server-side: No Form Request is used. `PayrollController::create` validates dates and cutoff; `store` validates period fields, cutoff, a non-empty item array, employee existence, and non-negative numeric attendance and overtime values in `app/Http/Controllers/Admin/PayrollController.php`. Server-side validation is present, but it does not validate that `period_to` is on or after `period_from` in `store`.
-
-**Database layer:** `create` reads active staff `App\Models\Employee` records from `employees`, sums relevant `App\Models\DtrLog` records from `dtr_logs`, and reads `App\Models\Setting` for `working_days_month`. `store` creates one `App\Models\Payroll` row in `payrolls` and one `App\Models\PayrollItem` row per submitted employee in `payroll_items`; it then calls `Payroll::recalculateTotals()`. `Payroll::items()` is `hasMany`, `Payroll::creator()` is `belongsTo(Employee::class, 'created_by')`, and each `PayrollItem` belongs to both a payroll and employee. Loan, capital-contribution, cash-advance, rental, savings, and other values are recurring employee deductions copied and split across cutoffs; there are no loan, dividend, savings-deposit, or savings-withdrawal transaction models or tables.
-
-**Response:** `create` returns the Inertia page `Admin/PayrollCreate` with calculated employee preview data. `store` redirects to `admin.payroll.show` with a success flash message. The show action eager-loads each item’s employee and returns `Admin/PayrollShow`.
-
-**Edge cases observed:** `PayrollItem::computeTotals()` recomputes earnings and deductions from current employee data rather than trusting client-submitted monetary totals. However, `PayrollController::store` creates the payroll, all items, and aggregate totals without an explicit database transaction; a failure mid-loop can leave a partial draft batch. It also calls `Employee::find()` after validating the employee exists, but the result could become null if the employee is deleted between validation and lookup. A repair migration, `database/migrations/2026_07_16_143457_add_rental_deduction_to_payroll_items_table.php`, explicitly states that it fixed a formerly missing `rental_deduction` column that caused payroll saves to fail after an earlier table recreation.
-
+**Export:** `ManagementPayrollExport` reads the saved `paid_days_basis` (days of work), `basic_before_absence` and `absence_deduction` (includes NWNP and unworked hours).
 ---
 
 ## 5. Known Issues

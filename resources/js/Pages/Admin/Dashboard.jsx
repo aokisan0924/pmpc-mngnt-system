@@ -194,7 +194,7 @@ export default function Dashboard({
 
     const payrollUrl = active_cutoff?.status === 'finalized'
         ? `/admin/payroll/${active_cutoff.payroll_id}`
-        : `/admin/payroll/create?cutoff=${active_cutoff?.key ?? ''}&period_from=${active_cutoff?.period_from ?? ''}&period_to=${active_cutoff?.period_to ?? ''}`
+        : `/admin/payroll/create?cutoff=${active_cutoff?.key ?? ''}&month=${(active_cutoff?.period_from ?? '').slice(0, 7)}`
 
     const payrollActionLabel = active_cutoff?.status === 'finalized'
         ? 'View Finalized Payroll'

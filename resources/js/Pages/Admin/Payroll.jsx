@@ -9,7 +9,8 @@ const fmt = (value) => new Intl.NumberFormat('en-PH', { style: 'currency', curre
 const control = 'min-h-[44px] w-full min-w-0 rounded-xl border border-border bg-field px-3 py-2 text-sm text-text'
 
 export default function Payroll({ payrolls = [] }) {
-    const form = useForm({ period_from: '', period_to: '', cutoff: 'first' })
+    const thisMonth = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' }).slice(0, 7)
+    const form = useForm({ month: thisMonth, cutoff: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' }).slice(8) > '15' ? 'second' : 'first' })
     const [search, setSearch] = useState('')
     const [status, setStatus] = useState('all')
     const [preparing, setPreparing] = useState(!payrolls.length)
@@ -21,10 +22,7 @@ export default function Payroll({ payrolls = [] }) {
     function start(event) {
         event.preventDefault()
         form.clearErrors()
-        if (!form.data.period_from || !form.data.period_to)
-            return form.setError('period_to', 'Select both dates to prepare the payroll preview.')
-        if (form.data.period_from > form.data.period_to)
-            return form.setError('period_to', 'End date must be on or after the start date.')
+        if (!form.data.month) return form.setError('month', 'Choose the payroll month.')
         form.get('/admin/payroll/create')
     }
     return (
@@ -58,8 +56,8 @@ export default function Payroll({ payrolls = [] }) {
                             Start a payroll batch
                         </h2>
                         <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-sub">
-                            Choose the cutoff and dates. The preview uses employee compensation with DTR attendance
-                            available as a reference.
+                            Choose the month and cutoff. The dates and DTR hours are filled in for you; if this
+                            cutoff already has a draft, it opens that draft.
                         </p>
                     </div>
                     <form onSubmit={start} className="space-y-4 p-5">
@@ -95,43 +93,35 @@ export default function Payroll({ payrolls = [] }) {
                                 </p>
                             )}
                         </fieldset>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                            {[
-                                ['period_from', 'Start date'],
-                                ['period_to', 'End date'],
-                            ].map(([field, label]) => (
-                                <label key={field} className="block min-w-0 text-xs font-semibold text-sub">
-                                    {label}
-                                    <input
-                                        type="date"
-                                        required
-                                        aria-label={label}
-                                        value={form.data[field]}
-                                        onInput={(event) => {
-                                            form.setData(field, event.currentTarget.value)
-                                            form.clearErrors(field)
-                                        }}
-                                        aria-invalid={!!form.errors[field]}
-                                        className={`${control} mt-2`}
-                                    />
-                                    {form.errors[field] && (
-                                        <span role="alert" className="mt-2 block text-rose-700">
-                                            {form.errors[field]}
-                                        </span>
-                                    )}
-                                </label>
-                            ))}
-                        </div>
+                        <label className="block min-w-0 max-w-xs text-xs font-semibold text-sub">
+                            Month
+                            <input
+                                type="month"
+                                required
+                                value={form.data.month}
+                                onInput={(event) => {
+                                    form.setData('month', event.currentTarget.value)
+                                    form.clearErrors('month')
+                                }}
+                                aria-invalid={!!form.errors.month}
+                                className={`${control} mt-2`}
+                            />
+                            {form.errors.month && (
+                                <span role="alert" className="mt-2 block text-rose-700">
+                                    {form.errors.month}
+                                </span>
+                            )}
+                        </label>
                         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
                             <p className="max-w-[45ch] text-xs leading-relaxed text-sub">
-                                Review exact deduction amounts for each employee before saving.
+                                Four steps: cutoff, DTR check, overtime &amp; allowances, confirm.
                             </p>
                             <Button
                                 type="submit"
                                 loading={form.processing}
                                 className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]"
                             >
-                                Prepare payroll preview
+                                Start payroll
                             </Button>
                         </div>
                     </form>

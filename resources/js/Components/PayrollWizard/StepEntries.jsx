@@ -1,0 +1,130 @@
+import { useState } from 'react'
+
+export const peso = (value) => (Number(value) ? Number(value).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-')
+const th = 'border border-black px-1.5 py-1 text-center text-[11px] font-bold uppercase leading-tight text-black dark:border-slate-500 dark:text-slate-100'
+const td = 'border border-black px-1.5 py-1 text-right tabular-nums text-black dark:border-slate-500 dark:text-slate-100'
+const name = `${td} !text-left bg-slate-100 dark:bg-slate-800`
+const strong = `${td} bg-slate-100 font-bold dark:bg-slate-800`
+const total = 'px-1.5 py-1 text-right font-bold tabular-nums text-[#c00000] dark:text-rose-400'
+
+function Cell({ label, value, onChange, step = '0.01', error }) {
+    return (
+        <td className={`${td} bg-yellow-50 p-0 dark:bg-yellow-950/40`}>
+            <input
+                type="number" min="0" step={step} value={value} aria-label={label} aria-invalid={!!error} title={error}
+                onChange={(event) => onChange(event.target.value)}
+                className={`h-9 w-full min-w-[70px] bg-transparent px-1.5 text-right tabular-nums text-black outline-none focus:bg-white focus:ring-2 focus:ring-[#26215C] dark:text-slate-100 dark:focus:bg-slate-900 ${error ? 'ring-2 ring-rose-600' : ''}`}
+            />
+        </td>
+    )
+}
+
+const sum = (rows, key) => rows.reduce((total, row) => total + (Number(row[key]) || 0), 0)
+
+export default function StepEntries({ rows, offices, period_title, holidays, signatories, setTyped, employees, errors = {} }) {
+    const officeKeys = Object.keys(offices).filter((key) => rows.some((row) => row.payroll_office === key))
+    const [office, setOffice] = useState(officeKeys[0])
+    const visible = rows.filter((row) => row.payroll_office === office)
+    const err = (row, field) => errors[`items.${employees.findIndex((employee) => employee.id === row.id)}.${field}`]
+    const deduction = (row, field, value) => setTyped(row.id, 'deductions', { ...row.deductions, [field]: value })
+
+    return (
+        <section aria-labelledby="entries-title" className="space-y-3">
+            <h2 id="entries-title" className="sr-only">Overtime and allowances</h2>
+            <div role="tablist" aria-label="Office" className="flex flex-wrap gap-1">
+                {officeKeys.map((key) => (
+                    <button
+                        key={key} type="button" role="tab" aria-selected={office === key} onClick={() => setOffice(key)}
+                        className={`min-h-[44px] rounded-t-lg border border-b-0 px-4 text-xs font-bold uppercase ${office === key ? 'border-slate-400 bg-white text-black dark:bg-slate-900 dark:text-white' : 'border-border bg-field text-sub'}`}
+                    >
+                        {offices[key].label}
+                    </button>
+                ))}
+            </div>
+            <div role="tabpanel" className="overflow-x-auto rounded-b-xl rounded-tr-xl border border-slate-400 bg-white p-4 dark:bg-slate-900" style={{ fontFamily: '"Tw Cen MT", "Century Gothic", Arial, sans-serif' }}>
+                <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
+                    <div className="min-w-[760px]">
+                        <p className="text-center text-sm font-bold text-black dark:text-white">MANAGEMENT PAYROLL</p>
+                        <p className="mb-1 text-center text-sm font-bold text-black dark:text-white">{period_title}</p>
+                        <table className="w-full border-collapse text-xs">
+                            <thead>
+                                <tr>{['Employee name', 'Position', 'Days of work', 'Basic pay', 'Overtime pay', 'Absent', 'Transpo allow', 'Rep allow', 'Quart allow', 'Gross pay', 'Deductions', 'Net pay'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
+                            </thead>
+                            <tbody>
+                                {visible.map((row) => (
+                                    <tr key={row.id}>
+                                        <td className={name}>{row.sheet_name}</td>
+                                        <td className={`${td} !text-left`}>{row.position}</td>
+                                        <td className={td}>{row.days_of_work}</td>
+                                        <td className={td}>{peso(row.basic_before_absence)}</td>
+                                        <td className={td}>{peso(row.total_ot_pay)}</td>
+                                        <td className={td} title={row.days.some((day) => day.holiday && !day.worked_hours) ? 'Includes NWNP holiday' : undefined}>{peso(row.absence_deduction)}</td>
+                                        <Cell label={`Transport allowance for ${row.full_name}`} value={row.cutoff_transpo} onChange={(value) => setTyped(row.id, 'cutoff_transpo', value)} error={err(row, 'cutoff_transpo')} />
+                                        <Cell label={`Representation allowance for ${row.full_name}`} value={row.cutoff_rep} onChange={(value) => setTyped(row.id, 'cutoff_rep', value)} error={err(row, 'cutoff_rep')} />
+                                        <Cell label={`Quarterly allowance for ${row.full_name}`} value={row.cutoff_quarterly} onChange={(value) => setTyped(row.id, 'cutoff_quarterly', value)} error={err(row, 'cutoff_quarterly')} />
+                                        <td className={strong}>{peso(row.gross_pay)}</td>
+                                        <td className={td}>{peso(row.total_deductions)}</td>
+                                        <td className={strong}>{peso(row.net_pay)}</td>
+                                    </tr>
+                                ))}
+                                <tr><td colSpan={9} className={total}>TOTAL</td><td className={total}>{peso(sum(visible, 'gross_pay'))}</td><td className={total}>{peso(sum(visible, 'total_deductions'))}</td><td className={total}>{peso(sum(visible, 'net_pay'))}</td></tr>
+                            </tbody>
+                        </table>
+                        {holidays.length > 0 && <p className="mt-1 text-xs text-black dark:text-slate-300">ABSENT includes NWNP: {holidays.map((holiday) => holiday.label).join(', ')}.</p>}
+                    </div>
+                    <div className="min-w-[560px]">
+                        <p className="text-center text-base font-bold text-black dark:text-white">GOVT &amp; OTHER DEDUCTIONS</p>
+                        <table className="mt-1 w-full border-collapse text-xs">
+                            <thead>
+                                <tr>{['Employee name', 'W/H tax', 'SSS', 'PhilHealth', 'Pag-IBIG', 'Loan', 'CC', 'Cash advance', 'Rental', 'Total'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
+                            </thead>
+                            <tbody>
+                                {visible.map((row) => (
+                                    <tr key={row.id}>
+                                        <td className={name}>{row.sheet_name}</td>
+                                        {['tax_deduction', 'sss_deduction', 'philhealth_deduction', 'pagibig_deduction'].map((field) => <td key={field} className={td}>{peso(row.deductions[field])}</td>)}
+                                        {[['loan_deduction', 'Loan'], ['capital_contribution_deduction', 'Capital contribution'], ['cash_advance_deduction', 'Cash advance']].map(([field, label]) => (
+                                            <Cell key={field} label={`${label} for ${row.full_name}`} value={row.deductions[field]} onChange={(value) => deduction(row, field, value)} error={err(row, `deductions.${field}`)} />
+                                        ))}
+                                        <td className={td}>{peso(row.deductions.rental_deduction)}</td>
+                                        <td className={strong}>{peso(row.total_deductions)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <table className="mt-6 min-w-[640px] border-collapse text-xs">
+                    <thead>
+                        <tr><th colSpan={3} className={th}>Overtime pay (125%)</th><th colSpan={2} className={th}>Rest-day overtime (130%)</th><th className={th}>Holiday pay ₱</th></tr>
+                        <tr>{['Employee name', 'No of hours', 'Total OT pay', 'No of hours', 'Total OT pay', 'Typed premium'].map((label, index) => <th key={index} className={th}>{label}</th>)}</tr>
+                    </thead>
+                    <tbody>
+                        {visible.map((row) => (
+                            <tr key={row.id}>
+                                <td className={name}>{row.sheet_name}</td>
+                                <Cell label={`Weekday overtime hours for ${row.full_name}`} step="0.5" value={row.weekday_ot_hours} onChange={(value) => setTyped(row.id, 'weekday_ot_hours', value)} error={err(row, 'weekday_ot_hours')} />
+                                <td className={td}>{peso(row.weekday_ot_pay)}</td>
+                                <Cell label={`Rest-day overtime hours for ${row.full_name}`} step="0.5" value={row.weekend_ot_hours} onChange={(value) => setTyped(row.id, 'weekend_ot_hours', value)} error={err(row, 'weekend_ot_hours')} />
+                                <td className={td}>{peso(row.weekend_ot_pay)}</td>
+                                <Cell label={`Holiday pay for ${row.full_name}`} value={row.holiday_pay} onChange={(value) => setTyped(row.id, 'holiday_pay', value)} error={err(row, 'holiday_pay')} />
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+
+                <div className="mt-6 grid grid-cols-3 gap-4 text-xs text-black dark:text-slate-200">
+                    {[['prepared', 'Prepared by:'], ['certified', 'Certified correct:'], ['approved', 'Approved by:']].map(([key, label]) => (
+                        <div key={key}>
+                            {label}
+                            <p className="mt-4 font-bold underline">{signatories?.[key]?.name ?? '—'}</p>
+                            <p>{signatories?.[key]?.position}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            <p className="text-xs text-sub">Yellow cells are typed by HR. Only approved overtime goes in. Everything else comes from the DTR and employee records.</p>
+        </section>
+    )
+}
