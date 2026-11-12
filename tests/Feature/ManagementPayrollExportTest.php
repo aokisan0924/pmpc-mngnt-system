@@ -173,4 +173,23 @@ class ManagementPayrollExportTest extends TestCase
         }
         $zip->close();
     }
+
+    public function test_template_keeps_logos_but_no_signature_pictures(): void
+    {
+        $zip = new ZipArchive;
+        $zip->open(resource_path('payroll/management-template.xlsx'));
+        foreach (range(1, 5) as $sheet) {
+            $rels = (string) $zip->getFromName('xl/worksheets/_rels/sheet'.$sheet.'.xml.rels');
+            preg_match('#Target="/?(?:xl/|\.\./)?(drawings/drawing\d+\.xml)"#', $rels, $match);
+            $doc = new DOMDocument;
+            $doc->loadXML($zip->getFromName('xl/'.$match[1]));
+            $anchors = $doc->getElementsByTagNameNS('http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing', 'from');
+            // Logos sit in rows 0-3; real signatures sat lower and must never ship in the template.
+            $this->assertGreaterThan(0, $anchors->length, 'logo kept on sheet '.$sheet);
+            foreach ($anchors as $from) {
+                $this->assertLessThanOrEqual(3, (int) $from->getElementsByTagNameNS('http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing', 'row')->item(0)->textContent);
+            }
+        }
+        $zip->close();
+    }
 }
