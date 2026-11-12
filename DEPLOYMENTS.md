@@ -2,6 +2,15 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 20:30 — 2771567 — Payroll review fixes (full verification)
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `1df74bf` → `2771567` (includes docs-only `8d157fc`): a full "late" day whose first punch is after lunch is charged its late minutes; Monday–Friday staff hired after a cutoff starts are paid only the weekdays from the hire date; the NWNP amount is capped at the whole absence; days present is rounded once; SSS/PhilHealth/Pag-IBIG are forced to 0 on the 2nd cutoff. Found by a fresh independent review of all payroll changes since `70a960b`; each fix has a test that failed before it.
+- Migrations: none
+- Backup: none (no schema or data change; no payroll batches on live)
+- Data changes: none on live.
+- Verified: locally 427 of 432 PHP tests (5 GD-only) and all JS tests passed, build and Pint clean. On live before and after the fix: a rolled-back mockup export of Nov 2–13 checked by script — every row gross − deductions = net, grid columns add up, deduction tables match, office totals match, all four journals balance, voucher ₱109,638.91 = ₱109,638.91 and equals the four sheets, no leftover markers, 0 payrolls / 0 items afterwards; the screen math matched the server on 48 employee-cutoffs (Oct 1st, Oct 2nd, Nov 1st, Nov 1st mockup) with 0 differences. Every live start date is before Oct 31, so November pay is unchanged by the hire-date fix. HEAD `2771567`, login 200.
+- Open items for HR: Nov 30 and December holidays not entered; DTR gaps for Mariel S. Lucero (Nov 3–4), Diana B. Pasco (Nov 6), John Roy C. Sibal (Nov 11 not clocked out); late grace period is 0 minutes; 7 staff have no hire date (Violie and Sibal count from Oct 16, their account date).
+
 ## 2026-11-12 19:45 — 1df74bf — Undertime never deducted; only lates
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `0d111db` → `1df74bf` (includes docs-only `bf458a3`): any complete DTR day (on time, late or undertime, office or store shift) pays the full shift; leaving early is never deducted; lates are deducted only as tardiness (daily rate ÷ 8 ÷ 60 × minutes). Half days and absences still count missing time.
