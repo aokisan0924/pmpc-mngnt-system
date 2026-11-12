@@ -52,6 +52,9 @@ class PayrollItem extends Model
         'other_deductions',
         'total_deductions',
         'net_pay',
+        'paid_hours',
+        'scheduled_hours',
+        'day_resolutions',
     ];
 
     protected $casts = [
@@ -62,6 +65,9 @@ class PayrollItem extends Model
         'dtr_absence_days' => 'float',
         'dtr_tardiness_minutes' => 'float',
         'dtr_unresolved_dates' => 'array',
+        'day_resolutions' => 'array',
+        'paid_hours' => 'float',
+        'scheduled_hours' => 'float',
         'cutoff_basic' => 'float',
         'cutoff_transpo' => 'float',
         'cutoff_rep' => 'float',

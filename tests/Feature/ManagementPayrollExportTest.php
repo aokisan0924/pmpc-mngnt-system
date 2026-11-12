@@ -10,6 +10,7 @@ use App\Models\PayrollItem;
 use App\Services\ManagementPayrollExport;
 use DOMDocument;
 use DOMXPath;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -141,7 +142,7 @@ class ManagementPayrollExportTest extends TestCase
         $this->assertDatabaseCount('payroll_items', 5);
     }
 
-    public function test_legacy_office_data_and_duplicate_cutoffs_are_rejected(): void
+    public function test_legacy_office_data_is_rejected_and_duplicate_cutoffs_cannot_be_saved(): void
     {
         $batch = $this->batch();
         $item = $this->item($batch);
@@ -152,10 +153,9 @@ class ManagementPayrollExportTest extends TestCase
         } catch (ValidationException $error) {
             $this->assertArrayHasKey('export', $error->errors());
         }
-        $item->update(['payroll_office' => 'main_office']);
+        // A duplicate cutoff batch can no longer exist: the database rejects it (unique period_month + cutoff).
+        $this->expectException(QueryException::class);
         $this->batch();
-        $this->expectException(ValidationException::class);
-        $this->exported($batch);
     }
 
     public function test_template_contains_no_previous_payroll_or_formulas(): void

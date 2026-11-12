@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,6 +14,7 @@ class Payroll extends Model
         'period_label',
         'period_from',
         'period_to',
+        'period_month',
         'cutoff',
         'status',
         'total_gross',
@@ -22,6 +24,16 @@ class Payroll extends Model
         'finalized_by',
         'finalized_at',
     ];
+
+    protected static function booted(): void
+    {
+        // One batch per month and cutoff is enforced by a unique index on (period_month, cutoff).
+        static::saving(function (self $payroll): void {
+            if ($payroll->period_from !== null) {
+                $payroll->period_month = Carbon::parse($payroll->period_from)->format('Y-m');
+            }
+        });
+    }
 
     protected $casts = [
         'period_from' => 'date',
