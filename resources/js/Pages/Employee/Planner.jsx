@@ -387,7 +387,7 @@ export default function Planner({ tasks = [] }) {
                                                 aria-checked={done}
                                                 aria-label={done ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
                                                 onClick={() => toggleDone(task)}
-                                                className={`mt-0.5 w-5 h-5 rounded-lg border flex items-center justify-center transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
+                                                className={`relative before:absolute before:-inset-2 before:content-[''] mt-0.5 w-5 h-5 rounded-lg border flex items-center justify-center transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                                                     done
                                                         ? 'bg-emerald-600 border-emerald-600 text-white'
                                                         : 'border-border hover:border-emerald-500 bg-field'

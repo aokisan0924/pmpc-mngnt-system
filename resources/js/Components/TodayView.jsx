@@ -22,7 +22,7 @@ function TaskRow({ task, group, onToggle, onOpen }) {
                 aria-checked={done}
                 aria-label={done ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
                 onClick={() => onToggle(task)}
-                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
+                className={`relative before:absolute before:-inset-2 before:content-[''] mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 ${
                     done ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-border bg-field hover:border-emerald-500'
                 }`}
             >

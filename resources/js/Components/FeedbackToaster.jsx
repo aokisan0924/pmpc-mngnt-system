@@ -19,8 +19,9 @@ export function dismissToast(id) {
  */
 export function toast({ type = 'success', title, body, action }) {
     if (!title) return
-    // Same message twice in a row replaces the old one instead of stacking.
-    toasts = toasts.filter(t => !(t.title === title && t.body === body))
+    // A message with the same title replaces the old one, so a page can upgrade the
+    // server's flash (e.g. add an Undo link) without showing it twice.
+    toasts = toasts.filter(t => t.title !== title)
     toasts = [...toasts.slice(-2), { id: nextId++, type, title, body, action }]
     emit()
 }

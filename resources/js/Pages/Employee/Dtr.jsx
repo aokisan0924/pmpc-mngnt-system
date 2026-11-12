@@ -95,16 +95,6 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
     return (
         <EmployeeLayout title="Daily Time Record">
             <div ref={todayRef} className="employee-page-shell space-y-5">
-
-                {errors?.punch && (
-                    <div className="flex items-center gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-xs font-semibold text-rose-700 dark:text-rose-400" role="alert">
-                        <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3Z" />
-                        </svg>
-                        <span>{errors.punch}</span>
-                    </div>
-                )}
-
                 <EmployeePageHeader
                     title="Daily Time Record"
                     badge={nextLabel ? `Next: ${nextLabel}` : 'Shift Logged'}
@@ -121,8 +111,17 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
                     </a>}
                 />
 
+                {errors?.punch && (
+                    <div className="flex items-center gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-xs font-semibold text-rose-700 dark:text-rose-400" role="alert">
+                        <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3Z" />
+                        </svg>
+                        <span>{errors.punch}</span>
+                    </div>
+                )}
+
                 {/* Monthly Summary Stats */}
-                <div className="attendance-metrics grid grid-cols-1 gap-px overflow-hidden bg-border sm:grid-cols-2 lg:grid-cols-4 sm:rounded-xl">
+                <div className="attendance-metrics grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-border lg:grid-cols-4">
                     <StatCard
                         title="Days Present"
                         value={summary.days_present ?? 0}

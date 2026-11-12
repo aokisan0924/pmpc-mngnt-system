@@ -5,6 +5,7 @@ import AdminPageHeader from '@/Components/AdminPageHeader'
 import ConfirmModal from '@/Components/ConfirmModal'
 import CardMenu from '@/Components/CardMenu'
 import Button from '@/Components/UI/Button'
+import { toast } from '@/Components/FeedbackToaster'
 
 const INPUT = 'w-full px-3.5 py-2.5 text-sm font-medium border border-border rounded-xl bg-field text-text focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all'
 const LABEL = 'block text-xs font-semibold text-sub uppercase tracking-wider mb-1.5'
@@ -190,6 +191,31 @@ export default function Dues({ month, monthLabel, prevMonth, nextMonth, today, o
     const [amountFor, setAmountFor] = useState(null)
     const [formFor, setFormFor] = useState(undefined) // undefined: closed, null: new, object: edit
     const [toDelete, setToDelete] = useState(null)
+    // One-click changes offer Undo in the confirmation message instead of a confirm dialog.
+    function unpay(o) {
+        const restore = { paid_at: o.paid_at, paid_amount: o.paid_amount, paid_note: o.paid_note }
+        router.delete(`/admin/dues/occurrences/${o.id}/pay`, {
+            preserveScroll: true,
+            onSuccess: () => toast({
+                title: 'Payment removed.',
+                body: `${o.title} is unpaid again.`,
+                action: { label: 'Undo', onClick: () => router.post(`/admin/dues/occurrences/${o.id}/pay`, restore, { preserveScroll: true }) },
+            }),
+        })
+    }
+
+    function toggleDue(d) {
+        const toggle = () => router.post(`/admin/dues/${d.id}/toggle`, {}, { preserveScroll: true })
+        router.post(`/admin/dues/${d.id}/toggle`, {}, {
+            preserveScroll: true,
+            onSuccess: () => toast({
+                title: d.active ? 'Due stopped. Its lines so far stay.' : 'Due resumed.',
+                body: d.title,
+                action: { label: 'Undo', onClick: toggle },
+            }),
+        })
+    }
+
     const goTo = m => router.get('/admin/dues', { month: m }, { preserveScroll: true, preserveState: true, replace: true })
 
     return (
@@ -259,7 +285,7 @@ export default function Dues({ month, monthLabel, prevMonth, nextMonth, today, o
                                             label={`More actions for ${o.title}`}
                                             focusRing="focus-visible:outline-indigo-600"
                                             items={paid
-                                                ? [{ label: 'Undo payment', onClick: () => router.delete(`/admin/dues/occurrences/${o.id}/pay`, { preserveScroll: true }) }]
+                                                ? [{ label: 'Undo payment', onClick: () => unpay(o) }]
                                                 : [{ label: 'Edit amount', onClick: () => setAmountFor(o) }]}
                                         />
                                     </div>
@@ -284,7 +310,7 @@ export default function Dues({ month, monthLabel, prevMonth, nextMonth, today, o
                                     focusRing="focus-visible:outline-indigo-600"
                                     items={[
                                         { label: 'Edit', onClick: () => setFormFor(d) },
-                                        { label: d.active ? 'Stop' : 'Resume', onClick: () => router.post(`/admin/dues/${d.id}/toggle`, {}, { preserveScroll: true }) },
+                                        { label: d.active ? 'Stop' : 'Resume', onClick: () => toggleDue(d) },
                                         { label: 'Delete', onClick: () => setToDelete(d), danger: true },
                                     ]}
                                 />

@@ -52,7 +52,7 @@ export function StatCard({
         >
             <div className="flex items-start justify-between gap-2.5">
                 <div className="min-w-0">
-                    <p className="text-[12px] sm:text-[12px] font-semibold uppercase tracking-[0.08em] leading-tight text-sub min-h-4 truncate select-none">
+                    <p className="text-[12px] sm:text-[12px] font-semibold uppercase tracking-[0.08em] leading-tight text-sub min-h-4 text-balance select-none">
                         {title}
                     </p>
                     <div className="mt-1 flex items-baseline gap-2">
@@ -89,7 +89,7 @@ export function StatCard({
                 </div>
             )}
             {subtitle && (
-                <div className="mt-2.5 pt-2.5 border-t border-border/60 text-[12px] text-sub flex items-center gap-1.5 select-none truncate">
+                <div className="mt-2.5 pt-2.5 border-t border-border/60 text-[12px] text-sub flex items-center gap-1.5 select-none">
                     {subtitle}
                 </div>
             )}

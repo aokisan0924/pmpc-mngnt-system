@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- On Dues, "Undo payment" and "Stop"/"Resume" now show an Undo link in the confirmation message. Undo puts back the same paid date, amount and note, or flips the due back.
+
+### Changed
+- The smallest text in both portals is now about 11px instead of 10.5px, and table column headings about 11px instead of 9.6px, so labels are easier to read, especially on phones.
+- On a phone, the four attendance numbers on My DTR sit in a two-by-two grid instead of one long column, so the records appear sooner. Stat card titles and notes wrap instead of being cut off with "…".
+- Every page now starts with its page header. Warnings, errors and the Profile "Account setup & signature" link moved just below the header on DTR Archives, DTR Edit Requests, a payroll batch, My DTR and My Profile.
+- A finalized 13th month batch now says its amounts are locked and can no longer be changed, the same way finalized payroll does.
+- Task tick boxes on the employee dashboard and My tasks are easier to tap on phones; the box looks the same but the tappable area is larger.
+
+### Fixed
+- An employee's DTR page header and whole-office task cards no longer show a stray "·" when the department or office is missing.
+- The empty-list message on DTR Edit Requests no longer leaves a single word on its own line.
 - Every page in both portals now confirms saves the same way: a small message box at the bottom-right (at the top on phones). Success messages fade after a few seconds; problems stay until closed. Previously each page showed its own green banner at the top, which was easy to miss on long pages.
 - Failed actions now say so. A lost connection, an expired session, a blocked action or a server error each show a plain message saying nothing was saved, instead of the page silently doing nothing. Form problems also show the first issue in the message box, so they are not missed on long forms.
 - Empty lists on Employees and DTR Edit Requests now say why they are empty (nothing yet, or the search or tab hid everything) and offer a one-click way to show everything.

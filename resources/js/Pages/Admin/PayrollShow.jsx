@@ -47,13 +47,6 @@ export default function PayrollShow({ payroll, items = [], signatureEmployees = 
     return (
         <AdminLayout>
             <div className="admin-page-shell space-y-5 page-enter">
-                {Object.entries(errors || {})
-                    .filter(([key]) => !key.startsWith('signatories.'))
-                    .map(([key, message]) => (
-                        <p role="alert" key={key} className="rounded-xl bg-rose-50 p-4 text-sm text-rose-800">
-                            {message}
-                        </p>
-                    ))}
                 <AdminPageHeader
                     title={payroll.period_label}
                     badge={`${payroll.cutoff_label} · ${payroll.status}`}
@@ -77,6 +70,14 @@ export default function PayrollShow({ payroll, items = [], signatureEmployees = 
                         )
                     }
                 />
+
+                {Object.entries(errors || {})
+                    .filter(([key]) => !key.startsWith('signatories.'))
+                    .map(([key, message]) => (
+                        <p role="alert" key={key} className="rounded-xl bg-rose-50 p-4 text-sm text-rose-800">
+                            {message}
+                        </p>
+                    ))}
                 <PayrollSummary
                     gross={payroll.total_gross}
                     deductions={payroll.total_deductions}

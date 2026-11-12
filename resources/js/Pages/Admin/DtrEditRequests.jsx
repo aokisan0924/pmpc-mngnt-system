@@ -76,15 +76,6 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
     return (
         <AdminLayout pendingEditCount={pendingCount}>
             <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
-                {!canManage && (
-                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-200 text-xs font-medium">
-                        <svg className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                        </svg>
-                        <span>Permission Notice: Your account does not have permission to approve or decline DTR edit requests. You are in read-only mode.</span>
-                    </div>
-                )}
-
                 <AdminPageHeader
                     title="DTR Edit Requests"
                     action={
@@ -116,6 +107,15 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                     </div>
                     }
                 />
+
+                {!canManage && (
+                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-200 text-xs font-medium">
+                        <svg className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                        </svg>
+                        <span>Permission Notice: Your account does not have permission to approve or decline DTR edit requests. You are in read-only mode.</span>
+                    </div>
+                )}
 
                 {/* ── Requests List ─────────────────────────────────── */}
                 <div className="space-y-3">

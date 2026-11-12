@@ -188,7 +188,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                                         ? sharedNames(task)
                                                         : task.employee_name
                                                             ? `${task.employee_name}${task.office_label ? ` · ${task.office_label}` : ''}`
-                                                            : `Whole office · ${task.office_label}`}
+                                                            : `Whole office${task.office_label ? ` · ${task.office_label}` : ''}`}
                                                 </span>
                                             </p>
                                         )}

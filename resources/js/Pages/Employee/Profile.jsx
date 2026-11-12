@@ -87,12 +87,6 @@ export default function Profile({ employee, govIds }) {
     return (
         <EmployeeLayout title="My Profile">
             <div className="employee-page-shell max-w-5xl space-y-5">
-
-                <div className="flex flex-wrap items-center justify-between gap-x-4">
-                    <Link href="/employee/setup" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[#0F6E56] underline">Account setup & signature</Link>
-                    <p className="text-sm text-sub">Name changes need HR verification.</p>
-                </div>
-
                 <EmployeePageHeader
                     title={employee.full_name || `${employee.first_name} ${employee.last_name}`}
                     badge={[employee.employee_id, employee.department, employee.position].filter(Boolean).join(' · ')}
@@ -108,6 +102,11 @@ export default function Profile({ employee, govIds }) {
                         </div>
                     )}
                 />
+
+                <div className="flex flex-wrap items-center justify-between gap-x-4">
+                    <Link href="/employee/setup" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[#0F6E56] underline">Account setup & signature</Link>
+                    <p className="text-sm text-sub">Name changes need HR verification.</p>
+                </div>
 
                 {/* Tab Navigation */}
                 <div className="employee-toolbar flex gap-2 overflow-x-auto p-1.5 rounded-2xl border" role="tablist" aria-label="Profile navigation">

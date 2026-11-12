@@ -66,7 +66,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                 {/* ── Top Header ────────────────────────────────────── */}
                 <AdminPageHeader
                     title={employee.full_name}
-                    badge={`${employee.employee_id} · ${employee.department}`}
+                    badge={`${employee.employee_id}${employee.department ? ` · ${employee.department}` : ''}`}
                     leading={<div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-white/10 font-heading text-sm font-bold text-white">{employee.initials}</div>}
                     meta={<Link href="/admin/dtr" className="font-medium text-indigo-100 hover:text-white">← Attendance records</Link>}
                     action={

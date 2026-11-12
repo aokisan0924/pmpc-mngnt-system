@@ -89,6 +89,7 @@ export default function ThirteenthMonthShow({
                     <p className="rounded-xl border border-border bg-panel px-4 py-3 text-xs text-sub">
                         Finalized by <strong className="text-text">{finalized_by}</strong>
                         {finalized_at ? ` · ${finalized_at}` : ''}
+                        {'. These amounts are locked and can no longer be changed.'}
                     </p>
                 )}
 

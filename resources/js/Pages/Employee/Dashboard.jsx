@@ -590,7 +590,7 @@ export default function Dashboard({
                                                                     type="button"
                                                                     onClick={() => handleToggleTask(task.id)}
                                                                     disabled={togglingTaskId === task.id}
-                                                                    className={`mt-0.5 w-4.5 h-4.5 rounded border flex items-center justify-center transition-colors shrink-0 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 focus:outline-none ${
+                                                                    className={`relative before:absolute before:-inset-2 before:content-[''] mt-0.5 w-4.5 h-4.5 rounded border flex items-center justify-center transition-colors shrink-0 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 focus:outline-none ${
                                                                         isDone
                                                                             ? 'bg-emerald-600 border-emerald-600 text-white'
                                                                             : 'border-border/90 hover:border-emerald-500 bg-field'

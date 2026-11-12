@@ -8,7 +8,7 @@ export default function EmptyState({ title, body, action, className = '' }) {
                 </svg>
             </div>
             <p className="font-heading text-sm font-bold text-text">{title}</p>
-            {body && <p className="mx-auto mt-1 max-w-[45ch] text-sm text-sub">{body}</p>}
+            {body && <p className="mx-auto mt-1 max-w-[45ch] text-balance text-sm text-sub">{body}</p>}
             {action && <div className="mt-4 flex justify-center">{action}</div>}
         </div>
     )
