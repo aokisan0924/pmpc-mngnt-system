@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 18:30 — 599f0fa — Lates as tardiness (October formula); LATE column
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `102769a` → `599f0fa` (includes docs-only `bb0d023`): late minutes (from shift start after the grace period; overnight shifts handled) are deducted as tardiness = daily rate ÷ 8 ÷ 60 × minutes, and no longer also come off as missing hours; leaving early still does. Step 3 shows a LATE column (amount and minutes); the Excel TARDINESS columns and the GOVT tables' minutes are filled from it.
+- Migrations: none
+- Backup: none (no schema or data change)
+- Data changes: none on live.
+- Verified: locally 420 of 425 PHP tests (5 GD-only) and 6 payroll JS tests passed, build passed; on the local live-data copy step 3 shows the LATE column. On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `599f0fa`; grace is 0 minutes; a read-only check of October 16–30 gives the same tardiness as HR's October file for Violie R. Malana (10 min, ₱12.50), Kurt Vincent Fariñas (4 min, ₱6.67) and Alexander A. Feria Jr. (40 min, ₱73.32); John Roy C. Sibal shows 55 min (₱68.75) against 15 min (₱18.75) in the file.
+
 ## 2026-11-12 18:05 — 102769a — Payroll mockup mode; "Edit day" buttons
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `78aebb5` → `102769a` (includes docs-only `2c446dc`): Payroll runs has "Make a mockup" — the wizard opens in mockup mode (no save buttons; real DTR for past days, every remaining day up to the end date counted as present, holidays still no work, no pay for office staff; works even for a finalized cutoff, which a rolled-back transaction sets aside); the DTR page's correction column is "Edit" with "Edit day" / "Add day" and the Attendance records button reads "Edit a day"; a holiday on the last day of a payroll window is found even when dates carry a time part (the live MySQL column is a plain DATE, so live was not affected).
