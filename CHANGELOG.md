@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Only one payroll batch per month and cutoff can exist; opening the same cutoff again reopens its draft.
 - On Dues, "Undo payment" and "Stop"/"Resume" now show an Undo link in the confirmation message. Undo puts back the same paid date, amount and note, or flips the due back.
 
+### Fixed
+- Payroll step 3: the deductions table no longer overlaps the payroll table on narrower screens; the sheet scrolls sideways with roomier cells.
+
 ### Changed
 - Pay is now worked out from DTR hours: daily rate ÷ shift hours × hours worked, capped at the shift (8 hours, or 12 for 12-hour shifts). Lates and early-outs are simply unpaid hours, so there is no separate late deduction. Holidays not worked are no work, no pay.
 - Transport, representation and quarterly allowances are typed for each cutoff (they start at ₱0). Withholding tax is deducted in full on the 1st cutoff only, like SSS, PhilHealth and Pag-IBIG.

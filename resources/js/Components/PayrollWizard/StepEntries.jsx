@@ -1,11 +1,11 @@
 import { useState } from 'react'
 
 export const peso = (value) => (Number(value) ? Number(value).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-')
-const th = 'border border-black px-1.5 py-1 text-center text-[11px] font-bold uppercase leading-tight text-black dark:border-slate-500 dark:text-slate-100'
-const td = 'border border-black px-1.5 py-1 text-right tabular-nums text-black dark:border-slate-500 dark:text-slate-100'
-const name = `${td} !text-left bg-slate-100 dark:bg-slate-800`
+const th = 'border border-black px-2.5 py-2 text-center text-[11px] font-bold uppercase leading-tight text-black dark:border-slate-500 dark:text-slate-100'
+const td = 'border border-black px-2.5 py-2 text-right tabular-nums whitespace-nowrap text-black dark:border-slate-500 dark:text-slate-100'
+const name = `${td} !text-left !whitespace-normal min-w-[170px] bg-slate-100 dark:bg-slate-800`
 const strong = `${td} bg-slate-100 font-bold dark:bg-slate-800`
-const total = 'px-1.5 py-1 text-right font-bold tabular-nums text-[#c00000] dark:text-rose-400'
+const total = 'px-2.5 py-2 text-right font-bold tabular-nums text-[#c00000] dark:text-rose-400'
 
 function Cell({ label, value, onChange, step = '0.01', error }) {
     return (
@@ -13,7 +13,7 @@ function Cell({ label, value, onChange, step = '0.01', error }) {
             <input
                 type="number" min="0" step={step} value={value} aria-label={label} aria-invalid={!!error} title={error}
                 onChange={(event) => onChange(event.target.value)}
-                className={`h-9 w-full min-w-[70px] bg-transparent px-1.5 text-right tabular-nums text-black outline-none focus:bg-white focus:ring-2 focus:ring-[#26215C] dark:text-slate-100 dark:focus:bg-slate-900 ${error ? 'ring-2 ring-rose-600' : ''}`}
+                className={`h-10 w-full min-w-[96px] bg-transparent px-2.5 text-right tabular-nums text-black outline-none focus:bg-white focus:ring-2 focus:ring-[#26215C] dark:text-slate-100 dark:focus:bg-slate-900 ${error ? 'ring-2 ring-rose-600' : ''}`}
             />
         </td>
     )
@@ -42,8 +42,8 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                 ))}
             </div>
             <div role="tabpanel" className="overflow-x-auto rounded-b-xl rounded-tr-xl border border-slate-400 bg-white p-4 dark:bg-slate-900" style={{ fontFamily: '"Tw Cen MT", "Century Gothic", Arial, sans-serif' }}>
-                <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-                    <div className="min-w-[760px]">
+                <div className="flex w-max items-start gap-12">
+                    <div className="shrink-0">
                         <p className="text-center text-sm font-bold text-black dark:text-white">MANAGEMENT PAYROLL</p>
                         <p className="mb-1 text-center text-sm font-bold text-black dark:text-white">{period_title}</p>
                         <table className="w-full border-collapse text-xs">
@@ -54,7 +54,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                 {visible.map((row) => (
                                     <tr key={row.id}>
                                         <td className={name}>{row.sheet_name}</td>
-                                        <td className={`${td} !text-left`}>{row.position}</td>
+                                        <td className={`${td} !text-left !whitespace-normal min-w-[150px]`}>{row.position}</td>
                                         <td className={td}>{row.days_of_work}</td>
                                         <td className={td}>{peso(row.basic_before_absence)}</td>
                                         <td className={td}>{peso(row.total_ot_pay)}</td>
@@ -72,7 +72,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                         </table>
                         {holidays.length > 0 && <p className="mt-1 text-xs text-black dark:text-slate-300">ABSENT includes NWNP: {holidays.map((holiday) => holiday.label).join(', ')}.</p>}
                     </div>
-                    <div className="min-w-[560px]">
+                    <div className="shrink-0">
                         <p className="text-center text-base font-bold text-black dark:text-white">GOVT &amp; OTHER DEDUCTIONS</p>
                         <table className="mt-1 w-full border-collapse text-xs">
                             <thead>
@@ -95,7 +95,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                     </div>
                 </div>
 
-                <table className="mt-6 min-w-[640px] border-collapse text-xs">
+                <table className="mt-10 border-collapse text-xs">
                     <thead>
                         <tr><th colSpan={3} className={th}>Overtime pay (125%)</th><th colSpan={2} className={th}>Rest-day overtime (130%)</th><th className={th}>Holiday pay ₱</th></tr>
                         <tr>{['Employee name', 'No of hours', 'Total OT pay', 'No of hours', 'Total OT pay', 'Typed premium'].map((label, index) => <th key={index} className={th}>{label}</th>)}</tr>
@@ -114,7 +114,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                     </tbody>
                 </table>
 
-                <div className="mt-6 grid grid-cols-3 gap-4 text-xs text-black dark:text-slate-200">
+                <div className="mt-10 grid max-w-3xl grid-cols-3 gap-8 text-xs text-black dark:text-slate-200">
                     {[['prepared', 'Prepared by:'], ['certified', 'Certified correct:'], ['approved', 'Approved by:']].map(([key, label]) => (
                         <div key={key}>
                             {label}
@@ -124,7 +124,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                     ))}
                 </div>
             </div>
-            <p className="text-xs text-sub">Yellow cells are typed by HR. Only approved overtime goes in. Everything else comes from the DTR and employee records.</p>
+            <p className="text-xs text-sub">Scroll sideways inside the sheet to see every column. Yellow cells are typed by HR. Only approved overtime goes in. Everything else comes from the DTR and employee records.</p>
         </section>
     )
 }
