@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 10:42 — 4d2ed16 — Team tasks header matches the columns; Manila dates after midnight
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `ba3264a` → `4d2ed16` (includes the docs-only commit `e1675f1`)
+- Migrations: none
+- Backup: none (code-only deployment; no database records or schema changed)
+- Data changes: none
+- Verified: locally 27 of 27 JS tests and 372 of 372 PHP tests pass (the JPEG-only signature test excluded; it needs JPEG support missing from this machine's PHP); build passed; the stronger `done_on` test was seen failing with the Manila conversion removed. On live: server tree clean before and after, no pending migrations, app back up, login returns 200, HEAD `4d2ed16`. In Chrome as Kurt (read only): Team tasks header reads 13 today & late, 12 to do, 1 doing, 8 done this week, the same as the four columns; no console errors.
+
 ## 2026-11-12 10:34 — ba3264a — Today view on My tasks; Today & late column on the task boards
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `fcfb4e2` → `ba3264a` (includes the docs-only commit `3bab572`)
