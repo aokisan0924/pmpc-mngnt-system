@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 16:20 — 892fa2e — Fixed half-month basic pay for office staff
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `5ba3485` → `892fa2e` (includes docs-only `236db74`): Monday-to-Friday staff get daily rate × 22 ÷ 2 per cutoff (11 days, fewer for weekdays before a hire date), minus unworked hours on counted days (absences, lates, NWNP holidays); staff on custom schedules (General Merchandise, relievers) stay on hours worked.
+- Migrations: none
+- Backup: none (no schema or data change; no payroll batches exist on live)
+- Data changes: none on live.
+- Verified: locally 412 of 417 PHP tests (5 GD-only) and 4 JS tests passed, build passed; on the local live-data copy the October 16–30 basic pay matches HR's October 2026 file for every Mon–Fri employee (₱7,920, ₱6,600, ₱8,800, ₱13,596, ₱9,677.91, ₱8,305). On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `892fa2e`; the read-only Nov 1st-cutoff preview gives 11 fixed days to the 9 Mon–Fri staff and days-worked pay to Princess Kynna Ricalde, Violie R. Malana and John Roy C. Sibal.
+
 ## 2026-11-12 16:05 — 5ba3485 — Warning when a net pay is below zero
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `70a960b` → `5ba3485` (includes docs-only `eabe838`): payroll step 4 lists anyone whose net pay is below zero in a red warning; step 3 shows that net pay in red brackets. Saving is not blocked.
