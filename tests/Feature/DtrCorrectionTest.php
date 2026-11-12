@@ -110,4 +110,20 @@ class DtrCorrectionTest extends TestCase
                 ->where('logs', fn ($logs) => collect($logs)->firstWhere('date', '2026-09-03')['has_entry'] === false
                     && collect($logs)->firstWhere('date', '2026-09-02')['has_entry'] === true));
     }
+
+    public function test_attendance_records_list_gives_correctors_each_days_punches(): void
+    {
+        $employee = Employee::factory()->create(['is_staff' => true, 'status' => 'active']);
+        DtrLog::factory()->create(['employee_id' => $employee->id, 'date' => '2026-09-02', 'pm_time_out' => null]);
+
+        $this->actingAs($this->corrector())->get('/admin/dtr?month=2026-09')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('dtrSummary.0.punches.2026-09-02.am_time_in', '08:00:00')
+                ->where('dtrSummary.0.punches.2026-09-02.pm_time_out', null)
+                ->where('dtrSummary.0.two_punch', false));
+
+        // Admins who are not correctors do not get the punches.
+        $this->actingAs(Employee::factory()->superAdmin()->create(['is_staff' => false]))->get('/admin/dtr?month=2026-09')
+            ->assertInertia(fn (AssertableInertia $page) => $page->missing('dtrSummary.0.punches'));
+    }
 }

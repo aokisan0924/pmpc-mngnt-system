@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\DtrLog;
 use App\Models\Employee;
+use App\Models\EmployeeSchedule;
 use App\Services\AlwaysPresentAttendanceFiller;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -46,7 +47,8 @@ class AdminDtrController extends Controller
             ->groupBy('employee_id');
 
         // Build DTR summary for employees this month
-        $dtrSummary = $targetStaff->map(function ($emp) use ($allLogs, $from, $to) {
+        $canCorrect = $request->user()->canCorrectDtr();
+        $dtrSummary = $targetStaff->map(function ($emp) use ($allLogs, $from, $to, $canCorrect) {
             $logs = $allLogs->get($emp->id, collect());
 
             return [
@@ -60,6 +62,11 @@ class AdminDtrController extends Controller
                 'days_absent' => DtrLog::absentDaysBetween($emp->id, $from->toDateString(), $to->toDateString(), $logs),
                 'half_days' => $logs->filter(fn (DtrLog $log): bool => $log->displayStatus() === 'half_day')->count(),
                 'hours_rendered' => round($logs->sum('hours_rendered'), 2),
+                'two_punch' => EmployeeSchedule::shiftFor((int) $emp->id, today())['two_punch'] ?? false,
+                // Correctors fix a day straight from this list, so they get each day's punches to start from.
+                ...($canCorrect ? ['punches' => $logs->mapWithKeys(fn (DtrLog $log): array => [
+                    $log->date->toDateString() => $log->only(['am_time_in', 'am_time_out', 'pm_time_in', 'pm_time_out']),
+                ])] : []),
             ];
         })->values();
 

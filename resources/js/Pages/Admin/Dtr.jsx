@@ -1,11 +1,18 @@
-import { router, Link } from '@inertiajs/react'
+import { router, Link, usePage } from '@inertiajs/react'
 import { useState, useMemo } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Button from '@/Components/UI/Button'
 import AdminPageHeader from '@/Components/AdminPageHeader'
+import DtrCorrectionModal from '@/Components/DtrCorrectionModal'
 
 export default function Dtr({ employees = [], dtrSummary = [], month, employeeId }) {
+    const canCorrect = !!usePage().props.auth?.employee?.can_correct_dtr
+    const [correcting, setCorrecting] = useState(null)
+    // The picker stays inside the shown month and never goes past today (Asia/Manila).
+    const todayKey = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' })
+    const monthEnd = new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0).getDate()
+    const lastDay = `${month}-${String(monthEnd).padStart(2, '0')}`
     const [selectedEmployee, setSelectedEmployee] = useState(employeeId ?? '')
 
     function applyFilter() {
@@ -166,6 +173,16 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                                             </td>
                                             <td className="px-5 py-3.5 text-right">
                                                 <div className="flex items-center justify-end gap-2">
+                                                    {canCorrect && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setCorrecting(emp)}
+                                                            aria-label={`Correct a day for ${emp.full_name}`}
+                                                            className="px-2.5 py-1 text-xs rounded-md border border-[#26215C]/30 text-[#26215C] dark:text-indigo-300 hover:bg-field font-semibold transition-colors"
+                                                        >
+                                                            Correct a day
+                                                        </button>
+                                                    )}
                                                     <Link
                                                         href={`/admin/dtr/${emp.id}?month=${month}`}
                                                         aria-label={`View DTR log for ${emp.full_name}`}
@@ -200,6 +217,15 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                     </CardContent>
                 </Card>
             </div>
+            {correcting && (
+                <DtrCorrectionModal
+                    employee={correcting}
+                    days={correcting.punches ?? {}}
+                    minDate={`${month}-01`}
+                    maxDate={lastDay < todayKey ? lastDay : todayKey}
+                    onClose={() => setCorrecting(null)}
+                />
+            )}
         </AdminLayout>
     )
 }

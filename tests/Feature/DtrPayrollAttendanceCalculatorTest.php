@@ -40,6 +40,8 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
         $employee = Employee::factory()->create(['date_hired' => '2026-01-01']);
         $days = ['2026-11-03' => 8, '2026-11-04' => 6, '2026-11-05' => 9, '2026-11-06' => 8, '2026-11-09' => 8, '2026-11-10' => 8, '2026-11-11' => 8, '2026-11-12' => 8, '2026-11-13' => 8];
         $this->logs($employee, $days);
+        // The 6-hour day left early: undertime, so its actual hours count.
+        DtrLog::where('employee_id', $employee->id)->whereDate('date', '2026-11-04')->update(['status' => 'undertime']);
 
         $result = $this->hoursFor($employee, '2026-10-31', '2026-11-13');
         $byDate = collect($result['days'])->keyBy('date');
@@ -133,6 +135,22 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
         // Hired Nov 9: the five weekdays Nov 2-6 before the hire date come off the 11 days.
         $this->assertSame(6.0, $this->hoursFor($newHire, '2026-10-31', '2026-11-13')['fixed_days']);
         $this->assertNull($this->hoursFor($store, '2026-10-31', '2026-11-13')['fixed_days']);
+        Carbon::setTestNow();
+    }
+
+    public function test_a_complete_on_time_office_day_counts_as_the_full_shift(): void
+    {
+        Carbon::setTestNow('2026-11-14 08:00:00');
+        $employee = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        // On time, but back from lunch 5 minutes late: 7.92 h rendered, still a full day.
+        DtrLog::factory()->create(['employee_id' => $employee->id, 'date' => '2026-11-06', 'pm_time_in' => '13:05:00', 'hours_rendered' => 7.92, 'status' => 'on_time']);
+        // Late arrival: actual hours still count.
+        DtrLog::factory()->create(['employee_id' => $employee->id, 'date' => '2026-11-05', 'am_time_in' => '08:30:00', 'hours_rendered' => 7.5, 'status' => 'late']);
+
+        $byDate = collect($this->hoursFor($employee, '2026-11-05', '2026-11-06')['days'])->keyBy('date');
+
+        $this->assertSame(8.0, $byDate['2026-11-06']['worked_hours']);
+        $this->assertSame(7.5, $byDate['2026-11-05']['worked_hours']);
         Carbon::setTestNow();
     }
 }

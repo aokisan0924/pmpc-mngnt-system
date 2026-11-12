@@ -57,6 +57,10 @@ class DtrPayrollAttendanceCalculator
                 $source = 'dtr';
                 $worked = (float) ($log?->hours_rendered ?? 0);
 
+                // A complete, on-time office day is a full shift; minutes are only counted on late/undertime/half days.
+                if ($log !== null && $status === 'on_time' && ! (EmployeeSchedule::shiftFor($employeeId, $day)['two_punch'] ?? false)) {
+                    $worked = $shiftHours;
+                }
                 // Always-present staff skip punching, not holidays: a holiday is no work, no pay for them too.
                 if ($log === null && Employee::isAlwaysPresent($employeeId) && ! $holidays->has($date)) {
                     $worked = $shiftHours;

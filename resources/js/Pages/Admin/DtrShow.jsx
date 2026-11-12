@@ -1,15 +1,14 @@
-import { router, Link, useForm, usePage } from '@inertiajs/react'
+import { router, Link, usePage } from '@inertiajs/react'
 import { Fragment, useMemo, useState } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import AdminPageHeader from '@/Components/AdminPageHeader'
-import Button from '@/Components/UI/Button'
 import DtrEditRequestNote from '@/Components/DtrEditRequestNote'
+import DtrCorrectionModal from '@/Components/DtrCorrectionModal'
 import useDtrToday from '@/hooks/useDtrToday'
 
 const SLOTS = [['am_time_in', 'AM in'], ['am_time_out', 'AM out'], ['pm_time_in', 'PM in'], ['pm_time_out', 'PM out']]
-const blank = { date: '', am_time_in: '', am_time_out: '', pm_time_in: '', pm_time_out: '', reason: '' }
 
 
 export default function DtrShow({ employee, logs = [], summary = {}, month, today_date }) {
@@ -17,17 +16,10 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
     const { auth } = usePage().props
     const canCorrect = !!auth?.employee?.can_correct_dtr
     const [editing, setEditing] = useState(null)
-    const form = useForm(blank)
     const todayRef = useDtrToday(month, today_date, employee.id)
 
     function openCorrection(log) {
-        form.clearErrors()
-        form.setData({ ...blank, date: log.date, ...Object.fromEntries(SLOTS.map(([slot]) => [slot, (log[slot] || '').slice(0, 5)])) })
         setEditing(log)
-    }
-    function saveCorrection(event) {
-        event.preventDefault()
-        form.post(`/admin/dtr/${employee.id}/corrections`, { preserveScroll: true, onSuccess: () => setEditing(null) })
     }
     function handleMonthChange(dir) {
         const d = new Date(month + '-02')
@@ -238,57 +230,12 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
             </div>
 
             {editing && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby="dtr-correction-title">
-                    <form onSubmit={saveCorrection} className="w-full max-w-lg space-y-4 rounded-2xl border border-border bg-panel p-5 shadow-xl">
-                        <div>
-                            <h2 id="dtr-correction-title" className="font-heading text-lg font-bold text-text">
-                                {editing.has_entry ? 'Correct' : 'Add entry for'} {editing.date_label}
-                            </h2>
-                            <p className="text-sm text-sub">{employee.full_name}. Hours and status are recalculated with the normal attendance rules. The employee is not notified.</p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                            {slots.map(([slot, label]) => (
-                                <label key={slot} className="text-xs font-medium text-sub">
-                                    {label}
-                                    <input
-                                        type="time"
-                                        value={form.data[slot]}
-                                        onChange={(event) => form.setData(slot, event.target.value)}
-                                        aria-invalid={!!form.errors[slot]}
-                                        className="mt-1 min-h-[44px] w-full rounded-lg border border-border bg-field px-2 text-sm text-text"
-                                    />
-                                    {form.errors[slot] && <span className="mt-1 block text-rose-700">{form.errors[slot]}</span>}
-                                </label>
-                            ))}
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => form.setData({ ...form.data, am_time_in: '', am_time_out: '', pm_time_in: '', pm_time_out: '' })}
-                            className="min-h-[44px] rounded-lg border border-rose-200 px-3 text-sm font-semibold text-rose-700 hover:bg-rose-50"
-                        >
-                            Mark absent (clear all punches)
-                        </button>
-                        <label className="block text-xs font-medium text-sub">
-                            Reason (required)
-                            <input
-                                type="text"
-                                required
-                                maxLength={500}
-                                value={form.data.reason}
-                                onChange={(event) => form.setData('reason', event.target.value)}
-                                placeholder="e.g. Final DTR check: forgot to punch out"
-                                aria-invalid={!!form.errors.reason}
-                                className="mt-1 min-h-[44px] w-full rounded-lg border border-border bg-field px-3 text-sm text-text"
-                            />
-                            {form.errors.reason && <span className="mt-1 block text-rose-700">{form.errors.reason}</span>}
-                        </label>
-                        {form.errors.date && <p role="alert" className="text-sm text-rose-700">{form.errors.date}</p>}
-                        <div className="flex justify-end gap-3">
-                            <Button type="button" variant="outline" disabled={form.processing} onClick={() => setEditing(null)} className="min-h-[44px]">Cancel</Button>
-                            <Button type="submit" loading={form.processing} disabled={form.processing || !form.data.reason.trim()} className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]">Save correction</Button>
-                        </div>
-                    </form>
-                </div>
+                <DtrCorrectionModal
+                    employee={employee}
+                    date={editing.date}
+                    days={{ [editing.date]: editing }}
+                    onClose={() => setEditing(null)}
+                />
             )}
         </AdminLayout>
     )
