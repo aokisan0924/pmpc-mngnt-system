@@ -35,6 +35,30 @@ class PayrollWizard
         return ['from' => $suggested['from'], 'to' => $to ? CarbonImmutable::parse($to) : $suggested['to']];
     }
 
+    /**
+     * DTR hours, plus the fixed days General Merchandise is paid for: daily rate x 30/31, i.e. the calendar
+     * days of this half of the month (15, or the 16th to month end), less days before the hire date.
+     *
+     * @param  array{from: CarbonImmutable, to: CarbonImmutable}  $window
+     */
+    private function hours(Collection $employees, string $month, string $cutoff, array $window, array $resolutions): Collection
+    {
+        $hours = $this->attendance->hoursFor($employees, $window['from'], $window['to'], $resolutions);
+        $first = CarbonImmutable::createFromFormat('!Y-m', $month);
+        [$halfFrom, $halfTo] = $cutoff === 'first' ? [$first, $first->setDay(15)] : [$first->setDay(16), $first->endOfMonth()->startOfDay()];
+
+        return $hours->map(function (array $attendance, int $id) use ($employees, $halfFrom, $halfTo): array {
+            $employee = $employees->firstWhere('id', $id);
+            if ($employee && $this->office($employee) === 'gen_mdse') {
+                $start = Employee::startDateFor($id);
+                $from = $start !== null && $start > $halfFrom->toDateString() ? CarbonImmutable::parse($start) : $halfFrom;
+                $attendance['fixed_days'] = (float) max(0, $from->diffInDays($halfTo) + 1);
+            }
+
+            return $attendance;
+        });
+    }
+
     /** @return array{from: CarbonImmutable, to: CarbonImmutable} */
     private function window(string $month, string $cutoff, CarbonInterface $to): array
     {
@@ -57,7 +81,7 @@ class PayrollWizard
         $employees = $this->employees();
         $resolutions = $saved->mapWithKeys(fn (PayrollItem $item): array => [$item->employee_id => $item->day_resolutions ?? []])->all();
         $window = $this->window($month, $cutoff, $to);
-        $hours = $this->attendance->hoursFor($employees, $window['from'], $window['to'], $resolutions);
+        $hours = $this->hours($employees, $month, $cutoff, $window, $resolutions);
         $isFirst = $cutoff === 'first';
 
         return [
@@ -125,7 +149,7 @@ class PayrollWizard
             }
             $resolutions = $posted->map(fn (array $row): array => $row['day_resolutions'] ?? [])->all();
             $window = $this->window($month, $cutoff, $to);
-            $hours = $this->attendance->hoursFor($employees, $window['from'], $window['to'], $resolutions);
+            $hours = $this->hours($employees, $month, $cutoff, $window, $resolutions);
             $missing = $employees->first(fn (Employee $employee): bool => $hours->get((int) $employee->id)['unresolved_dates'] !== []);
             if ($missing !== null) {
                 $index = $posted->keys()->search($missing->id);

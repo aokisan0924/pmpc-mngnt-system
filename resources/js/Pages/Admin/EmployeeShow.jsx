@@ -160,7 +160,14 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
 
     // Live computation preview
     const dailyRate     = parseFloat(compForm.data.daily_rate) || 0
-    const monthlyBasic  = dailyRate * 22
+    // Same basis as payroll: Mon-Fri staff 22 days; General Merchandise the month's calendar days (30/31);
+    // other custom schedules (e.g. weekend relievers) are paid for the days they work.
+    const isGenMdse     = (employee.department ?? '').trim().toLowerCase() === 'general merchandise'
+    const workDays      = employee.work_days ?? [1, 2, 3, 4, 5]
+    const isMonToFri    = [1, 2, 3, 4, 5].every((day) => workDays.includes(day)) && workDays.length === 5
+    const monthDays     = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate()
+    const basisDays     = isGenMdse ? monthDays : isMonToFri ? 22 : null
+    const monthlyBasic  = basisDays === null ? 0 : dailyRate * basisDays
     const allowanceTotal = (parseFloat(compForm.data.transpo_allowance) || 0)
         + (parseFloat(compForm.data.rep_allowance) || 0)
         + (parseFloat(compForm.data.quarterly_allowance) || 0)
@@ -385,8 +392,8 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl border border-indigo-200/80 dark:border-indigo-800/60 bg-indigo-50/40 dark:bg-indigo-950/20">
                             <div>
                                 <p className="text-[12px] text-dim mb-0.5">Monthly basic</p>
-                                <p className="text-sm font-semibold text-text">₱ {fmt(monthlyBasic)}</p>
-                                <p className="text-[12px] text-dim">rate × 22 days</p>
+                                <p className="text-sm font-semibold text-text">{basisDays === null ? 'Days worked' : `₱ ${fmt(monthlyBasic)}`}</p>
+                                <p className="text-[12px] text-dim">{basisDays === null ? 'rate × days on the DTR' : `rate × ${basisDays} days${isGenMdse ? ' (this month)' : ''}`}</p>
                             </div>
                             <div>
                                 <p className="text-[12px] text-dim mb-0.5">Allowances</p>
@@ -412,13 +419,17 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
                                     className={inputClass} required />
                             </Field>
                             <p className="mt-1.5 text-xs text-dim">
-                                Basic pay per payroll = daily rate × actual days present
+                                {isGenMdse
+                                    ? 'Each cutoff: daily rate × calendar days of that half (1st–15th = 15; 16th–month end = 15 or 16), less missing hours.'
+                                    : isMonToFri
+                                        ? 'Each cutoff: daily rate × 22 ÷ 2 (11 days), less absences, lates and holidays not worked.'
+                                        : 'Each cutoff: daily rate for each day worked on the DTR (custom schedule).'}
                             </p>
                         </section>
 
                         {/* Allowances */}
                         <section>
-                            <p className="text-xs font-semibold text-sub mb-3 uppercase tracking-wide">Allowances (per payroll period)</p>
+                            <p className="text-xs font-semibold text-sub mb-3 uppercase tracking-wide">Allowances (per month; HR types each cutoff's amount in payroll)</p>
                             <div className="grid sm:grid-cols-3 gap-3">
                                 {[
                                     { key: 'transpo_allowance',   label: 'Transportation (₱)' },

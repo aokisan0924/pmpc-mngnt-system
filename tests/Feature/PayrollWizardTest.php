@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\DtrLog;
 use App\Models\Employee;
+use App\Models\EmployeeSchedule;
 use App\Models\Holiday;
 use App\Models\Payroll;
 use App\Services\ManagementPayrollExport;
@@ -223,5 +224,21 @@ class PayrollWizardTest extends TestCase
         $this->actingAs($this->staff)->postJson('/admin/payroll/mockup-export', $this->payload())->assertForbidden();
         $this->actingAs($this->admin)->postJson('/admin/payroll/mockup-export', $this->payload(['deductions' => []]))->assertStatus(422);
         $this->assertSame(0, Payroll::count());
+    }
+
+    public function test_general_merchandise_gets_calendar_days_of_the_half_month(): void
+    {
+        $store = Employee::factory()->create([
+            'is_staff' => true, 'status' => 'active', 'department' => 'General Merchandise', 'date_hired' => '2026-01-01', 'daily_rate' => 600,
+            'payroll_office' => 'main_office', 'setup_completed_at' => now(), 'office_verified_at' => now(),
+        ]);
+        EmployeeSchedule::create(['employee_id' => $store->id, 'effective_from' => '2026-01-01', 'type' => 'two_punch', 'shift_start' => '06:00', 'shift_end' => '18:00', 'work_days' => '0,1,2,3,4,5,6']);
+        $row = fn (string $month, string $cutoff): array => collect($this->actingAs($this->admin)->get("/admin/payroll/create?month=$month&cutoff=$cutoff")->viewData('page')['props']['employees'])->firstWhere('id', $store->id);
+
+        // 600 x 30/31: the 1st cutoff is always 15 days; the 2nd is the 16th to month end.
+        $this->assertSame(15.0, $row('2026-11', 'first')['fixed_days']);
+        Carbon::setTestNow('2026-12-01 08:00:00');
+        $this->assertSame(15.0, $row('2026-11', 'second')['fixed_days']);
+        $this->assertSame(16.0, $row('2026-10', 'second')['fixed_days']);
     }
 }
