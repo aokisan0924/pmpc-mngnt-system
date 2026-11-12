@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 12:15 — 53eb2bb — Today tasks can move to Doing; To do can be hidden
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `3f282d0` → `53eb2bb` (includes docs-only `196d3c5`, `a0a1265`, `1c4a914` and `814b1ba`, `6960531`)
+- Migrations: none
+- Backup: none (front-end only; no database records or schema changed; the hidden-To-do choice lives in each browser)
+- Data changes: none on live. Locally only, test tasks on `taskboard-preview.sqlite` were moved between columns during the browser check.
+- Verified: locally 29 of 29 JS tests, 373 of 378 PHP tests (the 5 signature tests need GD, missing on this machine), build passed; a fresh reviewer found no critical issues and its label, focus and count findings were fixed; on the scratch copy drag Today → Doing (amber, "Due today") and back, drop on Today → To do, hide/show To do, reload keeps it, phone width. On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `53eb2bb`, bundle `app-BmXk8orn.js`. In Chrome as Kurt: Team tasks shows To do 21, Today 0, Doing 5, Done 8 with matching header; Hide moved 9 late tasks to Today under "Late", "Show To do (21)", header 12 to do / 9 today; shown again afterwards. No tasks were moved on live.
+
 ## 2026-11-12 11:34 — 3f282d0 — UI polish phases and message box fixes
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `6411dd4` → `3f282d0` (includes `abfeec0` docs-only and `fa6034a`)
