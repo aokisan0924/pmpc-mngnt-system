@@ -19,7 +19,7 @@ export function calculateHoursItem(item, isFirst) {
     const holiday_pay = money(item.holiday_pay)
     const gross_pay = money(cutoff_basic + cutoff_transpo + cutoff_rep + cutoff_quarterly + weekday_ot_pay + weekend_ot_pay + holiday_pay)
     const deductions = { ...item.deductions }
-    if (!isFirst) ['sss_deduction', 'philhealth_deduction', 'pagibig_deduction', 'tax_deduction'].forEach((key) => { deductions[key] = 0 })
+    if (!isFirst) ['sss_deduction', 'philhealth_deduction', 'pagibig_deduction'].forEach((key) => { deductions[key] = 0 })
     const total_deductions = money(Object.values(deductions).reduce((sum, value) => sum + money(value), 0))
     return { ...item, deductions, days_of_work: days.length, basic_before_absence, absence_deduction, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, weekday_ot_pay, weekend_ot_pay, total_ot_pay: money(weekday_ot_pay + weekend_ot_pay), holiday_pay, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
 }

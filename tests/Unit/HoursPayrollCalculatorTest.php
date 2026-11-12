@@ -89,16 +89,17 @@ class HoursPayrollCalculatorTest extends TestCase
         $this->assertSame(1350.0, $typed['gross_pay']);
     }
 
-    public function test_tax_only_on_first_cutoff(): void
+    public function test_tax_is_split_and_statutory_only_on_first_cutoff(): void
     {
         $employee = $this->employee(['tax_deduction' => 850, 'sss_deduction' => 500]);
         $attendance = $this->attendance(8, [8]);
 
         $first = $this->calc($employee, $attendance);
         $second = $this->calc($employee, $attendance, [], false);
-        $this->assertSame(850.0, $first['tax_deduction']);
+        // As in the October 2026 workbook: tax is split across both cutoffs, SSS & co. only on the 1st.
+        $this->assertSame(425.0, $first['tax_deduction']);
         $this->assertSame(500.0, $first['sss_deduction']);
-        $this->assertSame(0.0, $second['tax_deduction']);
+        $this->assertSame(425.0, $second['tax_deduction']);
         $this->assertSame(0.0, $second['sss_deduction']);
     }
 

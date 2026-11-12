@@ -20,10 +20,11 @@ test('Violie: 12-hour shift is 50 an hour, overtime uses the same rate', () => {
     assert.equal(row.weekend_ot_pay, 65)
 })
 
-test('typed allowances and holiday pay add to gross; statutory only on the 1st cutoff', () => {
+test('typed allowances and holiday pay add to gross; SSS & co. only on the 1st cutoff, tax on both', () => {
     const first = calculateHoursItem(item({ days: days(8, [8]), cutoff_transpo: 750, holiday_pay: 390 }), true)
     assert.equal(first.gross_pay, 1740)
     assert.equal(first.total_deductions, 1350)
-    const second = calculateHoursItem(item({ days: days(8, [8]) }), false)
-    assert.equal(second.total_deductions, 0)
+    // Tax stays on the 2nd cutoff (split per cutoff); SSS, PhilHealth and Pag-IBIG do not.
+    const second = calculateHoursItem(item({ days: days(8, [8]), deductions: { sss_deduction: 500, tax_deduction: 425 } }), false)
+    assert.equal(second.total_deductions, 425)
 })

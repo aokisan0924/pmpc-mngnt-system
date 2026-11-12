@@ -53,7 +53,8 @@ class OfficePayrollCalculator
             'sss_deduction' => $isFirst ? (float) $employee->sss_deduction : 0.0,
             'philhealth_deduction' => $isFirst ? (float) $employee->philhealth_deduction : 0.0,
             'pagibig_deduction' => $isFirst ? (float) $employee->pagibig_deduction : 0.0,
-            'tax_deduction' => $isFirst ? round((float) $employee->tax_deduction, 2) : 0.0,
+            // Monthly withholding tax is split across both cutoffs, as in the October 2026 workbook.
+            'tax_deduction' => round((float) $employee->tax_deduction / 2, 2),
             'tardiness_deduction' => 0.0,
             'holiday_pay' => round((float) ($inputs['holiday_pay'] ?? 0), 2),
         ];
