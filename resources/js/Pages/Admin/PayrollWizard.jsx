@@ -32,6 +32,7 @@ export default function PayrollWizard(props) {
         period_from: props.period_from,
         period_to: props.period_to,
         finalize: false,
+        mock: !!props.mock,
         items: employees.map((employee) => ({
             employee_id: employee.id,
             ...Object.fromEntries(TYPED.map((key) => [key, key === 'day_resolutions' ? { ...employee.day_resolutions } : employee[key]])),
@@ -103,7 +104,12 @@ export default function PayrollWizard(props) {
     return (
         <AdminLayout>
             <div className="admin-page-shell space-y-5 page-enter">
-                <AdminPageHeader title="Process payroll" subtitle={props.period_title} />
+                <AdminPageHeader title={props.mock ? 'Payroll mockup' : 'Process payroll'} subtitle={props.period_title} />
+                {props.mock && (
+                    <p role="status" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200">
+                        <b>Mockup — nothing is saved.</b> Days up to the end date that have not happened yet count as present (holidays stay no work, no pay). Download the mockup Excel on step 4.
+                    </p>
+                )}
                 <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label="Payroll steps">
                     {STEPS.map((label, index) => {
                         const number = index + 1

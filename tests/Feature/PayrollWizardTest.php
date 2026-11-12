@@ -241,4 +241,29 @@ class PayrollWizardTest extends TestCase
         $this->assertSame(15.0, $row('2026-11', 'second')['fixed_days']);
         $this->assertSame(16.0, $row('2026-10', 'second')['fixed_days']);
     }
+
+    public function test_mockup_mode_assumes_the_rest_of_the_cutoff_present_and_never_saves(): void
+    {
+        Carbon::setTestNow('2026-11-10 09:00:00');
+        $this->actingAs($this->admin)->get('/admin/payroll/create?month=2026-11&cutoff=first&mock=1')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('mock', true)
+                ->where('employees.0.days', fn ($days) => collect($days)->where('source', 'assumed')->pluck('date')->all() === ['2026-11-10', '2026-11-11', '2026-11-12', '2026-11-13']));
+
+        // A finalized batch does not block a mockup, and the mockup leaves it untouched.
+        Carbon::setTestNow('2026-11-14 09:00:00');
+        $this->post('/admin/payroll', $this->payload([], ['finalize' => true]))->assertRedirect();
+        $this->get('/admin/payroll/create?month=2026-11&cutoff=first&mock=1')->assertOk();
+        $this->postJson('/admin/payroll/mockup-export', $this->payload([], ['mock' => true]))->assertOk();
+        $this->assertTrue(Payroll::firstOrFail()->isFinalized());
+        $this->assertSame(1, Payroll::count());
+    }
+
+    public function test_a_real_save_ignores_the_mock_flag(): void
+    {
+        Carbon::setTestNow('2026-11-10 09:00:00');
+        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload([], ['mock' => true]))->assertRedirect();
+
+        // Saved for real with real attendance only: Nov 3, 4 and 9 worked (24 h); no assumed days for Nov 10–13.
+        $this->assertEquals(24, Payroll::firstOrFail()->items()->firstOrFail()->paid_hours);
+    }
 }

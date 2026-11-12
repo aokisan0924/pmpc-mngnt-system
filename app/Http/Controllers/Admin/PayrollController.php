@@ -50,8 +50,9 @@ class PayrollController extends Controller
     {
         $month = (string) $request->validated('month');
         $cutoff = (string) $request->validated('cutoff');
+        $mock = $request->boolean('mock');
         $existing = $wizard->existing($month, $cutoff);
-        if ($existing?->isFinalized()) {
+        if ($existing?->isFinalized() && ! $mock) {
             return redirect()->route('admin.payroll.show', $existing->id)
                 ->with('success', 'This cutoff is already finalized.');
         }
@@ -59,12 +60,13 @@ class PayrollController extends Controller
             ? ['from' => $existing->period_from, 'to' => $existing->period_to]
             : $wizard->period($month, $cutoff, $request->validated('period_to'));
 
-        return Inertia::render('Admin/PayrollWizard', $wizard->preview($month, $cutoff, $period['from'], $period['to']));
+        return Inertia::render('Admin/PayrollWizard', $wizard->preview($month, $cutoff, $period['from'], $period['to'], $mock));
     }
 
     public function store(StorePayrollRequest $request, PayrollWizard $wizard): RedirectResponse
     {
-        $payroll = $wizard->save($request->validated(), $request->user());
+        // A mockup is never saved, whatever the browser sends.
+        $payroll = $wizard->save([...$request->validated(), 'mock' => false], $request->user());
 
         return redirect()->route('admin.payroll.show', $payroll->id)
             ->with('success', $payroll->isFinalized() ? 'Payroll saved and finalized.' : 'Payroll saved.');

@@ -5,7 +5,7 @@ import { peso } from './StepEntries'
 
 const sum = (rows, key) => rows.reduce((total, row) => total + (Number(row[key]) || 0), 0)
 
-export default function StepConfirm({ rows, offices, changed, form, cutoff_open, counted_through, period_title, onSave, onMockup, mockup }) {
+export default function StepConfirm({ rows, offices, changed, form, cutoff_open, counted_through, period_title, onSave, onMockup, mockup, mock }) {
     const [confirming, setConfirming] = useState(false)
     const negative = rows.filter((row) => Number(row.net_pay) < 0)
     const errors = Object.values(form.errors)
@@ -57,7 +57,7 @@ export default function StepConfirm({ rows, offices, changed, form, cutoff_open,
                     {errors.map((error) => <li key={error}>{error}</li>)}
                 </ul>
             )}
-            <div className="flex flex-wrap items-center gap-3">
+            {!mock && <div className="flex flex-wrap items-center gap-3">
                 <Button disabled={form.processing} loading={form.processing && !form.data.finalize} onClick={() => onSave(false)} className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]">
                     Save draft
                 </Button>
@@ -65,9 +65,9 @@ export default function StepConfirm({ rows, offices, changed, form, cutoff_open,
                     Save &amp; finalize
                 </Button>
                 {cutoff_open && <p className="text-sm text-amber-800 dark:text-amber-300" role="status">This cutoff isn't over yet: only days through {counted_through} are counted. Save the draft again after the last day.</p>}
-            </div>
+            </div>}
             <div className="space-y-2 rounded-xl border border-dashed border-border p-4">
-                <p className="text-sm text-sub">Want to check the numbers first? Download a mockup of the management Excel from this data. Nothing is saved.</p>
+                <p className="text-sm text-sub">{mock ? 'The mockup counts every remaining day up to the end date as present. Nothing is saved.' : 'Want to check the numbers first? Download a mockup of the management Excel from this data. Nothing is saved.'}</p>
                 <Button variant="outline" disabled={mockup.busy || form.processing} loading={mockup.busy} onClick={onMockup} className="min-h-[44px]">
                     Download mockup Excel
                 </Button>

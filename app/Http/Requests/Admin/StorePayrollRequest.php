@@ -30,6 +30,7 @@ class StorePayrollRequest extends FormRequest
         return [
             'month' => ['required', 'date_format:Y-m'],
             'cutoff' => ['required', 'in:first,second'],
+            'mock' => ['nullable', 'boolean'],
             'period_from' => ['required', 'date'],
             'period_to' => ['required', 'date'],
             'finalize' => ['boolean'],

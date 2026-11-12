@@ -135,7 +135,7 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                         ))}
                                         <th scope="col" className="text-center px-3 py-3 font-semibold">Hours</th>
                                         <th scope="col" className="text-center px-4 py-3 font-semibold">Status</th>
-                                        {canCorrect && <th scope="col" className="text-center px-3 py-3 font-semibold">Final check</th>}
+                                        {canCorrect && <th scope="col" className="text-center px-3 py-3 font-semibold">Edit</th>}
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-border/60 tnum">
@@ -198,10 +198,10 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                                                             <button
                                                                 type="button"
                                                                 onClick={() => openCorrection(log)}
-                                                                aria-label={`${log.has_entry ? 'Correct' : 'Add entry for'} ${log.date_label}`}
+                                                                aria-label={`${log.has_entry ? 'Edit' : 'Add'} ${log.date_label}`}
                                                                 className="min-h-[44px] rounded-lg border border-border px-3 text-xs font-semibold text-[#26215C] hover:bg-field"
                                                             >
-                                                                {log.has_entry ? 'Correct' : 'Add entry'}
+                                                                {log.has_entry ? 'Edit day' : 'Add day'}
                                                             </button>
                                                         )}
                                                     </td>

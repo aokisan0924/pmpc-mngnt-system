@@ -153,4 +153,26 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
         $this->assertSame(7.5, $byDate['2026-11-05']['worked_hours']);
         Carbon::setTestNow();
     }
+
+    public function test_mockup_assumes_today_and_future_days_present_but_keeps_holidays_nwnp(): void
+    {
+        Carbon::setTestNow('2026-11-12 09:00:00');
+        Holiday::create(['date' => '2026-11-13', 'name' => 'Test holiday', 'type' => 'special']);
+        $office = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        $store = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        EmployeeSchedule::create(['employee_id' => $store->id, 'effective_from' => '2026-01-01', 'type' => 'two_punch', 'shift_start' => '06:00', 'shift_end' => '18:00', 'work_days' => '0,1,2,3,4,5,6']);
+        DtrLog::factory()->create(['employee_id' => $office->id, 'date' => '2026-11-11', 'hours_rendered' => 4, 'status' => 'half_day']);
+
+        $result = app(DtrPayrollAttendanceCalculator::class)->hoursFor(collect([$office, $store]), Carbon::parse('2026-11-11'), Carbon::parse('2026-11-13'), [], assumePresent: true);
+        $office_days = collect($result->get($office->id)['days'])->keyBy('date');
+        $store_days = collect($result->get($store->id)['days'])->keyBy('date');
+
+        $this->assertSame(4.0, $office_days['2026-11-11']['worked_hours']);
+        $this->assertSame(8.0, $office_days['2026-11-12']['worked_hours']);
+        $this->assertSame('assumed', $office_days['2026-11-12']['source']);
+        $this->assertSame(0.0, $office_days['2026-11-13']['worked_hours']);
+        $this->assertSame(12.0, $store_days['2026-11-13']['worked_hours']);
+        $this->assertSame([], $result->get($office->id)['unresolved_dates']);
+        Carbon::setTestNow();
+    }
 }

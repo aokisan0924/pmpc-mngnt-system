@@ -23,7 +23,7 @@ class DtrPayrollAttendanceCalculator
      * @param  array<int, array<string, array{type: string, hours?: float|int|string, note?: string}>>  $resolutions
      * @return Collection<int, array{days: list<array{date: string, shift_hours: float, worked_hours: float, holiday: bool, source: string}>, days_of_work: float, unresolved_dates: list<string>}>
      */
-    public function hoursFor(Collection $employees, CarbonInterface $from, CarbonInterface $to, array $resolutions = []): Collection
+    public function hoursFor(Collection $employees, CarbonInterface $from, CarbonInterface $to, array $resolutions = [], bool $assumePresent = false): Collection
     {
         $logs = DtrLog::query()
             ->whereIn('employee_id', $employees->pluck('id'))
@@ -32,11 +32,12 @@ class DtrPayrollAttendanceCalculator
             ->get()
             ->groupBy('employee_id')
             ->map(fn (Collection $items): Collection => $items->keyBy(fn (DtrLog $log): string => $log->date->toDateString()));
-        $holidays = Holiday::whereBetween('date', [$from->toDateString(), $to->toDateString()])->get()
+        // whereDate: a holiday on the window's last day must count (dates may be stored with a time part).
+        $holidays = Holiday::whereDate('date', '>=', $from->toDateString())->whereDate('date', '<=', $to->toDateString())->get()
             ->map(fn (Holiday $holiday): string => $holiday->date->toDateString())->flip();
         $today = today()->toDateString();
 
-        return $employees->mapWithKeys(function (Employee $employee) use ($from, $to, $resolutions, $logs, $holidays, $today): array {
+        return $employees->mapWithKeys(function (Employee $employee) use ($from, $to, $resolutions, $logs, $holidays, $today, $assumePresent): array {
             $employeeId = (int) $employee->id;
             $start = Employee::startDateFor($employeeId);
             $employeeLogs = $logs->get($employeeId, collect());
@@ -45,12 +46,21 @@ class DtrPayrollAttendanceCalculator
 
             foreach (CarbonPeriod::create($from, $to) as $day) {
                 $date = $day->toDateString();
-                // Today is not finished yet; future days are not counted at all.
-                if ($date >= $today || ! Employee::isWorkDay($employeeId, $day) || ($start !== null && $date < $start)) {
+                if (! Employee::isWorkDay($employeeId, $day) || ($start !== null && $date < $start)) {
+                    continue;
+                }
+                $shiftHours = EmployeeSchedule::shiftHoursFor($employeeId, $day);
+                // Today is not finished yet and future days have not happened: skipped, or assumed present in a mockup
+                // (holidays stay no work, no pay unless the shift is a two-punch store shift that works every day).
+                if ($date >= $today) {
+                    if ($assumePresent) {
+                        $twoPunch = EmployeeSchedule::shiftFor($employeeId, $day)['two_punch'] ?? false;
+                        $days[] = ['date' => $date, 'shift_hours' => $shiftHours, 'worked_hours' => $holidays->has($date) && ! $twoPunch ? 0.0 : $shiftHours, 'holiday' => $holidays->has($date), 'source' => 'assumed'];
+                    }
+
                     continue;
                 }
 
-                $shiftHours = EmployeeSchedule::shiftHoursFor($employeeId, $day);
                 $log = $employeeLogs->get($date);
                 $resolution = $resolutions[$employeeId][$date] ?? null;
                 $status = $log?->displayStatus();

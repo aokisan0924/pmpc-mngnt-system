@@ -177,10 +177,10 @@ export default function Dtr({ employees = [], dtrSummary = [], month, employeeId
                                                         <button
                                                             type="button"
                                                             onClick={() => setCorrecting(emp)}
-                                                            aria-label={`Correct a day for ${emp.full_name}`}
+                                                            aria-label={`Edit a day for ${emp.full_name}`}
                                                             className="px-2.5 py-1 text-xs rounded-md border border-[#26215C]/30 text-[#26215C] dark:text-indigo-300 hover:bg-field font-semibold transition-colors"
                                                         >
-                                                            Correct a day
+                                                            Edit a day
                                                         </button>
                                                     )}
                                                     <Link

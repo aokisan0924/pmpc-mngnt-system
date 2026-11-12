@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm, Link, usePage } from '@inertiajs/react'
+import { useForm, Link, usePage, router } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
@@ -117,13 +117,24 @@ export default function Payroll({ payrolls = [] }) {
                             <p className="max-w-[45ch] text-xs leading-relaxed text-sub">
                                 Four steps: cutoff, DTR check, overtime &amp; allowances, confirm.
                             </p>
-                            <Button
-                                type="submit"
-                                loading={form.processing}
-                                className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]"
-                            >
-                                Start payroll
-                            </Button>
+                            <div className="flex flex-wrap gap-2">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    disabled={form.processing}
+                                    onClick={() => form.data.month ? router.get('/admin/payroll/create', { month: form.data.month, cutoff: form.data.cutoff, mock: 1 }) : form.setError('month', 'Choose the payroll month.')}
+                                    className="min-h-[44px]"
+                                >
+                                    Make a mockup
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    loading={form.processing}
+                                    className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]"
+                                >
+                                    Start payroll
+                                </Button>
+                            </div>
                         </div>
                     </form>
                 </section>

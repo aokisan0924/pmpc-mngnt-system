@@ -41,9 +41,9 @@ class PayrollWizard
      *
      * @param  array{from: CarbonImmutable, to: CarbonImmutable}  $window
      */
-    private function hours(Collection $employees, string $month, string $cutoff, array $window, array $resolutions): Collection
+    private function hours(Collection $employees, string $month, string $cutoff, array $window, array $resolutions, bool $mock = false): Collection
     {
-        $hours = $this->attendance->hoursFor($employees, $window['from'], $window['to'], $resolutions);
+        $hours = $this->attendance->hoursFor($employees, $window['from'], $window['to'], $resolutions, $mock);
         $first = CarbonImmutable::createFromFormat('!Y-m', $month);
         [$halfFrom, $halfTo] = $cutoff === 'first' ? [$first, $first->setDay(15)] : [$first->setDay(16), $first->endOfMonth()->startOfDay()];
 
@@ -74,17 +74,19 @@ class PayrollWizard
     }
 
     /** @return array<string, mixed> Inertia props for Admin/PayrollWizard */
-    public function preview(string $month, string $cutoff, CarbonInterface $from, CarbonInterface $to): array
+    /** In a mockup, days not yet worked up to the end date are assumed present and nothing can be saved. */
+    public function preview(string $month, string $cutoff, CarbonInterface $from, CarbonInterface $to, bool $mock = false): array
     {
         $draft = $this->existing($month, $cutoff);
         $saved = $draft?->items->keyBy('employee_id') ?? collect();
         $employees = $this->employees();
         $resolutions = $saved->mapWithKeys(fn (PayrollItem $item): array => [$item->employee_id => $item->day_resolutions ?? []])->all();
         $window = $this->window($month, $cutoff, $to);
-        $hours = $this->hours($employees, $month, $cutoff, $window, $resolutions);
+        $hours = $this->hours($employees, $month, $cutoff, $window, $resolutions, $mock);
         $isFirst = $cutoff === 'first';
 
         return [
+            'mock' => $mock,
             'month' => $month,
             'cutoff' => $cutoff,
             'is_first' => $isFirst,
@@ -98,7 +100,7 @@ class PayrollWizard
             'draft_id' => $draft?->id,
             'offices' => OfficePayrollCalculator::OFFICES,
             'signatories' => $this->signatories($isFirst),
-            'holidays' => Holiday::whereBetween('date', [$from->toDateString(), $to->toDateString()])->orderBy('date')->get()
+            'holidays' => Holiday::whereDate('date', '>=', $from->toDateString())->whereDate('date', '<=', $to->toDateString())->orderBy('date')->get()
                 ->map(fn (Holiday $holiday): array => ['date' => $holiday->date->toDateString(), 'label' => $holiday->date->format('D, M d'), 'name' => $holiday->name])->values(),
             'employees' => $employees->map(function (Employee $employee) use ($hours, $saved, $isFirst): array {
                 $item = $saved->get($employee->id);
@@ -149,7 +151,7 @@ class PayrollWizard
             }
             $resolutions = $posted->map(fn (array $row): array => $row['day_resolutions'] ?? [])->all();
             $window = $this->window($month, $cutoff, $to);
-            $hours = $this->hours($employees, $month, $cutoff, $window, $resolutions);
+            $hours = $this->hours($employees, $month, $cutoff, $window, $resolutions, (bool) ($data['mock'] ?? false));
             $missing = $employees->first(fn (Employee $employee): bool => $hours->get((int) $employee->id)['unresolved_dates'] !== []);
             if ($missing !== null) {
                 $index = $posted->keys()->search($missing->id);
@@ -213,6 +215,13 @@ class PayrollWizard
     {
         DB::beginTransaction();
         try {
+            // Inside the rolled-back transaction a saved batch for this cutoff (even a finalized one) can make way
+            // for the mockup; it is restored by the rollback.
+            Payroll::where('period_month', $data['month'])->where('cutoff', $data['cutoff'])->get()
+                ->each(function (Payroll $payroll): void {
+                    $payroll->items()->delete();
+                    $payroll->delete();
+                });
             $payroll = $this->save([...$data, 'finalize' => false], $user);
 
             return $this->export->export($payroll->fresh());

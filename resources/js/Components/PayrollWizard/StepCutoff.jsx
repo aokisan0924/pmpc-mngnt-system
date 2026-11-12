@@ -4,7 +4,7 @@ import Button from '@/Components/UI/Button'
 
 const control = 'min-h-[44px] w-full min-w-0 rounded-xl border border-border bg-field px-3 py-2 text-sm text-text'
 
-export default function StepCutoff({ month, cutoff, period_from, period_to, period_title, holidays, draft_id, cutoff_open, counted_through, employees, errors = {} }) {
+export default function StepCutoff({ month, cutoff, period_from, period_to, period_title, holidays, draft_id, cutoff_open, counted_through, employees, mock, errors = {} }) {
     const [end, setEnd] = useState(period_to)
     const unverified = employees.filter((employee) => !employee.office_verified)
     const changedDates = end !== period_to
@@ -25,14 +25,14 @@ export default function StepCutoff({ month, cutoff, period_from, period_to, peri
                     ))}
                 </ul>
             )}
-            {cutoff_open && (
+            {cutoff_open && !mock && (
                 <p className="rounded-xl bg-field p-3 text-sm text-sub" role="status">This cutoff isn't over yet. Days through {counted_through} are counted; later days count once they pass.</p>
             )}
             <form
                 className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]"
                 onSubmit={(event) => {
                     event.preventDefault()
-                    router.get('/admin/payroll/create', { month, cutoff, period_to: end })
+                    router.get('/admin/payroll/create', { month, cutoff, period_to: end, ...(mock ? { mock: 1 } : {}) })
                 }}
             >
                 <p className="text-sm text-sub">Starts {new Date(`${period_from}T00:00:00`).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })} (right after the previous cutoff). Typed entries reset if you change the end date.</p>

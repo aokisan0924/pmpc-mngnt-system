@@ -29,7 +29,7 @@ export default function DtrCorrectionModal({ employee, date, days = null, minDat
             <form onSubmit={save} className="w-full max-w-lg space-y-4 rounded-2xl border border-border bg-panel p-5 shadow-xl">
                 <div>
                     <h2 id="dtr-correction-title" className="font-heading text-lg font-bold text-text">
-                        {form.data.date ? `${hasEntry ? 'Correct' : 'Add entry for'} ${label(form.data.date)}` : 'Correct a day'}
+                        {form.data.date ? `${hasEntry ? 'Edit' : 'Add'} ${label(form.data.date)}` : 'Edit a day'}
                     </h2>
                     <p className="text-sm text-sub">{employee.full_name}. Hours and status are recalculated with the normal attendance rules. The employee is not notified.</p>
                 </div>
@@ -87,7 +87,7 @@ export default function DtrCorrectionModal({ employee, date, days = null, minDat
                 {form.errors.date && <p role="alert" className="text-sm text-rose-700">{form.errors.date}</p>}
                 <div className="flex justify-end gap-3">
                     <Button type="button" variant="outline" disabled={form.processing} onClick={onClose} className="min-h-[44px]">Cancel</Button>
-                    <Button type="submit" loading={form.processing} disabled={form.processing || !form.data.date || !form.data.reason.trim()} className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]">Save correction</Button>
+                    <Button type="submit" loading={form.processing} disabled={form.processing || !form.data.date || !form.data.reason.trim()} className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]">Save day</Button>
                 </div>
             </form>
         </div>

@@ -25,6 +25,7 @@ class CreatePayrollRequest extends FormRequest
         return [
             'month' => ['required', 'date_format:Y-m'],
             'cutoff' => ['required', 'in:first,second'],
+            'mock' => ['nullable', 'boolean'],
             'period_to' => ['nullable', 'date'],
         ];
     }

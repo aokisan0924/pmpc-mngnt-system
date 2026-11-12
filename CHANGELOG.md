@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Payroll runs has a "Make a mockup" button: the wizard opens in mockup mode (nothing can be saved), real DTR is used for past days and every remaining day up to the end date counts as present (holidays stay no work, no pay for office staff), and step 4 downloads the mockup Excel. It works even when the cutoff is already finalized.
 - Attendance records: DTR correctors get a "Correct a day" button on each employee's row. It opens the same correction form as the employee's DTR page, with a date picker that pre-fills that day's punches.
 - Payroll step 4 warns in red when anyone's net pay is below zero and lists who; step 3 shows that net pay in red brackets.
 - Payroll access for non-admin staff: employees listed in `PAYROLL_PROCESSOR_EMPLOYEE_IDS` (default `EMP-0003`, Katherine Sevilleno) get a "Process payroll" link and can use Payroll runs (wizard, saved payrolls, Excel, mockup, finalize). They see no other admin pages; "Fix DTR" is hidden for them.
@@ -18,9 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - On Dues, "Undo payment" and "Stop"/"Resume" now show an Undo link in the confirmation message. Undo puts back the same paid date, amount and note, or flips the due back.
 
 ### Fixed
+- A holiday on the last day of a payroll window is now always found (the date comparison ignores any stored time part).
 - Payroll step 3: the deductions table no longer overlaps the payroll table on narrower screens; the sheet scrolls sideways with roomier cells.
 
 ### Changed
+- The DTR page's correction column is now "Edit" with "Edit day" / "Add day" buttons; the Attendance records list button reads "Edit a day".
 - Payroll: a complete, on-time office day (4-punch schedule) counts as the full 8-hour shift; actual hours are only counted on late, undertime or half days. Two-punch shifts (General Merchandise) still use their DTR hours.
 - General Merchandise basic pay is daily rate × 30/31: each cutoff pays the calendar days of that half (1st–15th = 15; 16th–month end = 15 or 16), less missing hours. The employee profile's Compensation tab now shows the matching monthly basic (× 22 for Mon–Fri staff, × the month's days for General Merchandise, "days worked" for custom schedules such as weekend relievers) and explains each rule; allowances are labelled as monthly amounts.
 - Payroll step 3 uses the October 2026 sheet layout: an NPW- HOLIDAY column for unworked holidays, other absences under ABSENT in the deductions table, DAYS OF WORK as days actually paid, and the typed holiday premium shown with overtime. Net pay is unchanged.
