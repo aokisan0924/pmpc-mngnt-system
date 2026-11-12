@@ -53,7 +53,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
             showProgress: false,
             optimistic: props => ({
                 tasks: props.tasks.map(t => t.id === task.id
-                    ? { ...t, status, is_overdue: status !== 'done' && t.due_date !== null && t.due_date < today }
+                    ? { ...t, status, is_overdue: status !== 'done' && t.due_date !== null && t.due_date < today, done_on: status === 'done' ? today : null }
                     : t),
             }),
         })

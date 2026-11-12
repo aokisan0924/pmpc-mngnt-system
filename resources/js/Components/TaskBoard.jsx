@@ -1,12 +1,17 @@
 import { useState } from 'react'
 import Badge from '@/Components/UI/Badge'
 import CardMenu from '@/Components/CardMenu'
+import { boardColumns, manilaToday } from '@/Components/taskGroups'
 
+// "Today & late" is not a status: cards stay in it, whatever their status, until they are done.
 const COLUMNS = [
-    { status: 'pending', label: 'To do' },
-    { status: 'doing',   label: 'Doing' },
-    { status: 'done',    label: 'Done' },
+    { key: 'today',   status: null,      label: 'Today & late' },
+    { key: 'pending', status: 'pending', label: 'To do' },
+    { key: 'doing',   status: 'doing',   label: 'Doing' },
+    { key: 'done',    status: 'done',    label: 'Done' },
 ]
+const STATUS_COLUMNS = COLUMNS.filter(c => c.status)
+const STATUS_LABEL = { pending: 'To do', doing: 'Doing' }
 
 const PRIORITY_BADGE = {
     high:   <Badge variant="rose" size="sm">High</Badge>,
@@ -32,12 +37,14 @@ const OfficeIcon = () => (
     </svg>
 )
 
-/** Plain-words due date: red when late, otherwise the date. Finished tasks keep the plain date. */
-function dueText(task) {
+const PILL = 'rounded px-1.5 py-0.5 font-semibold'
+
+/** Plain-words due date: a red pill when late, amber when due today, otherwise the date. Finished tasks keep the plain date. */
+export function dueText(task) {
     if (task.status === 'done' || typeof task.due_in_days !== 'number') return { text: task.due_label, className: 'text-sub' }
     const n = task.due_in_days
-    if (n < 0) return { text: `${-n} ${n === -1 ? 'day' : 'days'} late`, className: 'text-rose-700 dark:text-rose-400 font-semibold' }
-    if (n === 0) return { text: 'Due today', className: 'text-amber-700 dark:text-amber-400 font-semibold' }
+    if (n < 0) return { text: `${-n} ${n === -1 ? 'day' : 'days'} late`, className: `${PILL} bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300` }
+    if (n === 0) return { text: 'Due today', className: `${PILL} bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300` }
     if (n === 1) return { text: 'Due tomorrow', className: 'text-text' }
     if (task.span_label) return { text: task.is_upcoming ? `Starts ${task.span_label}` : task.span_label, className: 'text-sub' }
     return { text: task.due_label, className: 'text-sub' }
@@ -66,6 +73,11 @@ export function SpanProgress({ task, accent = 'emerald' }) {
  */
 export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, accent = 'emerald', showOwner = false, showMoveButtons = true }) {
     const [overColumn, setOverColumn] = useState(null)
+    const [showOlder, setShowOlder] = useState(false)
+    const columns = boardColumns(tasks, manilaToday())
+    const columnTasks = key => key === 'done'
+        ? (showOlder ? [...columns.doneRecent, ...columns.doneOlder] : columns.doneRecent)
+        : columns[key]
 
     // Employees may move a whole-office task but not edit or delete it.
     const readOnly = task => !showOwner && task.employee_id === null
@@ -110,27 +122,36 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-            {COLUMNS.map(({ status, label }) => {
-                const columnTasks = tasks.filter(t => t.status === status)
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
+            {COLUMNS.map(({ key, status, label }) => {
+                const list = columnTasks(key)
+                const isToday = key === 'today'
+                // Dropping on Today does nothing: it is not a status.
+                const dropProps = status ? {
+                    onDragOver: e => { e.preventDefault(); setOverColumn(status) },
+                    onDragLeave: () => setOverColumn(null),
+                    onDrop: e => handleDrop(e, status),
+                } : {}
                 return (
                     <section
-                        key={status}
-                        aria-label={`${label} tasks`}
-                        onDragOver={e => { e.preventDefault(); setOverColumn(status) }}
-                        onDragLeave={() => setOverColumn(null)}
-                        onDrop={e => handleDrop(e, status)}
+                        key={key}
+                        aria-label={isToday ? 'Today and late tasks' : `${label} tasks`}
+                        {...dropProps}
                         className={`rounded-2xl border p-3 min-h-40 transition-colors ${
-                            overColumn === status ? 'border-dashed border-sub bg-field' : 'border-border bg-field/50'
+                            overColumn === status && status
+                                ? 'border-dashed border-sub bg-field'
+                                : isToday
+                                    ? 'border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30'
+                                    : 'border-border bg-field/50'
                         }`}
                     >
-                        <h3 className={`mb-3 flex items-center gap-2 text-sm font-bold ${accentText}`}>
+                        <h3 className={`mb-3 flex items-center gap-2 text-sm font-bold ${isToday ? 'text-amber-800 dark:text-amber-300' : accentText}`}>
                             {label}
-                            <span className="text-xs font-mono font-semibold text-dim">{columnTasks.length}</span>
+                            <span className="text-xs font-mono font-semibold text-dim">{list.length}</span>
                         </h3>
 
                         <div className="space-y-2.5">
-                            {columnTasks.map(task => {
+                            {list.map(task => {
                                 const done = task.status === 'done'
                                 return (
                                     <article
@@ -168,7 +189,6 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                                             ? `${task.employee_name}${task.office_label ? ` · ${task.office_label}` : ''}`
                                                             : `Whole office · ${task.office_label}`}
                                                 </span>
-                                                {task.is_shared && <Badge variant="indigo" size="sm">Shared</Badge>}
                                             </p>
                                         )}
                                         {task.description && (
@@ -176,20 +196,18 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                         )}
                                         <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-2">
                                             <span className={`text-xs ${dueText(task).className}`}>{dueText(task).text}</span>
-                                            {task.is_upcoming && <Badge variant="violet" size="sm">Upcoming</Badge>}
                                             {PRIORITY_BADGE[task.priority]}
-                                            {task.category && <Badge variant="slate" size="sm">{`List: ${task.category}`}</Badge>}
+                                            {isToday && <Badge variant="slate" size="sm">{STATUS_LABEL[task.status]}</Badge>}
                                             {readOnly(task) && (
                                                 <Badge variant="indigo" size="sm">{task.is_shared ? 'Shared' : `Whole office${task.office_label ? ` · ${task.office_label}` : ''}`}</Badge>
                                             )}
-                                            {task.repeat_label && <Badge variant="slate" size="sm">↻ Repeats</Badge>}
                                             {inlineActions && <div className="ml-auto flex shrink-0 items-center gap-1.5">{actions(task)}</div>}
                                         </div>
                                         <SpanProgress task={task} accent={accent} />
 
                                         {!inlineActions && (
                                             <div className="mt-1.5 flex flex-wrap items-center justify-end gap-2">
-                                                {COLUMNS.filter(c => c.status !== task.status).map(c => (
+                                                {STATUS_COLUMNS.filter(c => c.status !== task.status).map(c => (
                                                     <button
                                                         key={c.status}
                                                         type="button"
@@ -207,10 +225,21 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                 )
                             })}
 
-                            {columnTasks.length === 0 && (
+                            {list.length === 0 && (
                                 <p className="rounded-xl border border-dashed border-border/80 px-3 py-6 text-center text-xs text-dim">
-                                    Nothing here.
+                                    {isToday ? 'Nothing due today.' : 'Nothing here.'}
                                 </p>
+                            )}
+
+                            {key === 'done' && columns.doneOlder.length > 0 && (
+                                <button
+                                    type="button"
+                                    aria-expanded={showOlder}
+                                    onClick={() => setShowOlder(v => !v)}
+                                    className={`w-full rounded-xl border border-dashed border-border px-3 py-2 text-xs font-semibold ${accentText} hover:bg-hover focus-visible:outline-2 ${focusRing}`}
+                                >
+                                    {showOlder ? 'Show this week only' : `Show older (${columns.doneOlder.length})`}
+                                </button>
                             )}
                         </div>
                     </section>
