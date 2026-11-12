@@ -83,9 +83,9 @@ class EmployeeScheduleHistoryTest extends TestCase
 
         $this->assertTrue(Employee::hasCustomWorkDays($e->id, Carbon::parse('2026-10-01'), Carbon::parse('2026-10-15')));
         $this->assertFalse(Employee::hasCustomWorkDays($e->id, Carbon::parse('2026-09-01'), Carbon::parse('2026-09-15')));
-        $this->actingAs($admin)->get(route('admin.payroll.create', ['period_from' => '2026-10-01', 'period_to' => '2026-10-15', 'cutoff' => 'first']))
+        $this->actingAs($admin)->get(route('admin.payroll.create', ['month' => '2026-10', 'cutoff' => 'first']))
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('employees.0.id', $e->id)
-                ->where('employees.0.paid_days_basis', 4));
+                ->where('employees.0.days_of_work', 4));
     }
 }

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
-use App\Models\Payroll;
+use App\Models\Employee;
 use App\Services\OfficePayrollCalculator;
 use App\Services\PayrollCutoffPeriod;
+use Carbon\Carbon;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -24,62 +25,60 @@ class StorePayrollRequest extends FormRequest
      */
     public function rules(): array
     {
+        $money = ['nullable', 'numeric', 'min:0', 'max:99999999'];
+
         return [
-            'period_label' => ['required', 'string', 'max:100'],
-            'period_from' => ['required', 'date'],
-            'period_to' => ['required', 'date', 'after_or_equal:period_from'],
+            'month' => ['required', 'date_format:Y-m'],
             'cutoff' => ['required', 'in:first,second'],
-            'batch_reviewed' => ['accepted'],
+            'period_from' => ['required', 'date'],
+            'period_to' => ['required', 'date'],
+            'finalize' => ['boolean'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.employee_id' => ['required', 'distinct', Rule::exists('employees', 'id')->where('is_staff', true)->where('status', 'active')],
             'items.*.weekday_ot_hours' => ['nullable', 'numeric', 'min:0', 'max:999'],
             'items.*.weekend_ot_hours' => ['nullable', 'numeric', 'min:0', 'max:999'],
-            'items.*.days_present' => ['nullable', 'numeric', 'min:0'],
-            'items.*.payroll_office' => ['required', 'in:'.implode(',', array_keys(OfficePayrollCalculator::OFFICES))],
-            'items.*.paid_days_basis' => ['required', 'numeric', 'min:0', 'max:15', 'multiple_of:0.5'],
-            'items.*.absence_days' => ['required', 'numeric', 'min:0', 'lte:items.*.paid_days_basis', 'multiple_of:0.5'],
-            'items.*.default_paid_days_basis' => ['required', 'numeric', 'min:0', 'max:16', 'multiple_of:0.5'],
-            'items.*.dtr_days_present' => ['required', 'numeric', 'min:0', 'max:31', 'multiple_of:0.5'],
-            'items.*.dtr_absence_days' => ['required', 'numeric', 'min:0', 'max:15', 'multiple_of:0.5'],
-            'items.*.dtr_tardiness_minutes' => ['required', 'numeric', 'min:0', 'max:9999', 'multiple_of:0.5'],
-            'items.*.dtr_unresolved_dates' => ['present', 'array'],
-            'items.*.dtr_unresolved_dates.*' => ['required', 'date_format:Y-m-d'],
-            'items.*.attendance_override_reason' => ['nullable', 'string', 'max:1000'],
-            'items.*.holiday_pay' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
-            'items.*.tardiness_minutes' => ['nullable', 'numeric', 'min:0', 'max:9999', 'multiple_of:0.5'],
-            'items.*.dtr_reconciliation_note' => ['nullable', 'string', 'max:500'],
-            'items.*.compensation_signature' => ['required', 'string', 'size:64'],
-            'items.*.deductions' => ['required', 'array:sss_deduction,philhealth_deduction,pagibig_deduction,tax_deduction,loan_deduction,capital_contribution_deduction,cash_advance_deduction,rental_deduction,savings_deduction,other_deductions'],
-            ...collect(['sss_deduction', 'philhealth_deduction', 'pagibig_deduction', 'tax_deduction', 'loan_deduction', 'capital_contribution_deduction', 'cash_advance_deduction', 'rental_deduction', 'savings_deduction', 'other_deductions'])->mapWithKeys(fn (string $field): array => ["items.*.deductions.$field" => ['required', 'numeric', 'min:0', 'max:99999999']])->all(),
+            'items.*.holiday_pay' => $money,
+            'items.*.cutoff_transpo' => $money,
+            'items.*.cutoff_rep' => $money,
+            'items.*.cutoff_quarterly' => $money,
+            'items.*.deductions' => ['required', 'array:'.implode(',', OfficePayrollCalculator::DEDUCTIONS)],
+            ...collect(OfficePayrollCalculator::DEDUCTIONS)->mapWithKeys(fn (string $field): array => ["items.*.deductions.$field" => ['required', 'numeric', 'min:0', 'max:99999999']])->all(),
+            'items.*.day_resolutions' => ['nullable', 'array'],
+            'items.*.day_resolutions.*.type' => ['required', 'in:hours,zero'],
+            'items.*.day_resolutions.*.hours' => ['required_if:items.*.day_resolutions.*.type,hours', 'nullable', 'numeric', 'min:0', 'max:24'],
+            'items.*.day_resolutions.*.note' => ['required_if:items.*.day_resolutions.*.type,hours', 'nullable', 'string', 'max:500'],
         ];
     }
 
-    public function withValidator(Validator $validator): void
+    public function after(): array
     {
-        $validator->after(function (Validator $validator) {
+        return [function (Validator $validator): void {
             if ($validator->errors()->isNotEmpty()) {
                 return;
             }
-
-            if (! PayrollCutoffPeriod::matches($this->period_from, $this->period_to, $this->cutoff)) {
-                $validator->errors()->add('period_from', PayrollCutoffPeriod::message());
+            $from = Carbon::parse($this->period_from);
+            $to = Carbon::parse($this->period_to);
+            if (! PayrollCutoffPeriod::withinHalf($from, $to, $this->month, $this->cutoff)) {
+                $validator->errors()->add('period_from', 'Dates must stay inside the chosen cutoff (1st–15th or 16th–month end), start date first.');
 
                 return;
             }
+            if (! PayrollCutoffPeriod::canSaveOn($to, today())) {
+                $validator->errors()->add('period_to', 'You can save after '.$to->format('D, M d').'.');
 
-            if ($this->filled(['period_from', 'period_to', 'cutoff'])) {
-                $exists = Payroll::where('period_from', $this->period_from)
-                    ->where('period_to', $this->period_to)
-                    ->where('cutoff', $this->cutoff)
-                    ->exists();
-
-                if ($exists) {
-                    $validator->errors()->add(
-                        'cutoff',
-                        'A payroll batch for this period and cutoff already exists.'
-                    );
+                return;
+            }
+            $employees = Employee::whereIn('id', collect($this->items)->pluck('employee_id'))->get()->keyBy('id');
+            foreach ($this->items as $index => $row) {
+                if (! $employees->get($row['employee_id'])?->hasVerifiedPayrollOffice()) {
+                    $validator->errors()->add("items.$index.employee_id", 'Verify this employee’s payroll office before saving payroll.');
+                }
+                foreach (array_keys($row['day_resolutions'] ?? []) as $date) {
+                    if (! is_string($date) || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                        $validator->errors()->add("items.$index.day_resolutions", 'Invalid DTR day.');
+                    }
                 }
             }
-        });
+        }];
     }
 }

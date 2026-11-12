@@ -42,10 +42,10 @@ class EmployeeWorkDaysTest extends TestCase
         $this->weekendSchedule($employee);
         $employee->forceFill(['payroll_office' => 'main_office', 'setup_completed_at' => now(), 'office_verified_at' => now()])->save();
 
-        $this->actingAs($admin)->get(route('admin.payroll.create', ['period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'cutoff' => 'first']))
+        $this->actingAs($admin)->get(route('admin.payroll.create', ['month' => '2026-09', 'cutoff' => 'first']))
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('employees.0.id', $employee->id)
-                ->where('employees.0.paid_days_basis', 4));
+                ->where('employees.0.days_of_work', 4));
     }
 
     private function schedule(array $changes = []): array

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Services\PayrollCutoffPeriod;
+use Carbon\Carbon;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -22,21 +23,21 @@ class CreatePayrollRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'period_from' => ['required', 'date'],
-            'period_to' => ['required', 'date', 'after_or_equal:period_from'],
+            'month' => ['required', 'date_format:Y-m'],
             'cutoff' => ['required', 'in:first,second'],
+            'period_from' => ['nullable', 'date', 'required_with:period_to'],
+            'period_to' => ['nullable', 'date', 'required_with:period_from'],
         ];
     }
 
     public function after(): array
     {
         return [function (Validator $validator): void {
-            if ($validator->errors()->isNotEmpty()) {
+            if ($validator->errors()->isNotEmpty() || ! $this->filled('period_from')) {
                 return;
             }
-
-            if (! PayrollCutoffPeriod::matches($this->period_from, $this->period_to, $this->cutoff)) {
-                $validator->errors()->add('period_from', PayrollCutoffPeriod::message());
+            if (! PayrollCutoffPeriod::withinHalf(Carbon::parse($this->period_from), Carbon::parse($this->period_to), $this->month, $this->cutoff)) {
+                $validator->errors()->add('period_from', 'Dates must stay inside the chosen cutoff (1st–15th or 16th–month end), start date first.');
             }
         }];
     }

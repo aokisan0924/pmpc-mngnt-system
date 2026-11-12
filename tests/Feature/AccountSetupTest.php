@@ -8,15 +8,16 @@ use App\Models\AccountSetupRequest;
 use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\PayrollItem;
-use App\Services\OfficePayrollCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
+use Tests\Concerns\BuildsWizardPayroll;
 use Tests\TestCase;
 
 class AccountSetupTest extends TestCase
 {
+    use BuildsWizardPayroll;
     use RefreshDatabase;
 
     private function details(Employee $employee): array
@@ -57,8 +58,8 @@ class AccountSetupTest extends TestCase
         $this->assertEquals(610, $employee->daily_rate);
         $this->assertSame($employee->id, $dtr->fresh()->employee_id);
         $this->assertSame($admin->id, $employee->office_verified_by);
-        $this->get('/admin/payroll/create?period_from=2026-09-01&period_to=2026-09-15&cutoff=first')->assertInertia(fn (AssertableInertia $page) => $page
-            ->where('employees', fn ($employees) => collect($employees)->contains(fn ($entry) => $entry['id'] === $employee->id && $entry['payroll_office'] === 'gen_mdse' && $entry['paid_days_basis'] === 15 && $entry['office_verified'])));
+        $this->get('/admin/payroll/create?month=2026-09&cutoff=first')->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('employees', fn ($employees) => collect($employees)->contains(fn ($entry) => $entry['id'] === $employee->id && $entry['payroll_office'] === 'gen_mdse' && $entry['office_verified'])));
         $this->actingAs($employee)->post('/employee/setup', $this->details($employee))->assertSessionHasErrors('setup');
     }
 
@@ -80,16 +81,13 @@ class AccountSetupTest extends TestCase
     {
         $employee = Employee::factory()->create();
         $admin = Employee::factory()->superAdmin()->create();
-        $payload = ['period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'period_label' => 'September first', 'cutoff' => 'first', 'batch_reviewed' => true, 'items' => [[
-            'employee_id' => $employee->id, 'payroll_office' => 'cubao', 'paid_days_basis' => 11, 'absence_days' => 0, 'tardiness_deduction' => 0, 'dtr_reconciliation_note' => 'Reviewed for office verification test.',
-            'default_paid_days_basis' => 11, 'dtr_days_present' => 0, 'dtr_absence_days' => 11, 'dtr_tardiness_minutes' => 0, 'dtr_unresolved_dates' => [],
-            'attendance_override_reason' => 'Reviewed the DTR and confirmed the payroll days for this test.',
-            'compensation_signature' => app(OfficePayrollCalculator::class)->compensationSignature($employee), 'deductions' => array_fill_keys(OfficePayrollCalculator::DEDUCTIONS, 0),
-        ]]];
-        $this->actingAs($admin)->post('/admin/payroll', $payload)->assertSessionHasErrors('items');
-        $employee->forceFill(['payroll_office' => 'gen_mdse', 'setup_completed_at' => now(), 'office_verified_at' => now()])->save();
-        $this->post('/admin/payroll', $payload)->assertSessionHasErrors('items');
+        $payload = $this->wizardPayload([$employee]);
+        $this->actingAs($admin)->post('/admin/payroll', $payload)->assertSessionHasErrors('items.0.employee_id');
         $this->assertDatabaseCount('payrolls', 0);
+        // The saved office always comes from the verified employee record, never from the browser.
+        $employee->forceFill(['payroll_office' => 'gen_mdse', 'setup_completed_at' => now(), 'office_verified_at' => now()])->save();
+        $this->post('/admin/payroll', $payload)->assertSessionHasNoErrors();
+        $this->assertSame('gen_mdse', PayrollItem::firstOrFail()->payroll_office);
     }
 
     public function test_hr_can_assign_an_office_before_account_setup_and_pay_the_employee(): void
@@ -107,13 +105,9 @@ class AccountSetupTest extends TestCase
         $this->assertTrue($employee->hasVerifiedPayrollOffice());
         $this->assertSame('office_assignment', AccountSetupRequest::firstOrFail()->details['type']);
 
-        $this->post('/admin/payroll', ['period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'period_label' => 'September first', 'cutoff' => 'first', 'batch_reviewed' => true, 'items' => [[
-            'employee_id' => $employee->id, 'payroll_office' => 'main_office', 'paid_days_basis' => 11, 'absence_days' => 0,
-            'default_paid_days_basis' => 11, 'dtr_days_present' => 0, 'dtr_absence_days' => 11, 'dtr_tardiness_minutes' => 0, 'dtr_unresolved_dates' => [],
-            'attendance_override_reason' => 'Reviewed the DTR and confirmed the payroll days for this test.',
-            'compensation_signature' => app(OfficePayrollCalculator::class)->compensationSignature($employee), 'deductions' => array_fill_keys(OfficePayrollCalculator::DEDUCTIONS, 0),
-        ]]])->assertSessionHasNoErrors();
-        $this->assertEquals(7920, PayrollItem::firstOrFail()->cutoff_basic);
+        $this->post('/admin/payroll', $this->wizardPayload([$employee]))->assertSessionHasNoErrors();
+        // 11 weekdays in Sep 1–15 at the factory rate; no DTR rows, so nothing is earned yet.
+        $this->assertEquals(7920, PayrollItem::firstOrFail()->basic_before_absence);
     }
 
     public function test_only_hr_can_transfer_office_and_saved_payroll_office_is_unchanged(): void

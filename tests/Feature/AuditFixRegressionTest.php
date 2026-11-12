@@ -10,8 +10,6 @@ use App\Models\Employee;
 use App\Models\EmployeeNotification;
 use App\Models\Payroll;
 use App\Models\Task;
-use App\Services\OfficePayrollCalculator;
-use App\Services\PayrollCutoffPeriod;
 use App\Services\ThirteenthMonthCalculator;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -20,10 +18,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia;
+use Tests\Concerns\BuildsWizardPayroll;
 use Tests\TestCase;
 
 class AuditFixRegressionTest extends TestCase
 {
+    use BuildsWizardPayroll;
     use RefreshDatabase;
 
     public function test_inactive_employee_sessions_cannot_open_shared_dtr_routes_and_can_still_log_out(): void
@@ -153,37 +153,25 @@ class AuditFixRegressionTest extends TestCase
         $this->assertDatabaseHas('settings', ['key' => 'shift_end', 'value' => '17:00']);
     }
 
-    public function test_cutoff_periods_are_exact_for_preview_and_payroll_save(): void
+    public function test_cutoff_dates_must_stay_inside_their_half_for_preview_and_save(): void
     {
         $this->travelTo(Carbon::parse('2026-11-01 12:00:00'));
-        $this->assertTrue(PayrollCutoffPeriod::matches('2024-02-01', '2024-02-15', 'first'));
-        $this->assertTrue(PayrollCutoffPeriod::matches('2024-02-16', '2024-02-29', 'second'));
-        $this->assertFalse(PayrollCutoffPeriod::matches('2024-02-01', '2024-02-15', 'second'));
-
         $admin = Employee::factory()->superAdmin()->create(['is_staff' => false]);
         $employee = Employee::factory()->create();
-        $employee->forceFill([
-            'payroll_office' => 'fort_magsaysay',
-            'setup_completed_at' => now(),
-            'office_verified_at' => now(),
-        ])->save();
+        $employee->forceFill(['payroll_office' => 'fort_magsaysay', 'setup_completed_at' => now(), 'office_verified_at' => now()])->save();
 
         $this->actingAs($admin)
-            ->get(route('admin.payroll.create', ['period_from' => '2026-10-01', 'period_to' => '2026-10-15', 'cutoff' => 'second']))
+            ->get(route('admin.payroll.create', ['month' => '2026-10', 'cutoff' => 'second', 'period_from' => '2026-10-01', 'period_to' => '2026-10-15']))
             ->assertSessionHasErrors('period_from');
 
-        $payload = $this->payrollPayload($employee);
-        $payload['cutoff'] = 'second';
+        $payload = $this->wizardPayload([$employee], '2026-10', 'second', [], ['period_from' => '2026-10-01', 'period_to' => '2026-10-15']);
         $this->post(route('admin.payroll.store'), $payload)->assertSessionHasErrors('period_from');
         $this->assertDatabaseCount('payrolls', 0);
 
-        $payload['period_from'] = '2026-10-16';
-        $payload['period_to'] = '2026-10-31';
-        $payload['period_label'] = 'October second cutoff';
-        $this->post(route('admin.payroll.store'), $payload)->assertSessionHasNoErrors();
+        $this->post(route('admin.payroll.store'), $this->wizardPayload([$employee], '2026-10', 'second'))->assertSessionHasNoErrors();
         $payroll = Payroll::firstOrFail();
         $this->assertSame('2026-10-16', $payroll->period_from->toDateString());
-        $this->assertSame('2026-10-31', $payroll->period_to->toDateString());
+        $this->assertSame('2026-10-30', $payroll->period_to->toDateString());
         $this->assertSame('second', $payroll->cutoff);
     }
 
@@ -330,39 +318,5 @@ class AuditFixRegressionTest extends TestCase
             'working_days_month' => 22,
             'late_grace_minutes' => 0,
         ], $changes);
-    }
-
-    private function payrollPayload(Employee $employee): array
-    {
-        $employee->forceFill([
-            'payroll_office' => 'fort_magsaysay',
-            'setup_completed_at' => now(),
-            'office_verified_at' => now(),
-        ])->save();
-
-        return [
-            'period_from' => '2026-10-01',
-            'period_to' => '2026-10-15',
-            'period_label' => 'October first cutoff',
-            'cutoff' => 'first',
-            'batch_reviewed' => true,
-            'items' => [[
-                'employee_id' => $employee->id,
-                'payroll_office' => 'fort_magsaysay',
-                'paid_days_basis' => 11,
-                'absence_days' => 0,
-                'default_paid_days_basis' => 11,
-                'dtr_days_present' => 0,
-                'dtr_absence_days' => 11,
-                'dtr_tardiness_minutes' => 0,
-                'dtr_unresolved_dates' => [],
-                'attendance_override_reason' => 'Reviewed the DTR and confirmed the payroll days for this test.',
-                'dtr_reconciliation_note' => 'Reviewed for audit regression coverage.',
-                'weekday_ot_hours' => 0,
-                'weekend_ot_hours' => 0,
-                'compensation_signature' => app(OfficePayrollCalculator::class)->compensationSignature($employee),
-                'deductions' => array_fill_keys(OfficePayrollCalculator::DEDUCTIONS, 0),
-            ]],
-        ];
     }
 }

@@ -8,18 +8,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CreatePayrollRequest;
 use App\Http\Requests\Admin\StorePayrollRequest;
 use App\Models\Employee;
-use App\Models\Holiday;
 use App\Models\Payroll;
-use App\Models\PayrollItem;
-use App\Services\DtrPayrollAttendanceCalculator;
 use App\Services\ManagementPayrollExport;
 use App\Services\OfficePayrollCalculator;
-use Carbon\Carbon;
-use Carbon\CarbonPeriod;
+use App\Services\PayrollWizard;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -49,166 +44,28 @@ class PayrollController extends Controller
         ]);
     }
 
-    public function create(CreatePayrollRequest $request): Response
+    public function create(CreatePayrollRequest $request, PayrollWizard $wizard): Response|RedirectResponse
     {
-        $validated = $request->validated();
-        $from = Carbon::parse($validated['period_from']);
-        $to = Carbon::parse($validated['period_to']);
-        $isFirst = $validated['cutoff'] === 'first';
-        // Excel sheet order, then last name.
-        $officeOrder = array_flip(array_keys(OfficePayrollCalculator::OFFICES));
-        $activeEmployees = Employee::where('is_staff', true)->where('status', 'active')->get()
-            ->sortBy(fn (Employee $emp): string => str_pad((string) ($officeOrder[$emp->hasVerifiedPayrollOffice() ? $emp->payroll_office : ''] ?? 9), 2, '0', STR_PAD_LEFT).mb_strtolower($emp->last_name.' '.$emp->first_name))
-            ->values();
-        $paidDaysByEmployee = $activeEmployees->mapWithKeys(fn (Employee $employee): array => [
-            $employee->id => $this->paidDaysBasisFor($employee, $from, $to),
-        ])->all();
-        $attendance = app(DtrPayrollAttendanceCalculator::class)->calculateMany($activeEmployees, $from, $to, $paidDaysByEmployee);
-        $holidays = Holiday::whereBetween('date', [$from->toDateString(), $to->toDateString()])->orderBy('date')->get();
-        $employees = $activeEmployees
-            ->map(function (Employee $emp) use ($attendance, $isFirst, $paidDaysByEmployee): array {
-                $office = $emp->hasVerifiedPayrollOffice() ? $emp->payroll_office : '';
-                $dtr = $attendance->get((int) $emp->id);
-                $paidDays = (float) $paidDaysByEmployee[$emp->id];
-                $suggestions = app(OfficePayrollCalculator::class)->calculate($emp, $isFirst, $paidDays, (float) $dtr['absence_days']);
+        $month = (string) $request->validated('month');
+        $cutoff = (string) $request->validated('cutoff');
+        $existing = $wizard->existing($month, $cutoff);
+        if ($existing?->isFinalized()) {
+            return redirect()->route('admin.payroll.show', $existing->id)
+                ->with('success', 'This cutoff is already finalized.');
+        }
+        $period = $existing && ! $request->filled('period_from')
+            ? ['from' => $existing->period_from, 'to' => $existing->period_to]
+            : $wizard->period($month, $cutoff, $request->validated('period_from'), $request->validated('period_to'));
 
-                return [
-                    'id' => $emp->id,
-                    'employee_id' => $emp->employee_id,
-                    'full_name' => $emp->full_name,
-                    'daily_rate' => $emp->daily_rate,
-                    'transpo_allowance' => $emp->transpo_allowance,
-                    'rep_allowance' => $emp->rep_allowance,
-                    'quarterly_allowance' => $emp->quarterly_allowance,
-                    'compensation_signature' => app(OfficePayrollCalculator::class)->compensationSignature($emp),
-                    'default_paid_days_basis' => $dtr['default_paid_days_basis'],
-                    'dtr_days_present' => $dtr['days_present'],
-                    'dtr_absence_days' => $dtr['absence_days'],
-                    'dtr_tardiness_minutes' => $dtr['tardiness_minutes'],
-                    'dtr_unresolved_dates' => $dtr['unresolved_dates'],
-                    'payroll_office' => $office,
-                    'office_verified' => $emp->hasVerifiedPayrollOffice(),
-                    'paid_days_basis' => $paidDays,
-                    'absence_days' => $dtr['absence_days'],
-                    'holiday_pay' => 0,
-                    'dtr_reconciliation_note' => Employee::isAlwaysPresent($emp->id) ? 'Always present Mon–Fri' : '',
-                    'weekday_ot_hours' => 0,
-                    'weekend_ot_hours' => 0,
-                    'tardiness_minutes' => $dtr['tardiness_minutes'],
-                    'deductions' => collect($suggestions)->only(OfficePayrollCalculator::DEDUCTIONS)->all(),
-                ];
-            });
-
-        return Inertia::render('Admin/PayrollCreate', [
-            'employees' => $employees,
-            'period_from' => $validated['period_from'],
-            'period_to' => $validated['period_to'],
-            'period_label' => $from->format('M d').' – '.$to->format('M d, Y'),
-            'cutoff' => $validated['cutoff'],
-            'is_first' => $isFirst,
-            'offices' => OfficePayrollCalculator::OFFICES,
-            'holidays' => $holidays->map(fn (Holiday $holiday): array => [
-                'date' => $holiday->date->format('D, M d'),
-                'name' => $holiday->name,
-                'type' => Holiday::TYPES[$holiday->type]['label'] ?? $holiday->type,
-            ])->values(),
-        ]);
+        return Inertia::render('Admin/PayrollWizard', $wizard->preview($month, $cutoff, $period['from'], $period['to']));
     }
 
-    public function store(StorePayrollRequest $request): RedirectResponse
+    public function store(StorePayrollRequest $request, PayrollWizard $wizard): RedirectResponse
     {
-        $validated = $request->validated();
-        $isFirst = $validated['cutoff'] === 'first';
-
-        // Preload all submitted employees to prevent N+1 queries during item creation
-        $employeeIds = collect($validated['items'])->pluck('employee_id')->all();
-        $payroll = DB::transaction(function () use ($validated, $employeeIds, $isFirst, $request) {
-            $employees = Employee::whereIn('id', $employeeIds)->where('is_staff', true)->where('status', 'active')->lockForUpdate()->get()->keyBy('id');
-            $from = Carbon::parse($validated['period_from']);
-            $to = Carbon::parse($validated['period_to']);
-            $paidDaysByEmployee = $employees->mapWithKeys(fn (Employee $employee): array => [
-                $employee->id => $this->paidDaysBasisFor($employee, $from, $to),
-            ])->all();
-            $attendanceByEmployee = app(DtrPayrollAttendanceCalculator::class)->calculateMany($employees->values(), $from, $to, $paidDaysByEmployee);
-            $payroll = Payroll::create([
-                'period_label' => $validated['period_label'],
-                'period_from' => $validated['period_from'],
-                'period_to' => $validated['period_to'],
-                'cutoff' => $validated['cutoff'],
-                'status' => 'draft',
-                'created_by' => $request->user()->id,
-            ]);
-
-            foreach ($validated['items'] as $index => $itemData) {
-                $emp = $employees->get($itemData['employee_id']);
-                if (! $emp) {
-                    throw ValidationException::withMessages(['items' => 'An employee is no longer available. Reload the payroll preview.']);
-                }
-                if (! $emp->hasVerifiedPayrollOffice() || $itemData['payroll_office'] !== $emp->payroll_office) {
-                    throw ValidationException::withMessages(['items' => 'An employee office is unverified or changed. Complete HR verification and reload payroll.']);
-                }
-                if (! hash_equals(app(OfficePayrollCalculator::class)->compensationSignature($emp), $itemData['compensation_signature'])) {
-                    throw ValidationException::withMessages(['items' => 'An employee’s rate or allowances changed. Reload and review the payroll preview.']);
-                }
-
-                $dtr = $attendanceByEmployee->get((int) $emp->id);
-                $postedUnresolvedDates = array_values($itemData['dtr_unresolved_dates']);
-                sort($postedUnresolvedDates);
-                $currentUnresolvedDates = $dtr['unresolved_dates'];
-                sort($currentUnresolvedDates);
-                $snapshotMatches = abs((float) $itemData['default_paid_days_basis'] - $dtr['default_paid_days_basis']) < 0.005
-                    && abs((float) $itemData['dtr_days_present'] - $dtr['days_present']) < 0.005
-                    && abs((float) $itemData['dtr_absence_days'] - $dtr['absence_days']) < 0.005
-                    && abs((float) $itemData['dtr_tardiness_minutes'] - $dtr['tardiness_minutes']) < 0.005
-                    && $postedUnresolvedDates === $currentUnresolvedDates;
-                if (! $snapshotMatches) {
-                    throw ValidationException::withMessages(["items.$index.dtr_days_present" => 'DTR changed after this preview. Reload payroll and review the updated attendance.']);
-                }
-
-                $overrideReason = trim((string) ($itemData['attendance_override_reason'] ?? ''));
-                $reconciliationNote = trim((string) ($itemData['dtr_reconciliation_note'] ?? ''));
-
-                $item = new PayrollItem;
-                $item->payroll_id = $payroll->id;
-                $item->employee_id = $emp->id;
-                $item->cutoff = $validated['cutoff'];
-                $item->payroll_office = $itemData['payroll_office'];
-                $item->paid_days_basis = $itemData['paid_days_basis'];
-                $item->absence_days = $itemData['absence_days'];
-                // Days paid, computed from the DTR-derived basis and absences, never taken from the browser.
-                $item->days_present = (float) $item->paid_days_basis - (float) $item->absence_days;
-                $item->default_paid_days_basis = $dtr['default_paid_days_basis'];
-                $item->dtr_days_present = $dtr['days_present'];
-                $item->dtr_absence_days = $dtr['absence_days'];
-                $item->dtr_tardiness_minutes = $dtr['tardiness_minutes'];
-                $item->dtr_unresolved_dates = $dtr['unresolved_dates'];
-                $item->attendance_override_reason = $overrideReason !== '' ? $overrideReason : null;
-                $item->dtr_reconciliation_note = $reconciliationNote !== '' ? $reconciliationNote : null;
-                // Pesos are always computed here from minutes; a client-sent peso amount is ignored.
-                $item->tardiness_minutes = (float) ($itemData['tardiness_minutes'] ?? 0);
-                $item->tardiness_deduction = app(OfficePayrollCalculator::class)->tardinessFor($emp, (float) $item->tardiness_minutes);
-                $item->weekday_ot_hours = floatval($itemData['weekday_ot_hours'] ?? 0);
-                $item->weekend_ot_hours = floatval($itemData['weekend_ot_hours'] ?? 0);
-                $item->holiday_pay = floatval($itemData['holiday_pay'] ?? 0);
-
-                // Calculator reads the employee relation
-                $item->setRelation('employee', $emp);
-                $item->fill(app(OfficePayrollCalculator::class)->calculate(
-                    $emp, $isFirst, (float) $item->paid_days_basis, (float) $item->absence_days,
-                    (float) $item->weekday_ot_hours, (float) $item->weekend_ot_hours,
-                    (float) $item->tardiness_deduction, $itemData['deductions'],
-                    (float) $item->holiday_pay,
-                ));
-                $item->save();
-            }
-
-            $payroll->recalculateTotals();
-
-            return $payroll;
-        });
+        $payroll = $wizard->save($request->validated(), $request->user());
 
         return redirect()->route('admin.payroll.show', $payroll->id)
-            ->with('success', 'Payroll saved successfully.');
+            ->with('success', $payroll->isFinalized() ? 'Payroll saved and finalized.' : 'Payroll saved.');
     }
 
     public function show(Payroll $payroll, ManagementPayrollExport $managementPayrollExport): Response
@@ -335,25 +192,5 @@ class PayrollController extends Controller
         }
 
         return redirect()->route('admin.payroll')->with('success', 'Draft payroll discarded.');
-    }
-
-    private function paidDaysBasisFor(Employee $employee, Carbon $from, Carbon $to): float
-    {
-        $start = Employee::startDateFor((int) $employee->id);
-        $workDays = collect(CarbonPeriod::create($from, $to))
-            ->filter(fn ($day): bool => Employee::isWorkDay((int) $employee->id, $day));
-        $isGeneralMerchandise = mb_strtolower(trim((string) $employee->department)) === 'general merchandise';
-
-        if (Employee::hasCustomWorkDays((int) $employee->id, $from, $to) && ! $isGeneralMerchandise) {
-            return (float) $workDays->filter(fn ($day): bool => $start === null || $day->toDateString() >= $start)->count();
-        }
-
-        $office = $isGeneralMerchandise
-            ? 'gen_mdse'
-            : ($employee->hasVerifiedPayrollOffice() ? $employee->payroll_office : '');
-        // Work days before the hire date are not paid, so a mid-period hire gets a shorter basis.
-        $beforeStart = $start === null ? 0 : $workDays->filter(fn ($day): bool => $day->toDateString() < $start)->count();
-
-        return (float) max(0, (OfficePayrollCalculator::OFFICES[$office]['days'] ?? 11) - $beforeStart);
     }
 }

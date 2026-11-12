@@ -76,8 +76,8 @@ class EmployeeSignatureTest extends TestCase
         $batch = Payroll::create(['period_label' => 'September second', 'period_from' => '2026-09-16', 'period_to' => '2026-09-30', 'cutoff' => 'second', 'status' => 'draft', 'created_by' => $admin->id]);
         foreach (['main_office', 'fort_magsaysay', 'gen_mdse', 'cubao'] as $office) {
             $employee = Employee::factory()->create(['daily_rate' => 600]);
-            $values = app(OfficePayrollCalculator::class)->calculate($employee, false, 11, 1);
-            $batch->items()->create([...$values, 'employee_id' => $employee->id, 'cutoff' => 'second', 'payroll_office' => $office, 'paid_days_basis' => 11, 'absence_days' => 1]);
+            $values = app(OfficePayrollCalculator::class)->calculateHours($employee, false, ['days' => [...array_fill(0, 10, ['shift_hours' => 8.0, 'worked_hours' => 8.0]), ['shift_hours' => 8.0, 'worked_hours' => 0.0]], 'days_of_work' => 11.0], []);
+            $batch->items()->create([...$values, 'employee_id' => $employee->id, 'cutoff' => 'second', 'payroll_office' => $office]);
         }
 
         $path = app(ManagementPayrollExport::class)->export($batch->fresh(), ['second' => ['prepared' => $admin->id, 'certified' => $admin->id, 'approved' => $admin->id]]);
@@ -111,7 +111,7 @@ class EmployeeSignatureTest extends TestCase
     public function test_absence_snapshot_does_not_become_a_second_deduction_and_migration_rolls_back(): void
     {
         $employee = Employee::factory()->create(['daily_rate' => 600]);
-        $values = app(OfficePayrollCalculator::class)->calculate($employee, false, 11, 1);
+        $values = app(OfficePayrollCalculator::class)->calculateHours($employee, false, ['days' => [...array_fill(0, 10, ['shift_hours' => 8.0, 'worked_hours' => 8.0]), ['shift_hours' => 8.0, 'worked_hours' => 0.0]], 'days_of_work' => 11.0], []);
         $this->assertEquals(6600, $values['basic_before_absence']);
         $this->assertEquals(600, $values['absence_deduction']);
         $this->assertEquals(6000, $values['net_pay']);

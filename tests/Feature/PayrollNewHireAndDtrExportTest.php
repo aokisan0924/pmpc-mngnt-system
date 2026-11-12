@@ -19,9 +19,9 @@ class PayrollNewHireAndDtrExportTest extends TestCase
         $employee = Employee::factory()->create(['date_hired' => '2026-09-09', 'payroll_office' => 'main_office', 'setup_completed_at' => now(), 'office_verified_at' => now()]);
 
         // Sep 1-8 holds six weekdays (1,2,3,4,7,8) before the hire date.
-        $this->actingAs($admin)->get('/admin/payroll/create?period_from=2026-09-01&period_to=2026-09-15&cutoff=first')
+        $this->actingAs($admin)->get('/admin/payroll/create?month=2026-09&cutoff=first')
             ->assertInertia(fn (AssertableInertia $page) => $page
-                ->where('employees', fn ($employees) => (float) collect($employees)->firstWhere('id', $employee->id)['paid_days_basis'] === 5.0));
+                ->where('employees', fn ($employees) => (float) collect($employees)->firstWhere('id', $employee->id)['days_of_work'] === 5.0));
     }
 
     public function test_export_all_downloads_one_surname_named_pdf_per_employee_in_a_zip(): void

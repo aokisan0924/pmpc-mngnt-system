@@ -8,14 +8,15 @@ use App\Models\DtrLog;
 use App\Models\Employee;
 use App\Models\Holiday;
 use App\Models\PayrollItem;
-use App\Services\OfficePayrollCalculator;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
+use Tests\Concerns\BuildsWizardPayroll;
 use Tests\TestCase;
 
 class HolidayAttendanceTest extends TestCase
 {
+    use BuildsWizardPayroll;
     use RefreshDatabase;
 
     public function test_admin_manages_holidays_and_duplicates_or_employees_are_rejected(): void
@@ -40,19 +41,7 @@ class HolidayAttendanceTest extends TestCase
         $this->assertSame(0, Holiday::count());
     }
 
-    public function test_entered_holiday_pay_is_added_to_the_workbook_formula(): void
-    {
-        $employee = Employee::factory()->make(['daily_rate' => 600, 'transpo_allowance' => 1000, 'rep_allowance' => 0, 'quarterly_allowance' => 0]);
-
-        $result = (new OfficePayrollCalculator)->calculate($employee, false, 11, 1, holidayPay: 250.555);
-
-        // Workbook formula: 600 x (11 - 1) + transport 1000 / 2; holiday pay is the entered amount.
-        $this->assertEquals(6000, $result['cutoff_basic']);
-        $this->assertEquals(250.56, $result['holiday_pay']);
-        $this->assertEquals(6000 + 500 + 250.56, $result['gross_pay']);
-    }
-
-    public function test_payroll_preview_lists_holidays_without_changing_days_and_saves_entered_holiday_pay(): void
+    public function test_payroll_preview_keeps_holidays_as_nwnp_days_and_saves_entered_holiday_pay(): void
     {
         Holiday::create(['date' => '2026-09-08', 'name' => 'Regular test holiday', 'type' => 'regular']);
         Holiday::create(['date' => '2026-09-10', 'name' => 'Special test holiday', 'type' => 'special']);
@@ -60,36 +49,22 @@ class HolidayAttendanceTest extends TestCase
         $employee = Employee::factory()->create(['daily_rate' => 600, 'transpo_allowance' => 0, 'rep_allowance' => 0, 'quarterly_allowance' => 0]);
         $employee->forceFill(['payroll_office' => 'fort_magsaysay', 'setup_completed_at' => now(), 'office_verified_at' => now()])->save();
         DtrLog::factory()->create(['employee_id' => $employee->id, 'date' => '2026-09-08']);
-        $this->actingAs($admin)->get(route('admin.payroll.create', ['period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'cutoff' => 'first']))
+        $this->actingAs($admin)->get(route('admin.payroll.create', ['month' => '2026-09', 'cutoff' => 'first']))
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('employees.0.id', $employee->id)
                 ->where('employees.0.holiday_pay', 0)
-                ->where('employees.0.absence_days', 9)
-                ->where('employees.0.dtr_days_present', 1)
-                ->where('employees.0.dtr_absence_days', 9)
-                ->where('employees.0.dtr_tardiness_minutes', 0)
-                ->where('employees.0.dtr_unresolved_dates', [])
-                ->where('employees.0.paid_days_basis', 11)
+                // Holidays stay in the cutoff (11 weekdays); not worked = no work, no pay.
+                ->where('employees.0.days_of_work', 11)
+                ->where('employees.0.unresolved_dates', [])
                 ->has('holidays', 2));
 
-        $this->post(route('admin.payroll.store'), [
-            'period_from' => '2026-09-01', 'period_to' => '2026-09-15', 'period_label' => 'September first cutoff', 'cutoff' => 'first', 'batch_reviewed' => true,
-            'items' => [[
-                'employee_id' => $employee->id, 'payroll_office' => 'fort_magsaysay',
-                'paid_days_basis' => 11, 'absence_days' => 0, 'tardiness_deduction' => 0,
-                'default_paid_days_basis' => 11, 'dtr_days_present' => 1, 'dtr_absence_days' => 9, 'dtr_tardiness_minutes' => 0, 'dtr_unresolved_dates' => [],
-                'attendance_override_reason' => 'Reviewed the DTR and confirmed the payroll days for this test.',
-                'holiday_pay' => 600,
-                'dtr_reconciliation_note' => 'Office basis verified against DTR.',
-                'weekday_ot_hours' => 0, 'weekend_ot_hours' => 0,
-                'compensation_signature' => (new OfficePayrollCalculator)->compensationSignature($employee),
-                'deductions' => array_fill_keys(OfficePayrollCalculator::DEDUCTIONS, 0),
-            ]],
-        ])->assertSessionHasNoErrors()->assertRedirect();
+        $this->post(route('admin.payroll.store'), $this->wizardPayload([$employee], '2026-09', 'first', ['holiday_pay' => 600]))
+            ->assertSessionHasNoErrors()->assertRedirect();
 
         $item = PayrollItem::firstOrFail();
         $this->assertEquals(600, $item->holiday_pay);
-        $this->assertEquals(6600 + 600, $item->gross_pay);
+        // One worked day (the regular holiday, 8 h) plus the typed holiday premium.
+        $this->assertEquals(600 + 600, $item->gross_pay);
     }
 
     public function test_always_present_employee_counts_every_weekday_and_is_never_late(): void
