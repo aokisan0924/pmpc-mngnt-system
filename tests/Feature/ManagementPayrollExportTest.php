@@ -178,7 +178,7 @@ class ManagementPayrollExportTest extends TestCase
     public function test_default_signatories_and_noted_by_follow_the_october_payroll(): void
     {
         $reynold = Employee::factory()->create(['employee_id' => 'EMP-0001', 'first_name' => 'Reynold', 'middle_name' => 'D.', 'last_name' => 'Valdez', 'position' => 'Admin']);
-        $kurt = Employee::factory()->create(['employee_id' => 'EMP-0002', 'first_name' => 'Kurt Vincent', 'middle_name' => null, 'last_name' => 'Farinas', 'position' => 'Full-Stack Developer']);
+        $kurt = Employee::factory()->create(['employee_id' => 'EMP-0002', 'first_name' => 'Kurt Vincent', 'middle_name' => 'Fernando', 'last_name' => 'Farinas', 'position' => 'Full-Stack Developer']);
         $katherine = Employee::factory()->create(['first_name' => 'Katherine', 'middle_name' => null, 'last_name' => 'Sevilleno']);
         $feria = Employee::factory()->create(['first_name' => 'Alexander L.', 'middle_name' => null, 'last_name' => 'Feria', 'position' => 'President']);
 
@@ -189,7 +189,8 @@ class ManagementPayrollExportTest extends TestCase
         $this->item($batch);
         $path = $this->exported($batch);
         $main = $this->sheetCells($path, 1);
-        $this->assertSame('Kurt Vincent Farinas', $main['L21']);
+        // Sign-offs use the middle initial, as on the October sheets.
+        $this->assertSame('Kurt Vincent F. Farinas', $main['L21']);
         $this->assertSame('FULL-STACK DEVELOPER', $main['L22']);
         $this->assertSame('Reynold D. Valdez', $main['B21']);
         $voucher = $this->sheetCells($path, 5);
@@ -197,7 +198,7 @@ class ManagementPayrollExportTest extends TestCase
         $this->assertSame('0018', $voucher['I11']);
         $this->assertSame('Alexander Feria et. al.', $voucher['C11']);
         $this->assertSame('REYNOLD D. VALDEZ', $voucher['C31']);
-        $this->assertSame('KURT VINCENT FARINAS', $voucher['H31']);
+        $this->assertSame('KURT VINCENT F. FARINAS', $voucher['H31']);
         $this->assertSame('Full-Stack Developer', $voucher['H32']);
     }
 

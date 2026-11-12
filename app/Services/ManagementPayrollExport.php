@@ -180,7 +180,7 @@ class ManagementPayrollExport
                         $second = $col < array_key_first($blocks[2]) ? $col >= array_key_first($blocks[1]) : $col >= $ot[2][0];
                         $cutoff = $second ? 'second' : 'first';
                         $person = $batches->firstWhere('cutoff', $cutoff) ? $people->get($signatories[$cutoff][$marker[1]] ?? null) : null;
-                        $this->put($doc, $address, ($marker[2] ?? '') === '_title' ? ($person ? mb_strtoupper((string) $person->position) : null) : $person?->full_name);
+                        $this->put($doc, $address, ($marker[2] ?? '') === '_title' ? ($person ? mb_strtoupper((string) $person->position) : null) : ($person ? $this->signName($person) : null));
                     }
                 }
                 $sums = array_map(fn (float|int $sum): float => round($sum, 2), $sums);
@@ -224,7 +224,7 @@ class ManagementPayrollExport
             foreach (['prepared' => 'C31', 'certified' => 'D31', 'noted' => 'H31'] as $role => $cell) {
                 $person = $people->get($signatories[$selected->cutoff][$role] ?? null);
                 if ($person) {
-                    $this->put($voucher, $cell, mb_strtoupper($person->full_name));
+                    $this->put($voucher, $cell, mb_strtoupper($this->signName($person)));
                 }
             }
             $noted = $people->get($signatories[$selected->cutoff]['noted'] ?? null);
@@ -314,6 +314,14 @@ class ManagementPayrollExport
         }
 
         return $item;
+    }
+
+    /** Sign-off names as on the October sheets: first name, middle initial, last name ("Kurt Vincent F. Fariñas"). */
+    private function signName(Employee $employee): string
+    {
+        $middle = trim((string) $employee->middle_name);
+
+        return trim(implode(' ', array_filter([trim((string) $employee->first_name), $middle !== '' ? mb_substr($middle, 0, 1).'.' : '', trim((string) $employee->last_name), trim((string) $employee->name_suffix)])));
     }
 
     /** Names as the original sheets write them: "LAST, FIRST M." on Main Office and Cubao, "FIRST M. LAST" elsewhere. */
