@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 15:50 — 70a960b — Management Excel in the October 2026 layout
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `b1fdacf` → `70a960b` (includes docs-only `8bc2568`, `5aa6040`): the NWNP holiday amount is saved on its own (`240f31a`); the Download Management Excel / mockup Excel now fill a template built from HR's October 2026 workbook (`scripts/build-payroll-template.py`; logos kept, signature pictures, names, amounts, formulas and the file's author removed); columns are found by header text; the unworked holiday goes in NPW- HOLIDAY, absences in the deduction tables; rows, journals and the voucher balance.
+- Migrations: `2026_11_13_000002_add_nwnp_deduction_to_payroll_items`
+- Backup: `~/db-backups/pmpc-before-october-export-20261112-0749.sql` (1.06 MB, dump completed)
+- Data changes: none on live. Locally only, the `pmpc_live_preview` copy was migrated and its finalized draft #8 exported for a visual check.
+- Verified: locally 26 export and wizard tests (incl. rows balance to the centavo, journals balance, NPW/ABSENT placement per sheet, six staff fit and seven are rejected, voucher print area follows the rename, no author/names in the template) and 407 of 412 PHP tests (5 GD-only), Pint clean; a fresh reviewer's two important findings were fixed. On live: server tree clean before and after, migration ran, app back up, login 200, HEAD `70a960b`; a rolled-back mockup export of the Nov 1st cutoff produced a 696 KB workbook with the "NOVEMBER 2026 VOUCHER" sheet, no stale sheet name, no leftover markers, and 0 payroll batches afterwards.
+
 ## 2026-11-12 16:30 — b1fdacf — Tax split per cutoff; Ferias' rent ₱1,250 per cutoff
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `09b6391` → `b1fdacf` (includes docs-only `96841b6` and test-only `ce7bcde`): withholding tax is now half of the monthly amount on each cutoff, matching the October 2026 payroll file; SSS, PhilHealth and Pag-IBIG stay on the 1st cutoff only.
