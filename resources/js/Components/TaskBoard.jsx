@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import Badge from '@/Components/UI/Badge'
 import CardMenu from '@/Components/CardMenu'
 import { boardColumns, daysUntil, isDueToday, manilaToday } from '@/Components/taskGroups'
@@ -76,6 +76,16 @@ export function SpanProgress({ task, accent = 'emerald' }) {
 export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, accent = 'emerald', showOwner = false, showMoveButtons = true, hideTodo = false, onHideTodoChange }) {
     const [overColumn, setOverColumn] = useState(null)
     const [showOlder, setShowOlder] = useState(false)
+    // The Hide/Show button that was clicked disappears; move keyboard focus to its counterpart.
+    const toggleFocus = useRef(false)
+    const showRef = useRef(null)
+    const hideRef = useRef(null)
+    const toggleTodo = value => { toggleFocus.current = true; onHideTodoChange(value) }
+    useEffect(() => {
+        if (!toggleFocus.current) return
+        toggleFocus.current = false
+        ;(hideTodo ? showRef : hideRef).current?.focus()
+    }, [hideTodo])
     const todayKey = manilaToday()
     const columns = boardColumns(tasks, todayKey, { hideTodo })
     const columnTasks = key => key === 'done'
@@ -138,11 +148,11 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                 <div className="flex justify-end">
                     <button
                         type="button"
-                        onClick={() => onHideTodoChange(false)}
-                        aria-label={`Show the To do column, ${columns.pending.length} tasks`}
+                        ref={showRef}
+                        onClick={() => toggleTodo(false)}
                         className={toggleButton}
                     >
-                        Show To do ({columns.pending.length})
+                        Show To do ({columns.pending.length + columns.late.length})
                     </button>
                 </div>
             )}
@@ -172,7 +182,8 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                             {key === 'pending' && onHideTodoChange && (
                                 <button
                                     type="button"
-                                    onClick={() => onHideTodoChange(true)}
+                                    ref={hideRef}
+                                    onClick={() => toggleTodo(true)}
                                     aria-label="Hide the To do column"
                                     className={`ml-auto ${toggleButton}`}
                                 >
