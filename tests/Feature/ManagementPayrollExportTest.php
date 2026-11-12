@@ -166,8 +166,10 @@ class ManagementPayrollExportTest extends TestCase
             $doc = new DOMDocument;
             $doc->loadXML($zip->getFromName('xl/worksheets/sheet'.$sheet.'.xml'));
             $this->assertCount(0, $doc->getElementsByTagName('f'));
-            $this->assertStringNotContainsString('YVONNE', $doc->textContent);
-            $this->assertStringNotContainsString('Michaela', $doc->textContent);
+            $text = $doc->textContent.$zip->getFromName('xl/sharedStrings.xml');
+            foreach (['YVONNE', 'Michaela', 'CONDO', 'LUCERO', 'MALANA', 'FERIA', 'SEVILLENO', 'Reynold', '12683'] as $previous) {
+                $this->assertStringNotContainsString($previous, $text);
+            }
         }
         $zip->close();
     }
