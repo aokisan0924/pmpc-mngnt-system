@@ -32,12 +32,34 @@ test('boardColumns puts only due-today open tasks in today, high priority first;
     assert.deepEqual(ids(cols.today), [todayHigh.id, todayLow.id])
     assert.deepEqual(ids(cols.pending), [later.id, late.id])
     assert.deepEqual(ids(cols.doing), [lateDoing.id])
+    assert.deepEqual(cols.late, [])
 })
 
-test('a doing task due today stays in today', () => {
+test('a doing task due today moves to doing', () => {
     const doing = t({ status: 'doing', due_in_days: 0 })
     const cols = boardColumns([doing], todayKey)
-    assert.deepEqual(ids(cols.today), [doing.id])
+    assert.deepEqual(ids(cols.doing), [doing.id])
+    assert.deepEqual(cols.today, [])
+})
+
+test('hidden To do: late not-started tasks go to late, most late first; late doing stays in doing', () => {
+    const late3 = t({ due_in_days: -3 })
+    const late1High = t({ due_in_days: -1, priority: 'high' })
+    const late1Low = t({ due_in_days: -1 })
+    const lateDoing = t({ due_in_days: -2, status: 'doing' })
+    const later = t({ due_in_days: 4 })
+    const undated = t()
+    const cols = boardColumns([late1Low, later, late3, undated, lateDoing, late1High], todayKey, { hideTodo: true })
+    assert.deepEqual(ids(cols.late), [late3.id, late1High.id, late1Low.id])
+    assert.deepEqual(ids(cols.doing), [lateDoing.id])
+    assert.deepEqual(ids(cols.pending), [later.id, undated.id])
+})
+
+test('a done task due today goes to done, not today or doing', () => {
+    const done = t({ status: 'done', due_in_days: 0, done_on: todayKey })
+    const cols = boardColumns([done], todayKey)
+    assert.deepEqual(ids(cols.doneRecent), [done.id])
+    assert.deepEqual(cols.today, [])
     assert.deepEqual(cols.doing, [])
 })
 
