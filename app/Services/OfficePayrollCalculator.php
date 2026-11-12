@@ -49,7 +49,8 @@ class OfficePayrollCalculator
             'basic_before_absence' => $basicBefore,
             'absence_deduction' => round($basicBefore - $basic, 2),
             // Unworked part of holidays (no work, no pay); already included in absence_deduction.
-            'nwnp_deduction' => round(array_sum(array_map(fn (array $day): float => ($day['holiday'] ?? false) && $day['shift_hours'] > 0 ? $rate * ($day['shift_hours'] - $day['worked_hours']) / $day['shift_hours'] : 0.0, $days)), 2),
+            // Capped at the whole absence (a short fixed basic can be smaller than the unworked holidays).
+            'nwnp_deduction' => min(round($basicBefore - $basic, 2), round(array_sum(array_map(fn (array $day): float => ($day['holiday'] ?? false) && $day['shift_hours'] > 0 ? $rate * ($day['shift_hours'] - $day['worked_hours']) / $day['shift_hours'] : 0.0, $days)), 2)),
             'paid_days_basis' => (float) ($fixedDays ?? $attendance['days_of_work']),
             'absence_days' => $rate > 0 ? round(($basicBefore - $basic) / $rate, 2) : 0.0,
             'paid_hours' => round(array_sum(array_column($days, 'worked_hours')), 2),
@@ -70,7 +71,8 @@ class OfficePayrollCalculator
             'tardiness_deduction' => round($rate / 8 / 60 * (float) ($attendance['tardiness_minutes'] ?? 0), 2),
             'holiday_pay' => round((float) ($inputs['holiday_pay'] ?? 0), 2),
         ];
-        $amounts['days_present'] = round($amounts['paid_days_basis'] - $amounts['absence_days'], 2);
+        // Rounded once, like the screen.
+        $amounts['days_present'] = $rate > 0 ? round($amounts['paid_days_basis'] - ($basicBefore - $basic) / $rate, 2) : $amounts['paid_days_basis'];
         foreach (['loan_deduction', 'capital_contribution_deduction', 'cash_advance_deduction', 'rental_deduction', 'savings_deduction', 'other_deductions'] as $field) {
             $amounts[$field] = round((float) $employee->{$field} / 2, 2);
         }
@@ -78,6 +80,10 @@ class OfficePayrollCalculator
             if (in_array($field, self::DEDUCTIONS, true)) {
                 $amounts[$field] = round((float) $value, 2);
             }
+        }
+        // SSS, PhilHealth and Pag-IBIG are 1st-cutoff only, whatever is posted.
+        if (! $isFirst) {
+            $amounts['sss_deduction'] = $amounts['philhealth_deduction'] = $amounts['pagibig_deduction'] = 0.0;
         }
 
         return $this->totals($amounts);

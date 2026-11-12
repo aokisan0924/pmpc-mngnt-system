@@ -51,3 +51,8 @@ test('lates use the October formula: rate / 8 / 60 x minutes', () => {
     assert.equal(row.tardiness_deduction, 6.67)
     assert.equal(row.total_deductions, 6.67)
 })
+
+test('days present rounded once, like the server (879.81, 11 days, 1 hour missing)', () => {
+    const row = calculateHoursItem(item({ daily_rate: 879.81, fixed_days: 11, days: days(8, [7, ...Array(10).fill(8)]) }), true)
+    assert.equal(row.days_present, 10.87)
+})

@@ -106,12 +106,14 @@ class DtrPayrollAttendanceCalculator
                 ];
             }
 
-            // Monday-to-Friday staff earn a fixed half month (daily rate x 22 / 2); weekdays before the hire date come off.
+            // Monday-to-Friday staff earn a fixed half month (daily rate x 22 / 2). Someone hired after the window
+            // starts is paid only for the weekdays from the hire date to its end (0 if they start after it).
             $fixedDays = null;
             if (! Employee::hasCustomWorkDays($employeeId, $from, $to)) {
-                $beforeStart = $start === null ? 0 : collect(CarbonPeriod::create($from, $to))
-                    ->filter(fn ($day): bool => $day->isWeekday() && $day->toDateString() < $start)->count();
-                $fixedDays = (float) max(0, 11 - $beforeStart);
+                $fixedDays = $start === null || $start <= $from->toDateString()
+                    ? 11.0
+                    : (float) min(11, collect(CarbonPeriod::create($from, $to))
+                        ->filter(fn ($day): bool => $day->isWeekday() && $day->toDateString() >= $start)->count());
             }
 
             return [$employeeId => ['days' => $days, 'days_of_work' => (float) count($days), 'fixed_days' => $fixedDays, 'tardiness_minutes' => (float) array_sum(array_column($days, 'late_minutes')), 'unresolved_dates' => $unresolved]];
@@ -128,8 +130,8 @@ class DtrPayrollAttendanceCalculator
         $employeeId = (int) $log->employee_id;
         $shiftStart = (string) (EmployeeSchedule::shiftFor($employeeId, $log->date)['start'] ?? Setting::get('shift_start', '08:00'));
         $startMinute = (int) substr($shiftStart, 0, 2) * 60 + (int) substr($shiftStart, 3, 2);
-        // A PM-only punch is not morning tardiness for an afternoon half day.
-        $arrival = $log->am_time_in ?: ($startMinute >= 720 ? $log->pm_time_in : null);
+        // A full "late" day whose first punch is after lunch arrived at its PM in (as the DTR status reads it).
+        $arrival = $log->am_time_in ?: $log->pm_time_in;
         if (! $arrival) {
             return [0.0, 0.0];
         }

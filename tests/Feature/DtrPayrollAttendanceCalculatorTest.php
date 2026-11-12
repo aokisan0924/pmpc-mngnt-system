@@ -133,8 +133,8 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
         EmployeeSchedule::create(['employee_id' => $store->id, 'effective_from' => '2026-01-01', 'type' => 'two_punch', 'shift_start' => '06:00', 'shift_end' => '18:00', 'work_days' => '0,1,2,3,4,5,6']);
 
         $this->assertSame(11.0, $this->hoursFor($office, '2026-10-31', '2026-11-13')['fixed_days']);
-        // Hired Nov 9: the five weekdays Nov 2-6 before the hire date come off the 11 days.
-        $this->assertSame(6.0, $this->hoursFor($newHire, '2026-10-31', '2026-11-13')['fixed_days']);
+        // Hired Nov 9: paid for the weekdays from the hire date to the cutoff end (Nov 9-13).
+        $this->assertSame(5.0, $this->hoursFor($newHire, '2026-10-31', '2026-11-13')['fixed_days']);
         $this->assertNull($this->hoursFor($store, '2026-10-31', '2026-11-13')['fixed_days']);
         Carbon::setTestNow();
     }
@@ -209,6 +209,29 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
         DtrLog::factory()->create(['employee_id' => $employee->id, 'date' => '2026-11-05', 'pm_time_in' => null, 'pm_time_out' => null, 'hours_rendered' => 4, 'status' => 'half_day']);
 
         $this->assertSame(4.0, $this->hoursFor($employee, '2026-11-05', '2026-11-05')['days'][0]['worked_hours']);
+        Carbon::setTestNow();
+    }
+
+    public function test_first_punch_after_lunch_on_a_morning_shift_is_charged_as_late(): void
+    {
+        Carbon::setTestNow('2026-11-14 08:00:00');
+        $employee = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        // First punch at 12:00 on an 08:00 shift, out at 17:00: a full day for status, but 240 minutes late.
+        DtrLog::factory()->create(['employee_id' => $employee->id, 'date' => '2026-11-05', 'am_time_in' => null, 'am_time_out' => null, 'pm_time_in' => '12:00:00', 'pm_time_out' => '17:00:00', 'hours_rendered' => 4, 'status' => 'late']);
+
+        $this->assertSame(240.0, $this->hoursFor($employee, '2026-11-05', '2026-11-05')['days'][0]['late_minutes']);
+        Carbon::setTestNow();
+    }
+
+    public function test_fixed_days_for_a_mid_cutoff_or_future_hire_are_the_weekdays_from_the_hire_date(): void
+    {
+        Carbon::setTestNow('2026-11-14 08:00:00');
+        $midCutoff = Employee::factory()->create(['date_hired' => '2026-11-09']);
+        $notStarted = Employee::factory()->create(['date_hired' => '2026-11-16']);
+
+        // Window Oct 31 - Nov 13: hired Nov 9 works Nov 9-13 (5 weekdays); hired Nov 16 has no days here.
+        $this->assertSame(5.0, $this->hoursFor($midCutoff, '2026-10-31', '2026-11-13')['fixed_days']);
+        $this->assertSame(0.0, $this->hoursFor($notStarted, '2026-10-31', '2026-11-13')['fixed_days']);
         Carbon::setTestNow();
     }
 }

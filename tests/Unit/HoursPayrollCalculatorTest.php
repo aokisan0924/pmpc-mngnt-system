@@ -158,4 +158,29 @@ class HoursPayrollCalculatorTest extends TestCase
         $store['tardiness_minutes'] = 15.0;
         $this->assertSame(18.75, $this->calc($this->employee(), $store)['tardiness_deduction']);
     }
+
+    public function test_holiday_part_never_exceeds_the_absence_and_days_present_round_once(): void
+    {
+        // One fixed day, two unworked holidays: only one day's pay can come off, all of it NWNP.
+        $attendance = $this->attendance(8, [0, 0], [0, 1]);
+        $attendance['fixed_days'] = 1.0;
+        $result = $this->calc($this->employee(), $attendance);
+        $this->assertSame(600.0, $result['absence_deduction']);
+        $this->assertSame(600.0, $result['nwnp_deduction']);
+
+        // 879.81 a day, 11 days, 1 hour missing (109.98 off): 11 - 109.98 / 879.81 = 10.874997 -> 10.87, rounded once as on screen.
+        $attendance = $this->attendance(8, [7, ...array_fill(0, 10, 8.0)]);
+        $attendance['fixed_days'] = 11.0;
+        $this->assertSame(10.87, $this->calc($this->employee(['daily_rate' => 879.81]), $attendance)['days_present']);
+    }
+
+    public function test_statutory_contributions_stay_zero_on_the_second_cutoff_even_if_posted(): void
+    {
+        $result = $this->calc($this->employee(['sss_deduction' => 500]), $this->attendance(8, [8]), ['deductions' => ['sss_deduction' => 500, 'philhealth_deduction' => 250, 'pagibig_deduction' => 200, 'loan_deduction' => 100]], false);
+
+        $this->assertSame(0.0, $result['sss_deduction']);
+        $this->assertSame(0.0, $result['philhealth_deduction']);
+        $this->assertSame(0.0, $result['pagibig_deduction']);
+        $this->assertSame(100.0, $result['loan_deduction']);
+    }
 }
