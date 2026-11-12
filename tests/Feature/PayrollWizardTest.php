@@ -267,4 +267,15 @@ class PayrollWizardTest extends TestCase
         // Saved for real with real attendance only: Nov 3, 4 and 9 worked (24 h); no assumed days for Nov 10–13.
         $this->assertEquals(24, Payroll::firstOrFail()->items()->firstOrFail()->paid_hours);
     }
+
+    public function test_typed_hours_without_a_note_get_a_plain_message(): void
+    {
+        DtrLog::where('employee_id', $this->staff->id)->whereDate('date', '2026-11-11')->update(['am_time_out' => null, 'pm_time_in' => null, 'pm_time_out' => null, 'hours_rendered' => 0, 'status' => 'absent']);
+
+        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload(['day_resolutions' => ['2026-11-11' => ['type' => 'hours', 'hours' => 5, 'note' => '']]]))
+            ->assertSessionHasErrors(['items.0.day_resolutions' => "Add a short note for {$this->staff->full_name}'s typed hours on Nov 11."]);
+        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload(['day_resolutions' => ['2026-11-11' => ['type' => 'hours', 'hours' => '', 'note' => 'Forgot to clock out']]]))
+            ->assertSessionHasErrors(['items.0.day_resolutions' => "Type the hours {$this->staff->full_name} worked on Nov 11."]);
+        $this->assertSame(0, Payroll::count());
+    }
 }

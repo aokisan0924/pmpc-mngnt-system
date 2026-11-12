@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - On Dues, "Undo payment" and "Stop"/"Resume" now show an Undo link in the confirmation message. Undo puts back the same paid date, amount and note, or flips the due back.
 
 ### Fixed
+- Payroll: a "Type hours" day without hours or a note now gives a plain message ("Add a short note for … typed hours on Nov 11.") instead of a technical field name, and step 2's Next stays disabled until both are filled.
 - A holiday on the last day of a payroll window is now always found (the date comparison ignores any stored time part).
 - Payroll step 3: the deductions table no longer overlaps the payroll table on narrower screens; the sheet scrolls sideways with roomier cells.
 

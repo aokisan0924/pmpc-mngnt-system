@@ -46,8 +46,9 @@ class StorePayrollRequest extends FormRequest
             ...collect(OfficePayrollCalculator::DEDUCTIONS)->mapWithKeys(fn (string $field): array => ["items.*.deductions.$field" => ['required', 'numeric', 'min:0', 'max:99999999']])->all(),
             'items.*.day_resolutions' => ['nullable', 'array'],
             'items.*.day_resolutions.*.type' => ['required', 'in:hours,zero'],
-            'items.*.day_resolutions.*.hours' => ['required_if:items.*.day_resolutions.*.type,hours', 'nullable', 'numeric', 'min:0', 'max:24'],
-            'items.*.day_resolutions.*.note' => ['required_if:items.*.day_resolutions.*.type,hours', 'nullable', 'string', 'max:500'],
+            // Missing hours or note on a "Type hours" day get a plain message in after().
+            'items.*.day_resolutions.*.hours' => ['nullable', 'numeric', 'min:0', 'max:24'],
+            'items.*.day_resolutions.*.note' => ['nullable', 'string', 'max:500'],
         ];
     }
 
@@ -69,9 +70,18 @@ class StorePayrollRequest extends FormRequest
                 if (! $employees->get($row['employee_id'])?->hasVerifiedPayrollOffice()) {
                     $validator->errors()->add("items.$index.employee_id", 'Verify this employee’s payroll office before saving payroll.');
                 }
-                foreach (array_keys($row['day_resolutions'] ?? []) as $date) {
+                $name = $employees->get($row['employee_id'])?->full_name ?? 'this employee';
+                foreach ($row['day_resolutions'] ?? [] as $date => $choice) {
                     if (! is_string($date) || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
                         $validator->errors()->add("items.$index.day_resolutions", 'Invalid DTR day.');
+
+                        continue;
+                    }
+                    $day = Carbon::parse($date)->format('M j');
+                    if (($choice['type'] ?? null) === 'hours' && ! is_numeric($choice['hours'] ?? null)) {
+                        $validator->errors()->add("items.$index.day_resolutions", "Type the hours {$name} worked on {$day}.");
+                    } elseif (($choice['type'] ?? null) === 'hours' && trim((string) ($choice['note'] ?? '')) === '') {
+                        $validator->errors()->add("items.$index.day_resolutions", "Add a short note for {$name}'s typed hours on {$day}.");
                     }
                 }
             }

@@ -50,7 +50,12 @@ export default function PayrollWizard(props) {
     const problems = employees.flatMap((employee) => employee.days
         .filter((day) => ['unresolved', 'typed', 'zero'].includes(day.source))
         .map((day) => ({ employee, day })))
-    const pending = problems.filter(({ employee, day }) => !typedFor(employee.id)?.day_resolutions?.[day.date] && day.source === 'unresolved')
+    // A day still needs a choice, or its "Type hours" choice is missing the hours or the note.
+    const pending = problems.filter(({ employee, day }) => {
+        const choice = typedFor(employee.id)?.day_resolutions?.[day.date]
+        if (choice?.type === 'hours') return choice.hours === '' || choice.hours === undefined || !String(choice.note ?? '').trim()
+        return !choice && day.source === 'unresolved'
+    })
 
     function setTyped(id, key, value) {
         form.setData('items', form.data.items.map((item) => (item.employee_id === id ? { ...item, [key]: value } : item)))
@@ -138,7 +143,7 @@ export default function PayrollWizard(props) {
                     {step < 4 && (
                         <div className="flex items-center gap-3">
                             {step === 2 && pending.length > 0 && (
-                                <p className="text-sm text-sub" role="status">{pending.length} day{pending.length === 1 ? '' : 's'} still need a choice</p>
+                                <p className="text-sm text-sub" role="status">{pending.length} day{pending.length === 1 ? '' : 's'} still need a choice, or typed hours and a note</p>
                             )}
                             <Button
                                 disabled={(step === 2 && pending.length > 0) || (step === 1 && employees.some((employee) => !employee.office_verified))}
