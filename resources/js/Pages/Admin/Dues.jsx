@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { router, useForm, usePage } from '@inertiajs/react'
+import { router, useForm } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import AdminPageHeader from '@/Components/AdminPageHeader'
 import ConfirmModal from '@/Components/ConfirmModal'
@@ -186,7 +186,6 @@ function Stat({ label, value, note, noteClass = 'text-sub', valueClass = 'text-t
 }
 
 export default function Dues({ month, monthLabel, prevMonth, nextMonth, today, occurrences = [], summary = {}, dues = [], offices = [] }) {
-    const { flash } = usePage().props
     const [payFor, setPayFor] = useState(null)
     const [amountFor, setAmountFor] = useState(null)
     const [formFor, setFormFor] = useState(undefined) // undefined: closed, null: new, object: edit
@@ -196,9 +195,6 @@ export default function Dues({ month, monthLabel, prevMonth, nextMonth, today, o
     return (
         <AdminLayout>
             <div className="admin-page-shell space-y-3 sm:space-y-4 page-enter">
-                {flash?.success && (
-                    <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-700 dark:text-emerald-400">{flash.success}</div>
-                )}
 
                 <AdminPageHeader
                     title="Dues"

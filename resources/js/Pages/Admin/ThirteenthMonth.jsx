@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { router, usePage, Link } from '@inertiajs/react'
+import { router, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
@@ -7,7 +7,6 @@ import Button from '@/Components/UI/Button'
 import AdminPageHeader from '@/Components/AdminPageHeader'
 
 export default function ThirteenthMonth({ records = [] }) {
-    const { flash } = usePage().props
     const [year, setYear] = useState(new Date().getFullYear())
     const [tranche, setTranche] = useState('mid_year')
 
@@ -24,15 +23,6 @@ export default function ThirteenthMonth({ records = [] }) {
     return (
         <AdminLayout>
             <div className="admin-page-shell admin-page-narrow space-y-4 sm:space-y-5 page-enter">
-
-                {flash?.success && (
-                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>{flash.success}</span>
-                    </div>
-                )}
 
                 <AdminPageHeader
                     title="13th Month Pay"

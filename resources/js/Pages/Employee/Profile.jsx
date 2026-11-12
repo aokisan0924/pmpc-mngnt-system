@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm, usePage, Link } from '@inertiajs/react'
+import { useForm, Link } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import EmployeePageHeader from '@/Components/EmployeePageHeader'
 import Card, { CardContent, CardFooter } from '@/Components/UI/Card'
@@ -45,7 +45,6 @@ const TABS = [
 ]
 
 export default function Profile({ employee, govIds }) {
-    const { flash } = usePage().props
     const [activeTab, setActiveTab] = useState('info')
 
     const infoForm = useForm({
@@ -93,15 +92,6 @@ export default function Profile({ employee, govIds }) {
                     <Link href="/employee/setup" className="inline-flex min-h-[44px] items-center text-sm font-semibold text-[#0F6E56] underline">Account setup & signature</Link>
                     <p className="text-sm text-sub">Name changes need HR verification.</p>
                 </div>
-
-                {flash?.success && (
-                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#0F6E56]/10 border border-[#0F6E56]/25 text-[#0F6E56] dark:text-emerald-400 text-xs font-semibold">
-                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>{flash.success}</span>
-                    </div>
-                )}
 
                 <EmployeePageHeader
                     title={employee.full_name || `${employee.first_name} ${employee.last_name}`}

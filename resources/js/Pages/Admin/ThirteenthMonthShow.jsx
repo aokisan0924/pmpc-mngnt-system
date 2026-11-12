@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { router, usePage, Link } from '@inertiajs/react'
+import { router, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Button from '@/Components/UI/Button'
@@ -16,7 +16,6 @@ export default function ThirteenthMonthShow({
     records = [], year, tranche, tranche_label,
     period_from, period_to, status, total_payout, finalized_by, finalized_at,
 }) {
-    const { flash } = usePage().props
     const [confirmOpen, setConfirmOpen] = useState(false)
     const [processing, setProcessing]   = useState(false)
 
@@ -37,12 +36,6 @@ export default function ThirteenthMonthShow({
     return (
         <AdminLayout>
             <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
-                {flash?.success && (
-                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                        {flash.success}
-                    </div>
-                )}
 
                 {/* Header */}
                 <AdminPageHeader

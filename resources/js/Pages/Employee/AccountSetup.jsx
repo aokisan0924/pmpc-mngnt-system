@@ -9,7 +9,7 @@ import Button from '@/Components/UI/Button'
 const control = 'mt-2 min-h-[44px] w-full rounded-xl border border-border bg-field px-3 py-2 text-sm text-text'
 
 export default function AccountSetup({ employee, submission, govIds, offices }) {
-    const { auth, flash } = usePage().props
+    const { auth } = usePage().props
     const Layout = auth.employee.role === 'super_admin' ? AdminLayout : EmployeeLayout
     const Header = auth.employee.role === 'super_admin' ? AdminPageHeader : EmployeePageHeader
     const previous = submission?.status === 'rejected' ? submission.details : {}
@@ -27,7 +27,6 @@ export default function AccountSetup({ employee, submission, govIds, offices }) 
     return <Layout title="Account setup">
         <div className="employee-page-shell max-w-4xl space-y-5">
             <Header eyebrow="One-time confirmation" title="Complete your account setup" description="Confirm your name and office for HR verification. Keep using your current password and recording attendance." />
-            {flash?.success && <p role="status" className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">{flash.success}</p>}
             {locked ? <section className="rounded-2xl border border-border bg-panel p-5 space-y-3">
                 <h2 className="font-heading text-xl font-bold text-text">{employee.setup_completed_at ? 'Account setup verified' : 'Awaiting HR verification'}</h2>
                 <p className="text-sm text-sub">{employee.setup_completed_at ? `Verified office: ${offices[employee.payroll_office]?.label}. Contact HR for name or office changes.` : `Submitted office: ${offices[submission.details.payroll_office]?.label}. HR will confirm your details before payroll uses this office.`}</p>

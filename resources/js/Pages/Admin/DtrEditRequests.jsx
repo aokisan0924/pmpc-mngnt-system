@@ -5,6 +5,7 @@ import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 import AdminPageHeader from '@/Components/AdminPageHeader'
+import EmptyState from '@/Components/UI/EmptyState'
 
 const PUNCH_ROWS = [
     ['AM In', 'am_time_in'],
@@ -17,7 +18,7 @@ const PUNCH_ROWS = [
 const rowsFor = (req) => PUNCH_ROWS.filter(([, key]) => !req.two_punch || !['am_time_out', 'pm_time_in'].includes(key) || req[`original_${key}`] || req[`requested_${key}`])
 
 export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
-    const { flash, auth } = usePage().props
+    const { auth } = usePage().props
     const canManage = auth?.employee?.can_manage_dtr_requests ?? true
     const [filter, setFilter] = useState('pending')
     const [activeId, setActiveId] = useState(null)
@@ -67,9 +68,8 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                     delete next[id]
                     return next
                 })
-                setProcessing(false)
             },
-            onError: () => setProcessing(false),
+            onFinish: () => setProcessing(false),
         })
     }
 
@@ -82,12 +82,6 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
                         </svg>
                         <span>Permission Notice: Your account does not have permission to approve or decline DTR edit requests. You are in read-only mode.</span>
-                    </div>
-                )}
-                {flash?.success && (
-                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                        {flash.success}
                     </div>
                 )}
 
@@ -277,9 +271,11 @@ export default function DtrEditRequests({ requests = [], pendingCount = 0 }) {
 
                     {filtered.length === 0 && (
                         <Card>
-                            <CardContent className="text-center py-12 text-sub">
-                                No requests.
-                            </CardContent>
+                            <EmptyState
+                                title={filter === 'pending' ? 'No requests waiting for review' : filter === 'all' ? 'No edit requests yet' : `No ${filter} requests`}
+                                body={filter === 'pending' ? 'When an employee asks to correct a DTR entry, it appears here.' : null}
+                                action={filter !== 'all' && requests.length > 0 ? <Button variant="outline" size="sm" onClick={() => setFilter('all')}>Show all requests</Button> : null}
+                            />
                         </Card>
                     )}
                 </div>

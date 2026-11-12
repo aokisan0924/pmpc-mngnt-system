@@ -14,7 +14,7 @@ const TWO_PUNCH_SLOTS = [['am_time_in', 'Time In'], ['pm_time_out', 'Time Out']]
 
 export default function Dtr({ logs = [], today = {}, summary = {}, month, next_punch, punch_version, weeklyStrip = [], two_punch = false }) {
     const slots = two_punch ? TWO_PUNCH_SLOTS : ALL_SLOTS
-    const { flash, errors } = usePage().props
+    const { errors } = usePage().props
     const [editTarget, setEditTarget] = useState(null)
     const [loading, setLoading] = useState(false)
     const absence = useForm({ date: today.date, reason: '', confirmed: false })
@@ -95,15 +95,6 @@ export default function Dtr({ logs = [], today = {}, summary = {}, month, next_p
     return (
         <EmployeeLayout title="Daily Time Record">
             <div ref={todayRef} className="employee-page-shell space-y-5">
-
-                {flash?.success && (
-                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#0F6E56]/10 border border-[#0F6E56]/25 text-[#0F6E56] dark:text-emerald-400 text-xs font-semibold">
-                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>{flash.success}</span>
-                    </div>
-                )}
 
                 {errors?.punch && (
                     <div className="flex items-center gap-2.5 rounded-xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-xs font-semibold text-rose-700 dark:text-rose-400" role="alert">

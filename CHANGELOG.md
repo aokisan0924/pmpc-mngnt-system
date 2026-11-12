@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Every page in both portals now confirms saves the same way: a small message box at the bottom-right (at the top on phones). Success messages fade after a few seconds; problems stay until closed. Previously each page showed its own green banner at the top, which was easy to miss on long pages.
+- Failed actions now say so. A lost connection, an expired session, a blocked action or a server error each show a plain message saying nothing was saved, instead of the page silently doing nothing. Form problems also show the first issue in the message box, so they are not missed on long forms.
+- Empty lists on Employees and DTR Edit Requests now say why they are empty (nothing yet, or the search or tab hid everything) and offer a one-click way to show everything.
+
+### Fixed
+- Approve and Decline on DTR Edit Requests no longer stay stuck on "loading" if the connection drops mid-request.
 - My tasks opens on a new Today view: what is late, due today, still running (multi-day tasks), coming up tomorrow (faded) and done today (ticked, at the bottom). The tick box marks a task done or not done. Calendar and Board stay one click away.
 - Both task boards (Team tasks and My tasks) have a "Today" column between To do and Doing for tasks due today. A card stays there until it is done; moving it to To do or Doing only changes its status label. Late tasks stay in To do or Doing with a red "days late" pill.
 - A Mark holiday button on the admin Operations dashboard opens a short form (date, defaulting to today, name and type) that marks that day as a holiday for everyone, the same as adding it in Settings → Holidays. Holidays are only ever added by an admin; none are added automatically.

@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react'
-import { Link, usePage } from '@inertiajs/react'
+import { Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardHeader, CardTitle, CardContent } from '@/Components/UI/Card'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
 import EmployeeFormModal from '@/Components/EmployeeFormModal'
 import AdminPageHeader from '@/Components/AdminPageHeader'
+import EmptyState from '@/Components/UI/EmptyState'
 
 export default function Employees({ employees = [] }) {
-    const { flash } = usePage().props
     const [search, setSearch] = useState('')
     const [showForm, setShowForm] = useState(false)
     const [filter, setFilter] = useState('active')
@@ -35,12 +35,6 @@ export default function Employees({ employees = [] }) {
     return (
         <AdminLayout>
             <div className="admin-page-shell space-y-4 sm:space-y-5 page-enter">
-                {flash?.success && (
-                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                        {flash.success}
-                    </div>
-                )}
 
                 <AdminPageHeader
                     title="Employee Management"
@@ -173,8 +167,8 @@ export default function Employees({ employees = [] }) {
 
                                     {filtered.length === 0 && (
                                         <tr>
-                                            <td colSpan={7} className="text-center py-12 text-sub">
-                                                No matching employees.
+                                            <td colSpan={7}>
+                                                <EmployeesEmpty search={search} filter={filter} onClear={() => { setSearch(''); setFilter('all') }} />
                                             </td>
                                         </tr>
                                     )}
@@ -184,6 +178,9 @@ export default function Employees({ employees = [] }) {
 
                         {/* Mobile Cards View */}
                         <div className="md:hidden divide-y divide-border/60">
+                            {filtered.length === 0 && (
+                                <EmployeesEmpty search={search} filter={filter} onClear={() => { setSearch(''); setFilter('all') }} />
+                            )}
                             {filtered.map(emp => (
                                 <Link
                                     key={emp.id}
@@ -213,5 +210,19 @@ export default function Employees({ employees = [] }) {
                 <EmployeeFormModal onClose={() => setShowForm(false)} />
             )}
         </AdminLayout>
+    )
+}
+
+function EmployeesEmpty({ search, filter, onClear }) {
+    const q = search.trim()
+    if (!q && filter === 'all') {
+        return <EmptyState title="No employees yet" body="Add the first employee with New Employee above." />
+    }
+    return (
+        <EmptyState
+            title={q ? `No ${filter === 'all' ? '' : filter + ' '}employees match “${q}”` : `No ${filter} employees`}
+            body="Search covers name, employee ID, department and position."
+            action={<Button variant="outline" size="sm" onClick={onClear}>Show all employees</Button>}
+        />
     )
 }

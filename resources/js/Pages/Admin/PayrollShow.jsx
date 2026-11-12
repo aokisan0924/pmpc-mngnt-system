@@ -32,7 +32,7 @@ const deductions = {
 }
 
 export default function PayrollShow({ payroll, items = [], signatureEmployees = [], defaultSignatories = {} }) {
-    const { flash, errors } = usePage().props
+    const { errors } = usePage().props
     const form = useForm({})
     const [confirmOpen, setConfirmOpen] = useState(false)
     const [deleteOpen, setDeleteOpen] = useState(false)
@@ -47,14 +47,6 @@ export default function PayrollShow({ payroll, items = [], signatureEmployees = 
     return (
         <AdminLayout>
             <div className="admin-page-shell space-y-5 page-enter">
-                {flash?.success && (
-                    <p
-                        role="status"
-                        className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"
-                    >
-                        {flash.success}
-                    </p>
-                )}
                 {Object.entries(errors || {})
                     .filter(([key]) => !key.startsWith('signatories.'))
                     .map(([key, message]) => (

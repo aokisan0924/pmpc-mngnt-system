@@ -1,6 +1,6 @@
 import PayrollOfficeAssignment from '@/Components/PayrollOfficeAssignment'
 import { useState } from 'react'
-import { useForm, usePage, Link, router } from '@inertiajs/react'
+import { useForm, Link, router } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Button from '@/Components/UI/Button'
 import ConfirmModal from '@/Components/ConfirmModal'
@@ -64,7 +64,6 @@ function Field({ label, error, required, children, id }) {
 }
 
 export default function EmployeeShow({ employee, govIds, offices = {}, setupHistory = [], schedules = [], earliestScheduleDate = null }) {
-    const { flash }               = usePage().props
     const [activeTab, setActiveTab] = useState('info')
 
     const infoForm = useForm({
@@ -183,13 +182,6 @@ export default function EmployeeShow({ employee, govIds, offices = {}, setupHist
     return (
         <AdminLayout>
             <div className="admin-page-shell admin-page-narrow space-y-4 sm:space-y-5 page-enter">
-
-                {flash?.success && (
-                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 text-xs font-medium">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                        {flash.success}
-                    </div>
-                )}
 
                 <AdminPageHeader
                     title={employee.full_name}

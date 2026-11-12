@@ -1,5 +1,10 @@
 # PMPC WorkForce Design System
 
+## Feedback and fallbacks, 2026-11-12
+- Save results go through one app-wide toast (`Components/FeedbackToaster.jsx`, mounted in `app.jsx`): bottom-right on desktop, under the top bar on phones. Server `success`/`error` flashes, validation errors, network errors, expired sessions (419), blocked actions (403) and server errors all appear there. Pages never render their own flash banners; call `toast({ type, title, body, action })` for client-side messages.
+- Success toasts fade; error toasts stay until closed. Sign-in pages keep their inline errors only.
+- Empty lists use `Components/UI/EmptyState.jsx`: what would be here, why it is empty (no data vs. a filter), and at most one next step.
+
 ## Attendance update, 2026-10-16
 - Today's DTR row uses a subtle portal accent and a visible Today label, including employee mobile cards. Opening the current month centers today once; background updates preserve the reading position. Scroll respects reduced motion and header spacing.
 - Preserve the existing employee emerald and admin indigo tokens. Attendance records show every calendar day, a seven-day week strip and week separators.

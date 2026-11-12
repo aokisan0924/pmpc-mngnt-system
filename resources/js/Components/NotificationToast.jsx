@@ -28,7 +28,7 @@ export default function NotificationToast({ notifications, onDismiss }) {
     if (! notifications || notifications.length === 0) return null
 
     return (
-        <div className="fixed bottom-20 md:bottom-5 right-3 md:right-5 left-3 md:left-auto z-50 flex flex-col gap-2 max-w-sm w-auto md:w-full">
+        <div className="fixed bottom-20 md:bottom-auto md:top-20 right-3 md:right-5 left-3 md:left-auto z-50 flex flex-col gap-2 max-w-sm w-auto md:w-full">
             {notifications.map(n => {
                 const style = TYPE_STYLES[n.type] ?? TYPE_STYLES.default
 

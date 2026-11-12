@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { router, usePage } from '@inertiajs/react'
+import { router } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import AdminPageHeader from '@/Components/AdminPageHeader'
 import ConfirmModal from '@/Components/ConfirmModal'
@@ -14,7 +14,6 @@ import { boardColumns, manilaToday } from '@/Components/taskGroups'
 const COUNT = 'inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold text-white'
 
 export default function TeamTasks({ tasks = [], employees = [], offices = [], filters = {}, overview = {}, people = [], status_counts = {} }) {
-    const { flash } = usePage().props
     const [showForm, setShowForm]         = useState(false)
     const [editTarget, setEditTarget]     = useState(null)
     const [taskToDelete, setTaskToDelete] = useState(null)
@@ -77,15 +76,6 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
     return (
         <AdminLayout>
             <div className="admin-page-shell space-y-3 sm:space-y-4 page-enter">
-
-                {flash?.success && (
-                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>{flash.success}</span>
-                    </div>
-                )}
 
                 <AdminPageHeader
                     title="Team tasks"

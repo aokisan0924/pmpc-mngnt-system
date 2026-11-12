@@ -1,4 +1,4 @@
-import { useForm, usePage, router } from '@inertiajs/react'
+import { useForm, router } from '@inertiajs/react'
 import { useState } from 'react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Card, { CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/UI/Card'
@@ -60,7 +60,6 @@ const TABS = [
 ]
 
 export default function Settings({ settings, holidays = [], holidayTypes = {} }) {
-    const { flash } = usePage().props
     const [activeTab, setActiveTab] = useState('coop')
 
     const { data, setData, post, processing, errors } = useForm({ ...settings })
@@ -73,15 +72,6 @@ export default function Settings({ settings, holidays = [], holidayTypes = {} })
     return (
         <AdminLayout>
             <div className="admin-page-shell admin-page-narrow space-y-4 sm:space-y-5 page-enter">
-
-                {flash?.success && (
-                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>{flash.success}</span>
-                    </div>
-                )}
 
                 <AdminPageHeader
                     title="System Settings"

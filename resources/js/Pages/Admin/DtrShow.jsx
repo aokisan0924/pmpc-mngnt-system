@@ -14,7 +14,7 @@ const blank = { date: '', am_time_in: '', am_time_out: '', pm_time_in: '', pm_ti
 
 export default function DtrShow({ employee, logs = [], summary = {}, month, today_date }) {
     const slots = employee.two_punch ? [['am_time_in', 'Time In'], ['pm_time_out', 'Time Out']] : SLOTS
-    const { auth, flash } = usePage().props
+    const { auth } = usePage().props
     const canCorrect = !!auth?.employee?.can_correct_dtr
     const [editing, setEditing] = useState(null)
     const form = useForm(blank)
@@ -107,10 +107,6 @@ export default function DtrShow({ employee, logs = [], summary = {}, month, toda
                     </div>
                     }
                 />
-
-                {flash?.success && (
-                    <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{flash.success}</p>
-                )}
 
                 {/* ── Summary Stats ──────────────────────────────────── */}
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">

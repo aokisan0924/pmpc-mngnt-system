@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { usePage } from '@inertiajs/react'
 import EmployeeLayout from '@/Layouts/EmployeeLayout'
 import EmployeePageHeader from '@/Components/EmployeePageHeader'
 import Card from '@/Components/UI/Card'
@@ -99,7 +98,6 @@ function CutoffCard({ label, period, days, basic, transpo, ot, gross, deductions
 }
 
 export default function Payslips({ payslips = [] }) {
-    const { flash } = usePage().props
     const [selected, setSelected] = useState(payslips[0]?.month ?? null)
     const [yearFilter, setYearFilter] = useState('all')
 
@@ -127,15 +125,6 @@ export default function Payslips({ payslips = [] }) {
     return (
         <EmployeeLayout title="My Payslips">
             <div className="employee-page-shell space-y-5">
-
-                {flash?.success && (
-                    <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#0F6E56]/10 border border-[#0F6E56]/25 text-[#0F6E56] dark:text-emerald-400 text-xs font-semibold">
-                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>{flash.success}</span>
-                    </div>
-                )}
 
                 <EmployeePageHeader
                     title="My Payslips"

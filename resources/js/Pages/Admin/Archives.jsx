@@ -7,7 +7,7 @@ import Button from '@/Components/UI/Button'
 import AdminPageHeader from '@/Components/AdminPageHeader'
 
 export default function Archives({ archives = [], last_month }) {
-    const { flash, errors } = usePage().props
+    const { errors } = usePage().props
     const [month, setMonth] = useState(last_month || '')
     const [busy, setBusy]   = useState(false)
 
@@ -24,14 +24,6 @@ export default function Archives({ archives = [], last_month }) {
         <AdminLayout>
             <div className="admin-page-shell admin-page-narrow space-y-4 sm:space-y-5 page-enter">
 
-                {flash?.success && (
-                    <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
-                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>{flash.success}</span>
-                    </div>
-                )}
                 {errors?.error && (
                     <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 text-sm font-medium">
                         <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">

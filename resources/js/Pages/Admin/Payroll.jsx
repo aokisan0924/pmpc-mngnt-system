@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm, usePage, Link } from '@inertiajs/react'
+import { useForm, Link } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
@@ -9,7 +9,6 @@ const fmt = (value) => new Intl.NumberFormat('en-PH', { style: 'currency', curre
 const control = 'min-h-[44px] w-full min-w-0 rounded-xl border border-border bg-field px-3 py-2 text-sm text-text'
 
 export default function Payroll({ payrolls = [] }) {
-    const { flash } = usePage().props
     const form = useForm({ period_from: '', period_to: '', cutoff: 'first' })
     const [search, setSearch] = useState('')
     const [status, setStatus] = useState('all')
@@ -31,14 +30,6 @@ export default function Payroll({ payrolls = [] }) {
     return (
         <AdminLayout>
             <div className="admin-page-shell space-y-5 page-enter">
-                {flash?.success && (
-                    <p
-                        role="status"
-                        className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
-                    >
-                        {flash.success}
-                    </p>
-                )}
                 <AdminPageHeader
                     title="Payroll Management"
                     action={
