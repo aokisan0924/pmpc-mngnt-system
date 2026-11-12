@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 15:35 — 757b447 — Payroll step 3 tables no longer overlap
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `d011962` → `757b447` (includes docs-only `ce1476f`)
+- Migrations: none
+- Backup: none (front-end only)
+- Data changes: none on live.
+- Verified: build passed; on the local live-data copy in Chrome, step 3 for October's 2nd cutoff showed the payroll table and the deductions table side by side with a gap, no overlap, and sideways scrolling inside the sheet. On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `757b447`.
+
 ## 2026-11-12 15:20 — d011962 — Download a mockup payroll Excel without saving
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `aefa564` → `d011962` (includes docs-only `6a6fa08`, `50f55d1`, `6fa3513`)
