@@ -2,6 +2,15 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 18:05 — 102769a — Payroll mockup mode; "Edit day" buttons
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `78aebb5` → `102769a` (includes docs-only `2c446dc`): Payroll runs has "Make a mockup" — the wizard opens in mockup mode (no save buttons; real DTR for past days, every remaining day up to the end date counted as present, holidays still no work, no pay for office staff; works even for a finalized cutoff, which a rolled-back transaction sets aside); the DTR page's correction column is "Edit" with "Edit day" / "Add day" and the Attendance records button reads "Edit a day"; a holiday on the last day of a payroll window is found even when dates carry a time part (the live MySQL column is a plain DATE, so live was not affected).
+- Migrations: none
+- Backup: none (no schema or data change)
+- Data changes: none on live.
+- Verified: locally 418 of 423 PHP tests (5 GD-only) and 34 JS tests passed, build passed; new tests cover assumed days, a finalized batch left untouched by a mockup export, and a real save ignoring the mock flag; on the local live-data copy "Make a mockup" opened "Payroll mockup" with the banner for Nov 2–13. On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `102769a`; a read-only mockup preview of the Nov 1st cutoff marks Nov 12–13 as assumed present for Kurt; 0 payroll batches on live.
+- Noted, not changed: Bonifacio Day (Nov 30) is not in the live holiday list.
+
 ## 2026-11-12 17:40 — 78aebb5 — Correct a day from Attendance records; full shift for on-time days
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `9931963` → `78aebb5` (includes docs-only `ff82243`, `fee0586`, `68c18d6`): Attendance records shows "Correct a day" on each employee row for DTR correctors (same correction form as the DTR page, now a shared component, with a date picker that pre-fills that day's punches); in payroll a complete on-time office day (4-punch schedule) counts as the full shift, while late, undertime and half days still count actual hours.
