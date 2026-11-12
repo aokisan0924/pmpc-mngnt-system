@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Pay is now worked out from DTR hours: daily rate ÷ shift hours × hours worked, capped at the shift (8 hours, or 12 for 12-hour shifts). Lates and early-outs are simply unpaid hours, so there is no separate late deduction. Holidays not worked are no work, no pay.
 - Transport, representation and quarterly allowances are typed for each cutoff (they start at ₱0). Withholding tax is deducted in full on the 1st cutoff only, like SSS, PhilHealth and Pag-IBIG.
-- A payroll can only be saved after the cutoff's last day. If the DTR changes while preparing it, saving uses the latest DTR instead of refusing.
+- A payroll can be saved at any time; before the cutoff ends only past days are counted, and the screen says so. If the DTR changes while preparing it, saving uses the latest DTR instead of refusing.
 - On both task boards (Team tasks and My tasks → Board), a task due today can be dragged into Doing and now really moves there. It keeps the amber Today colour and its "Due today" pill so it still stands out. Dragging it back to To do or onto Today returns it to Today; dropping any card on Today sets it to To do.
 - Late tasks that have not been started now always sit at the top of the Today column under "Late", most late first, so they are never buried in To do. Below them, "Due today" lists today's tasks, or says "Nothing due today." To do keeps future and undated tasks. Late tasks already in Doing stay in Doing.
 - The To do column can be hidden with its Hide button; "Show To do (N)" brings it back. Each person's choice is remembered on their own device. Team tasks' header counts follow the columns.

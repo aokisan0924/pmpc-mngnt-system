@@ -23,7 +23,7 @@ function withResolutions(days, resolutions) {
 }
 
 export default function PayrollWizard(props) {
-    const { employees, is_first, can_save } = props
+    const { employees, is_first } = props
     const [step, setStep] = useState(1)
     const [changed, setChanged] = useState([])
     const form = useForm({
@@ -57,7 +57,7 @@ export default function PayrollWizard(props) {
     function refreshDtr(onDone) {
         const before = Object.fromEntries(employees.map((employee) => [employee.id, JSON.stringify(employee.days)]))
         router.reload({
-            only: ['employees', 'can_save'],
+            only: ['employees', 'cutoff_open', 'counted_through'],
             onSuccess: (page) => {
                 const names = page.props.employees.filter((employee) => before[employee.id] !== JSON.stringify(employee.days)).map((employee) => employee.full_name)
                 onDone?.(names)
@@ -97,7 +97,7 @@ export default function PayrollWizard(props) {
                 {step === 1 && <StepCutoff {...props} />}
                 {step === 2 && <StepDtrCheck problems={problems} typedFor={typedFor} setTyped={setTyped} onRefresh={() => refreshDtr()} errors={form.errors} employees={employees} />}
                 {step === 3 && <StepEntries {...props} rows={rows} setTyped={setTyped} errors={form.errors} />}
-                {step === 4 && <StepConfirm {...props} rows={rows} changed={changed} form={form} canSave={can_save} onSave={save} />}
+                {step === 4 && <StepConfirm {...props} rows={rows} changed={changed} form={form} onSave={save} />}
 
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
                     <Button variant="outline" disabled={step === 1 || form.processing} onClick={() => go(step - 1)} className="min-h-[44px]">

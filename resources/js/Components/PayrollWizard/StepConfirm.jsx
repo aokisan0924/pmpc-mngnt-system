@@ -5,7 +5,7 @@ import { peso } from './StepEntries'
 
 const sum = (rows, key) => rows.reduce((total, row) => total + (Number(row[key]) || 0), 0)
 
-export default function StepConfirm({ rows, offices, changed, form, canSave, save_after, period_title, onSave }) {
+export default function StepConfirm({ rows, offices, changed, form, cutoff_open, counted_through, period_title, onSave }) {
     const [confirming, setConfirming] = useState(false)
     const errors = Object.values(form.errors)
     const groups = Object.entries(offices).map(([key, office]) => [office.label, rows.filter((row) => row.payroll_office === key)]).filter(([, list]) => list.length)
@@ -49,13 +49,13 @@ export default function StepConfirm({ rows, offices, changed, form, canSave, sav
                 </ul>
             )}
             <div className="flex flex-wrap items-center gap-3">
-                <Button disabled={!canSave || form.processing} loading={form.processing && !form.data.finalize} onClick={() => onSave(false)} className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]">
+                <Button disabled={form.processing} loading={form.processing && !form.data.finalize} onClick={() => onSave(false)} className="min-h-[44px] bg-[#26215C] hover:bg-[#201B4D]">
                     Save draft
                 </Button>
-                <Button variant="outline" disabled={!canSave || form.processing} onClick={() => setConfirming(true)} className="min-h-[44px]">
+                <Button variant="outline" disabled={form.processing} onClick={() => setConfirming(true)} className="min-h-[44px]">
                     Save &amp; finalize
                 </Button>
-                {!canSave && <p className="text-sm text-sub" role="status">You can save after {save_after}.</p>}
+                {cutoff_open && <p className="text-sm text-amber-800 dark:text-amber-300" role="status">This cutoff isn't over yet: only days through {counted_through} are counted. Save the draft again after the last day.</p>}
             </div>
             <ConfirmModal
                 open={confirming}

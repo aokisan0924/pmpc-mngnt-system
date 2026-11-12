@@ -68,8 +68,9 @@ class PayrollWizard
             'period_to' => $to->toDateString(),
             'period_title' => strtoupper($from->format('F j').' - '.$to->format('j, Y')),
             'window_from' => $window['from']->toDateString(),
-            'can_save' => PayrollCutoffPeriod::canSaveOn($to, today()),
-            'save_after' => $to->format('D, M d'),
+            // Still running: only days before today are counted, so an early save is partial.
+            'cutoff_open' => ! PayrollCutoffPeriod::isOver($to, today()),
+            'counted_through' => today()->subDay()->format('D, M d'),
             'draft_id' => $draft?->id,
             'offices' => OfficePayrollCalculator::OFFICES,
             'signatories' => $this->signatories($isFirst),

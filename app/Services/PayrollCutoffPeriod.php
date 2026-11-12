@@ -65,7 +65,7 @@ final class PayrollCutoffPeriod
         return $fromDay <= $toDay && $fromDay >= $start->toDateString() && $toDay <= $end->toDateString();
     }
 
-    public static function canSaveOn(CarbonInterface $to, CarbonInterface $today): bool
+    public static function isOver(CarbonInterface $to, CarbonInterface $today): bool
     {
         return $today->toDateString() > $to->toDateString();
     }

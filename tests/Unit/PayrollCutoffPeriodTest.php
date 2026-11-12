@@ -53,9 +53,9 @@ class PayrollCutoffPeriodTest extends TestCase
         $this->assertTrue(PayrollCutoffPeriod::withinHalf(Carbon::parse('2026-11-16'), Carbon::parse('2026-11-30'), '2026-11', 'second'));
     }
 
-    public function test_can_save_only_after_last_day(): void
+    public function test_cutoff_is_over_only_after_last_day(): void
     {
-        $this->assertFalse(PayrollCutoffPeriod::canSaveOn(Carbon::parse('2026-11-13'), Carbon::parse('2026-11-13 18:00')));
-        $this->assertTrue(PayrollCutoffPeriod::canSaveOn(Carbon::parse('2026-11-13'), Carbon::parse('2026-11-14 00:00')));
+        $this->assertFalse(PayrollCutoffPeriod::isOver(Carbon::parse('2026-11-13'), Carbon::parse('2026-11-13 18:00')));
+        $this->assertTrue(PayrollCutoffPeriod::isOver(Carbon::parse('2026-11-13'), Carbon::parse('2026-11-14 00:00')));
     }
 }

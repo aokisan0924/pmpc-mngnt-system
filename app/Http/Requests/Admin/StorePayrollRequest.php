@@ -63,11 +63,6 @@ class StorePayrollRequest extends FormRequest
 
                 return;
             }
-            if (! PayrollCutoffPeriod::canSaveOn($to, today())) {
-                $validator->errors()->add('period_to', 'You can save after '.$to->format('D, M d').'.');
-
-                return;
-            }
             $employees = Employee::whereIn('id', collect($this->items)->pluck('employee_id'))->get()->keyBy('id');
             foreach ($this->items as $index => $row) {
                 if (! $employees->get($row['employee_id'])?->hasVerifiedPayrollOffice()) {

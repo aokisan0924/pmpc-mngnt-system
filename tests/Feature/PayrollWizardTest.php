@@ -73,22 +73,21 @@ class PayrollWizardTest extends TestCase
                 ->where('period_to', '2026-11-13')
                 ->where('period_title', 'NOVEMBER 2 - 13, 2026')
                 ->where('holidays.0.date', '2026-11-02')
-                ->where('can_save', true)
+                ->where('cutoff_open', false)
                 ->where('employees.0.days_of_work', 10)
                 ->where('employees.0.cutoff_transpo', 0)
                 ->where('employees.0.deductions.sss_deduction', 500));
     }
 
-    public function test_save_is_refused_before_cutoff_ends(): void
+    public function test_saving_before_cutoff_ends_counts_only_past_days(): void
     {
         Carbon::setTestNow('2026-11-13 18:00:00');
-        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload())
-            ->assertSessionHasErrors(['period_to' => 'You can save after Fri, Nov 13.']);
-        $this->assertSame(0, Payroll::count());
+        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload())->assertSessionHasNoErrors()->assertRedirect();
 
-        Carbon::setTestNow('2026-11-14 00:00:00');
-        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload())->assertRedirect();
-        $this->assertSame(1, Payroll::count());
+        // Nov 13 is today and not counted yet: 9 days (Nov 2 NWNP, 5 and 6 absent) instead of 10.
+        $item = Payroll::firstOrFail()->items()->firstOrFail();
+        $this->assertEquals(9, $item->paid_days_basis);
+        $this->assertEquals(3600, $item->cutoff_basic);
     }
 
     public function test_store_recomputes_hours_and_ignores_client_money(): void
