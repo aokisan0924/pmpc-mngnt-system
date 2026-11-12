@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 15:20 — d011962 — Download a mockup payroll Excel without saving
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `aefa564` → `d011962` (includes docs-only `6a6fa08`, `50f55d1`, `6fa3513`)
+- Migrations: none
+- Backup: none (no schema change; the mockup rolls back every write it makes)
+- Data changes: none on live. Locally only, live data was copied into the local `pmpc_live_preview` MySQL database, Kurt's account there got a temporary test password, and a local draft #8 was saved and finalized while trying the wizard.
+- Verified: locally 400 of 405 PHP tests (the 5 signature tests need GD, missing on this machine), build passed; new tests check that the mockup downloads an .xlsx, leaves an existing draft unchanged and saves nothing. On the local live-data copy the October 2nd-cutoff mockup returned a 133 KB Excel file (HTTP 200) and no new batch appeared. On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `d011962`, route `admin.payroll.mockup-export` registered. No mockup was run on live by Claude.
+
 ## 2026-11-12 14:55 — data only — Cubao rent for Kurt and Kath set to ₱1,250 per cutoff
 - By: Claude Code (SSH key), requested by Kurt
 - Code: none
