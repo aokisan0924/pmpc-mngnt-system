@@ -183,6 +183,8 @@ class Task extends Model
             'priority' => $this->priority,
             'status' => $this->status,
             'is_overdue' => $this->isOverdue(),
+            // shortcut: updated_at stands in for a completion time, so editing a done task moves it; add completed_at if that matters.
+            'done_on' => $this->status === 'done' ? $this->updated_at?->timezone('Asia/Manila')->format('Y-m-d') : null,
             'due_in_days' => $this->due_date === null ? null : (int) now('Asia/Manila')->startOfDay()->diffInDays($this->due_date->copy()->startOfDay(), false),
             'employee_id' => $this->employee_id,
             'office' => $this->office,
