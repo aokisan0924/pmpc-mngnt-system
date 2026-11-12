@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 13:12 — 0f8b819 — Late tasks always at the top of Today
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `53eb2bb` → `0f8b819` (includes docs-only `03f3d72`)
+- Migrations: none
+- Backup: none (front-end only; no database records or schema changed)
+- Data changes: none on live. Locally only, one test task on `taskboard-preview.sqlite` was moved to Doing and back.
+- Verified: locally 29 of 29 JS tests, build passed; on the scratch copy Today showed Late 5 / Due today 1 with no late task left in To do, and "Due today 0 · Nothing due today." after moving the due-today task to Doing. On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `0f8b819`, bundle `app-BekOJyEK.js`. In Chrome as Kurt (read only): To do 12, Today 9 (Late 9, Due today 0, "Nothing due today."), Doing 4, Done 9, header the same, no late task left in To do.
+
 ## 2026-11-12 12:15 — 53eb2bb — Today tasks can move to Doing; To do can be hidden
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `3f282d0` → `53eb2bb` (includes docs-only `196d3c5`, `a0a1265`, `1c4a914` and `814b1ba`, `6960531`)
