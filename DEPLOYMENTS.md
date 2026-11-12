@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 17:15 — data only — Rent for Jerome A. Santos
+- By: Claude Code (SSH key), requested by Kurt
+- Code: none
+- Migrations: none
+- Backup: `~/db-backups/pmpc-before-october-export-20261112-0749.sql` (his rent is 0.00 in it)
+- Data changes: `employees.rental_deduction` 0.00 → 1500.00 (₱750 per cutoff) for Jerome A. Santos (id 7, 2026-00026), matching the ₱750 RENTAL deducted in both cutoffs of the October 2026 Main Office sheet. Dry run in the same command: exactly one employee, at 0.00, was updated. To undo: set it back to 0.00 for id 7.
+- Verified: 1 row updated; the read-only Nov 1st-cutoff preview shows rental ₱750 for him. A full comparison of every employee's deductions against the October 2026 file found no other difference except a 5-centavo rounding in Alexander L. Feria's 2nd-cutoff loan in that file (left as is).
+
 ## 2026-11-12 17:00 — data only — SSS, PhilHealth and Pag-IBIG for Violie and Sibal
 - By: Claude Code (SSH key), requested by Kurt
 - Code: none
