@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 16:35 — abaebea — NPW-HOLIDAY column on payroll step 3
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `892fa2e` → `abaebea` (includes docs-only `e30169f`): step 3 shows the October 2026 sheet layout — NPW- HOLIDAY column after QUART ALLOW for unworked holidays, other absences under ABSENT in the deductions table, DAYS OF WORK as days actually paid, the typed holiday premium shown with overtime. Saved amounts and net pay are unchanged.
+- Migrations: none
+- Backup: none (front-end only)
+- Data changes: none on live.
+- Verified: 5 JS tests passed (incl. holiday in NPW- HOLIDAY, other absence in deductions, gross − deductions = net), build passed; on the local live-data copy, October 16–30 step 3 showed the NPW- HOLIDAY column and Yvonne N. Condo at ₱7,920.00 − ₱347.40 = ₱7,572.60. On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `abaebea`.
+
 ## 2026-11-12 16:20 — 892fa2e — Fixed half-month basic pay for office staff
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `5ba3485` → `892fa2e` (includes docs-only `236db74`): Monday-to-Friday staff get daily rate × 22 ÷ 2 per cutoff (11 days, fewer for weekdays before a hire date), minus unworked hours on counted days (absences, lates, NWNP holidays); staff on custom schedules (General Merchandise, relievers) stay on hours worked.
