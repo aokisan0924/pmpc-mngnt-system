@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { boardColumns, daysUntil, isTodayOrLate, manilaToday, todayGroups } from '../../resources/js/Components/taskGroups.js'
+import { boardColumns, daysUntil, isDueToday, manilaToday, todayGroups } from '../../resources/js/Components/taskGroups.js'
 
 const todayKey = '2026-11-12'
 const keyPlus = n => { const d = new Date(2026, 10, 12 + n); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }
@@ -16,19 +16,22 @@ test('day counts come from due_date and the given today, so a page left open pas
     const task = t({ due_in_days: 1 })
     assert.equal(daysUntil(task, todayKey), 1)
     assert.equal(daysUntil(task, '2026-11-13'), 0)
-    assert.equal(isTodayOrLate(task, '2026-11-13'), true)
+    assert.equal(isDueToday(task, todayKey), false)
+    assert.equal(isDueToday(task, '2026-11-13'), true)
     assert.equal(daysUntil(t(), todayKey), null)
 })
 const ids = list => list.map(x => x.id)
 
-test('boardColumns puts late and due-today open tasks in today, late first', () => {
+test('boardColumns puts only due-today open tasks in today, high priority first; late tasks stay in their status column', () => {
     const late = t({ due_in_days: -3 })
+    const lateDoing = t({ due_in_days: -1, status: 'doing' })
     const todayLow = t({ due_in_days: 0, priority: 'low' })
     const todayHigh = t({ due_in_days: 0, priority: 'high' })
     const later = t({ due_in_days: 5 })
-    const cols = boardColumns([later, todayLow, late, todayHigh], todayKey)
-    assert.deepEqual(ids(cols.today), [late.id, todayHigh.id, todayLow.id])
-    assert.deepEqual(ids(cols.pending), [later.id])
+    const cols = boardColumns([later, todayLow, late, todayHigh, lateDoing], todayKey)
+    assert.deepEqual(ids(cols.today), [todayHigh.id, todayLow.id])
+    assert.deepEqual(ids(cols.pending), [later.id, late.id])
+    assert.deepEqual(ids(cols.doing), [lateDoing.id])
 })
 
 test('a doing task due today stays in today', () => {
@@ -41,7 +44,7 @@ test('a doing task due today stays in today', () => {
 test('undated open tasks stay in their status column', () => {
     const undated = t({ due_in_days: null })
     const cols = boardColumns([undated], todayKey)
-    assert.equal(isTodayOrLate(undated), false)
+    assert.equal(isDueToday(undated, todayKey), false)
     assert.deepEqual(ids(cols.pending), [undated.id])
     assert.deepEqual(cols.today, [])
 })

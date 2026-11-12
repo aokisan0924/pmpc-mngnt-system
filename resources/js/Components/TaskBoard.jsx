@@ -3,10 +3,11 @@ import Badge from '@/Components/UI/Badge'
 import CardMenu from '@/Components/CardMenu'
 import { boardColumns, daysUntil, manilaToday } from '@/Components/taskGroups'
 
-// "Today & late" is not a status: cards stay in it, whatever their status, until they are done.
+// "Today" is not a status: a card due today stays in it, whatever its status, until it is done.
+// Late cards stay in To do / Doing with a red "days late" pill.
 const COLUMNS = [
-    { key: 'today',   status: null,      label: 'Today & late' },
     { key: 'pending', status: 'pending', label: 'To do' },
+    { key: 'today',   status: null,      label: 'Today' },
     { key: 'doing',   status: 'doing',   label: 'Doing' },
     { key: 'done',    status: 'done',    label: 'Done' },
 ]
@@ -135,7 +136,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                 return (
                     <section
                         key={key}
-                        aria-label={isToday ? 'Today and late tasks' : `${label} tasks`}
+                        aria-label={`${label} tasks`}
                         {...dropProps}
                         className={`rounded-2xl border p-3 min-h-40 transition-colors ${
                             overColumn === status && status

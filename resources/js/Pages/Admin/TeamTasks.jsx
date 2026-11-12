@@ -92,8 +92,8 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
                     meta={
                         <>
                             {/* Same numbers as the board's four columns, so header and columns never disagree. */}
-                            <span className={`${COUNT} ${columns.today.length > 0 ? 'bg-rose-600' : 'bg-white/12'}`}><span className="tnum">{columns.today.length}</span> today &amp; late</span>
                             <span className={`${COUNT} bg-white/12`}><span className="tnum">{columns.pending.length}</span> to do</span>
+                            <span className={`${COUNT} bg-white/12`}><span className="tnum">{columns.today.length}</span> today</span>
                             <span className={`${COUNT} bg-white/12`}><span className="tnum">{columns.doing.length}</span> doing</span>
                             <span className={`${COUNT} bg-white/12`}><span className="tnum">{columns.doneRecent.length}</span> done this week</span>
                         </>

@@ -27,18 +27,17 @@ export function daysUntil(task, todayKey) {
 // A task marked done a moment ago (optimistic update) has no done_on yet: it was finished today.
 const doneOn = (task, todayKey) => task.done_on ?? todayKey
 
-export function isTodayOrLate(task, todayKey) {
-    const n = daysUntil(task, todayKey)
-    return !isDone(task) && n !== null && n <= 0
+/** Open and due today. Late tasks are not "today": they stay in their status column. */
+export function isDueToday(task, todayKey) {
+    return !isDone(task) && daysUntil(task, todayKey) === 0
 }
 
 export function boardColumns(tasks, todayKey) {
     const weekAgo = shiftKey(todayKey, -6)
-    const byLateness = (a, b) => daysUntil(a, todayKey) - daysUntil(b, todayKey) || byPriority(a, b)
-    const open = tasks.filter(t => !isDone(t) && !isTodayOrLate(t, todayKey))
+    const open = tasks.filter(t => !isDone(t) && !isDueToday(t, todayKey))
     const done = tasks.filter(isDone)
     return {
-        today: tasks.filter(t => isTodayOrLate(t, todayKey)).sort(byLateness),
+        today: tasks.filter(t => isDueToday(t, todayKey)).sort(byPriority),
         pending: open.filter(t => t.status === 'pending'),
         doing: open.filter(t => t.status === 'doing'),
         doneRecent: done.filter(t => doneOn(t, todayKey) >= weekAgo),

@@ -68,17 +68,7 @@ const navItems = [
             </svg>
         ),
     },
-    {
-        label: 'Dues',
-        href: '/admin/dues',
-        section: 'People & attendance',
-        icon: (
-            <svg className="w-[18px] h-[18px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <rect x="3" y="5" width="18" height="14" rx="2.5" fill="currentColor" fillOpacity="0.18" />
-                <path strokeLinecap="round" d="M3 10h18M7 15h4" />
-            </svg>
-        ),
-    },
+    // Dues (/admin/dues) is hidden from the menu since 2026-11-12; tasks are used instead. The page still works by its address.
     {
         label: 'Team tasks',
         href: '/admin/team-tasks',
