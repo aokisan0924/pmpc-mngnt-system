@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 14:45 — data only — President's Nov 2 holiday DTR row removed
+- By: Claude Code (SSH key), requested by Kurt
+- Code: none
+- Migrations: none
+- Backup: `~/db-backups/pmpc-before-payroll-wizard-20261112-0629.sql` (taken 15 minutes earlier; this row is unchanged in it)
+- Data changes: deleted `dtr_logs` id 761 for Alexander L. Feria (employee id 3) on 2026-11-02: punches 08:00–12:00 and 13:00–17:00, 8.00 hours, `on_time`, no IP address. It was written by the always-present auto-fill on Nov 3 at 12:59, one minute before the Nov 2 All Soul's Day holiday was added, so it would have paid him for a holiday (owner's rule: the President follows holidays like everyone else). Dry run first showed exactly this one row. To undo: re-insert the row from the backup (`dtr_logs` id 761).
+- Verified: 0 rows left for him on Nov 2; the read-only Nov 1st-cutoff preview now shows Nov 2 as a holiday with 0 hours and 56 hours through Nov 11. The auto-fill only fills days after an employee's latest row and skips holidays, so it will not recreate the row.
+
 ## 2026-11-12 14:30 — aefa564 — Four-step payroll wizard with hours-based pay
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `0f8b819` → `aefa564` (includes docs-only `cfaf68d`, `e60be29`, `d18454b`, `990f6a3`)
