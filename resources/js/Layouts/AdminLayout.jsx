@@ -185,7 +185,12 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
     useTheme()
     const [drawerOpen, setDrawerOpen] = useState(false)
     const canViewRequests = employee?.can_view_dtr_requests ?? true
+    const isSuperAdmin = employee?.role === 'super_admin'
     const adminNavItems = navItems.filter(item => {
+        // Payroll processors who are not admins only see payroll and their own workspace.
+        if (!isSuperAdmin) {
+            return item.href === '/admin/payroll' || item.href.startsWith('/employee/')
+        }
         if (item.href === '/admin/edit-requests' && !canViewRequests) {
             return false
         }
@@ -276,7 +281,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
                 <header className="portal-header hidden md:flex h-13 items-center justify-between px-5 sm:px-6 border-b border-border/80 bg-panel/80 backdrop-blur-md sticky top-0 z-20 select-none">
                     {/* Breadcrumbs */}
                     <nav className="flex items-center gap-2 text-xs font-medium text-sub">
-                        <Link href="/admin/dashboard" className="hover:text-text transition-colors">Admin</Link>
+                        <Link href={isSuperAdmin ? '/admin/dashboard' : '/employee/dashboard'} className="hover:text-text transition-colors">{isSuperAdmin ? 'Admin' : 'My portal'}</Link>
                         <span className="text-dim">/</span>
                         <span className="text-dim">{activeItem?.section}</span>
                         <span className="text-dim">/</span>
@@ -284,7 +289,7 @@ export default function AdminLayout({ children, pendingEditCount = 0 }) {
                     </nav>
 
                     {/* Pending work */}
-                    {canViewRequests && pendingEditCount > 0 && (
+                    {isSuperAdmin && canViewRequests && pendingEditCount > 0 && (
                         <Link
                             href="/admin/edit-requests"
                             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60 hover:bg-amber-100 transition-colors shadow-2xs"

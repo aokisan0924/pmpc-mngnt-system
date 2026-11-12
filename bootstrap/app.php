@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsurePayrollAccess;
 use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -21,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'role' => EnsureRole::class,
+            'payroll' => EnsurePayrollAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

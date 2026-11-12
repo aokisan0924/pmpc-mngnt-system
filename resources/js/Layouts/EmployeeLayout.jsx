@@ -163,6 +163,21 @@ export default function EmployeeLayout({ children, title }) {
                         </div>
                     </div>
 
+                    {!isSuperAdmin && employee?.can_process_payroll && (
+                        <div className="pt-2">
+                            <Link
+                                href="/admin/payroll"
+                                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-white bg-white/15 border border-white/20 hover:bg-white/25 transition-colors"
+                            >
+                                <svg className="w-[18px] h-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+                                    <rect x="3" y="6" width="18" height="12" rx="2" />
+                                    <circle cx="12" cy="12" r="2.5" />
+                                </svg>
+                                <span>Process payroll</span>
+                            </Link>
+                        </div>
+                    )}
+
                     {isSuperAdmin ? (
                         <div className="pt-2">
                             <Link

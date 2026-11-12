@@ -154,15 +154,7 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::get('/employees/{employee}/dtr/print', [DtrPrintController::class, 'adminPrint'])->name('employees.dtr.print');
 
         // Payroll
-        Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll');
-        Route::get('/payroll/create', [PayrollController::class, 'create'])->name('payroll.create');
         Route::get('/payroll/analytics', [PayrollAnalyticsController::class, 'index'])->name('payroll.analytics');
-        Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
-        Route::post('/payroll/mockup-export', [PayrollController::class, 'mockupExport'])->name('payroll.mockup-export');
-        Route::get('/payroll/{payroll}', [PayrollController::class, 'show'])->name('payroll.show');
-        Route::get('/payroll/{payroll}/export', ManagementPayrollExportController::class)->name('payroll.export');
-        Route::post('/payroll/{payroll}/finalize', [PayrollController::class, 'finalize'])->name('payroll.finalize');
-        Route::delete('/payroll/{payroll}', [PayrollController::class, 'destroy'])->name('payroll.destroy');
 
         // DTR management
         Route::get('/dtr/export-all', [DtrPrintController::class, 'adminExportAll'])->name('dtr.export-all');
@@ -193,4 +185,21 @@ Route::middleware(['auth', 'role:super_admin'])
         // Payslips
         Route::get('/payslips/download-all', [PayslipController::class, 'downloadAll'])->name('payslips.download-all');
         Route::get('/payslips/{employee}/download', [PayslipController::class, 'adminDownload'])->name('payslips.admin-download');
+    });
+
+// ── Payroll (super admins and listed payroll processors) ──
+// Registered after the admin group so /admin/payroll/analytics is matched before /admin/payroll/{payroll}.
+
+Route::middleware(['auth', 'payroll'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll');
+        Route::get('/payroll/create', [PayrollController::class, 'create'])->name('payroll.create');
+        Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
+        Route::post('/payroll/mockup-export', [PayrollController::class, 'mockupExport'])->name('payroll.mockup-export');
+        Route::get('/payroll/{payroll}', [PayrollController::class, 'show'])->name('payroll.show');
+        Route::get('/payroll/{payroll}/export', ManagementPayrollExportController::class)->name('payroll.export');
+        Route::post('/payroll/{payroll}/finalize', [PayrollController::class, 'finalize'])->name('payroll.finalize');
+        Route::delete('/payroll/{payroll}', [PayrollController::class, 'destroy'])->name('payroll.destroy');
     });

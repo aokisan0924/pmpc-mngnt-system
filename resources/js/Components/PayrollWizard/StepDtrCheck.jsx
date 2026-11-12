@@ -1,9 +1,12 @@
+import { usePage } from '@inertiajs/react'
 import Button from '@/Components/UI/Button'
 
 const dateLabel = (date) => new Date(`${date}T00:00:00`).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: '2-digit' })
 const choiceClass = (active) => `min-h-[44px] rounded-xl border px-3 text-sm font-semibold ${active ? 'border-[#26215C] bg-[#26215C] text-white' : 'border-border bg-field text-text hover:border-slate-400'}`
 
 export default function StepDtrCheck({ problems, typedFor, setTyped, onRefresh, errors = {}, employees }) {
+    // Only admins can open the DTR pages; payroll processors type hours or ask an admin to fix the DTR.
+    const canFixDtr = usePage().props.auth?.employee?.role === 'super_admin'
     function choose(employeeId, date, value) {
         const current = { ...(typedFor(employeeId)?.day_resolutions ?? {}) }
         if (value === null) delete current[date]
@@ -30,9 +33,9 @@ export default function StepDtrCheck({ problems, typedFor, setTyped, onRefresh, 
                         <li key={`${employee.id}-${day.date}`} className="rounded-xl border border-border p-4">
                             <p className="text-sm font-semibold text-text">{employee.full_name} · {dateLabel(day.date)} · missing punches</p>
                             <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label={`Choice for ${employee.full_name} on ${day.date}`}>
-                                <a href={`/admin/dtr/${employee.id}?month=${day.date.slice(0, 7)}`} target="_blank" rel="noreferrer" onClick={() => choose(employee.id, day.date, null)} className={`${choiceClass(false)} inline-flex items-center`}>
+                                {canFixDtr && <a href={`/admin/dtr/${employee.id}?month=${day.date.slice(0, 7)}`} target="_blank" rel="noreferrer" onClick={() => choose(employee.id, day.date, null)} className={`${choiceClass(false)} inline-flex items-center`}>
                                     Fix DTR ↗
-                                </a>
+                                </a>}
                                 <button type="button" aria-pressed={choice?.type === 'hours'} onClick={() => choose(employee.id, day.date, { type: 'hours', hours: choice?.hours ?? '', note: choice?.note ?? '' })} className={choiceClass(choice?.type === 'hours')}>
                                     Type hours
                                 </button>

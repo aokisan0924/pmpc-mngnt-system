@@ -124,6 +124,8 @@ When performing specialized workflows, activate the corresponding skill:
 
 **Server:** `PayrollController::create/store` delegate to `App\Services\PayrollWizard`. Validation in `CreatePayrollRequest` / `StorePayrollRequest` (end date inside the cutoff half; saving is allowed any time, only days before today are counted). Hours come from `DtrPayrollAttendanceCalculator::hoursFor` over `PayrollCutoffPeriod::window` (day after the previous cutoff's end through `period_to`, so every DTR day belongs to one cutoff). Money comes from `OfficePayrollCalculator::calculateHours`; client amounts are never trusted. Saving replaces the existing draft's items inside one `DB::transaction`; `payrolls (period_month, cutoff)` is unique.
 
+**Access:** payroll routes sit in their own `['auth', 'payroll']` group after the admin group (`EnsurePayrollAccess`). `Employee::canProcessPayroll()` is true for super admins and for employee IDs in `config('pmpc.payroll_processors')` (env `PAYROLL_PROCESSOR_EMPLOYEE_IDS`, default `EMP-0003`). Payroll analytics and payslip bulk downloads stay admin-only.
+
 **Export:** `ManagementPayrollExport` reads the saved `paid_days_basis` (days of work), `basic_before_absence` and `absence_deduction` (includes NWNP and unworked hours).
 ---
 

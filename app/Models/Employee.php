@@ -241,6 +241,12 @@ class Employee extends Authenticatable
         return $this->isSuperAdmin() && in_array($this->employee_id, config('pmpc.dtr_correctors', []), true);
     }
 
+    /** Super admins, plus the staff listed in pmpc.payroll_processors (payroll pages only). */
+    public function canProcessPayroll(): bool
+    {
+        return $this->isSuperAdmin() || in_array($this->employee_id, config('pmpc.payroll_processors', []), true);
+    }
+
     public function canManageDtrRequests(): bool
     {
         // Controls permission to approve or decline DTR edit requests.

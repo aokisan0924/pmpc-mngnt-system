@@ -36,6 +36,7 @@ class HandleInertiaRequests extends Middleware
                     'can_view_dtr_requests' => $request->user()->canViewDtrRequests(),
                     'can_correct_dtr' => $request->user()->canCorrectDtr(),
                     'can_request_dtr_edits' => $request->user()->canRequestDtrEdits(),
+                    'can_process_payroll' => $request->user()->canProcessPayroll(),
                 ] : null,
             ],
             'flash' => [

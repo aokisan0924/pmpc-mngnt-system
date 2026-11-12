@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Payroll access for non-admin staff: employees listed in `PAYROLL_PROCESSOR_EMPLOYEE_IDS` (default `EMP-0003`, Katherine Sevilleno) get a "Process payroll" link and can use Payroll runs (wizard, saved payrolls, Excel, mockup, finalize). They see no other admin pages; "Fix DTR" is hidden for them.
 - Step 4 of the payroll wizard has a "Download mockup Excel" button: it builds the management Excel from the current numbers on live data without saving anything, so a cutoff can be tried out first.
 - Payroll is now processed in four steps (Cutoff, DTR check, OT & allowances, Confirm). The cutoff dates fill in by themselves (weekends skipped, holidays kept and shown as NWNP), days with missing punches must be fixed, typed or counted as 0 hours, and step 3 looks like the management payroll Excel. Save draft or Save & finalize.
 - Only one payroll batch per month and cutoff can exist; opening the same cutoff again reopens its draft.

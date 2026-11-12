@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useForm, Link } from '@inertiajs/react'
+import { useForm, Link, usePage } from '@inertiajs/react'
 import AdminLayout from '@/Layouts/AdminLayout'
 import Badge from '@/Components/UI/Badge'
 import Button from '@/Components/UI/Button'
@@ -10,6 +10,7 @@ const control = 'min-h-[44px] w-full min-w-0 rounded-xl border border-border bg-
 
 export default function Payroll({ payrolls = [] }) {
     const thisMonth = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' }).slice(0, 7)
+    const { auth } = usePage().props
     const form = useForm({ month: thisMonth, cutoff: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' }).slice(8) > '15' ? 'second' : 'first' })
     const [search, setSearch] = useState('')
     const [status, setStatus] = useState('all')
@@ -35,12 +36,12 @@ export default function Payroll({ payrolls = [] }) {
                         <Button onClick={() => setPreparing(!preparing)} aria-expanded={preparing} aria-controls="payroll-setup" className="admin-header-primary min-h-[44px]">
                             {preparing ? 'Close setup' : 'New payroll batch'}
                         </Button>
-                        <Link
+                        {auth?.employee?.role === 'super_admin' && <Link
                             href="/admin/payroll/analytics"
                             className="inline-flex min-h-[44px] items-center rounded-xl border border-white/20 px-4 text-sm font-semibold text-white hover:bg-white/10"
                         >
                             Payroll analytics
-                        </Link>
+                        </Link>}
                         </div>
                     }
                 />
