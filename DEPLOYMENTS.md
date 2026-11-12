@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 19:05 — d39e783 — October defaults: allowances, signatories, voucher; overtime panel
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `599f0fa` → `d39e783` (includes docs-only `7af3c63` and `c27d8db`): allowances on a new payroll pre-fill from each employee's monthly allowances ÷ 2; default signatories Prepared Reynold D. Valdez, Certified Katherine Sevilleno, Approved Alexander L. Feria, plus a new "Noted by" (Kurt Vincent F. Fariñas) on every sign-off block and on the voucher; sign-off names use the middle initial; voucher payee "Alexander Feria et. al." and voucher number counted from October 2026 = 0017 (November = 0018); an "Overtime & holiday pay" panel at the top of payroll step 3 with "Add a holiday" for admins. Template rebuilt with `scripts/build-payroll-template.py` (Noted by spots placed only in empty cells).
+- Migrations: none
+- Backup: `~/db-backups/pmpc-before-october-export-20261112-0749.sql` covers the data change below.
+- Data changes (from HR's October 2026 payroll file, dry run first, 3 rows): Reynold Valdez (id 11, EMP-0001) middle name → "D.", position "Admin Clerk" → "Admin"; Diana Pasco (id 2, 2026-00028) middle name → "B.", position "Loan Processor" → "Loan Processor/Cashier"; Alexander A. Feria Jr. (id 4, 2022-00003) position "Operations" → "Operation Officer". Allowances needed no change: every record already equals the October amounts × 2. To undo: restore those three fields from the values above.
+- Verified: locally 421 of 426 PHP tests (5 GD-only) passed, build passed; on the local live-data copy step 3 shows the new panel. On live: server tree clean before and after, nothing to migrate, app back up, login 200; default signatories resolve to Reynold D. Valdez / Katherine Sevilleno / Alexander L. Feria / Kurt; a rolled-back mockup export of the Nov 1st cutoff has voucher 0018, the payee and Kurt as Noted by; allowances pre-fill as Feria ₱5,000/₱2,000/₱1,500, Yvonne ₱500/₱250, Mariel ₱500; 0 payroll batches on live.
+
 ## 2026-11-12 18:30 — 599f0fa — Lates as tardiness (October formula); LATE column
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `102769a` → `599f0fa` (includes docs-only `bb0d023`): late minutes (from shift start after the grace period; overnight shifts handled) are deducted as tardiness = daily rate ÷ 8 ÷ 60 × minutes, and no longer also come off as missing hours; leaving early still does. Step 3 shows a LATE column (amount and minutes); the Excel TARDINESS columns and the GOVT tables' minutes are filled from it.
