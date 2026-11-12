@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-12 19:20 — 0d111db — Plain message for typed hours without a note
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `d39e783` → `0d111db` (includes docs-only `d0a25e4`): a "Type hours" DTR day missing its hours or note now says so in plain words with the employee and date, and step 2's Next stays disabled until both are filled (was the technical "items.7.day_resolutions.2026-11-11.note field is required…").
+- Migrations: none
+- Backup: none (no schema or data change)
+- Data changes: none on live.
+- Verified: locally 18 wizard tests passed (new test for both messages), build passed. On live: server tree clean before and after, nothing to migrate, app back up, login 200, HEAD `0d111db`.
+
 ## 2026-11-12 19:05 — d39e783 — October defaults: allowances, signatories, voucher; overtime panel
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `599f0fa` → `d39e783` (includes docs-only `7af3c63` and `c27d8db`): allowances on a new payroll pre-fill from each employee's monthly allowances ÷ 2; default signatories Prepared Reynold D. Valdez, Certified Katherine Sevilleno, Approved Alexander L. Feria, plus a new "Noted by" (Kurt Vincent F. Fariñas) on every sign-off block and on the voucher; sign-off names use the middle initial; voucher payee "Alexander Feria et. al." and voucher number counted from October 2026 = 0017 (November = 0018); an "Overtime & holiday pay" panel at the top of payroll step 3 with "Add a holiday" for admins. Template rebuilt with `scripts/build-payroll-template.py` (Noted by spots placed only in empty cells).
