@@ -23,7 +23,7 @@ export default function TeamTasks({ tasks = [], employees = [], offices = [], fi
     const [stopAlso, setStopAlso]         = useState(false)
     const detailTask = tasks.find(t => t.id === detailId)
     const [hideTodo, setHideTodo] = useHideTodo()
-    const columns = boardColumns(tasks, manilaToday(), { hideTodo })
+    const columns = boardColumns(tasks, manilaToday())
 
     function applyFilters(next) {
         const merged = { ...filters, ...next }

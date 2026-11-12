@@ -4,8 +4,8 @@ import CardMenu from '@/Components/CardMenu'
 import { boardColumns, daysUntil, isDueToday, manilaToday } from '@/Components/taskGroups'
 
 // Today holds not-started tasks due today; dropping on it sets To do. A started task due today
-// shows in Doing with the Today (amber) look. Late cards keep a red "days late" pill; with To do
-// hidden, late not-started cards sit at the top of Today.
+// shows in Doing with the Today (amber) look. Late not-started cards sit at the top of Today
+// with a red "days late" pill; late cards in Doing stay there.
 const COLUMNS = [
     { key: 'pending', status: 'pending', label: 'To do' },
     { key: 'today',   status: 'pending', label: 'Today' },
@@ -87,7 +87,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
         ;(hideTodo ? showRef : hideRef).current?.focus()
     }, [hideTodo])
     const todayKey = manilaToday()
-    const columns = boardColumns(tasks, todayKey, { hideTodo })
+    const columns = boardColumns(tasks, todayKey)
     const columnTasks = key => key === 'done'
         ? (showOlder ? [...columns.doneRecent, ...columns.doneOlder] : columns.doneRecent)
         : key === 'today' ? [...columns.late, ...columns.today] : columns[key]
@@ -152,7 +152,7 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                         onClick={() => toggleTodo(false)}
                         className={toggleButton}
                     >
-                        Show To do ({columns.pending.length + columns.late.length})
+                        Show To do ({columns.pending.length})
                     </button>
                 </div>
             )}
@@ -270,6 +270,13 @@ export default function TaskBoard({ tasks, onMove, onEdit, onDelete, onOpen, acc
                                     </Fragment>
                                 )
                             })}
+
+                            {lateCount > 0 && columns.today.length === 0 && (
+                                <>
+                                    {subLabel('Due today', 0, 'text-amber-800 dark:text-amber-300')}
+                                    <p className="rounded-xl border border-dashed border-amber-300/70 px-3 py-3 text-center text-xs text-dim">Nothing due today.</p>
+                                </>
+                            )}
 
                             {list.length === 0 && (
                                 <p className="rounded-xl border border-dashed border-border/80 px-3 py-6 text-center text-xs text-dim">

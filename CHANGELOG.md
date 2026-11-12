@@ -12,7 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - On both task boards (Team tasks and My tasks → Board), a task due today can be dragged into Doing and now really moves there. It keeps the amber Today colour and its "Due today" pill so it still stands out. Dragging it back to To do or onto Today returns it to Today; dropping any card on Today sets it to To do.
-- The To do column can be hidden with its Hide button; "Show To do (N)" brings it back. While it is hidden, late tasks that have not been started show at the top of Today under "Late", most late first. Each person's choice is remembered on their own device. Team tasks' header counts follow the columns.
+- Late tasks that have not been started now always sit at the top of the Today column under "Late", most late first, so they are never buried in To do. Below them, "Due today" lists today's tasks, or says "Nothing due today." To do keeps future and undated tasks. Late tasks already in Doing stay in Doing.
+- The To do column can be hidden with its Hide button; "Show To do (N)" brings it back. Each person's choice is remembered on their own device. Team tasks' header counts follow the columns.
 - The smallest text in both portals is now about 11px instead of 10.5px, and table column headings about 11px instead of 9.6px, so labels are easier to read, especially on phones.
 - On a phone, the four attendance numbers on My DTR sit in a two-by-two grid instead of one long column, so the records appear sooner. Stat card titles and notes wrap instead of being cut off with "…".
 - Every page now starts with its page header. Warnings, errors and the Profile "Account setup & signature" link moved just below the header on DTR Archives, DTR Edit Requests, a payroll batch, My DTR and My Profile.

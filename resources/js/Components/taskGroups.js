@@ -34,19 +34,17 @@ export function isDueToday(task, todayKey) {
 
 /**
  * Board columns. Today holds not-started tasks due today; once started they show in Doing.
- * With `hideTodo`, late not-started tasks move from To do into `late` (shown atop Today), most late first.
+ * Late not-started tasks go to `late` (shown atop Today), most late first; To do keeps future and undated ones.
  */
-export function boardColumns(tasks, todayKey, { hideTodo = false } = {}) {
+export function boardColumns(tasks, todayKey) {
     const weekAgo = shiftKey(todayKey, -6)
     const notStarted = tasks.filter(t => t.status === 'pending')
     const isLate = t => (daysUntil(t, todayKey) ?? 0) < 0
     const done = tasks.filter(isDone)
     return {
-        late: hideTodo
-            ? notStarted.filter(isLate).sort((a, b) => daysUntil(a, todayKey) - daysUntil(b, todayKey) || byPriority(a, b))
-            : [],
+        late: notStarted.filter(isLate).sort((a, b) => daysUntil(a, todayKey) - daysUntil(b, todayKey) || byPriority(a, b)),
         today: notStarted.filter(t => isDueToday(t, todayKey)).sort(byPriority),
-        pending: notStarted.filter(t => !isDueToday(t, todayKey) && !(hideTodo && isLate(t))),
+        pending: notStarted.filter(t => !isDueToday(t, todayKey) && !isLate(t)),
         doing: tasks.filter(t => t.status === 'doing'),
         doneRecent: done.filter(t => doneOn(t, todayKey) >= weekAgo),
         doneOlder: done.filter(t => doneOn(t, todayKey) < weekAgo),
