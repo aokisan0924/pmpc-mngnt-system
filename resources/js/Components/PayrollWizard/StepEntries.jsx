@@ -64,7 +64,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                         <Cell label={`Quarterly allowance for ${row.full_name}`} value={row.cutoff_quarterly} onChange={(value) => setTyped(row.id, 'cutoff_quarterly', value)} error={err(row, 'cutoff_quarterly')} />
                                         <td className={strong}>{peso(row.gross_pay)}</td>
                                         <td className={td}>{peso(row.total_deductions)}</td>
-                                        <td className={strong}>{peso(row.net_pay)}</td>
+                                        <td className={`${strong} ${row.net_pay < 0 ? '!text-rose-700 dark:!text-rose-400' : ''}`} title={row.net_pay < 0 ? 'Net pay is below zero' : undefined}>{row.net_pay < 0 ? `(${peso(-row.net_pay)})` : peso(row.net_pay)}</td>
                                     </tr>
                                 ))}
                                 <tr><td colSpan={9} className={total}>TOTAL</td><td className={total}>{peso(sum(visible, 'gross_pay'))}</td><td className={total}>{peso(sum(visible, 'total_deductions'))}</td><td className={total}>{peso(sum(visible, 'net_pay'))}</td></tr>

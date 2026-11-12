@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Payroll step 4 warns in red when anyone's net pay is below zero and lists who; step 3 shows that net pay in red brackets.
 - Payroll access for non-admin staff: employees listed in `PAYROLL_PROCESSOR_EMPLOYEE_IDS` (default `EMP-0003`, Katherine Sevilleno) get a "Process payroll" link and can use Payroll runs (wizard, saved payrolls, Excel, mockup, finalize). They see no other admin pages; "Fix DTR" is hidden for them.
 - Step 4 of the payroll wizard has a "Download mockup Excel" button: it builds the management Excel from the current numbers on live data without saving anything, so a cutoff can be tried out first.
 - `scripts/build-payroll-template.py` rebuilds the management Excel template from HR's October 2026 workbook (6 employee rows per office, signatory markers, PMPC logos kept, no signature pictures, names, amounts or formulas). The Download Management Excel button now fills this October layout: columns are found by their header text, the unworked holiday goes in NPW- HOLIDAY, absences and tardiness go in the deduction tables, and every row and journal balances.

@@ -7,6 +7,7 @@ const sum = (rows, key) => rows.reduce((total, row) => total + (Number(row[key])
 
 export default function StepConfirm({ rows, offices, changed, form, cutoff_open, counted_through, period_title, onSave, onMockup, mockup }) {
     const [confirming, setConfirming] = useState(false)
+    const negative = rows.filter((row) => Number(row.net_pay) < 0)
     const errors = Object.values(form.errors)
     const groups = Object.entries(offices).map(([key, office]) => [office.label, rows.filter((row) => row.payroll_office === key)]).filter(([, list]) => list.length)
 
@@ -16,6 +17,14 @@ export default function StepConfirm({ rows, offices, changed, form, cutoff_open,
                 <h2 id="confirm-title" className="font-heading text-xl font-bold text-text">Confirm {period_title}</h2>
                 <p className="mt-1 text-sm text-sub">The system recalculates from the latest DTR when you save.</p>
             </div>
+            {negative.length > 0 && (
+                <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-900 dark:border-rose-800/60 dark:bg-rose-950/40 dark:text-rose-200">
+                    <p className="font-semibold">Net pay is below zero for {negative.length} employee{negative.length === 1 ? '' : 's'}. Check typed allowances and this cutoff's loan, rent or cash advance before saving.</p>
+                    <ul className="mt-1 list-disc pl-5">
+                        {negative.map((row) => <li key={row.id}>{row.full_name}: ₱ {peso(row.net_pay)}</li>)}
+                    </ul>
+                </div>
+            )}
             {changed.length > 0 && (
                 <p role="status" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
                     DTR changed since you started for {changed.length} employee{changed.length === 1 ? '' : 's'}: {changed.join(', ')}. The numbers below already use the new hours.
