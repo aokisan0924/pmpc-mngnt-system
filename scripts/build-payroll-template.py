@@ -112,6 +112,11 @@ def main():
         clean_office(ws)
     clean_voucher(wb.worksheets[4])
     wb.calculation.fullCalcOnLoad = False
+    # The source file's author and print dates are personal data; never carry them into the template.
+    wb.properties.creator = None
+    wb.properties.lastModifiedBy = None
+    wb.properties.lastPrinted = None
+    wb.properties.title = None
     wb.save(OUT)
     print('wrote', OUT)
 

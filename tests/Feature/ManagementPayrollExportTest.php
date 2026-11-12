@@ -175,6 +175,26 @@ class ManagementPayrollExportTest extends TestCase
         $this->assertEquals(0, $this->underHeader($gen, 3, 'ABSENT', 11));
     }
 
+    public function test_voucher_print_area_follows_the_renamed_sheet(): void
+    {
+        $batch = $this->batch();
+        $this->item($batch);
+        $zip = new ZipArchive;
+        $zip->open($this->exported($batch));
+        $book = $zip->getFromName('xl/workbook.xml');
+        $zip->close();
+        $this->assertStringContainsString('SEPTEMBER 2026 VOUCHER', $book);
+        $this->assertStringNotContainsString('OCTOBER 2026 VOUCHER', $book);
+    }
+
+    public function test_a_saved_row_that_does_not_balance_is_rejected(): void
+    {
+        $batch = $this->batch();
+        $this->item($batch)->update(['net_pay' => 6760.01]);
+        $this->expectException(ValidationException::class);
+        $this->exported($batch);
+    }
+
     public function test_fort_second_grid_uses_its_own_column_order_and_markers_are_replaced(): void
     {
         $batch = $this->batch();
@@ -234,8 +254,9 @@ class ManagementPayrollExportTest extends TestCase
             $doc = new DOMDocument;
             $doc->loadXML($zip->getFromName('xl/worksheets/sheet'.$sheet.'.xml'));
             $this->assertCount(0, $doc->getElementsByTagName('f'));
-            $text = $doc->textContent.$zip->getFromName('xl/sharedStrings.xml');
-            foreach (['YVONNE', 'Michaela', 'CONDO', 'LUCERO', 'MALANA', 'FERIA', 'SEVILLENO', 'Reynold', '12683'] as $previous) {
+            // File properties too: the source workbook's author must not ship with the template.
+            $text = $doc->textContent.$zip->getFromName('xl/sharedStrings.xml').$zip->getFromName('docProps/core.xml').$zip->getFromName('docProps/app.xml');
+            foreach (['YVONNE', 'Michaela', 'Sapla', 'Jeffrae', 'CONDO', 'LUCERO', 'MALANA', 'FERIA', 'SEVILLENO', 'Reynold', '12683'] as $previous) {
                 $this->assertStringNotContainsString($previous, $text);
             }
         }

@@ -228,7 +228,14 @@ class ManagementPayrollExport
             $book = $this->document($zip->getFromName('xl/workbook.xml'));
             $xpath = new DOMXPath($book);
             $xpath->registerNamespace('s', self::NS);
-            $xpath->query('//s:sheet')->item(4)->setAttribute('name', strtoupper($selected->period_from->format('F Y')).' VOUCHER');
+            $voucherSheet = $xpath->query('//s:sheet')->item(4);
+            $oldName = $voucherSheet->getAttribute('name');
+            $newName = strtoupper($selected->period_from->format('F Y')).' VOUCHER';
+            $voucherSheet->setAttribute('name', $newName);
+            // Defined names (the voucher print area) refer to the sheet by name, so follow the rename.
+            foreach ($xpath->query('//s:definedName') as $definedName) {
+                $definedName->nodeValue = str_replace("'".$oldName."'", "'".$newName."'", $definedName->nodeValue);
+            }
             $zip->addFromString('xl/workbook.xml', $book->saveXML());
             if (! $zip->close()) {
                 throw new \RuntimeException('Could not finish the payroll export.');
@@ -260,7 +267,7 @@ class ManagementPayrollExport
         $gross = round($basic + $overtime + $allowances - $gridNpw - $gridAbsent, 2);
         $deductions = round($field('total_deductions') + $tableAbsent, 2);
         $net = $field('net_pay');
-        if (abs(round($gross - $deductions - $net, 2)) > 0.01) {
+        if (abs(round($gross - $deductions - $net, 2)) >= 0.005) {
             $this->reject("The saved {$cutoff} cutoff item for {$name} does not balance: gross {$gross} minus deductions {$deductions} is not the net pay {$net}. Re-save that payroll before exporting.");
         }
         $pesos = array_map($field, ['W/H TAX' => 'tax_deduction', 'SSS' => 'sss_deduction', 'PHILHEALTH' => 'philhealth_deduction', 'PAGIBIG' => 'pagibig_deduction', 'LOAN' => 'loan_deduction', 'CC' => 'capital_contribution_deduction', 'SAVINGS' => 'savings_deduction', 'CASH ADVANCE' => 'cash_advance_deduction', 'RENTAL' => 'rental_deduction']);
