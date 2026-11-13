@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-13 12:09 — 8141753 — Prepared by signature in the management Excel
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `dec2d82` → `8141753` (includes docs-only commits): the management Excel now prints the Prepared by person's uploaded signature (Reynold D. Valdez by default) above their name on every office sheet and on the voucher, trimmed to the ink and sized to the row space. Certified Correct and Approved by stay names only, a change from the old names-only rule, at Kurt's request. Checked visually by rendering a sample to PDF with WPS Spreadsheets.
+- Migrations: none
+- Backup: none (no schema or data change)
+- Data changes: none. Reynold's signature was already on his record (uploaded 2026-10-19); the image Kurt sent matched it, so nothing was uploaded.
+- Verified: locally 480 of 480 PHP tests passed with GD enabled. On live: HEAD `8141753`, umask 0022, 0 tracked files at 600, login and JS/CSS 200. Exporting the finalized November 1st cutoff payroll (id 19) placed the signature 9 times (the 1st-cutoff Prepared by areas and the voucher); the file was deleted and the payroll is still finalized.
+
 ## 2026-11-13 12:01 — dec2d82 — Excel letterhead: logo beside the address
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `f3435a7` → `dec2d82` (includes docs-only commits): in the management Excel template, every table that carries the address lines now has the logo at its left edge with the address right beside it (left-aligned); tables that had no logo, such as the 2nd cutoff grid, get a copy. The voucher is unchanged. Checked visually by rendering the template to PDF with WPS Spreadsheets.
