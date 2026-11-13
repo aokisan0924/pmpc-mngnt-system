@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - On Dues, "Undo payment" and "Stop"/"Resume" now show an Undo link in the confirmation message. Undo puts back the same paid date, amount and note, or flips the due back.
 
 ### Fixed
+- Management Excel: column widths were lost when the ELECTRICITY and ADJUSTMENT columns were added, so names were squeezed and amounts showed as ####. Widths are restored (names 30), and every amount column is at least 15 wide so values up to 999,999.99 show at 12 pt.
 - Payroll review fixes: a full "late" day whose first punch is after lunch is now charged its late minutes (was paid in full with no tardiness); Monday–Friday staff hired after a cutoff starts are paid only for the weekdays from the hire date (was 11 minus the weekdays before it, which paid days before they started); the NWNP amount can no longer exceed the whole absence; days present is rounded once, like the screen; SSS, PhilHealth and Pag-IBIG are always 0 on the 2nd cutoff, even if posted.
 - Payroll: a "Type hours" day without hours or a note now gives a plain message ("Add a short note for … typed hours on Nov 11.") instead of a technical field name, and step 2's Next stays disabled until both are filled.
 - A holiday on the last day of a payroll window is now always found (the date comparison ignores any stored time part).

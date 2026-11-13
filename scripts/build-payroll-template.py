@@ -18,6 +18,7 @@ import openpyxl
 import openpyxl.reader.drawings
 from openpyxl.drawing.image import Image
 from openpyxl.formatting.formatting import ConditionalFormattingList
+from openpyxl.worksheet.dimensions import ColumnDimension, DimensionHolder
 from openpyxl.utils import column_index_from_string, get_column_letter
 from openpyxl.worksheet.cell_range import CellRange
 
@@ -149,10 +150,9 @@ def insert_column(ws, at, source):
 
     openpyxl's insert_cols moves only the cells, so everything else is moved here by hand.
     """
-    widths = {}
-    for dim in ws.column_dimensions.values():
-        for i in range(dim.min or 1, (dim.max or dim.min or 1) + 1):
-            widths[i] = (dim.width, dim.hidden)
+    # Column widths are ranges (min..max); shift them as ranges, splitting the one the new column falls inside.
+    ranges = [(d.min, d.max, d.width, d.hidden) for d in ws.column_dimensions.values() if d.min]
+    source_width = next((w for lo, hi, w, h in ranges if lo <= source <= hi), None)
     merged = [CellRange(str(r)) for r in ws.merged_cells.ranges]
     for r in merged:
         ws.unmerge_cells(str(r))
@@ -163,15 +163,20 @@ def insert_column(ws, at, source):
         elif r.max_col >= at:
             r.expand(right=1)
         ws.merge_cells(str(r))
-    for key in list(ws.column_dimensions.keys()):
-        del ws.column_dimensions[key]
-    for i, (width, hidden) in sorted(widths.items()):
-        target = i + 1 if i >= at else i
-        if width:
-            ws.column_dimensions[get_column_letter(target)].width = width
-        ws.column_dimensions[get_column_letter(target)].hidden = hidden
-    if source in widths and widths[source][0]:
-        ws.column_dimensions[get_column_letter(at)].width = widths[source][0]
+    shifted = []
+    for lo, hi, width, hidden in ranges:
+        if hi < at:
+            shifted.append((lo, hi, width, hidden))
+        elif lo >= at:
+            shifted.append((min(lo + 1, 16384), min(hi + 1, 16384), width, hidden))
+        else:
+            shifted += [(lo, at - 1, width, hidden), (at + 1, min(hi + 1, 16384), width, hidden)]
+    shifted.append((at, at, source_width, False))
+    ws.column_dimensions = DimensionHolder(worksheet=ws)
+    for lo, hi, width, hidden in sorted(shifted):
+        dim = ColumnDimension(ws, index=get_column_letter(lo), width=width, hidden=hidden, customWidth=bool(width))
+        dim.min, dim.max = lo, hi
+        ws.column_dimensions[get_column_letter(lo)] = dim
     for row in range(1, ws.max_row + 1):
         ws.cell(row, at)._style = copy.copy(ws.cell(row, source)._style)
     for image in ws._images:
@@ -231,6 +236,32 @@ def add_adjustment_columns(ws):
                 target.value, label.value = label.value, None
 
 
+def widen_for_reading(ws):
+    """Readable widths: names and positions at least 30, every other row-10 column at least 15 (fits 999,999.99 at 12 pt)."""
+    for c in ws[10]:
+        header = str(c.value or '').strip().upper()
+        if not header:
+            continue
+        minimum = 30 if header in ('EMPLOYEE NAME', 'POSITION') else 15
+        dim = next((d for d in ws.column_dimensions.values() if d.min and d.min <= c.column <= d.max), None)
+        if dim is not None and dim.min != dim.max:
+            # Split a shared range so only this column changes.
+            lo, hi, width, hidden = dim.min, dim.max, dim.width, dim.hidden
+            del ws.column_dimensions[get_column_letter(lo)]
+            for part_lo, part_hi in ((lo, c.column - 1), (c.column, c.column), (c.column + 1, hi)):
+                if part_lo <= part_hi:
+                    part = ColumnDimension(ws, index=get_column_letter(part_lo), width=width, hidden=hidden, customWidth=bool(width))
+                    part.min, part.max = part_lo, part_hi
+                    ws.column_dimensions[get_column_letter(part_lo)] = part
+            dim = ws.column_dimensions[get_column_letter(c.column)]
+        if dim is None:
+            dim = ColumnDimension(ws, index=c.column_letter)
+            dim.min = dim.max = c.column
+            ws.column_dimensions[c.column_letter] = dim
+        if (dim.width or 0) < minimum:
+            dim.width = minimum
+
+
 def relayout_voucher(ws):
     """Voucher: Prepared by Reynold (C31) and Kurt (D31), Certified Correct by Katherine (H31)."""
     ws['D29'].value = None
@@ -262,6 +293,7 @@ def main():
         reorder_signoffs(ws)
         add_electricity_columns(ws)
         add_adjustment_columns(ws)
+        widen_for_reading(ws)
     clean_voucher(wb.worksheets[4])
     relayout_voucher(wb.worksheets[4])
     wb.calculation.fullCalcOnLoad = False

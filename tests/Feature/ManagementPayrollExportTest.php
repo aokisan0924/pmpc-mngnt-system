@@ -388,4 +388,31 @@ class ManagementPayrollExportTest extends TestCase
             $this->assertSame(['GROSS PAY', 'GROSS PAY', 'ELECTRICITY', 'ELECTRICITY', 'ELECTRICITY', 'ELECTRICITY'], array_map(fn (int $i): string => $i < 30 && $row[$i + 1] === 'GROSS PAY' ? 'GROSS PAY' : $row[$i - 1], $positions), "sheet $sheet");
         }
     }
+
+    public function test_template_columns_are_wide_enough_to_read(): void
+    {
+        // Names need room; every amount column must fit 999,999.99 at the sheet's 12 pt (no ####).
+        $zip = new ZipArchive;
+        $zip->open(resource_path('payroll/management-template.xlsx'));
+        foreach (range(1, 4) as $sheet) {
+            $doc = new DOMDocument;
+            $doc->loadXML($zip->getFromName("xl/worksheets/sheet$sheet.xml"));
+            $widths = [];
+            foreach ($doc->getElementsByTagName('col') as $col) {
+                foreach (range((int) $col->getAttribute('min'), min((int) $col->getAttribute('max'), 200)) as $index) {
+                    $widths[$index] = (float) $col->getAttribute('width');
+                }
+            }
+            $cells = $this->sheetCells(resource_path('payroll/management-template.xlsx'), $sheet);
+            foreach ($cells as $address => $text) {
+                if (! preg_match('/^([A-Z]+)10$/', $address, $match) || $text === '') {
+                    continue;
+                }
+                $index = array_reduce(str_split($match[1]), fn (int $sum, string $char): int => $sum * 26 + ord($char) - 64, 0);
+                $minimum = in_array($text, ['EMPLOYEE NAME', 'POSITION'], true) ? 25 : 14;
+                $this->assertGreaterThanOrEqual($minimum, $widths[$index] ?? 0, "sheet $sheet column {$match[1]} ($text)");
+            }
+        }
+        $zip->close();
+    }
 }
