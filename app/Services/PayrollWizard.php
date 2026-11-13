@@ -133,6 +133,7 @@ class PayrollWizard
                     // Numbers typed over on step 3, and the system's own numbers (shown faded, restored by undo).
                     'overrides' => (object) ($item->overrides ?? []),
                     'holiday_hours' => (object) ($item->holiday_hours ?? []),
+                    'adjustment_note' => (string) ($item->adjustment_note ?? ''),
                     'system' => [
                         ...collect(OfficePayrollCalculator::DEDUCTIONS)->mapWithKeys(fn (string $field): array => [$field => $suggested[$field]])->all(),
                         'days_present' => $suggested['days_present'],
@@ -140,6 +141,12 @@ class PayrollWizard
                         'nwnp_deduction' => $suggested['nwnp_deduction'],
                         'other_absence' => round($suggested['absence_deduction'] - $suggested['nwnp_deduction'], 2),
                         'tardiness_deduction' => $suggested['tardiness_deduction'],
+                        // Pesos and totals are shown faded beside a typed value; the screen recomputes them live.
+                        'weekday_ot_pay' => $suggested['weekday_ot_pay'],
+                        'weekend_ot_pay' => $suggested['weekend_ot_pay'],
+                        'worked_holiday_pay' => $suggested['worked_holiday_pay'],
+                        'gross_pay' => round($suggested['gross_pay'] + $suggested['absence_deduction'] - $suggested['nwnp_deduction'], 2),
+                        'net_pay' => $suggested['net_pay'],
                     ],
                 ];
             })->values(),
@@ -206,6 +213,7 @@ class PayrollWizard
                     'dtr_unresolved_dates' => [],
                     'day_resolutions' => $row['day_resolutions'] ?? [],
                     'overrides' => $row['overrides'] ?: null,
+                    'adjustment_note' => trim((string) ($row['adjustment_note'] ?? '')) ?: null,
                     // Hours typed for holidays worked without punches, keyed by date (blank = none).
                     'holiday_hours' => array_filter($row['holiday_hours'] ?? [], fn ($hours): bool => $hours !== null && $hours !== '' && (float) $hours > 0) ?: null,
                     'dtr_reconciliation_note' => collect($row['day_resolutions'] ?? [])->filter(fn (array $r): bool => $r['type'] === 'hours')

@@ -47,17 +47,23 @@ export function calculateHoursItem(item, isFirst) {
     const cutoff_transpo = money(item.cutoff_transpo)
     const cutoff_rep = money(item.cutoff_rep)
     const cutoff_quarterly = money(item.cutoff_quarterly)
-    const weekday_ot_pay = money(hourly * 1.25 * Number(item.weekday_ot_hours || 0))
-    const weekend_ot_pay = money(hourly * 1.30 * Number(item.weekend_ot_hours || 0))
+    const weekday_ot_pay = typed('weekday_ot_pay') ?? money(hourly * 1.25 * Number(item.weekday_ot_hours || 0))
+    const weekend_ot_pay = typed('weekend_ot_pay') ?? money(hourly * 1.30 * Number(item.weekend_ot_hours || 0))
     const holiday_pay = money(item.holiday_pay)
-    const worked_holiday_pay = workedHolidayPay(item.holiday_work || [], item.holiday_hours || {}, rate)
-    const gross_pay = money(cutoff_basic + cutoff_transpo + cutoff_rep + cutoff_quarterly + weekday_ot_pay + weekend_ot_pay + holiday_pay + worked_holiday_pay)
+    const worked_holiday_pay = typed('worked_holiday_pay') ?? workedHolidayPay(item.holiday_work || [], item.holiday_hours || {}, rate)
+    const system_gross = money(cutoff_basic + cutoff_transpo + cutoff_rep + cutoff_quarterly + weekday_ot_pay + weekend_ot_pay + holiday_pay + worked_holiday_pay)
+    // A typed gross or net (agreed with the employee) becomes a visible adjustment, as on the server.
+    // The sheet's GROSS PAY is before Absent (Absent sits in the deductions table), so that is what HR types.
+    const earnings_adjustment = typed('gross_pay') === null ? 0 : money(typed('gross_pay') - (system_gross + absence_deduction - nwnp_deduction))
+    const gross_pay = money(system_gross + earnings_adjustment)
     // SSS & co. are suggested only on the 1st cutoff by the server; an amount typed on the 2nd is deducted.
     const deductions = { ...item.deductions }
     // October formula for lates: daily rate / 8 / 60 x minutes late.
     const tardiness_deduction = typed('tardiness_deduction') ?? money(rate / 8 / 60 * Number(item.tardiness_minutes || 0))
-    const total_deductions = money(Object.values(deductions).reduce((sum, value) => sum + money(value), 0) + tardiness_deduction)
+    const system_deductions = money(Object.values(deductions).reduce((sum, value) => sum + money(value), 0) + tardiness_deduction)
+    const deductions_adjustment = typed('net_pay') === null ? 0 : money(gross_pay - typed('net_pay') - system_deductions)
+    const total_deductions = money(system_deductions + deductions_adjustment)
     const days_of_work = fixed ?? days.length
     const days_present = typed('days_present') ?? (rate > 0 ? Math.round((days_of_work - absence_deduction / rate) * 100) / 100 : 0)
-    return { ...item, deductions, tardiness_deduction, days_of_work, days_present, nwnp_deduction, other_absence, sheet_gross: money(gross_pay + absence_deduction - nwnp_deduction), sheet_deductions: money(total_deductions + other_absence), basic_before_absence, absence_deduction, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, weekday_ot_pay, weekend_ot_pay, total_ot_pay: money(weekday_ot_pay + weekend_ot_pay), holiday_pay, worked_holiday_pay, holiday_paid_twice: holiday_pay > 0 && worked_holiday_pay > 0, capped, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
+    return { ...item, deductions, tardiness_deduction, days_of_work, days_present, nwnp_deduction, other_absence, sheet_gross: money(gross_pay + absence_deduction - nwnp_deduction), sheet_deductions: money(total_deductions + other_absence), basic_before_absence, absence_deduction, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, weekday_ot_pay, weekend_ot_pay, total_ot_pay: money(weekday_ot_pay + weekend_ot_pay), holiday_pay, worked_holiday_pay, holiday_paid_twice: holiday_pay > 0 && worked_holiday_pay > 0, capped, earnings_adjustment, deductions_adjustment, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
 }

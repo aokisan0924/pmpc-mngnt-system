@@ -134,3 +134,29 @@ test('a typed holiday premium next to automatic holiday work pay is flagged', ()
     assert.equal(both.holiday_paid_twice, true)
     assert.equal(holidayWork([['2026-11-02', 'special', false, 12, 12, 12]]).holiday_paid_twice, false)
 })
+
+// Same numbers as HoursPayrollCalculatorTest: one 8 h day at 600 plus 2 weekday OT hours (gross 787.50).
+const oneDay = (overrides) => calculateHoursItem(item({ days: days(8, [8]), deductions: {}, weekday_ot_hours: 2, overrides }), true)
+
+test('typed overtime and holiday work pesos replace the system amounts', () => {
+    const row = oneDay({ weekday_ot_pay: 1000, weekend_ot_pay: 50, worked_holiday_pay: 300 })
+    assert.equal(row.total_ot_pay, 1050)
+    assert.equal(row.worked_holiday_pay, 300)
+    assert.equal(row.gross_pay, 1950)
+    assert.equal(row.earnings_adjustment, 0)
+})
+
+test('typed gross and net become visible adjustments', () => {
+    assert.equal(oneDay({ gross_pay: 1000 }).earnings_adjustment, 212.5)
+    assert.equal(oneDay({ gross_pay: 1000 }).net_pay, 1000)
+    assert.equal(oneDay({ net_pay: 700 }).deductions_adjustment, 87.5)
+    assert.equal(oneDay({ net_pay: 800 }).deductions_adjustment, -12.5)
+    const both = oneDay({ gross_pay: 1000, net_pay: 900 })
+    assert.deepEqual([both.earnings_adjustment, both.deductions_adjustment, both.gross_pay, both.total_deductions, both.net_pay], [212.5, 100, 1000, 100, 900])
+})
+
+test('a typed gross is the sheet gross before absences', () => {
+    const row = oneAbsence({ gross_pay: 7000 })
+    assert.equal(row.earnings_adjustment, 400)
+    assert.equal(row.sheet_gross, 7000)
+})

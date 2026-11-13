@@ -10,7 +10,7 @@ import StepEntries from '@/Components/PayrollWizard/StepEntries'
 import StepConfirm from '@/Components/PayrollWizard/StepConfirm'
 
 const STEPS = ['Cutoff', 'DTR check', 'OT & allowances', 'Confirm']
-const TYPED = ['weekday_ot_hours', 'weekend_ot_hours', 'holiday_pay', 'cutoff_transpo', 'cutoff_rep', 'cutoff_quarterly', 'deductions', 'day_resolutions', 'overrides', 'holiday_hours']
+const TYPED = ['weekday_ot_hours', 'weekend_ot_hours', 'holiday_pay', 'cutoff_transpo', 'cutoff_rep', 'cutoff_quarterly', 'deductions', 'day_resolutions', 'overrides', 'holiday_hours', 'adjustment_note']
 
 // Apply HR's choice for a problem day on screen; the server repeats this on save.
 function withResolutions(days, resolutions) {

@@ -42,8 +42,8 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
     }
     const typedOver = (row, key) => row.overrides?.[key] !== undefined && row.overrides?.[key] !== null && row.overrides?.[key] !== ''
     // A computed number HR may type over; the sheet shows the typed value or the system's.
-    const Over = ({ row, field, label, step }) => (
-        <Cell label={`${label} for ${row.full_name}`} step={step} value={shownOverride(row, field)} system={row.system?.[field]}
+    const Over = ({ row, field, label, step, shown }) => (
+        <Cell label={`${label} for ${row.full_name}`} step={step} value={Object.hasOwn(row.overrides ?? {}, field) && row.overrides[field] !== null ? row.overrides[field] : (shown ?? shownOverride(row, field))} system={row.system?.[field]}
             changed={typedOver(row, field) || Object.hasOwn(row.overrides ?? {}, field)} onReset={() => override(row, field, null)} onChange={(value) => override(row, field, value)}
             error={err(row, `overrides.${field}`) || (row.capped?.[field] !== undefined ? `Capped at ${peso(row.capped[field])}: absences cannot be more than basic pay` : undefined)} />
     )
@@ -75,7 +75,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                     <table className="w-full min-w-[900px] border-collapse text-xs">
                         <thead>
                             <tr className="text-left text-sub">
-                                {['Employee', 'Weekday OT hours (125%)', 'Rest-day OT hours (130%)', 'Holiday premium ₱', 'Hours worked on holidays', 'Holiday work pay (DOLE)', 'Overtime + premium'].map((label) => <th key={label} className="px-2 py-2 font-semibold">{label}</th>)}
+                                {['Employee', 'Weekday OT hours (125%)', 'Rest-day OT hours (130%)', 'Holiday premium ₱', 'Weekday OT pay ₱', 'Rest-day OT pay ₱', 'Hours worked on holidays', 'Holiday work pay ₱ (DOLE)', 'Overtime + premium'].map((label) => <th key={label} className="px-2 py-2 font-semibold">{label}</th>)}
                             </tr>
                         </thead>
                         <tbody>
@@ -92,6 +92,8 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                             />
                                         </td>
                                     ))}
+                                    {Over({ row, field: 'weekday_ot_pay', label: 'Weekday overtime pay' })}
+                                    {Over({ row, field: 'weekend_ot_pay', label: 'Rest-day overtime pay' })}
                                     <td className="px-2 py-1.5">
                                         {(row.holiday_work ?? []).length === 0 && <span className="text-sub">—</span>}
                                         {(row.holiday_work ?? []).map((holiday) => {
@@ -114,11 +116,11 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                         })}
                                         {err(row, 'holiday_hours') && <p role="alert" className="text-rose-700">{err(row, 'holiday_hours')}</p>}
                                     </td>
-                                    <td className="px-2 py-1.5 text-right tabular-nums text-text" title="DOLE rate for the hours worked, minus pay already counted for that day">
-                                        ₱ {peso(row.worked_holiday_pay)}
-                                        {row.holiday_paid_twice && <p role="alert" className="mt-1 whitespace-normal text-left text-[11px] font-semibold text-amber-800 dark:text-amber-300">Also has a typed holiday premium. Check it isn't paid twice.</p>}
+                                    {Over({ row, field: 'worked_holiday_pay', label: 'Holiday work pay' })}
+                                    <td className="px-2 py-1.5 text-right font-semibold tabular-nums text-text">
+                                        ₱ {peso(Number(row.total_ot_pay) + Number(row.holiday_pay || 0) + Number(row.worked_holiday_pay || 0))}
+                                        {row.holiday_paid_twice && <p role="alert" className="mt-1 max-w-[180px] whitespace-normal text-left text-[11px] font-semibold text-amber-800 dark:text-amber-300">Also has a typed holiday premium. Check it isn't paid twice.</p>}
                                     </td>
-                                    <td className="px-2 py-1.5 text-right font-semibold tabular-nums text-text">₱ {peso(Number(row.total_ot_pay) + Number(row.holiday_pay || 0) + Number(row.worked_holiday_pay || 0))}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -145,7 +147,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                         <p className="mb-1 text-center text-sm font-bold text-black dark:text-white">{period_title}</p>
                         <table className="w-full border-collapse text-xs">
                             <thead>
-                                <tr>{['Employee name', 'Position', 'Days of work', 'Basic pay', 'Overtime pay', 'Transpo allow', 'Rep allow', 'Quart allow', 'NPW- Holiday', 'Gross pay', 'Deductions', 'Net pay'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
+                                <tr>{['Employee name', 'Position', 'Days of work', 'Basic pay', 'Overtime pay', 'Transpo allow', 'Rep allow', 'Quart allow', 'NPW- Holiday', 'Adjustment', 'Gross pay', 'Deductions', 'Net pay'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
                             </thead>
                             <tbody>
                                 {visible.map((row) => (
@@ -159,12 +161,20 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                         <Cell label={`Representation allowance for ${row.full_name}`} value={row.cutoff_rep} onChange={(value) => setTyped(row.id, 'cutoff_rep', value)} error={err(row, 'cutoff_rep')} />
                                         <Cell label={`Quarterly allowance for ${row.full_name}`} value={row.cutoff_quarterly} onChange={(value) => setTyped(row.id, 'cutoff_quarterly', value)} error={err(row, 'cutoff_quarterly')} />
                                         {Over({ row, field: 'nwnp_deduction', label: 'NPW-Holiday (no work, no pay)' })}
-                                        <td className={strong}>{peso(row.sheet_gross)}</td>
+                                        <td className={td} title="Difference from a typed gross pay">
+                                            {peso(row.earnings_adjustment)}
+                                            {(Number(row.earnings_adjustment) !== 0 || Number(row.deductions_adjustment) !== 0) && (
+                                                <input type="text" maxLength={255} value={row.adjustment_note ?? ''} placeholder="Reason (e.g. agreed with employee)"
+                                                    aria-label={`Reason for the adjustment for ${row.full_name}`} onChange={(event) => setTyped(row.id, 'adjustment_note', event.target.value)}
+                                                    className="mt-1 block h-9 w-44 rounded border border-border bg-yellow-50 px-2 text-left text-[11px] text-black dark:bg-yellow-950/40 dark:text-slate-100" />
+                                            )}
+                                        </td>
+                                        {Over({ row, field: 'gross_pay', label: 'Gross pay (typed: the difference becomes an adjustment)', shown: row.sheet_gross })}
                                         <td className={td}>{peso(row.sheet_deductions)}</td>
-                                        <td className={`${strong} ${row.net_pay < 0 ? '!text-rose-700 dark:!text-rose-400' : ''}`} title={row.net_pay < 0 ? 'Net pay is below zero' : undefined}>{row.net_pay < 0 ? `(${peso(-row.net_pay)})` : peso(row.net_pay)}</td>
+                                        {Over({ row, field: 'net_pay', label: row.net_pay < 0 ? 'Net pay (below zero)' : 'Net pay (typed: the difference becomes a deductions adjustment)' })}
                                     </tr>
                                 ))}
-                                <tr><td colSpan={9} className={total}>TOTAL</td><td className={total}>{peso(sum(visible, 'sheet_gross'))}</td><td className={total}>{peso(sum(visible, 'sheet_deductions'))}</td><td className={total}>{peso(sum(visible, 'net_pay'))}</td></tr>
+                                <tr><td colSpan={10} className={total}>TOTAL</td><td className={total}>{peso(sum(visible, 'sheet_gross'))}</td><td className={total}>{peso(sum(visible, 'sheet_deductions'))}</td><td className={total}>{peso(sum(visible, 'net_pay'))}</td></tr>
                             </tbody>
                         </table>
                         {holidays.length > 0 && <p className="mt-1 text-xs text-black dark:text-slate-300">NPW- Holiday: {holidays.map((holiday) => holiday.label).join(', ')} (no work, no pay). Other absences, lates and early-outs are under ABSENT in the deductions.</p>}
@@ -173,7 +183,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                         <p className="text-center text-base font-bold text-black dark:text-white">GOVT &amp; OTHER DEDUCTIONS</p>
                         <table className="mt-1 w-full border-collapse text-xs">
                             <thead>
-                                <tr>{['Employee name', 'W/H tax', 'SSS', 'PhilHealth', 'Pag-IBIG', 'Loan', 'CC', 'Cash advance', 'Absent', 'Late', 'Rental', 'Electricity', 'Total'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
+                                <tr>{['Employee name', 'W/H tax', 'SSS', 'PhilHealth', 'Pag-IBIG', 'Loan', 'CC', 'Cash advance', 'Absent', 'Late', 'Rental', 'Electricity', 'Adjustment', 'Total'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
                             </thead>
                             <tbody>
                                 {visible.map((row) => (
@@ -186,6 +196,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                         {Over({ row, field: 'tardiness_deduction', label: Number(row.tardiness_minutes) ? `Late (${row.tardiness_minutes} min)` : 'Late' })}
                                         {Ded({ row, field: 'rental_deduction', label: 'Rental' })}
                                         {Ded({ row, field: 'electricity_deduction', label: 'Electricity' })}
+                                        <td className={td} title="Difference from a typed net pay (negative lowers the deductions)">{Number(row.deductions_adjustment) < 0 ? `(${peso(-row.deductions_adjustment)})` : peso(row.deductions_adjustment)}</td>
                                         <td className={strong}>{peso(row.sheet_deductions)}</td>
                                     </tr>
                                 ))}

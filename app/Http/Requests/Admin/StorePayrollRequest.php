@@ -46,6 +46,7 @@ class StorePayrollRequest extends FormRequest
             ...collect(OfficePayrollCalculator::DEDUCTIONS)->mapWithKeys(fn (string $field): array => ["items.*.deductions.$field" => ['required', 'numeric', 'min:0', 'max:99999999']])->all(),
             'items.*.overrides' => ['nullable', 'array:'.implode(',', OfficePayrollCalculator::OVERRIDES)],
             'items.*.overrides.*' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+            'items.*.adjustment_note' => ['nullable', 'string', 'max:255'],
             'items.*.holiday_hours' => ['nullable', 'array'],
             'items.*.holiday_hours.*' => ['nullable', 'numeric', 'min:0', 'max:24'],
             'items.*.day_resolutions' => ['nullable', 'array'],

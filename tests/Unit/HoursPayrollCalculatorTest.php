@@ -295,4 +295,63 @@ class HoursPayrollCalculatorTest extends TestCase
         $this->assertSame(258.0, $this->holidayWork([['2026-11-02', 'special', false, 12.0, 12.0, 12.0]], ['2026-11-02' => 2])['worked_holiday_pay']);
         $this->assertSame(0.0, $this->holidayWork([['2026-11-02', 'special', false, 8.0, null, 0.0]])['worked_holiday_pay']);
     }
+
+    /** One 8 h day at 600: gross 600, no deductions. */
+    private function oneDay(array $overrides): array
+    {
+        return $this->calc($this->employee(), $this->attendance(8, [8]), ['overrides' => $overrides, 'weekday_ot_hours' => 2]);
+    }
+
+    public function test_typed_overtime_and_holiday_work_pay_replace_the_system_pesos(): void
+    {
+        $result = $this->oneDay(['weekday_ot_pay' => 1000, 'weekend_ot_pay' => 50, 'worked_holiday_pay' => 300]);
+
+        $this->assertSame(1000.0, $result['weekday_ot_pay']);
+        $this->assertSame(50.0, $result['weekend_ot_pay']);
+        $this->assertSame(1050.0, $result['total_ot_pay']);
+        $this->assertSame(300.0, $result['worked_holiday_pay']);
+        $this->assertSame(1950.0, $result['gross_pay']);
+        $this->assertSame(0.0, $result['earnings_adjustment']);
+    }
+
+    public function test_typed_gross_adds_an_earnings_adjustment(): void
+    {
+        // System gross: 600 basic + 2 h x 75 x 1.25 = 787.50.
+        $result = $this->oneDay(['gross_pay' => 1000]);
+
+        $this->assertSame(212.5, $result['earnings_adjustment']);
+        $this->assertSame(1000.0, $result['gross_pay']);
+        $this->assertSame(1000.0, $result['net_pay']);
+    }
+
+    public function test_typed_net_adds_a_deductions_adjustment_that_can_be_negative(): void
+    {
+        $lower = $this->oneDay(['net_pay' => 700]);
+        $this->assertSame(87.5, $lower['deductions_adjustment']);
+        $this->assertSame(87.5, $lower['total_deductions']);
+        $this->assertSame(700.0, $lower['net_pay']);
+
+        $higher = $this->oneDay(['net_pay' => 800]);
+        $this->assertSame(-12.5, $higher['deductions_adjustment']);
+        $this->assertSame(800.0, $higher['net_pay']);
+        $this->assertSame(787.5, $higher['gross_pay']);
+    }
+
+    public function test_typed_gross_and_net_set_both_adjustments(): void
+    {
+        $result = $this->oneDay(['gross_pay' => 1000, 'net_pay' => 900]);
+
+        $this->assertSame(212.5, $result['earnings_adjustment']);
+        $this->assertSame(100.0, $result['deductions_adjustment']);
+        $this->assertSame([1000.0, 100.0, 900.0], [$result['gross_pay'], $result['total_deductions'], $result['net_pay']]);
+    }
+
+    public function test_typed_gross_is_the_sheet_gross_before_absences(): void
+    {
+        // The step 3 sheet shows gross before Absent (Absent is in the deductions table): 6000 + 600 = 6600.
+        $result = $this->oneAbsence(['gross_pay' => 7000]);
+
+        $this->assertSame(400.0, $result['earnings_adjustment']);
+        $this->assertSame(7000.0, $result['gross_pay'] + $result['absence_deduction'] - $result['nwnp_deduction']);
+    }
 }

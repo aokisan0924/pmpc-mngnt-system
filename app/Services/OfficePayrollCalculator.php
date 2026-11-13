@@ -15,7 +15,10 @@ class OfficePayrollCalculator
     ];
 
     /** Computed step 3 numbers HR may type over (saved per payroll item, never on the employee). */
-    public const OVERRIDES = ['days_present', 'basic_before_absence', 'nwnp_deduction', 'other_absence', 'tardiness_deduction'];
+    public const OVERRIDES = [
+        'days_present', 'basic_before_absence', 'nwnp_deduction', 'other_absence', 'tardiness_deduction',
+        'weekday_ot_pay', 'weekend_ot_pay', 'worked_holiday_pay', 'gross_pay', 'net_pay',
+    ];
 
     public const OFFICES = [
         'main_office' => ['label' => 'Main Office', 'days' => 11],
@@ -90,7 +93,22 @@ class OfficePayrollCalculator
 
         $amounts['worked_holiday_pay'] = $this->workedHolidayPay($attendance['holiday_work'] ?? [], $inputs['holiday_hours'] ?? [], $rate);
 
-        return $this->totals($this->applyOverrides($amounts, $inputs['overrides'] ?? [], $rate));
+        $overrides = $inputs['overrides'] ?? [];
+        $amounts = $this->totals($this->applyOverrides($amounts, $overrides, $rate));
+
+        // A typed gross or net (agreed with the employee) never breaks the sums: the difference is a visible adjustment.
+        $typedTotal = fn (string $key): ?float => isset($overrides[$key]) && $overrides[$key] !== '' ? round((float) $overrides[$key], 2) : null;
+        if (($gross = $typedTotal('gross_pay')) !== null) {
+            // The sheet's GROSS PAY is before Absent (Absent sits in the deductions table), so that is what HR types.
+            $amounts['earnings_adjustment'] = round($gross - ($amounts['gross_pay'] + $amounts['absence_deduction'] - $amounts['nwnp_deduction']), 2);
+            $amounts = $this->totals($amounts);
+        }
+        if (($net = $typedTotal('net_pay')) !== null) {
+            $amounts['deductions_adjustment'] = round($amounts['gross_pay'] - $net - $amounts['total_deductions'], 2);
+            $amounts = $this->totals($amounts);
+        }
+
+        return $amounts;
     }
 
     /**
@@ -143,6 +161,11 @@ class OfficePayrollCalculator
         $amounts['absence_days'] = $rate > 0 ? round($absence / $rate, 2) : 0.0;
         $amounts['tardiness_deduction'] = $typed('tardiness_deduction') ?? $amounts['tardiness_deduction'];
         $amounts['days_present'] = $typed('days_present') ?? ($rate > 0 ? round($amounts['paid_days_basis'] - $absence / $rate, 2) : $amounts['paid_days_basis']);
+        foreach (['weekday_ot_pay', 'weekend_ot_pay', 'worked_holiday_pay'] as $pesos) {
+            $amounts[$pesos] = $typed($pesos) ?? $amounts[$pesos];
+        }
+        $amounts['earnings_adjustment'] = 0.0;
+        $amounts['deductions_adjustment'] = 0.0;
 
         return $amounts;
     }
@@ -153,8 +176,8 @@ class OfficePayrollCalculator
     {
         $amounts['cutoff_gross'] = $amounts['cutoff_basic'] + $amounts['cutoff_transpo'] + $amounts['cutoff_rep'] + $amounts['cutoff_quarterly'];
         $amounts['total_ot_pay'] = $amounts['weekday_ot_pay'] + $amounts['weekend_ot_pay'];
-        $amounts['gross_pay'] = round($amounts['cutoff_gross'] + $amounts['total_ot_pay'] + $amounts['holiday_pay'] + ($amounts['worked_holiday_pay'] ?? 0.0), 2);
-        $amounts['total_deductions'] = round(array_sum(array_intersect_key($amounts, array_flip([...self::DEDUCTIONS, 'tardiness_deduction']))), 2);
+        $amounts['gross_pay'] = round($amounts['cutoff_gross'] + $amounts['total_ot_pay'] + $amounts['holiday_pay'] + ($amounts['worked_holiday_pay'] ?? 0.0) + ($amounts['earnings_adjustment'] ?? 0.0), 2);
+        $amounts['total_deductions'] = round(array_sum(array_intersect_key($amounts, array_flip([...self::DEDUCTIONS, 'tardiness_deduction', 'deductions_adjustment']))), 2);
         $amounts['net_pay'] = round($amounts['gross_pay'] - $amounts['total_deductions'], 2);
 
         return $amounts;

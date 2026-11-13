@@ -310,7 +310,7 @@ class ManagementPayrollExport
     {
         $item = new PayrollItem;
         $item->setRelation('employee', $employee);
-        foreach (array_merge(OfficePayrollCalculator::DEDUCTIONS, ['paid_days_basis', 'days_present', 'absence_days', 'nwnp_deduction', 'holiday_pay', 'worked_holiday_pay', 'tardiness_minutes', 'cutoff_basic', 'basic_before_absence', 'absence_deduction', 'cutoff_transpo', 'cutoff_rep', 'cutoff_quarterly', 'weekday_ot_hours', 'weekday_ot_pay', 'weekend_ot_hours', 'weekend_ot_pay', 'total_ot_pay', 'gross_pay', 'tardiness_deduction', 'total_deductions', 'net_pay']) as $field) {
+        foreach (array_merge(OfficePayrollCalculator::DEDUCTIONS, ['paid_days_basis', 'days_present', 'absence_days', 'nwnp_deduction', 'holiday_pay', 'worked_holiday_pay', 'earnings_adjustment', 'deductions_adjustment', 'tardiness_minutes', 'cutoff_basic', 'basic_before_absence', 'absence_deduction', 'cutoff_transpo', 'cutoff_rep', 'cutoff_quarterly', 'weekday_ot_hours', 'weekday_ot_pay', 'weekend_ot_hours', 'weekend_ot_pay', 'total_ot_pay', 'gross_pay', 'tardiness_deduction', 'total_deductions', 'net_pay']) as $field) {
             $item->{$field} = 0;
         }
 
