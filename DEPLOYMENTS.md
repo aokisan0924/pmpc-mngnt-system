@@ -2,7 +2,7 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
-## 2026-11-13 10:16 — 2e2f9d4 — Step 3: electricity, type over any number, DOLE holiday work pay
+## 2026-11-13 10:14 — 2e2f9d4 — Step 3: electricity, type over any number, DOLE holiday work pay
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `fcabecb` → `2e2f9d4` (includes docs-only commits): payroll step 3 gets a typed Electricity deduction (own ELECTRICITY column after every RENTAL column in the management Excel, added into the voucher's Rent Income, shown on the payslip); every step 3 number can be typed over (blue with ↺ undo, saved with that payroll only; absences capped at basic pay); SSS/PhilHealth/Pag-IBIG typed on the 2nd cutoff are deducted; DOLE holiday work pay is added automatically (special/announced 130%, rest day 150%; regular 200%, rest day 260%; hours after 8 × 130%; hourly = daily ÷ shift hours; only what basic pay doesn't cover), from the DTR or hours typed per holiday. Reviewed by a fresh reviewer; its 4 important findings were fixed with tests.
 - Migrations: `2026_11_13_000003_add_step3_edit_fields_to_payroll_items` (adds `electricity_deduction`, `worked_holiday_pay`, `overrides`, `holiday_hours` to `payroll_items`)
