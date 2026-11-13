@@ -347,4 +347,14 @@ class ManagementPayrollExportTest extends TestCase
             }
         }
     }
+
+    public function test_overtime_pay_includes_holiday_work_pay_and_still_balances(): void
+    {
+        $batch = $this->batch('first');
+        $this->item($batch)->update(['worked_holiday_pay' => 258, 'gross_pay' => 7393, 'net_pay' => 7018]);
+
+        $main = $this->sheetCells($this->exported($batch), 1);
+
+        $this->assertEquals(543, $this->underHeader($main, 0, 'OVERTIME PAY', 11));
+    }
 }

@@ -271,7 +271,7 @@ class ManagementPayrollExport
         $gridAbsent = in_array('ABSENT', $grid, true) ? round($absence - $gridNpw, 2) : 0.0;
         $tableAbsent = round($absence - $gridNpw - $gridAbsent, 2);
         $basic = $item->basic_before_absence !== null ? $field('basic_before_absence') : round($field('cutoff_basic') + $absence, 2);
-        $overtime = round($field('total_ot_pay') + $field('holiday_pay'), 2);
+        $overtime = round($field('total_ot_pay') + $field('holiday_pay') + $field('worked_holiday_pay'), 2);
         $allowances = $field('cutoff_transpo') + $field('cutoff_rep') + $field('cutoff_quarterly');
         $gross = round($basic + $overtime + $allowances - $gridNpw - $gridAbsent, 2);
         $deductions = round($field('total_deductions') + $tableAbsent, 2);
@@ -310,7 +310,7 @@ class ManagementPayrollExport
     {
         $item = new PayrollItem;
         $item->setRelation('employee', $employee);
-        foreach (array_merge(OfficePayrollCalculator::DEDUCTIONS, ['paid_days_basis', 'days_present', 'absence_days', 'nwnp_deduction', 'holiday_pay', 'tardiness_minutes', 'cutoff_basic', 'basic_before_absence', 'absence_deduction', 'cutoff_transpo', 'cutoff_rep', 'cutoff_quarterly', 'weekday_ot_hours', 'weekday_ot_pay', 'weekend_ot_hours', 'weekend_ot_pay', 'total_ot_pay', 'gross_pay', 'tardiness_deduction', 'total_deductions', 'net_pay']) as $field) {
+        foreach (array_merge(OfficePayrollCalculator::DEDUCTIONS, ['paid_days_basis', 'days_present', 'absence_days', 'nwnp_deduction', 'holiday_pay', 'worked_holiday_pay', 'tardiness_minutes', 'cutoff_basic', 'basic_before_absence', 'absence_deduction', 'cutoff_transpo', 'cutoff_rep', 'cutoff_quarterly', 'weekday_ot_hours', 'weekday_ot_pay', 'weekend_ot_hours', 'weekend_ot_pay', 'total_ot_pay', 'gross_pay', 'tardiness_deduction', 'total_deductions', 'net_pay']) as $field) {
             $item->{$field} = 0;
         }
 

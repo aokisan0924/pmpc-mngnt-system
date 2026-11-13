@@ -46,6 +46,8 @@ class StorePayrollRequest extends FormRequest
             ...collect(OfficePayrollCalculator::DEDUCTIONS)->mapWithKeys(fn (string $field): array => ["items.*.deductions.$field" => ['required', 'numeric', 'min:0', 'max:99999999']])->all(),
             'items.*.overrides' => ['nullable', 'array:'.implode(',', OfficePayrollCalculator::OVERRIDES)],
             'items.*.overrides.*' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+            'items.*.holiday_hours' => ['nullable', 'array'],
+            'items.*.holiday_hours.*' => ['nullable', 'numeric', 'min:0', 'max:24'],
             'items.*.day_resolutions' => ['nullable', 'array'],
             'items.*.day_resolutions.*.type' => ['required', 'in:hours,zero'],
             // Missing hours or note on a "Type hours" day get a plain message in after().
@@ -73,6 +75,11 @@ class StorePayrollRequest extends FormRequest
                     $validator->errors()->add("items.$index.employee_id", 'Verify this employee’s payroll office before saving payroll.');
                 }
                 $name = $employees->get($row['employee_id'])?->full_name ?? 'this employee';
+                foreach (array_keys($row['holiday_hours'] ?? []) as $date) {
+                    if (! is_string($date) || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                        $validator->errors()->add("items.$index.holiday_hours", 'Invalid holiday date.');
+                    }
+                }
                 foreach ($row['day_resolutions'] ?? [] as $date => $choice) {
                     if (! is_string($date) || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
                         $validator->errors()->add("items.$index.day_resolutions", 'Invalid DTR day.');

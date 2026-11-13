@@ -247,4 +247,52 @@ class HoursPayrollCalculatorTest extends TestCase
 
         $this->assertSame([6600.0, 600.0, 6000.0, 0.0], [$result['basic_before_absence'], $result['absence_deduction'], $result['cutoff_basic'], $result['nwnp_deduction']]);
     }
+
+    /** @param  list<array{0: string, 1: string, 2: bool, 3: float, 4: ?float, 5: float}>  $holidays  date, type, rest day, shift, DTR hours, paid hours */
+    private function holidayWork(array $holidays, array $typed = [], float $rate = 600): array
+    {
+        $attendance = $this->attendance(8, [8]);
+        $attendance['holiday_work'] = array_map(fn (array $h): array => ['date' => $h[0], 'type' => $h[1], 'rest_day' => $h[2], 'shift_hours' => $h[3], 'dtr_hours' => $h[4], 'paid_hours' => $h[5]], $holidays);
+
+        return $this->calc($this->employee(['daily_rate' => $rate]), $attendance, ['holiday_hours' => $typed]);
+    }
+
+    public function test_merchandise_worker_on_special_day_gets_the_difference(): void
+    {
+        // 600 / 12 = 50 an hour; DOLE 50 x (8 x 1.30 + 4 x 1.30 x 1.30) = 858; already paid 12 x 50 = 600.
+        $result = $this->holidayWork([['2026-11-02', 'special', false, 12.0, 12.0, 12.0]]);
+
+        $this->assertSame(258.0, $result['worked_holiday_pay']);
+        $this->assertSame(858.0, $result['gross_pay']);
+    }
+
+    public function test_office_worker_cut_as_nwnp_gets_full_dole_amount_for_typed_hours(): void
+    {
+        $result = $this->holidayWork([['2026-11-02', 'special', false, 8.0, null, 0.0]], ['2026-11-02' => 4]);
+
+        $this->assertSame(390.0, $result['worked_holiday_pay']);
+    }
+
+    public function test_rest_day_holiday_work_pays_full_rest_day_rate(): void
+    {
+        $this->assertSame(900.0, $this->holidayWork([['2026-11-07', 'special', true, 8.0, null, 0.0]], ['2026-11-07' => 8])['worked_holiday_pay']);
+    }
+
+    public function test_two_holidays_use_their_own_rates(): void
+    {
+        $result = $this->holidayWork([['2026-11-30', 'regular', false, 8.0, null, 0.0], ['2026-11-02', 'special', false, 8.0, null, 0.0]], ['2026-11-30' => 8, '2026-11-02' => 8]);
+
+        $this->assertSame(1980.0, $result['worked_holiday_pay']);
+    }
+
+    public function test_overtime_hours_on_a_holiday(): void
+    {
+        $this->assertSame(1033.5, $this->holidayWork([['2026-11-02', 'special', false, 8.0, null, 0.0]], ['2026-11-02' => 10])['worked_holiday_pay']);
+    }
+
+    public function test_dtr_hours_win_over_typed_hours_and_no_work_means_no_pay(): void
+    {
+        $this->assertSame(258.0, $this->holidayWork([['2026-11-02', 'special', false, 12.0, 12.0, 12.0]], ['2026-11-02' => 2])['worked_holiday_pay']);
+        $this->assertSame(0.0, $this->holidayWork([['2026-11-02', 'special', false, 8.0, null, 0.0]])['worked_holiday_pay']);
+    }
 }

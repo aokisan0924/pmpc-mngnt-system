@@ -256,4 +256,36 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
         $this->assertSame(0.0, $this->hoursFor($notStarted, '2026-10-31', '2026-11-13')['fixed_days']);
         Carbon::setTestNow();
     }
+
+    public function test_holiday_work_lists_each_holiday_with_its_hours(): void
+    {
+        Carbon::setTestNow('2026-11-14 08:00:00');
+        Holiday::create(['date' => '2026-11-02', 'name' => "All Soul's Day", 'type' => 'special']);
+        Holiday::create(['date' => '2026-11-07', 'name' => 'Saturday holiday', 'type' => 'regular']);
+        $office = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        $store = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        EmployeeSchedule::create(['employee_id' => $store->id, 'effective_from' => '2026-01-01', 'type' => 'two_punch', 'shift_start' => '06:00', 'shift_end' => '18:00', 'work_days' => '0,1,2,3,4,5,6']);
+        DtrLog::factory()->create(['employee_id' => $store->id, 'date' => '2026-11-02', 'am_time_in' => '06:00:00', 'am_time_out' => null, 'pm_time_in' => null, 'pm_time_out' => '18:00:00', 'hours_rendered' => 12, 'status' => 'on_time']);
+
+        $officeWork = collect($this->hoursFor($office, '2026-11-02', '2026-11-13')['holiday_work'])->keyBy('date');
+        $storeWork = collect($this->hoursFor($store, '2026-11-02', '2026-11-13')['holiday_work'])->keyBy('date');
+
+        $this->assertSame(['date' => '2026-11-02', 'type' => 'special', 'rest_day' => false, 'shift_hours' => 8.0, 'dtr_hours' => null, 'paid_hours' => 0.0], $officeWork['2026-11-02']);
+        $this->assertTrue($officeWork['2026-11-07']['rest_day']);
+        $this->assertSame('regular', $officeWork['2026-11-07']['type']);
+        $this->assertEquals(['dtr_hours' => 12.0, 'paid_hours' => 12.0, 'shift_hours' => 12.0], array_intersect_key($storeWork['2026-11-02'], array_flip(['dtr_hours', 'paid_hours', 'shift_hours'])));
+        Carbon::setTestNow();
+    }
+
+    public function test_no_holiday_pay_on_assumed_days_or_without_a_holiday_row(): void
+    {
+        Carbon::setTestNow('2026-11-12 09:00:00');
+        Holiday::create(['date' => '2026-11-13', 'name' => 'Future holiday', 'type' => 'special']);
+        $employee = Employee::factory()->create(['date_hired' => '2026-01-01']);
+
+        $mock = app(DtrPayrollAttendanceCalculator::class)->hoursFor(collect([$employee]), Carbon::parse('2026-11-02'), Carbon::parse('2026-11-13'), [], true)->first();
+
+        $this->assertSame([], $mock['holiday_work']);
+        Carbon::setTestNow();
+    }
 }

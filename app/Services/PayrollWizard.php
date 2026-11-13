@@ -132,6 +132,7 @@ class PayrollWizard
                     'day_resolutions' => (object) ($item->day_resolutions ?? []),
                     // Numbers typed over on step 3, and the system's own numbers (shown faded, restored by undo).
                     'overrides' => (object) ($item->overrides ?? []),
+                    'holiday_hours' => (object) ($item->holiday_hours ?? []),
                     'system' => [
                         ...collect(OfficePayrollCalculator::DEDUCTIONS)->mapWithKeys(fn (string $field): array => [$field => $suggested[$field]])->all(),
                         'days_present' => $suggested['days_present'],
@@ -205,6 +206,8 @@ class PayrollWizard
                     'dtr_unresolved_dates' => [],
                     'day_resolutions' => $row['day_resolutions'] ?? [],
                     'overrides' => $row['overrides'] ?: null,
+                    // Hours typed for holidays worked without punches, keyed by date (blank = none).
+                    'holiday_hours' => array_filter($row['holiday_hours'] ?? [], fn ($hours): bool => $hours !== null && $hours !== '' && (float) $hours > 0) ?: null,
                     'dtr_reconciliation_note' => collect($row['day_resolutions'] ?? [])->filter(fn (array $r): bool => $r['type'] === 'hours')
                         ->map(fn (array $r, string $date): string => $date.': '.$r['note'])->implode('; ') ?: null,
                     ...$amounts,

@@ -70,10 +70,10 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                     )}
                 </div>
                 <div className="mt-3 overflow-x-auto">
-                    <table className="w-full min-w-[640px] border-collapse text-xs">
+                    <table className="w-full min-w-[900px] border-collapse text-xs">
                         <thead>
                             <tr className="text-left text-sub">
-                                {['Employee', 'Weekday OT hours (125%)', 'Rest-day OT hours (130%)', 'Holiday premium ₱', 'Overtime + premium'].map((label) => <th key={label} className="px-2 py-2 font-semibold">{label}</th>)}
+                                {['Employee', 'Weekday OT hours (125%)', 'Rest-day OT hours (130%)', 'Holiday premium ₱', 'Hours worked on holidays', 'Holiday work pay (DOLE)', 'Overtime + premium'].map((label) => <th key={label} className="px-2 py-2 font-semibold">{label}</th>)}
                             </tr>
                         </thead>
                         <tbody>
@@ -90,7 +90,30 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                             />
                                         </td>
                                     ))}
-                                    <td className="px-2 py-1.5 text-right font-semibold tabular-nums text-text">₱ {peso(Number(row.total_ot_pay) + Number(row.holiday_pay || 0))}</td>
+                                    <td className="px-2 py-1.5">
+                                        {(row.holiday_work ?? []).length === 0 && <span className="text-sub">—</span>}
+                                        {(row.holiday_work ?? []).map((holiday) => {
+                                            const label = new Date(`${holiday.date}T00:00:00`).toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })
+                                            return (
+                                                <div key={holiday.date} className="flex items-center gap-2 py-0.5 whitespace-nowrap">
+                                                    <span className="w-14 text-sub">{label}</span>
+                                                    {holiday.dtr_hours !== null
+                                                        ? <span className="tabular-nums text-text" title="From the DTR">{holiday.dtr_hours} h (DTR)</span>
+                                                        : (
+                                                            <input
+                                                                type="number" min="0" max="24" step="0.5" value={row.holiday_hours?.[holiday.date] ?? ''} placeholder="0"
+                                                                aria-label={`Hours ${row.full_name} worked on ${label} (no DTR punches)`}
+                                                                onChange={(event) => setTyped(row.id, 'holiday_hours', { ...row.holiday_hours, [holiday.date]: event.target.value })}
+                                                                className="h-10 w-20 rounded-lg border border-border bg-yellow-50 px-2 text-right tabular-nums text-text dark:bg-yellow-950/40"
+                                                            />
+                                                        )}
+                                                </div>
+                                            )
+                                        })}
+                                        {err(row, 'holiday_hours') && <p role="alert" className="text-rose-700">{err(row, 'holiday_hours')}</p>}
+                                    </td>
+                                    <td className="px-2 py-1.5 text-right tabular-nums text-text" title="DOLE rate for the hours worked, minus pay already counted for that day">₱ {peso(row.worked_holiday_pay)}</td>
+                                    <td className="px-2 py-1.5 text-right font-semibold tabular-nums text-text">₱ {peso(Number(row.total_ot_pay) + Number(row.holiday_pay || 0) + Number(row.worked_holiday_pay || 0))}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -126,7 +149,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                         <td className={`${td} !text-left !whitespace-normal min-w-[150px]`}>{row.position}</td>
                                         {Over({ row, field: 'days_present', label: 'Days of work' })}
                                         {Over({ row, field: 'basic_before_absence', label: 'Basic pay' })}
-                                        <td className={td} title={Number(row.holiday_pay) ? 'Includes the typed holiday premium, as in the Excel' : undefined}>{peso(Number(row.total_ot_pay) + Number(row.holiday_pay || 0))}</td>
+                                        <td className={td} title={Number(row.holiday_pay) || Number(row.worked_holiday_pay) ? 'Includes holiday pay (typed premium and DOLE holiday work pay), as in the Excel' : undefined}>{peso(Number(row.total_ot_pay) + Number(row.holiday_pay || 0) + Number(row.worked_holiday_pay || 0))}</td>
                                         <Cell label={`Transport allowance for ${row.full_name}`} value={row.cutoff_transpo} onChange={(value) => setTyped(row.id, 'cutoff_transpo', value)} error={err(row, 'cutoff_transpo')} />
                                         <Cell label={`Representation allowance for ${row.full_name}`} value={row.cutoff_rep} onChange={(value) => setTyped(row.id, 'cutoff_rep', value)} error={err(row, 'cutoff_rep')} />
                                         <Cell label={`Quarterly allowance for ${row.full_name}`} value={row.cutoff_quarterly} onChange={(value) => setTyped(row.id, 'cutoff_quarterly', value)} error={err(row, 'cutoff_quarterly')} />

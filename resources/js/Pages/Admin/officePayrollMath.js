@@ -2,6 +2,19 @@ const money = value => {
     const number = Number(value) || 0
     return Math.round((number + Math.abs(number) * Number.EPSILON) * 100) / 100
 }
+// DOLE pay for work done on holidays, as OfficePayrollCalculator::workedHolidayPay.
+export function workedHolidayPay(holidays, typedHours, rate) {
+    const total = holidays.reduce((sum, holiday) => {
+        const hours = holiday.dtr_hours ?? Number(typedHours[holiday.date] || 0)
+        if (hours <= 0 || !(holiday.shift_hours > 0)) return sum
+        const hourly = rate / holiday.shift_hours
+        const m = holiday.type === 'regular' ? (holiday.rest_day ? 2.6 : 2) : (holiday.rest_day ? 1.5 : 1.3)
+        const dole = hourly * (Math.min(hours, 8) * m + Math.max(hours - 8, 0) * m * 1.3)
+        return sum + Math.max(0, dole - hourly * holiday.paid_hours)
+    }, 0)
+    return money(total)
+}
+
 // Display mirror of OfficePayrollCalculator::calculateHours; the server recomputes on save.
 export function calculateHoursItem(item, isFirst) {
     const rate = Number(item.daily_rate) || 0
@@ -30,7 +43,8 @@ export function calculateHoursItem(item, isFirst) {
     const weekday_ot_pay = money(hourly * 1.25 * Number(item.weekday_ot_hours || 0))
     const weekend_ot_pay = money(hourly * 1.30 * Number(item.weekend_ot_hours || 0))
     const holiday_pay = money(item.holiday_pay)
-    const gross_pay = money(cutoff_basic + cutoff_transpo + cutoff_rep + cutoff_quarterly + weekday_ot_pay + weekend_ot_pay + holiday_pay)
+    const worked_holiday_pay = workedHolidayPay(item.holiday_work || [], item.holiday_hours || {}, rate)
+    const gross_pay = money(cutoff_basic + cutoff_transpo + cutoff_rep + cutoff_quarterly + weekday_ot_pay + weekend_ot_pay + holiday_pay + worked_holiday_pay)
     // SSS & co. are suggested only on the 1st cutoff by the server; an amount typed on the 2nd is deducted.
     const deductions = { ...item.deductions }
     // October formula for lates: daily rate / 8 / 60 x minutes late.
@@ -38,5 +52,5 @@ export function calculateHoursItem(item, isFirst) {
     const total_deductions = money(Object.values(deductions).reduce((sum, value) => sum + money(value), 0) + tardiness_deduction)
     const days_of_work = fixed ?? days.length
     const days_present = typed('days_present') ?? (rate > 0 ? Math.round((days_of_work - absence_deduction / rate) * 100) / 100 : 0)
-    return { ...item, deductions, tardiness_deduction, days_of_work, days_present, nwnp_deduction, other_absence, sheet_gross: money(gross_pay + absence_deduction - nwnp_deduction), sheet_deductions: money(total_deductions + other_absence), basic_before_absence, absence_deduction, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, weekday_ot_pay, weekend_ot_pay, total_ot_pay: money(weekday_ot_pay + weekend_ot_pay), holiday_pay, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
+    return { ...item, deductions, tardiness_deduction, days_of_work, days_present, nwnp_deduction, other_absence, sheet_gross: money(gross_pay + absence_deduction - nwnp_deduction), sheet_deductions: money(total_deductions + other_absence), basic_before_absence, absence_deduction, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, weekday_ot_pay, weekend_ot_pay, total_ot_pay: money(weekday_ot_pay + weekend_ot_pay), holiday_pay, worked_holiday_pay, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
 }

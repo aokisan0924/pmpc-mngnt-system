@@ -100,3 +100,17 @@ test('cleared overrides fall back to the system numbers', () => {
     assert.equal(row.basic_before_absence, 6600)
     assert.equal(row.absence_deduction, 600)
 })
+
+// Same numbers as HoursPayrollCalculatorTest: DOLE pay for work done on holidays.
+const holidayWork = (holidays, holiday_hours = {}) => calculateHoursItem(item({ days: days(8, [8]), deductions: {}, holiday_hours, holiday_work: holidays.map(([date, type, rest_day, shift_hours, dtr_hours, paid_hours]) => ({ date, type, rest_day, shift_hours, dtr_hours, paid_hours })) }), true)
+
+test('holiday work pay follows the DOLE rates', () => {
+    assert.equal(holidayWork([['2026-11-02', 'special', false, 12, 12, 12]]).worked_holiday_pay, 258)
+    assert.equal(holidayWork([['2026-11-02', 'special', false, 12, 12, 12]]).gross_pay, 858)
+    assert.equal(holidayWork([['2026-11-02', 'special', false, 8, null, 0]], { '2026-11-02': 4 }).worked_holiday_pay, 390)
+    assert.equal(holidayWork([['2026-11-07', 'special', true, 8, null, 0]], { '2026-11-07': 8 }).worked_holiday_pay, 900)
+    assert.equal(holidayWork([['2026-11-30', 'regular', false, 8, null, 0], ['2026-11-02', 'special', false, 8, null, 0]], { '2026-11-30': 8, '2026-11-02': 8 }).worked_holiday_pay, 1980)
+    assert.equal(holidayWork([['2026-11-02', 'special', false, 8, null, 0]], { '2026-11-02': 10 }).worked_holiday_pay, 1033.5)
+    assert.equal(holidayWork([['2026-11-02', 'special', false, 12, 12, 12]], { '2026-11-02': 2 }).worked_holiday_pay, 258)
+    assert.equal(holidayWork([['2026-11-02', 'special', false, 8, null, 0]]).worked_holiday_pay, 0)
+})

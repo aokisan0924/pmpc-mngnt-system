@@ -35,7 +35,7 @@ class DtrPayrollAttendanceCalculator
             ->map(fn (Collection $items): Collection => $items->keyBy(fn (DtrLog $log): string => $log->date->toDateString()));
         // whereDate: a holiday on the window's last day must count (dates may be stored with a time part).
         $holidays = Holiday::whereDate('date', '>=', $from->toDateString())->whereDate('date', '<=', $to->toDateString())->get()
-            ->map(fn (Holiday $holiday): string => $holiday->date->toDateString())->flip();
+            ->mapWithKeys(fn (Holiday $holiday): array => [$holiday->date->toDateString() => (string) $holiday->type]);
         $today = today()->toDateString();
 
         return $employees->mapWithKeys(function (Employee $employee) use ($from, $to, $resolutions, $logs, $holidays, $today, $assumePresent): array {
@@ -122,7 +122,32 @@ class DtrPayrollAttendanceCalculator
                         ->filter(fn ($day): bool => $day->isWeekday() && $day->toDateString() >= $start)->count());
             }
 
-            return [$employeeId => ['days' => $days, 'days_of_work' => (float) count($days), 'fixed_days' => $fixedDays, 'tardiness_minutes' => (float) array_sum(array_column($days, 'late_minutes')), 'unresolved_dates' => $unresolved]];
+            // Holidays in the window, for DOLE pay on work done (OfficePayrollCalculator). Assumed mockup days are left out.
+            $byDate = collect($days)->keyBy('date');
+            $holidayWork = [];
+            foreach ($holidays as $date => $type) {
+                if (($start !== null && $date < $start) || $date > $today || ($assumePresent && $date >= $today)) {
+                    continue;
+                }
+                $day = Carbon::parse($date);
+                $log = $employeeLogs->get($date);
+                $entry = $byDate->get($date);
+                $dtrHours = $log !== null && ($log->am_time_in || $log->pm_time_in) ? (float) $log->hours_rendered : null;
+                // A missing punch settled on step 2 (typed hours or 0) counts as the day's hours.
+                if ($entry !== null && in_array($entry['source'], ['typed', 'zero'], true)) {
+                    $dtrHours = (float) $entry['worked_hours'];
+                }
+                $holidayWork[] = [
+                    'date' => $date,
+                    'type' => $type,
+                    'rest_day' => ! Employee::isWorkDay($employeeId, $day),
+                    'shift_hours' => EmployeeSchedule::shiftHoursFor($employeeId, $day),
+                    'dtr_hours' => $dtrHours,
+                    'paid_hours' => (float) ($entry['worked_hours'] ?? 0.0),
+                ];
+            }
+
+            return [$employeeId => ['holiday_work' => $holidayWork, 'days' => $days, 'days_of_work' => (float) count($days), 'fixed_days' => $fixedDays, 'tardiness_minutes' => (float) array_sum(array_column($days, 'late_minutes')), 'unresolved_dates' => $unresolved]];
         });
     }
 

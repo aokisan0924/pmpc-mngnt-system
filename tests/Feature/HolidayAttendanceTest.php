@@ -63,8 +63,10 @@ class HolidayAttendanceTest extends TestCase
 
         $item = PayrollItem::firstOrFail();
         $this->assertEquals(600, $item->holiday_pay);
-        // One worked day (the regular holiday, 8 h) plus the typed holiday premium.
-        $this->assertEquals(600 + 600, $item->gross_pay);
+        // One worked day (the regular holiday, 8 h), the DOLE extra for working it (200% - 100% already paid = 600,
+        // added automatically since 2026-11-13) and the typed premium: step 3 shows both so HR can avoid paying twice.
+        $this->assertEquals(600, $item->worked_holiday_pay);
+        $this->assertEquals(600 + 600 + 600, $item->gross_pay);
     }
 
     public function test_always_present_employee_counts_every_weekday_and_is_never_late(): void

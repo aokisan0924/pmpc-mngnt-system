@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Payroll step 3: an **Electricity** deduction typed every cutoff (starts at 0, never saved on the employee). It has its own ELECTRICITY column after every RENTAL column in the management Excel, is added into the voucher's Rent Income line, and shows on the payslip.
+- Payroll step 3: every number can be typed over (days of work, basic pay, NPW-Holiday, SSS, PhilHealth, Pag-IBIG, W/H tax, loan, CC, cash advance, absent, late, rental, electricity). Typed numbers turn blue with an undo (↺) to the system's number, are saved with that payroll only, and gross, deductions and net still add up. If typed absences exceed basic pay, the absence is capped at basic pay.
+- Holiday work pay (DOLE): anyone who works a holiday gets the DOLE rate automatically. Rates: special/announced 130%, or 150% on a rest day; regular 200%, or 260% on a rest day. Each hour past 8 is paid × 130% more. Hourly rate = daily rate ÷ shift hours. Only what the day's basic pay doesn't already cover is added. Hours come from the DTR; HR types them per holiday only when there are no punches. The amount goes into OVERTIME PAY in the Excel.
+
 ### Changed
+- SSS, PhilHealth and Pag-IBIG on the 2nd cutoff still start at 0, but an amount typed on step 3 is now deducted.
 - Management Excel sign-offs: "Noted by" is gone. Every block now reads Prepared by Reynold D. Valdez and Kurt Vincent F. Fariñas (side by side), Certified Correct by Katherine Sevilleno, and Approved by the President last. The voucher shows both preparers and Katherine. The export form and the payroll step 3 preview have a "Prepared by (2nd)" choice instead of "Noted by".
 
 ### Added

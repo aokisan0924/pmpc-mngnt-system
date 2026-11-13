@@ -88,7 +88,34 @@ class OfficePayrollCalculator
         }
         // SSS, PhilHealth and Pag-IBIG are suggested only on the 1st cutoff (above); an amount HR types on the 2nd is deducted.
 
+        $amounts['worked_holiday_pay'] = $this->workedHolidayPay($attendance['holiday_work'] ?? [], $inputs['holiday_hours'] ?? [], $rate);
+
         return $this->totals($this->applyOverrides($amounts, $inputs['overrides'] ?? [], $rate));
+    }
+
+    /**
+     * DOLE pay for work done on holidays: hourly = daily rate / shift hours; first 8 h x m, each hour after x m x 1.30
+     * (special/announced m = 1.30, rest day 1.50; regular 2.00, rest day 2.60). Only what the day's basic pay
+     * does not already cover is added. Hours: the DTR's, else what HR typed for that date.
+     *
+     * @param  list<array{date: string, type: string, rest_day: bool, shift_hours: float, dtr_hours: ?float, paid_hours: float}>  $holidays
+     * @param  array<string, mixed>  $typedHours
+     */
+    private function workedHolidayPay(array $holidays, array $typedHours, float $rate): float
+    {
+        $total = 0.0;
+        foreach ($holidays as $holiday) {
+            $hours = $holiday['dtr_hours'] ?? (float) ($typedHours[$holiday['date']] ?? 0);
+            if ($hours <= 0 || $holiday['shift_hours'] <= 0) {
+                continue;
+            }
+            $hourly = $rate / $holiday['shift_hours'];
+            $m = $holiday['type'] === 'regular' ? ($holiday['rest_day'] ? 2.60 : 2.00) : ($holiday['rest_day'] ? 1.50 : 1.30);
+            $dole = $hourly * (min($hours, 8) * $m + max($hours - 8, 0) * $m * 1.30);
+            $total += max(0.0, $dole - $hourly * $holiday['paid_hours']);
+        }
+
+        return round($total, 2);
     }
 
     /**
@@ -126,7 +153,7 @@ class OfficePayrollCalculator
     {
         $amounts['cutoff_gross'] = $amounts['cutoff_basic'] + $amounts['cutoff_transpo'] + $amounts['cutoff_rep'] + $amounts['cutoff_quarterly'];
         $amounts['total_ot_pay'] = $amounts['weekday_ot_pay'] + $amounts['weekend_ot_pay'];
-        $amounts['gross_pay'] = round($amounts['cutoff_gross'] + $amounts['total_ot_pay'] + $amounts['holiday_pay'], 2);
+        $amounts['gross_pay'] = round($amounts['cutoff_gross'] + $amounts['total_ot_pay'] + $amounts['holiday_pay'] + ($amounts['worked_holiday_pay'] ?? 0.0), 2);
         $amounts['total_deductions'] = round(array_sum(array_intersect_key($amounts, array_flip([...self::DEDUCTIONS, 'tardiness_deduction']))), 2);
         $amounts['net_pay'] = round($amounts['gross_pay'] - $amounts['total_deductions'], 2);
 
