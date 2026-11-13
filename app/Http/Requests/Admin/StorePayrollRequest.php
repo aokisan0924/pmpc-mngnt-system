@@ -44,6 +44,8 @@ class StorePayrollRequest extends FormRequest
             'items.*.cutoff_quarterly' => $money,
             'items.*.deductions' => ['required', 'array:'.implode(',', OfficePayrollCalculator::DEDUCTIONS)],
             ...collect(OfficePayrollCalculator::DEDUCTIONS)->mapWithKeys(fn (string $field): array => ["items.*.deductions.$field" => ['required', 'numeric', 'min:0', 'max:99999999']])->all(),
+            'items.*.overrides' => ['nullable', 'array:'.implode(',', OfficePayrollCalculator::OVERRIDES)],
+            'items.*.overrides.*' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
             'items.*.day_resolutions' => ['nullable', 'array'],
             'items.*.day_resolutions.*.type' => ['required', 'in:hours,zero'],
             // Missing hours or note on a "Type hours" day get a plain message in after().

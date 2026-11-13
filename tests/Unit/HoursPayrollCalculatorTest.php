@@ -174,13 +174,77 @@ class HoursPayrollCalculatorTest extends TestCase
         $this->assertSame(10.87, $this->calc($this->employee(['daily_rate' => 879.81]), $attendance)['days_present']);
     }
 
-    public function test_statutory_contributions_stay_zero_on_the_second_cutoff_even_if_posted(): void
+    public function test_second_cutoff_typed_sss_is_deducted(): void
     {
-        $result = $this->calc($this->employee(['sss_deduction' => 500]), $this->attendance(8, [8]), ['deductions' => ['sss_deduction' => 500, 'philhealth_deduction' => 250, 'pagibig_deduction' => 200, 'loan_deduction' => 100]], false);
+        // Kurt, 2026-11-13: the 2nd cutoff starts at 0, but an amount HR types is deducted.
+        $employee = $this->employee(['sss_deduction' => 500]);
+        $this->assertSame(0.0, $this->calc($employee, $this->attendance(8, [8]), [], false)['sss_deduction']);
+        $result = $this->calc($employee, $this->attendance(8, [8]), ['deductions' => ['sss_deduction' => 450, 'philhealth_deduction' => 250, 'pagibig_deduction' => 200, 'loan_deduction' => 100]], false);
 
-        $this->assertSame(0.0, $result['sss_deduction']);
-        $this->assertSame(0.0, $result['philhealth_deduction']);
-        $this->assertSame(0.0, $result['pagibig_deduction']);
-        $this->assertSame(100.0, $result['loan_deduction']);
+        $this->assertSame(450.0, $result['sss_deduction']);
+        $this->assertSame(250.0, $result['philhealth_deduction']);
+        $this->assertSame(200.0, $result['pagibig_deduction']);
+        $this->assertSame(1000.0, $result['total_deductions']);
+    }
+
+    /** Rate 600, fixed 11 days, one 8 h absence: basic 6600, absence 600, cutoff basic 6000. */
+    private function oneAbsence(array $overrides): array
+    {
+        $attendance = $this->attendance(8, [8, 0, 8, 8, 8, 8, 8, 8, 8, 8]);
+        $attendance['fixed_days'] = 11.0;
+
+        return $this->calc($this->employee(), $attendance, ['overrides' => $overrides, 'deductions' => ['tax_deduction' => 0]]);
+    }
+
+    public function test_typed_basic_pay_replaces_only_basic(): void
+    {
+        $result = $this->oneAbsence(['basic_before_absence' => 7000]);
+
+        $this->assertSame(7000.0, $result['basic_before_absence']);
+        $this->assertSame(600.0, $result['absence_deduction']);
+        $this->assertSame(6400.0, $result['cutoff_basic']);
+        $this->assertSame(6400.0, $result['gross_pay']);
+    }
+
+    public function test_typed_absent_and_npw_set_absence(): void
+    {
+        $result = $this->oneAbsence(['nwnp_deduction' => 0, 'other_absence' => 300]);
+
+        $this->assertSame(300.0, $result['absence_deduction']);
+        $this->assertSame(0.0, $result['nwnp_deduction']);
+        $this->assertSame(6300.0, $result['cutoff_basic']);
+        $this->assertSame(0.5, $result['absence_days']);
+    }
+
+    public function test_typed_late_replaces_tardiness_amount(): void
+    {
+        $attendance = $this->attendance(8, [8]);
+        $attendance['tardiness_minutes'] = 30.0;
+        $result = $this->calc($this->employee(), $attendance, ['overrides' => ['tardiness_deduction' => 50]]);
+
+        $this->assertSame(50.0, $result['tardiness_deduction']);
+        $this->assertSame(30.0, $result['tardiness_minutes']);
+        $this->assertSame(50.0, $result['total_deductions']);
+    }
+
+    public function test_typed_days_present_is_shown_as_typed(): void
+    {
+        $this->assertSame(10.5, $this->oneAbsence(['days_present' => 10.5])['days_present']);
+        $this->assertSame(10.0, $this->oneAbsence([])['days_present']);
+    }
+
+    public function test_typed_basic_below_absence_caps_the_absence(): void
+    {
+        $result = $this->oneAbsence(['basic_before_absence' => 500]);
+
+        $this->assertSame(0.0, $result['cutoff_basic']);
+        $this->assertSame(500.0, $result['absence_deduction']);
+    }
+
+    public function test_no_overrides_change_nothing(): void
+    {
+        $result = $this->oneAbsence([]);
+
+        $this->assertSame([6600.0, 600.0, 6000.0, 0.0], [$result['basic_before_absence'], $result['absence_deduction'], $result['cutoff_basic'], $result['nwnp_deduction']]);
     }
 }

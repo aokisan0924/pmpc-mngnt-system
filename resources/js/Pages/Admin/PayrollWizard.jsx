@@ -10,7 +10,7 @@ import StepEntries from '@/Components/PayrollWizard/StepEntries'
 import StepConfirm from '@/Components/PayrollWizard/StepConfirm'
 
 const STEPS = ['Cutoff', 'DTR check', 'OT & allowances', 'Confirm']
-const TYPED = ['weekday_ot_hours', 'weekend_ot_hours', 'holiday_pay', 'cutoff_transpo', 'cutoff_rep', 'cutoff_quarterly', 'deductions', 'day_resolutions']
+const TYPED = ['weekday_ot_hours', 'weekend_ot_hours', 'holiday_pay', 'cutoff_transpo', 'cutoff_rep', 'cutoff_quarterly', 'deductions', 'day_resolutions', 'overrides']
 
 // Apply HR's choice for a problem day on screen; the server repeats this on save.
 function withResolutions(days, resolutions) {
@@ -35,7 +35,7 @@ export default function PayrollWizard(props) {
         mock: !!props.mock,
         items: employees.map((employee) => ({
             employee_id: employee.id,
-            ...Object.fromEntries(TYPED.map((key) => [key, key === 'day_resolutions' ? { ...employee.day_resolutions } : employee[key]])),
+            ...Object.fromEntries(TYPED.map((key) => [key, ['day_resolutions', 'overrides'].includes(key) ? { ...employee[key] } : employee[key]])),
         })),
     })
     const typedFor = (id) => form.data.items.find((item) => item.employee_id === id)

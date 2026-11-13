@@ -294,4 +294,40 @@ class PayrollWizardTest extends TestCase
         $this->assertEqualsWithDelta($without->net_pay - 350, $item->net_pay, 0.001);
         $this->assertArrayNotHasKey('electricity_deduction', $this->staff->fresh()->getAttributes());
     }
+
+    public function test_typed_basic_below_absence_floors_at_zero_and_exports_balanced(): void
+    {
+        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload(['overrides' => ['basic_before_absence' => 500]]))->assertRedirect();
+        $item = Payroll::firstOrFail()->items()->firstOrFail();
+
+        $this->assertEquals(0, $item->cutoff_basic);
+        $this->assertEquals(['basic_before_absence' => 500], $item->overrides);
+        $this->assertFileExists(app(ManagementPayrollExport::class)->export(Payroll::firstOrFail()));
+    }
+
+    public function test_cleared_override_uses_the_system_number(): void
+    {
+        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload())->assertRedirect();
+        $system = Payroll::firstOrFail()->items()->firstOrFail()->basic_before_absence;
+
+        $this->post('/admin/payroll', $this->payload(['overrides' => ['basic_before_absence' => null, 'tardiness_deduction' => '']]))->assertRedirect();
+
+        $item = Payroll::firstOrFail()->items()->firstOrFail();
+        $this->assertEquals($system, $item->basic_before_absence);
+        $this->assertSame([], $item->overrides ?? []);
+    }
+
+    public function test_old_draft_without_new_fields_reopens_unchanged(): void
+    {
+        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload())->assertRedirect();
+        $item = Payroll::firstOrFail()->items()->firstOrFail();
+        $item->forceFill(['overrides' => null, 'holiday_hours' => null])->save();
+        $net = $item->net_pay;
+
+        $this->get('/admin/payroll/create?month=2026-11&cutoff=first')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('employees.0.overrides', [])->has('employees.0.system.basic_before_absence'));
+        $this->post('/admin/payroll', $this->payload())->assertRedirect();
+
+        $this->assertEquals($net, Payroll::firstOrFail()->items()->firstOrFail()->net_pay);
+    }
 }

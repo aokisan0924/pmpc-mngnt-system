@@ -14,6 +14,9 @@ class OfficePayrollCalculator
         'rental_deduction', 'electricity_deduction', 'savings_deduction', 'other_deductions',
     ];
 
+    /** Computed step 3 numbers HR may type over (saved per payroll item, never on the employee). */
+    public const OVERRIDES = ['days_present', 'basic_before_absence', 'nwnp_deduction', 'other_absence', 'tardiness_deduction'];
+
     public const OFFICES = [
         'main_office' => ['label' => 'Main Office', 'days' => 11],
         'fort_magsaysay' => ['label' => 'Fort Magsaysay', 'days' => 11],
@@ -83,12 +86,38 @@ class OfficePayrollCalculator
                 $amounts[$field] = round((float) $value, 2);
             }
         }
-        // SSS, PhilHealth and Pag-IBIG are 1st-cutoff only, whatever is posted.
-        if (! $isFirst) {
-            $amounts['sss_deduction'] = $amounts['philhealth_deduction'] = $amounts['pagibig_deduction'] = 0.0;
-        }
+        // SSS, PhilHealth and Pag-IBIG are suggested only on the 1st cutoff (above); an amount HR types on the 2nd is deducted.
 
-        return $this->totals($amounts);
+        return $this->totals($this->applyOverrides($amounts, $inputs['overrides'] ?? [], $rate));
+    }
+
+    /**
+     * Numbers HR typed over the system's on step 3. Each stands alone; blank or null keeps the system number.
+     * Absence = NPW-Holiday + Absent, capped at basic pay (Absent first) so the Excel row still balances.
+     *
+     * @param  array<string, float>  $amounts
+     * @param  array<string, mixed>  $overrides
+     * @return array<string, float>
+     */
+    private function applyOverrides(array $amounts, array $overrides, float $rate): array
+    {
+        $typed = fn (string $key): ?float => isset($overrides[$key]) && $overrides[$key] !== '' ? round((float) $overrides[$key], 2) : null;
+        $basic = $typed('basic_before_absence') ?? $amounts['basic_before_absence'];
+        $nwnp = $typed('nwnp_deduction') ?? $amounts['nwnp_deduction'];
+        $other = $typed('other_absence') ?? round($amounts['absence_deduction'] - $amounts['nwnp_deduction'], 2);
+        $nwnp = min($nwnp, $basic);
+        $other = min($other, round($basic - $nwnp, 2));
+        $absence = round($nwnp + $other, 2);
+
+        $amounts['basic_before_absence'] = $basic;
+        $amounts['nwnp_deduction'] = $nwnp;
+        $amounts['absence_deduction'] = $absence;
+        $amounts['cutoff_basic'] = round($basic - $absence, 2);
+        $amounts['absence_days'] = $rate > 0 ? round($absence / $rate, 2) : 0.0;
+        $amounts['tardiness_deduction'] = $typed('tardiness_deduction') ?? $amounts['tardiness_deduction'];
+        $amounts['days_present'] = $typed('days_present') ?? ($rate > 0 ? round($amounts['paid_days_basis'] - $absence / $rate, 2) : $amounts['paid_days_basis']);
+
+        return $amounts;
     }
 
     /** @param  array<string, float>  $amounts

@@ -24,9 +24,9 @@ test('typed allowances and holiday pay add to gross; SSS & co. only on the 1st c
     const first = calculateHoursItem(item({ days: days(8, [8]), cutoff_transpo: 750, holiday_pay: 390 }), true)
     assert.equal(first.gross_pay, 1740)
     assert.equal(first.total_deductions, 1350)
-    // Tax stays on the 2nd cutoff (split per cutoff); SSS, PhilHealth and Pag-IBIG do not.
-    const second = calculateHoursItem(item({ days: days(8, [8]), deductions: { sss_deduction: 500, tax_deduction: 425 } }), false)
-    assert.equal(second.total_deductions, 425)
+    // 2nd cutoff: SSS & co. start at 0 on the server, but an amount HR types is deducted (Kurt, 2026-11-13).
+    const second = calculateHoursItem(item({ days: days(8, [8]), deductions: { sss_deduction: 450, tax_deduction: 425 } }), false)
+    assert.equal(second.total_deductions, 875)
 })
 
 test('office staff: fixed half month minus missing hours (Kurt, 800 x 22 / 2)', () => {
@@ -61,4 +61,42 @@ test('typed electricity is a deduction', () => {
     const without = calculateHoursItem(item({ days: days(8, [8]) }), true)
     const withBill = calculateHoursItem(item({ days: days(8, [8]), deductions: { sss_deduction: 500, tax_deduction: 850, loan_deduction: 0, electricity_deduction: 350 } }), true)
     assert.equal(withBill.net_pay, without.net_pay - 350)
+})
+
+// Same numbers as HoursPayrollCalculatorTest: rate 600, fixed 11 days, one 8 h absence.
+const oneAbsence = (overrides) => calculateHoursItem(item({ days: days(8, [8, 0, 8, 8, 8, 8, 8, 8, 8, 8]), fixed_days: 11, deductions: { tax_deduction: 0 }, overrides }), true)
+
+test('typed basic pay replaces only basic', () => {
+    const row = oneAbsence({ basic_before_absence: 7000 })
+    assert.equal(row.basic_before_absence, 7000)
+    assert.equal(row.absence_deduction, 600)
+    assert.equal(row.cutoff_basic, 6400)
+})
+
+test('typed absent and NPW set the absence', () => {
+    const row = oneAbsence({ nwnp_deduction: 0, other_absence: 300 })
+    assert.equal(row.absence_deduction, 300)
+    assert.equal(row.nwnp_deduction, 0)
+    assert.equal(row.other_absence, 300)
+    assert.equal(row.cutoff_basic, 6300)
+})
+
+test('typed late and days of work', () => {
+    const late = calculateHoursItem(item({ days: days(8, [8]), tardiness_minutes: 30, deductions: {}, overrides: { tardiness_deduction: 50 } }), true)
+    assert.equal(late.tardiness_deduction, 50)
+    assert.equal(late.total_deductions, 50)
+    assert.equal(oneAbsence({ days_present: 10.5 }).days_present, 10.5)
+    assert.equal(oneAbsence({}).days_present, 10)
+})
+
+test('typed basic below the absence caps the absence', () => {
+    const row = oneAbsence({ basic_before_absence: 500 })
+    assert.equal(row.cutoff_basic, 0)
+    assert.equal(row.absence_deduction, 500)
+})
+
+test('cleared overrides fall back to the system numbers', () => {
+    const row = oneAbsence({ basic_before_absence: null, other_absence: '' })
+    assert.equal(row.basic_before_absence, 6600)
+    assert.equal(row.absence_deduction, 600)
 })

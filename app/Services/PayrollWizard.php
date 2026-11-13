@@ -130,6 +130,16 @@ class PayrollWizard
                         $field => (float) ($item ? $item->{$field} : $suggested[$field]),
                     ])->all(),
                     'day_resolutions' => (object) ($item->day_resolutions ?? []),
+                    // Numbers typed over on step 3, and the system's own numbers (shown faded, restored by undo).
+                    'overrides' => (object) ($item->overrides ?? []),
+                    'system' => [
+                        ...collect(OfficePayrollCalculator::DEDUCTIONS)->mapWithKeys(fn (string $field): array => [$field => $suggested[$field]])->all(),
+                        'days_present' => $suggested['days_present'],
+                        'basic_before_absence' => $suggested['basic_before_absence'],
+                        'nwnp_deduction' => $suggested['nwnp_deduction'],
+                        'other_absence' => round($suggested['absence_deduction'] - $suggested['nwnp_deduction'], 2),
+                        'tardiness_deduction' => $suggested['tardiness_deduction'],
+                    ],
                 ];
             })->values(),
         ];
@@ -148,7 +158,8 @@ class PayrollWizard
                 throw ValidationException::withMessages(['cutoff' => 'This cutoff is already finalized and can no longer change.']);
             }
 
-            $posted = collect($data['items'])->keyBy('employee_id');
+            // A blank or null typed number means "use the system's number": it is not saved.
+            $posted = collect($data['items'])->map(fn (array $row): array => [...$row, 'overrides' => array_filter($row['overrides'] ?? [], fn ($value): bool => $value !== null && $value !== '')])->keyBy('employee_id');
             $employees = $this->employees()->whereIn('id', $posted->keys()->all())->values();
             if ($employees->count() !== $posted->count()) {
                 throw ValidationException::withMessages(['items' => 'An employee is no longer available. Reload the payroll.']);
@@ -193,6 +204,7 @@ class PayrollWizard
                     'dtr_tardiness_minutes' => $attendance['tardiness_minutes'] ?? 0,
                     'dtr_unresolved_dates' => [],
                     'day_resolutions' => $row['day_resolutions'] ?? [],
+                    'overrides' => $row['overrides'] ?: null,
                     'dtr_reconciliation_note' => collect($row['day_resolutions'] ?? [])->filter(fn (array $r): bool => $r['type'] === 'hours')
                         ->map(fn (array $r, string $date): string => $date.': '.$r['note'])->implode('; ') ?: null,
                     ...$amounts,

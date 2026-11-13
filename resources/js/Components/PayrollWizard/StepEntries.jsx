@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import MarkHolidayModal from '@/Components/MarkHolidayModal'
 
 export const peso = (value) => (Number(value) ? Number(value).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-')
@@ -8,9 +8,13 @@ const name = `${td} !text-left !whitespace-normal min-w-[170px] bg-slate-100 dar
 const strong = `${td} bg-slate-100 font-bold dark:bg-slate-800`
 const total = 'px-2.5 py-2 text-right font-bold tabular-nums text-[#c00000] dark:text-rose-400'
 
-function Cell({ label, value, onChange, step = '0.01', error }) {
+// A typed-over number shows in blue with an undo (↺) that brings back the system's number.
+function Cell({ label, value, onChange, step = '0.01', error, changed = false, onReset, system }) {
     return (
-        <td className={`${td} bg-yellow-50 p-0 dark:bg-yellow-950/40`}>
+        <td className={`${td} relative p-0 ${changed ? 'bg-sky-100 dark:bg-sky-950/60' : 'bg-yellow-50 dark:bg-yellow-950/40'}`} title={changed && system !== undefined ? `Typed by hand. System: ${peso(system)}` : undefined}>
+            {changed && onReset && (
+                <button type="button" onClick={onReset} aria-label={`Undo: use the system number for ${label}`} className="absolute left-0.5 top-0.5 min-h-[24px] min-w-[24px] rounded text-xs font-bold text-sky-800 hover:bg-sky-200 dark:text-sky-300 dark:hover:bg-sky-900">↺</button>
+            )}
             <input
                 type="number" min="0" step={step} value={value} aria-label={label} aria-invalid={!!error} title={error}
                 onChange={(event) => onChange(event.target.value)}
@@ -29,6 +33,23 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
     const visible = rows.filter((row) => row.payroll_office === office)
     const err = (row, field) => errors[`items.${employees.findIndex((employee) => employee.id === row.id)}.${field}`]
     const deduction = (row, field, value) => setTyped(row.id, 'deductions', { ...row.deductions, [field]: value })
+    const override = (row, key, value) => {
+        const next = { ...row.overrides }
+        if (value === null) delete next[key]
+        else next[key] = value
+        setTyped(row.id, 'overrides', next)
+    }
+    const typedOver = (row, key) => row.overrides?.[key] !== undefined && row.overrides?.[key] !== null && row.overrides?.[key] !== ''
+    // A computed number HR may type over; the sheet shows the typed value or the system's.
+    const Over = ({ row, field, label, step }) => (
+        <Cell label={`${label} for ${row.full_name}`} step={step} value={typedOver(row, field) ? row.overrides[field] : row[field]} system={row.system?.[field]}
+            changed={typedOver(row, field)} onReset={() => override(row, field, null)} onChange={(value) => override(row, field, value)} error={err(row, `overrides.${field}`)} />
+    )
+    const Ded = ({ row, field, label }) => {
+        const changed = row.system && Number(row.deductions[field] ?? 0) !== Number(row.system[field] ?? 0)
+        return <Cell label={`${label} for ${row.full_name}`} value={row.deductions[field] ?? 0} system={row.system?.[field]} changed={changed}
+            onReset={() => deduction(row, field, row.system[field])} onChange={(value) => deduction(row, field, value)} error={err(row, `deductions.${field}`)} />
+    }
 
     return (
         <section aria-labelledby="entries-title" className="space-y-3">
@@ -103,13 +124,13 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                     <tr key={row.id}>
                                         <td className={name}>{row.sheet_name}</td>
                                         <td className={`${td} !text-left !whitespace-normal min-w-[150px]`}>{row.position}</td>
-                                        <td className={td}>{row.days_present}</td>
-                                        <td className={td}>{peso(row.basic_before_absence)}</td>
+                                        {Over({ row, field: 'days_present', label: 'Days of work' })}
+                                        {Over({ row, field: 'basic_before_absence', label: 'Basic pay' })}
                                         <td className={td} title={Number(row.holiday_pay) ? 'Includes the typed holiday premium, as in the Excel' : undefined}>{peso(Number(row.total_ot_pay) + Number(row.holiday_pay || 0))}</td>
                                         <Cell label={`Transport allowance for ${row.full_name}`} value={row.cutoff_transpo} onChange={(value) => setTyped(row.id, 'cutoff_transpo', value)} error={err(row, 'cutoff_transpo')} />
                                         <Cell label={`Representation allowance for ${row.full_name}`} value={row.cutoff_rep} onChange={(value) => setTyped(row.id, 'cutoff_rep', value)} error={err(row, 'cutoff_rep')} />
                                         <Cell label={`Quarterly allowance for ${row.full_name}`} value={row.cutoff_quarterly} onChange={(value) => setTyped(row.id, 'cutoff_quarterly', value)} error={err(row, 'cutoff_quarterly')} />
-                                        <td className={td} title="Holiday not worked: no work, no pay">{peso(row.nwnp_deduction)}</td>
+                                        {Over({ row, field: 'nwnp_deduction', label: 'NPW-Holiday (no work, no pay)' })}
                                         <td className={strong}>{peso(row.sheet_gross)}</td>
                                         <td className={td}>{peso(row.sheet_deductions)}</td>
                                         <td className={`${strong} ${row.net_pay < 0 ? '!text-rose-700 dark:!text-rose-400' : ''}`} title={row.net_pay < 0 ? 'Net pay is below zero' : undefined}>{row.net_pay < 0 ? `(${peso(-row.net_pay)})` : peso(row.net_pay)}</td>
@@ -130,17 +151,13 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                 {visible.map((row) => (
                                     <tr key={row.id}>
                                         <td className={name}>{row.sheet_name}</td>
-                                        {['tax_deduction', 'sss_deduction', 'philhealth_deduction', 'pagibig_deduction'].map((field) => <td key={field} className={td}>{peso(row.deductions[field])}</td>)}
-                                        {[['loan_deduction', 'Loan'], ['capital_contribution_deduction', 'Capital contribution'], ['cash_advance_deduction', 'Cash advance']].map(([field, label]) => (
-                                            <Cell key={field} label={`${label} for ${row.full_name}`} value={row.deductions[field]} onChange={(value) => deduction(row, field, value)} error={err(row, `deductions.${field}`)} />
+                                        {[['tax_deduction', 'W/H tax'], ['sss_deduction', 'SSS'], ['philhealth_deduction', 'PhilHealth'], ['pagibig_deduction', 'Pag-IBIG'], ['loan_deduction', 'Loan'], ['capital_contribution_deduction', 'Capital contribution'], ['cash_advance_deduction', 'Cash advance']].map(([field, label]) => (
+                                            <Fragment key={field}>{Ded({ row, field, label })}</Fragment>
                                         ))}
-                                        <td className={td}>{peso(row.other_absence)}</td>
-                                        <td className={td} title={Number(row.tardiness_minutes) ? `${row.tardiness_minutes} minutes late × daily rate ÷ 8 ÷ 60` : undefined}>
-                                            {peso(row.tardiness_deduction)}
-                                            {Number(row.tardiness_minutes) > 0 && <span className="block text-[11px] font-normal text-slate-600 dark:text-slate-400">{row.tardiness_minutes} min</span>}
-                                        </td>
-                                        <td className={td}>{peso(row.deductions.rental_deduction)}</td>
-                                        <Cell label={`Electricity for ${row.full_name}`} value={row.deductions.electricity_deduction ?? 0} onChange={(value) => deduction(row, 'electricity_deduction', value)} error={err(row, 'deductions.electricity_deduction')} />
+                                        {Over({ row, field: 'other_absence', label: 'Absent' })}
+                                        {Over({ row, field: 'tardiness_deduction', label: Number(row.tardiness_minutes) ? `Late (${row.tardiness_minutes} min)` : 'Late' })}
+                                        {Ded({ row, field: 'rental_deduction', label: 'Rental' })}
+                                        {Ded({ row, field: 'electricity_deduction', label: 'Electricity' })}
                                         <td className={strong}>{peso(row.sheet_deductions)}</td>
                                     </tr>
                                 ))}
