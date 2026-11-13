@@ -16,9 +16,9 @@ class ExportManagementPayrollRequest extends FormRequest
 
     public function rules(): array
     {
-        $rules = ['signatories' => ['sometimes', 'array:first,second'], 'signatories.*' => ['array:prepared,certified,approved,noted']];
+        $rules = ['signatories' => ['sometimes', 'array:first,second'], 'signatories.*' => ['array:prepared,prepared_2,certified,approved']];
         foreach (['first', 'second'] as $cutoff) {
-            foreach (['prepared', 'certified', 'approved', 'noted'] as $role) {
+            foreach (['prepared', 'prepared_2', 'certified', 'approved'] as $role) {
                 $rules["signatories.$cutoff.$role"] = ['nullable', 'integer', Rule::exists('employees', 'id')];
             }
         }

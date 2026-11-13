@@ -168,7 +168,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                 </table>
 
                 <div className="mt-10 grid max-w-4xl grid-cols-4 gap-8 text-xs text-black dark:text-slate-200">
-                    {[['prepared', 'Prepared by:'], ['certified', 'Certified correct:'], ['approved', 'Approved by:'], ['noted', 'Noted by:']].map(([key, label]) => (
+                    {[['prepared', 'Prepared by:'], ['prepared_2', ' '], ['certified', 'Certified correct:'], ['approved', 'Approved by:']].map(([key, label]) => (
                         <div key={key}>
                             {label}
                             <p className="mt-4 font-bold underline">{signatories?.[key]?.name ?? '—'}</p>

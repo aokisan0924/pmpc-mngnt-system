@@ -3,8 +3,8 @@ import { useForm, usePage } from '@inertiajs/react'
 export default function PayrollExcelExport({ payroll, employees, defaultSignatories }) {
     const { errors } = usePage().props
     const form = useForm({
-        first: { prepared: '', certified: '', approved: '', noted: '', ...defaultSignatories?.first },
-        second: { prepared: '', certified: '', approved: '', noted: '', ...defaultSignatories?.second },
+        first: { prepared: '', prepared_2: '', certified: '', approved: '', ...defaultSignatories?.first },
+        second: { prepared: '', prepared_2: '', certified: '', approved: '', ...defaultSignatories?.second },
     })
     return (
         <section id="payroll-excel-export" className="pt-4 space-y-4" aria-labelledby="excel-export-title">
@@ -12,7 +12,7 @@ export default function PayrollExcelExport({ payroll, employees, defaultSignator
                 Management Excel export
             </h3>
             <p className="text-sm text-sub">
-                Choose who prepared, certified, approved and noted each cutoff. Only their names print in the sign-off areas;
+                Choose who prepared (two people), certified and approved each cutoff. Only their names print in the sign-off areas;
                 signature pictures are never added to the export. Leave a selection blank for an empty area.
             </p>
             <form action={`/admin/payroll/${payroll.id}/export`} method="get" className="space-y-4">
@@ -23,9 +23,9 @@ export default function PayrollExcelExport({ payroll, employees, defaultSignator
                         </legend>
                         {Object.entries({
                             prepared: 'Prepared by',
+                            prepared_2: 'Prepared by (2nd)',
                             certified: 'Certified Correct',
                             approved: 'Approved by',
-                            noted: 'Noted by',
                         }).map(([role, label]) => {
                             const error = errors?.[`signatories.${cutoff}.${role}`]
                             return (

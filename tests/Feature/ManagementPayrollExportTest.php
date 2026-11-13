@@ -175,31 +175,40 @@ class ManagementPayrollExportTest extends TestCase
         $this->assertEquals(0, $this->underHeader($gen, 3, 'ABSENT', 11));
     }
 
-    public function test_default_signatories_and_noted_by_follow_the_october_payroll(): void
+    public function test_default_signatories_put_reynold_and_kurt_as_preparers_and_the_president_last(): void
     {
         $reynold = Employee::factory()->create(['employee_id' => 'EMP-0001', 'first_name' => 'Reynold', 'middle_name' => 'D.', 'last_name' => 'Valdez', 'position' => 'Admin']);
         $kurt = Employee::factory()->create(['employee_id' => 'EMP-0002', 'first_name' => 'Kurt Vincent', 'middle_name' => 'Fernando', 'last_name' => 'Farinas', 'position' => 'Full-Stack Developer']);
-        $katherine = Employee::factory()->create(['first_name' => 'Katherine', 'middle_name' => null, 'last_name' => 'Sevilleno']);
+        $katherine = Employee::factory()->create(['first_name' => 'Katherine', 'middle_name' => null, 'last_name' => 'Sevilleno', 'position' => 'Accounting Clerk']);
         $feria = Employee::factory()->create(['first_name' => 'Alexander L.', 'middle_name' => null, 'last_name' => 'Feria', 'position' => 'President']);
 
         $defaults = app(ManagementPayrollExport::class)->defaultSignatories()['first'];
-        $this->assertSame(['prepared' => $reynold->id, 'certified' => $katherine->id, 'approved' => $feria->id, 'noted' => $kurt->id], $defaults);
+        $this->assertSame(['prepared' => $reynold->id, 'prepared_2' => $kurt->id, 'certified' => $katherine->id, 'approved' => $feria->id], $defaults);
 
         $batch = Payroll::create(['period_label' => 'November first', 'period_from' => '2026-11-02', 'period_to' => '2026-11-13', 'cutoff' => 'first', 'status' => 'draft', 'created_by' => $kurt->id]);
         $this->item($batch);
         $path = $this->exported($batch);
         $main = $this->sheetCells($path, 1);
-        // Sign-offs use the middle initial, as on the October sheets.
-        $this->assertSame('Kurt Vincent F. Farinas', $main['L21']);
-        $this->assertSame('FULL-STACK DEVELOPER', $main['L22']);
+        // Sign-offs use the middle initial. Order: Prepared by Reynold and Kurt, Certified Katherine, President last.
+        $this->assertSame('Prepared by:', $main['B19']);
         $this->assertSame('Reynold D. Valdez', $main['B21']);
+        $this->assertSame('Kurt Vincent F. Farinas', $main['F21']);
+        $this->assertSame('FULL-STACK DEVELOPER', $main['F22']);
+        $this->assertSame('Certified Correct:', $main['I19']);
+        $this->assertSame('Katherine Sevilleno', $main['J21']);
+        $this->assertSame('Approved by:', $main['L19']);
+        $this->assertSame('PRESIDENT', $main['L22']);
+        $this->assertNotContains('Noted by:', $main);
         $voucher = $this->sheetCells($path, 5);
-        // October 2026 was voucher 0017, so November is 0018; payee and Noted by as on the October voucher.
+        // October 2026 was voucher 0017, so November is 0018; payee as on the October voucher.
         $this->assertSame('0018', $voucher['I11']);
         $this->assertSame('Alexander Feria et. al.', $voucher['C11']);
         $this->assertSame('REYNOLD D. VALDEZ', $voucher['C31']);
-        $this->assertSame('KURT VINCENT F. FARINAS', $voucher['H31']);
-        $this->assertSame('Full-Stack Developer', $voucher['H32']);
+        $this->assertSame('KURT VINCENT F. FARINAS', $voucher['D31']);
+        $this->assertSame('Full-Stack Developer', $voucher['D32']);
+        $this->assertSame('Certified Correct:', $voucher['G29']);
+        $this->assertSame('KATHERINE SEVILLENO', $voucher['H31']);
+        $this->assertSame('Accounting Clerk', $voucher['H32']);
     }
 
     public function test_voucher_print_area_follows_the_renamed_sheet(): void

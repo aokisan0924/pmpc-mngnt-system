@@ -122,6 +122,33 @@ def add_noted_by(ws, total):
         ws.cell(row + 3, col).value = '{{noted_title}}'
 
 
+def reorder_signoffs(ws):
+    """November 2026 order: Prepared by Reynold and Kurt side by side, Certified Correct, the President last.
+
+    The four slots keep their cells; what each one says moves one slot along and "Noted by" goes away.
+    Old -> new: prepared stays, certified -> second preparer, approved -> certified, noted -> approved.
+    """
+    names = {'{{certified}}': '{{prepared_2}}', '{{approved}}': '{{certified}}', '{{noted}}': '{{approved}}'}
+    titles = {'{{certified}}': '{{prepared_2_title}}', '{{approved}}': 'ACCOUNTING CLERK', '{{noted}}': 'PRESIDENT'}
+    labels = {'{{certified}}': ('Certified Correct:', None), '{{approved}}': ('Approved by:', 'Certified Correct:'), '{{noted}}': ('Noted by:', 'Approved by:')}
+    marks = [c for row in ws.iter_rows() for c in row if c.value in names]
+    for c in marks:
+        old = c.value
+        ws.cell(c.row + 1, c.column).value = titles[old]
+        label_old, label_new = labels[old]
+        # The label sits two rows up, at or a few columns left of the name (one Cubao block has none: write it).
+        label = next((ws.cell(c.row - 2, col) for col in range(c.column, max(0, c.column - 4), -1) if str(ws.cell(c.row - 2, col).value or '').strip() == label_old), ws.cell(c.row - 2, c.column))
+        label.value = label_new
+        c.value = names[old]
+
+
+def relayout_voucher(ws):
+    """Voucher: Prepared by Reynold (C31) and Kurt (D31), Certified Correct by Katherine (H31)."""
+    ws['D29'].value = None
+    ws['D32'].value = None
+    ws['G29'].value = 'Certified Correct:'
+
+
 def clean_voucher(ws):
     for row in ws.iter_rows():
         for c in row:
@@ -143,7 +170,9 @@ def main():
         ws._images = [i for i in ws._images if i.anchor._from.row <= LOGO_ROWS]
     for ws in wb.worksheets[:4]:
         clean_office(ws)
+        reorder_signoffs(ws)
     clean_voucher(wb.worksheets[4])
+    relayout_voucher(wb.worksheets[4])
     wb.calculation.fullCalcOnLoad = False
     # The source file's author and print dates are personal data; never carry them into the template.
     wb.properties.creator = None

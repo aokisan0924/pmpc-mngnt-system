@@ -47,11 +47,11 @@ class ManagementPayrollExport
     {
         $employees = Employee::where('status', 'active')->get(['id', 'employee_id', 'first_name', 'last_name', 'position']);
         $defaults = [
-            // As on the October 2026 payroll: Reynold prepares, Katherine certifies, the President approves; Kurt notes.
+            // From November 2026: Reynold and Kurt prepare, Katherine certifies, the President approves (last).
             'prepared' => $employees->firstWhere('employee_id', 'EMP-0001')?->id,
+            'prepared_2' => $employees->firstWhere('employee_id', 'EMP-0002')?->id,
             'certified' => $employees->first(fn (Employee $employee): bool => $employee->first_name === 'Katherine' && $employee->last_name === 'Sevilleno')?->id,
             'approved' => $employees->first(fn (Employee $employee): bool => $employee->first_name === 'Alexander L.' && $employee->last_name === 'Feria' && $employee->position === 'President')?->id,
-            'noted' => $employees->firstWhere('employee_id', 'EMP-0002')?->id,
         ];
 
         return ['first' => $defaults, 'second' => $defaults];
@@ -175,7 +175,7 @@ class ManagementPayrollExport
                 }
                 // Grid sign-offs sit left of the 1st govt table; in each pair the right half is the 2nd cutoff.
                 foreach ($texts as $address => $text) {
-                    if (preg_match('/^\{\{(prepared|certified|approved|noted)(_title)?\}\}$/', $text, $marker)) {
+                    if (preg_match('/^\{\{(prepared_2|prepared|certified|approved)(_title)?\}\}$/', $text, $marker)) {
                         $col = self::split($address)[0];
                         $second = $col < array_key_first($blocks[2]) ? $col >= array_key_first($blocks[1]) : $col >= $ot[2][0];
                         $cutoff = $second ? 'second' : 'first';
@@ -221,14 +221,15 @@ class ManagementPayrollExport
             $this->put($voucher, 'H28', $month['gross'] ?? 0.0);
             $this->put($voucher, 'I28', round(array_sum(array_map(fn (string $key): float => $month[$key] ?? 0.0, $credits)), 2));
             $this->put($voucher, 'D28', 'To record salaries and wages for the month of '.$selected->period_from->format('F Y'));
-            foreach (['prepared' => 'C31', 'certified' => 'D31', 'noted' => 'H31'] as $role => $cell) {
+            // Prepared by: C31 and D31 side by side; Certified Correct: H31.
+            foreach (['prepared' => 'C31', 'prepared_2' => 'D31', 'certified' => 'H31'] as $role => $cell) {
                 $person = $people->get($signatories[$selected->cutoff][$role] ?? null);
                 if ($person) {
                     $this->put($voucher, $cell, mb_strtoupper($this->signName($person)));
                 }
             }
-            $noted = $people->get($signatories[$selected->cutoff]['noted'] ?? null);
-            $this->put($voucher, 'H32', $noted?->position);
+            $this->put($voucher, 'D32', $people->get($signatories[$selected->cutoff]['prepared_2'] ?? null)?->position);
+            $this->put($voucher, 'H32', $people->get($signatories[$selected->cutoff]['certified'] ?? null)?->position);
             // October 2026 was voucher 0017; each month after counts up by one.
             $months = (int) CarbonImmutable::create(2026, 10, 1)->diffInMonths($selected->period_from->copy()->startOfMonth(), false);
             $this->put($voucher, 'I11', sprintf('%04d', max(1, 17 + $months)));
