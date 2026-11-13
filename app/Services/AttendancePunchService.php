@@ -108,6 +108,10 @@ class AttendancePunchService
                 $log->ip_address = $ipAddress;
                 $log->computeHoursAndStatus();
                 $log->save();
+                // Payroll day: a time-in counts as the whole day, so the rest of the day is filled in now.
+                if (in_array($slot, ['am_time_in', 'pm_time_in'], true) && $log->date->isToday() && app(PayrollDayFiller::class)->isOn()) {
+                    app(PayrollDayFiller::class)->fillLog($log);
+                }
 
                 $response = [
                     'request_id' => $input['request_id'],
