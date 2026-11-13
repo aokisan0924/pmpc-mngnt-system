@@ -57,4 +57,16 @@ class FinalizedEmployeePayslipTest extends TestCase
         $this->get('/admin/payslips/'.$other->id.'/download?month=2026-09')->assertRedirect(route('employee.dashboard'));
         $this->actingAs(Employee::factory()->superAdmin()->create())->get('/admin/payslips/'.$other->id.'/download?month=2026-09')->assertOk()->assertHeader('content-type', 'application/pdf');
     }
+
+    public function test_payslip_lists_holiday_work_pay_so_the_earnings_add_up(): void
+    {
+        $employee = Employee::factory()->create();
+        $this->item($employee, 'finalized', 'first', 1234)->update(['holiday_pay' => 100, 'worked_holiday_pay' => 258]);
+        $pdf = \Mockery::mock(\Barryvdh\DomPDF\PDF::class);
+        Pdf::shouldReceive('loadView')->once()->withArgs(fn ($view, $props) => (float) $props['data']['first_holiday'] === 358.0)->andReturn($pdf);
+        $pdf->shouldReceive('setPaper')->andReturnSelf();
+        $pdf->shouldReceive('download')->once()->andReturn(response('%PDF-test', 200, ['Content-Type' => 'application/pdf']));
+
+        $this->actingAs($employee)->get('/employee/payslips/2026-09')->assertOk();
+    }
 }

@@ -16,6 +16,7 @@ const earnings = {
     weekday_ot_pay: 'Weekday overtime',
     weekend_ot_pay: 'Rest-day overtime',
     holiday_pay: 'Holiday pay',
+    worked_holiday_pay: 'Holiday work pay (DOLE)',
 }
 const deductions = {
     sss_deduction: 'SSS',

@@ -136,6 +136,7 @@ class PayrollController extends Controller
                 'weekend_ot_pay' => $item->weekend_ot_pay,
                 'total_ot_pay' => $item->total_ot_pay,
                 'holiday_pay' => $item->holiday_pay,
+                'worked_holiday_pay' => $item->worked_holiday_pay,
                 'gross_pay' => $item->gross_pay,
                 'sss_deduction' => $item->sss_deduction,
                 'philhealth_deduction' => $item->philhealth_deduction,

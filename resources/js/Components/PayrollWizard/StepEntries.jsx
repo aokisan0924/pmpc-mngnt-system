@@ -1,5 +1,6 @@
 import { Fragment, useState } from 'react'
 import MarkHolidayModal from '@/Components/MarkHolidayModal'
+import { shownOverride } from '@/Pages/Admin/officePayrollMath'
 
 export const peso = (value) => (Number(value) ? Number(value).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '-')
 const th = 'border border-black px-2.5 py-2 text-center text-[11px] font-bold uppercase leading-tight text-black dark:border-slate-500 dark:text-slate-100'
@@ -42,8 +43,9 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
     const typedOver = (row, key) => row.overrides?.[key] !== undefined && row.overrides?.[key] !== null && row.overrides?.[key] !== ''
     // A computed number HR may type over; the sheet shows the typed value or the system's.
     const Over = ({ row, field, label, step }) => (
-        <Cell label={`${label} for ${row.full_name}`} step={step} value={typedOver(row, field) ? row.overrides[field] : row[field]} system={row.system?.[field]}
-            changed={typedOver(row, field)} onReset={() => override(row, field, null)} onChange={(value) => override(row, field, value)} error={err(row, `overrides.${field}`)} />
+        <Cell label={`${label} for ${row.full_name}`} step={step} value={shownOverride(row, field)} system={row.system?.[field]}
+            changed={typedOver(row, field) || Object.hasOwn(row.overrides ?? {}, field)} onReset={() => override(row, field, null)} onChange={(value) => override(row, field, value)}
+            error={err(row, `overrides.${field}`) || (row.capped?.[field] !== undefined ? `Capped at ${peso(row.capped[field])}: absences cannot be more than basic pay` : undefined)} />
     )
     const Ded = ({ row, field, label }) => {
         const changed = row.system && Number(row.deductions[field] ?? 0) !== Number(row.system[field] ?? 0)
@@ -112,7 +114,10 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                         })}
                                         {err(row, 'holiday_hours') && <p role="alert" className="text-rose-700">{err(row, 'holiday_hours')}</p>}
                                     </td>
-                                    <td className="px-2 py-1.5 text-right tabular-nums text-text" title="DOLE rate for the hours worked, minus pay already counted for that day">₱ {peso(row.worked_holiday_pay)}</td>
+                                    <td className="px-2 py-1.5 text-right tabular-nums text-text" title="DOLE rate for the hours worked, minus pay already counted for that day">
+                                        ₱ {peso(row.worked_holiday_pay)}
+                                        {row.holiday_paid_twice && <p role="alert" className="mt-1 whitespace-normal text-left text-[11px] font-semibold text-amber-800 dark:text-amber-300">Also has a typed holiday premium. Check it isn't paid twice.</p>}
+                                    </td>
                                     <td className="px-2 py-1.5 text-right font-semibold tabular-nums text-text">₱ {peso(Number(row.total_ot_pay) + Number(row.holiday_pay || 0) + Number(row.worked_holiday_pay || 0))}</td>
                                 </tr>
                             ))}

@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { calculateHoursItem } from '../../resources/js/Pages/Admin/officePayrollMath.js'
+import { calculateHoursItem, shownOverride } from '../../resources/js/Pages/Admin/officePayrollMath.js'
 
 // Same numbers as tests/Unit/HoursPayrollCalculatorTest.php, so the step 3 screen and the saved payroll agree.
 const days = (shift, worked) => worked.map((hours, i) => ({ date: `2026-11-${String(i + 2).padStart(2, '0')}`, shift_hours: shift, worked_hours: hours, holiday: false }))
@@ -113,4 +113,24 @@ test('holiday work pay follows the DOLE rates', () => {
     assert.equal(holidayWork([['2026-11-02', 'special', false, 8, null, 0]], { '2026-11-02': 10 }).worked_holiday_pay, 1033.5)
     assert.equal(holidayWork([['2026-11-02', 'special', false, 12, 12, 12]], { '2026-11-02': 2 }).worked_holiday_pay, 258)
     assert.equal(holidayWork([['2026-11-02', 'special', false, 8, null, 0]]).worked_holiday_pay, 0)
+})
+
+test('a cleared typed box stays empty instead of jumping back to the system number', () => {
+    assert.equal(shownOverride({ overrides: { basic_before_absence: '' }, basic_before_absence: 6600 }, 'basic_before_absence'), '')
+    assert.equal(shownOverride({ overrides: {}, basic_before_absence: 6600 }, 'basic_before_absence'), 6600)
+    assert.equal(shownOverride({ overrides: { basic_before_absence: '7000' }, basic_before_absence: 7000 }, 'basic_before_absence'), '7000')
+})
+
+test('a typed absence that gets capped is flagged', () => {
+    const row = oneAbsence({ basic_before_absence: 500, other_absence: 1000 })
+    assert.equal(row.other_absence, 500)
+    assert.deepEqual(row.capped, { other_absence: 500 })
+    assert.deepEqual(oneAbsence({ other_absence: 300 }).capped, {})
+})
+
+test('a typed holiday premium next to automatic holiday work pay is flagged', () => {
+    const both = calculateHoursItem(item({ days: days(8, [8]), deductions: {}, holiday_pay: 600, holiday_work: [{ date: '2026-09-08', type: 'regular', rest_day: false, shift_hours: 8, dtr_hours: 8, paid_hours: 8 }] }), true)
+    assert.equal(both.worked_holiday_pay, 600)
+    assert.equal(both.holiday_paid_twice, true)
+    assert.equal(holidayWork([['2026-11-02', 'special', false, 12, 12, 12]]).holiday_paid_twice, false)
 })

@@ -2,6 +2,11 @@ const money = value => {
     const number = Number(value) || 0
     return Math.round((number + Math.abs(number) * Number.EPSILON) * 100) / 100
 }
+// What a typed-over step 3 box shows: the typed text (even empty, while HR retypes it), else the system number.
+export function shownOverride(row, field) {
+    return row.overrides && Object.hasOwn(row.overrides, field) && row.overrides[field] !== null ? row.overrides[field] : row[field]
+}
+
 // DOLE pay for work done on holidays, as OfficePayrollCalculator::workedHolidayPay.
 export function workedHolidayPay(holidays, typedHours, rate) {
     const total = holidays.reduce((sum, holiday) => {
@@ -37,6 +42,8 @@ export function calculateHoursItem(item, isFirst) {
     const other_absence = Math.min(typed('other_absence') ?? money(system_absence - system_nwnp), money(basic_before_absence - nwnp_deduction))
     const absence_deduction = money(nwnp_deduction + other_absence)
     const cutoff_basic = money(basic_before_absence - absence_deduction)
+    // Typed absences above basic pay are capped (Absent first); the box shows the cap so the row still adds up.
+    const capped = Object.fromEntries([['nwnp_deduction', nwnp_deduction], ['other_absence', other_absence]].filter(([key, value]) => typed(key) !== null && value < typed(key)))
     const cutoff_transpo = money(item.cutoff_transpo)
     const cutoff_rep = money(item.cutoff_rep)
     const cutoff_quarterly = money(item.cutoff_quarterly)
@@ -52,5 +59,5 @@ export function calculateHoursItem(item, isFirst) {
     const total_deductions = money(Object.values(deductions).reduce((sum, value) => sum + money(value), 0) + tardiness_deduction)
     const days_of_work = fixed ?? days.length
     const days_present = typed('days_present') ?? (rate > 0 ? Math.round((days_of_work - absence_deduction / rate) * 100) / 100 : 0)
-    return { ...item, deductions, tardiness_deduction, days_of_work, days_present, nwnp_deduction, other_absence, sheet_gross: money(gross_pay + absence_deduction - nwnp_deduction), sheet_deductions: money(total_deductions + other_absence), basic_before_absence, absence_deduction, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, weekday_ot_pay, weekend_ot_pay, total_ot_pay: money(weekday_ot_pay + weekend_ot_pay), holiday_pay, worked_holiday_pay, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
+    return { ...item, deductions, tardiness_deduction, days_of_work, days_present, nwnp_deduction, other_absence, sheet_gross: money(gross_pay + absence_deduction - nwnp_deduction), sheet_deductions: money(total_deductions + other_absence), basic_before_absence, absence_deduction, cutoff_basic, cutoff_transpo, cutoff_rep, cutoff_quarterly, weekday_ot_pay, weekend_ot_pay, total_ot_pay: money(weekday_ot_pay + weekend_ot_pay), holiday_pay, worked_holiday_pay, holiday_paid_twice: holiday_pay > 0 && worked_holiday_pay > 0, capped, gross_pay, total_deductions, net_pay: money(gross_pay - total_deductions) }
 }
