@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-13 08:30 — 026e02e — Payroll day: anyone timed in today is present all day
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `2771567` → `026e02e` (includes docs-only `d44fa18`): the payroll now counts today; anyone with a time-in today counts as a full shift (only a late morning arrival is charged as tardiness), and no time-in today means absent. On the cutoff's last day the wizard no longer says the cutoff isn't over.
+- Migrations: none
+- Backup: none (no schema or data change)
+- Data changes: none on live.
+- Verified: locally 428 of 433 PHP tests (5 GD-only) passed, with a new test that fails without the rule; Pint clean. On live: HEAD `026e02e`, login 200; a read-only check at 08:28 showed 9 of 11 people scheduled today at a full shift (Alexander A. Feria Jr. 5 min late), with Reynold D. Valdez and John Roy C. Sibal at 0 because they had not timed in yet.
+
 ## 2026-11-12 20:30 — 2771567 — Payroll review fixes (full verification)
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `1df74bf` → `2771567` (includes docs-only `8d157fc`): a full "late" day whose first punch is after lunch is charged its late minutes; Monday–Friday staff hired after a cutoff starts are paid only the weekdays from the hire date; the NWNP amount is capped at the whole absence; days present is rounded once; SSS/PhilHealth/Pag-IBIG are forced to 0 on the 2nd cutoff. Found by a fresh independent review of all payroll changes since `70a960b`; each fix has a test that failed before it.
