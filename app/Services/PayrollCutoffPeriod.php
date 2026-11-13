@@ -65,9 +65,10 @@ final class PayrollCutoffPeriod
         return $fromDay <= $toDay && $fromDay >= $start->toDateString() && $toDay <= $end->toDateString();
     }
 
+    /** The last day is payroll day: it is counted (anyone timed in is present), so the cutoff is complete then. */
     public static function isOver(CarbonInterface $to, CarbonInterface $today): bool
     {
-        return $today->toDateString() > $to->toDateString();
+        return $today->toDateString() >= $to->toDateString();
     }
 
     /** @return array{0: CarbonImmutable, 1: CarbonImmutable} */

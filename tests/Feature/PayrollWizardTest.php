@@ -264,8 +264,8 @@ class PayrollWizardTest extends TestCase
         Carbon::setTestNow('2026-11-10 09:00:00');
         $this->actingAs($this->admin)->post('/admin/payroll', $this->payload([], ['mock' => true]))->assertRedirect();
 
-        // Saved for real with real attendance only: Nov 3, 4 and 9 worked (24 h); no assumed days for Nov 10–13.
-        $this->assertEquals(24, Payroll::firstOrFail()->items()->firstOrFail()->paid_hours);
+        // Saved for real with real attendance only: Nov 3, 4, 9 and today (timed in) worked (32 h); no assumed days for Nov 11–13.
+        $this->assertEquals(32, Payroll::firstOrFail()->items()->firstOrFail()->paid_hours);
     }
 
     public function test_typed_hours_without_a_note_get_a_plain_message(): void

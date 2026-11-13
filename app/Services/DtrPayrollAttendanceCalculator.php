@@ -17,7 +17,7 @@ use Illuminate\Support\Collection;
 class DtrPayrollAttendanceCalculator
 {
     /**
-     * Paid hours per counted day: scheduled work days from the hire date up to yesterday, holidays included
+     * Paid hours per counted day: scheduled work days from the hire date up to today, holidays included
      * (not worked = no work, no pay). Hours are capped at that day's shift length.
      *
      * @param  Collection<int, Employee>  $employees
@@ -51,9 +51,9 @@ class DtrPayrollAttendanceCalculator
                     continue;
                 }
                 $shiftHours = EmployeeSchedule::shiftHoursFor($employeeId, $day);
-                // Today is not finished yet and future days have not happened: skipped, or assumed present in a mockup
+                // Future days have not happened: skipped, or assumed present in a mockup (today too)
                 // (holidays stay no work, no pay unless the shift is a two-punch store shift that works every day).
-                if ($date >= $today) {
+                if ($date > $today || ($assumePresent && $date === $today)) {
                     if ($assumePresent) {
                         $twoPunch = EmployeeSchedule::shiftFor($employeeId, $day)['two_punch'] ?? false;
                         $days[] = ['date' => $date, 'shift_hours' => $shiftHours, 'worked_hours' => $holidays->has($date) && ! $twoPunch ? 0.0 : $shiftHours, 'holiday' => $holidays->has($date), 'source' => 'assumed'];
@@ -71,7 +71,13 @@ class DtrPayrollAttendanceCalculator
                 // A complete day (on time, late or left early) pays the full shift: leaving early is never deducted,
                 // and a late arrival is charged only as tardiness (October formula), not as missing hours.
                 $lateMinutes = 0.0;
-                if ($log !== null && in_array($status, ['on_time', 'late', 'undertime'], true)) {
+                // Payroll day rule: payroll is given today, so anyone who has timed in today is present the whole day
+                // (only a late morning arrival is charged as tardiness). No time-in yet means absent today.
+                $timedInToday = $date === $today && ($log?->am_time_in || $log?->pm_time_in);
+                if ($timedInToday) {
+                    $worked = $shiftHours;
+                    $lateMinutes = $log->am_time_in ? $this->lateness($log)[1] : 0.0;
+                } elseif ($log !== null && in_array($status, ['on_time', 'late', 'undertime'], true)) {
                     $worked = $shiftHours;
                     if ($status === 'late') {
                         $lateMinutes = $this->lateness($log)[1];
@@ -80,7 +86,7 @@ class DtrPayrollAttendanceCalculator
                 // Always-present staff skip punching, not holidays: a holiday is no work, no pay for them too.
                 if ($log === null && Employee::isAlwaysPresent($employeeId) && ! $holidays->has($date)) {
                     $worked = $shiftHours;
-                } elseif (in_array($status, ['missing_out', 'in_progress'], true)) {
+                } elseif (! $timedInToday && in_array($status, ['missing_out', 'in_progress'], true)) {
                     $source = 'unresolved';
                     $worked = 0.0;
                 }

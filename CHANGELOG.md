@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Payroll day rule: the payroll now counts today. Anyone who has timed in today is present for the whole day (only a late morning arrival is charged as tardiness); someone with no time-in today is absent. On the cutoff's last day the wizard no longer says the cutoff isn't over yet.
 - Payroll step 3 has an "Overtime & holiday pay" panel at the top (approved weekday and rest-day overtime hours and the holiday premium for everyone) with an "Add a holiday" button for admins; the overtime tables under the sheet now just show the result.
 - A fourth signatory, "Noted by" (default Kurt Vincent F. Fariñas), on every sign-off block of the Excel and on the voucher; the export form has a Noted by picker.
 - Payroll runs has a "Make a mockup" button: the wizard opens in mockup mode (nothing can be saved), real DTR is used for past days and every remaining day up to the end date counts as present (holidays stay no work, no pay for office staff), and step 4 downloads the mockup Excel. It works even when the cutoff is already finalized.

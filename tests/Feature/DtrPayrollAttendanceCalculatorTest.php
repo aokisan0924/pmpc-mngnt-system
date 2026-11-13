@@ -105,9 +105,31 @@ class DtrPayrollAttendanceCalculatorTest extends TestCase
 
         $result = $this->hoursFor($employee, '2026-11-02', '2026-11-13');
 
-        // Nov 9, 10, 11 only: before hire and today/future are left out.
-        $this->assertSame(3.0, $result['days_of_work']);
+        // Nov 9-12 only: before hire and future days are left out (today counts, absent with no time-in).
+        $this->assertSame(4.0, $result['days_of_work']);
         $this->assertSame([], $result['unresolved_dates']);
+        Carbon::setTestNow();
+    }
+
+    public function test_payroll_day_counts_anyone_timed_in_today_as_a_full_day(): void
+    {
+        Carbon::setTestNow('2026-11-13 09:30:00');
+        $store = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        EmployeeSchedule::create(['employee_id' => $store->id, 'effective_from' => '2026-01-01', 'type' => 'two_punch', 'shift_start' => '06:00', 'shift_end' => '18:00', 'work_days' => '0,1,2,3,4,5,6']);
+        $late = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        $absent = Employee::factory()->create(['date_hired' => '2026-01-01']);
+        DtrLog::factory()->create(['employee_id' => $store->id, 'date' => '2026-11-13', 'am_time_in' => '05:58:00', 'am_time_out' => null, 'pm_time_in' => null, 'pm_time_out' => null, 'hours_rendered' => 0, 'status' => 'absent']);
+        DtrLog::factory()->create(['employee_id' => $late->id, 'date' => '2026-11-13', 'am_time_in' => '08:20:00', 'am_time_out' => null, 'pm_time_in' => null, 'pm_time_out' => null, 'hours_rendered' => 0, 'status' => 'absent']);
+
+        $storeDay = collect($this->hoursFor($store, '2026-11-13', '2026-11-13')['days'])->keyBy('date')['2026-11-13'];
+        $lateResult = $this->hoursFor($late, '2026-11-13', '2026-11-13');
+        $absentResult = $this->hoursFor($absent, '2026-11-13', '2026-11-13');
+
+        $this->assertSame(12.0, $storeDay['worked_hours']);
+        $this->assertSame(8.0, $lateResult['days'][0]['worked_hours']);
+        $this->assertSame(20.0, $lateResult['days'][0]['late_minutes']);
+        $this->assertSame([], $lateResult['unresolved_dates']);
+        $this->assertSame(0.0, $absentResult['days'][0]['worked_hours']);
         Carbon::setTestNow();
     }
 
