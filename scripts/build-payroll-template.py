@@ -206,6 +206,23 @@ def add_electricity_columns(ws):
         ws.cell(10, col + 1).value = 'ELECTRICITY'
 
 
+def add_adjustment_columns(ws):
+    """November 2026: an ADJUSTMENT column before each payroll grid's GROSS PAY and after every ELECTRICITY column.
+
+    It holds the difference from a gross or net HR typed on step 3 (an amount agreed with the employee).
+    """
+    spots = []
+    for c in ws[10]:
+        header = str(c.value or '').strip().upper()
+        if header == 'GROSS PAY':
+            spots.append((c.column, c.column - 1))
+        elif header == 'ELECTRICITY':
+            spots.append((c.column + 1, c.column))
+    for at, source in sorted(spots, reverse=True):
+        insert_column(ws, at, source)
+        ws.cell(10, at).value = 'ADJUSTMENT'
+
+
 def relayout_voucher(ws):
     """Voucher: Prepared by Reynold (C31) and Kurt (D31), Certified Correct by Katherine (H31)."""
     ws['D29'].value = None
@@ -236,6 +253,7 @@ def main():
         clean_office(ws)
         reorder_signoffs(ws)
         add_electricity_columns(ws)
+        add_adjustment_columns(ws)
     clean_voucher(wb.worksheets[4])
     relayout_voucher(wb.worksheets[4])
     wb.calculation.fullCalcOnLoad = False

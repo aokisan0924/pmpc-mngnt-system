@@ -69,4 +69,17 @@ class FinalizedEmployeePayslipTest extends TestCase
 
         $this->actingAs($employee)->get('/employee/payslips/2026-09')->assertOk();
     }
+
+    public function test_payslip_shows_both_adjustments_with_the_reason(): void
+    {
+        $employee = Employee::factory()->create();
+        $this->item($employee, 'finalized', 'first', 1234)->update(['earnings_adjustment' => 500, 'deductions_adjustment' => -100, 'adjustment_note' => 'Agreed with employee']);
+        $pdf = \Mockery::mock(\Barryvdh\DomPDF\PDF::class);
+        Pdf::shouldReceive('loadView')->once()->withArgs(fn ($view, $props) => (float) $props['data']['earnings_adjustment'] === 500.0
+            && (float) $props['data']['deductions_adjustment'] === -100.0 && $props['data']['adjustment_note'] === 'Agreed with employee')->andReturn($pdf);
+        $pdf->shouldReceive('setPaper')->andReturnSelf();
+        $pdf->shouldReceive('download')->once()->andReturn(response('%PDF-test', 200, ['Content-Type' => 'application/pdf']));
+
+        $this->actingAs($employee)->get('/employee/payslips/2026-09')->assertOk();
+    }
 }

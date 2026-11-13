@@ -268,6 +268,12 @@
                     <td class="amt">₱ {{ $p($d['first_holiday']) }}</td>
                 </tr>
                 @endif
+                @if(($d['first_adjustment'] ?? 0) != 0)
+                <tr class="indent">
+                    <td class="label">Adjustment{{ ($d['adjustment_note'] ?? '') !== '' ? ' ('.$d['adjustment_note'].')' : '' }}</td>
+                    <td class="amt">{{ $d['first_adjustment'] < 0 ? '(₱ '.$p(-$d['first_adjustment']).')' : '₱ '.$p($d['first_adjustment']) }}</td>
+                </tr>
+                @endif
                 <tr class="subtotal">
                     <td class="label">1st cutoff subtotal</td>
                     <td class="amt">₱ {{ $p($d['first_gross']) }}</td>
@@ -322,6 +328,12 @@
                 <tr class="indent">
                     <td class="label">Holiday pay</td>
                     <td class="amt">₱ {{ $p($d['second_holiday']) }}</td>
+                </tr>
+                @endif
+                @if(($d['second_adjustment'] ?? 0) != 0)
+                <tr class="indent">
+                    <td class="label">Adjustment{{ ($d['adjustment_note'] ?? '') !== '' ? ' ('.$d['adjustment_note'].')' : '' }}</td>
+                    <td class="amt">{{ $d['second_adjustment'] < 0 ? '(₱ '.$p(-$d['second_adjustment']).')' : '₱ '.$p($d['second_adjustment']) }}</td>
                 </tr>
                 @endif
                 <tr class="subtotal">
@@ -407,6 +419,12 @@
                 <tr class="indent">
                     <td class="label">Other</td>
                     <td class="amt neg">(₱ {{ $p($d['other']) }})</td>
+                </tr>
+                @endif
+                @if(($d['deductions_adjustment'] ?? 0) != 0)
+                <tr class="indent">
+                    <td class="label">Adjustment{{ ($d['adjustment_note'] ?? '') !== '' ? ' ('.$d['adjustment_note'].')' : '' }}</td>
+                    <td class="amt neg">{{ $d['deductions_adjustment'] < 0 ? '₱ '.$p(-$d['deductions_adjustment']).' less' : '(₱ '.$p($d['deductions_adjustment']).')' }}</td>
                 </tr>
                 @endif
                 <tr class="subtotal-ded">

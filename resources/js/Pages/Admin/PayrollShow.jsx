@@ -17,6 +17,7 @@ const earnings = {
     weekend_ot_pay: 'Rest-day overtime',
     holiday_pay: 'Holiday pay',
     worked_holiday_pay: 'Holiday work pay (DOLE)',
+    earnings_adjustment: 'Adjustment',
 }
 const deductions = {
     sss_deduction: 'SSS',
@@ -28,6 +29,7 @@ const deductions = {
     cash_advance_deduction: 'Cash advance',
     rental_deduction: 'Rental',
     electricity_deduction: 'Electricity',
+    deductions_adjustment: 'Adjustment',
     savings_deduction: 'Savings',
     other_deductions: 'Other deductions',
     tardiness_deduction: 'Tardiness',

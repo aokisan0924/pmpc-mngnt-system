@@ -219,6 +219,11 @@ class PayslipController extends Controller
         $secondGross = $second?->gross_pay ?? 0;
 
         $totalGross = $firstGross + $secondGross;
+        // Differences from a gross or net typed on step 3 (an amount agreed with the employee), shown on their own lines.
+        $firstAdjustment = $first?->earnings_adjustment ?? 0;
+        $secondAdjustment = $second?->earnings_adjustment ?? 0;
+        $deductionsAdjustment = ($first?->deductions_adjustment ?? 0) + ($second?->deductions_adjustment ?? 0);
+        $adjustmentNote = collect([$first?->adjustment_note, $second?->adjustment_note])->filter()->unique()->implode('; ');
 
         // Deductions — use whichever cutoff has the value (1st has govt, both have split)
         $sss = ($first?->sss_deduction ?? 0) + ($second?->sss_deduction ?? 0);
@@ -236,7 +241,7 @@ class PayslipController extends Controller
         $tardinessMinutes = ($first?->tardiness_minutes ?? 0) + ($second?->tardiness_minutes ?? 0);
 
         $govtSubtotal = $sss + $philhealth + $pagibig + $tax;
-        $otherSubtotal = $loan + $capitalContrib + $cashAdv + $rental + $electricity + $savings + $other + $tardiness;
+        $otherSubtotal = $loan + $capitalContrib + $cashAdv + $rental + $electricity + $savings + $other + $tardiness + $deductionsAdjustment;
         $totalDed = $govtSubtotal + $otherSubtotal;
         $netPay = $totalGross - $totalDed;
 
@@ -253,6 +258,7 @@ class PayslipController extends Controller
             'first_ot_weekday' => $firstOtWeekday,
             'first_ot_weekend' => $firstOtWeekend,
             'first_holiday' => $firstHoliday,
+            'first_adjustment' => $firstAdjustment,
             'first_gross' => $firstGross,
             // 2nd cutoff
             'second_period' => $second ? $second->payroll->period_from->format('M d').' – '.$second->payroll->period_to->format('M d, Y') : null,
@@ -263,6 +269,10 @@ class PayslipController extends Controller
             'second_ot_weekday' => $secondOtWeekday,
             'second_ot_weekend' => $secondOtWeekend,
             'second_holiday' => $secondHoliday,
+            'second_adjustment' => $secondAdjustment,
+            'earnings_adjustment' => $firstAdjustment + $secondAdjustment,
+            'deductions_adjustment' => $deductionsAdjustment,
+            'adjustment_note' => $adjustmentNote,
             'second_gross' => $secondGross,
             // Totals
             'total_gross' => $totalGross,

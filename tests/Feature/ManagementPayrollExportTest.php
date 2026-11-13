@@ -195,9 +195,9 @@ class ManagementPayrollExportTest extends TestCase
         $this->assertSame('Kurt Vincent F. Farinas', $main['F21']);
         $this->assertSame('FULL-STACK DEVELOPER', $main['F22']);
         $this->assertSame('Certified Correct:', $main['I19']);
-        $this->assertSame('Katherine Sevilleno', $main['J21']);
-        $this->assertSame('Approved by:', $main['L19']);
-        $this->assertSame('PRESIDENT', $main['L22']);
+        $this->assertSame('Katherine Sevilleno', $main['K21']);
+        $this->assertSame('Approved by:', $main['M19']);
+        $this->assertSame('PRESIDENT', $main['M22']);
         $this->assertNotContains('Noted by:', $main);
         $voucher = $this->sheetCells($path, 5);
         // October 2026 was voucher 0017, so November is 0018; payee as on the October voucher.
@@ -356,5 +356,36 @@ class ManagementPayrollExportTest extends TestCase
         $main = $this->sheetCells($this->exported($batch), 1);
 
         $this->assertEquals(543, $this->underHeader($main, 0, 'OVERTIME PAY', 11));
+    }
+
+    public function test_adjustments_have_their_own_columns_and_the_voucher_balances(): void
+    {
+        $batch = $this->batch('first');
+        // Earnings +500 (gross 7635), deductions -100 (275), net 7360.
+        $this->item($batch)->update(['earnings_adjustment' => 500, 'deductions_adjustment' => -100, 'gross_pay' => 7635, 'total_deductions' => 275, 'net_pay' => 7360]);
+
+        $path = $this->exported($batch);
+        $main = $this->sheetCells($path, 1);
+        $this->assertEquals(500, $this->underHeader($main, 0, 'ADJUSTMENT', 11));
+        $this->assertEquals(7635, $this->underHeader($main, 0, 'GROSS PAY', 11));
+        $this->assertEquals(-100, $this->underHeader($main, 3, 'ADJUSTMENT', 11));
+        $this->assertEquals(275, $this->underHeader($main, 3, 'TOTAL DEDUCTIONS', 11));
+        [$debit, $credit] = $this->journalTotals($main);
+        $this->assertEqualsWithDelta($debit, $credit, 0.001);
+        $voucher = $this->sheetCells($path, 5);
+        $this->assertEqualsWithDelta((float) $voucher['H28'], (float) $voucher['I28'], 0.001);
+    }
+
+    public function test_template_has_adjustment_columns_before_gross_and_after_electricity(): void
+    {
+        $path = resource_path('payroll/management-template.xlsx');
+        foreach (range(1, 4) as $sheet) {
+            $row = collect($this->sheetCells($path, $sheet))->filter(fn (string $text, string $address): bool => (bool) preg_match('/^[A-Z]+10$/', $address) && $text !== '')
+                ->sortKeysUsing(fn (string $a, string $b): int => strlen($a) <=> strlen($b) ?: strcmp($a, $b))->values()->all();
+            $this->assertSame(6, count(array_keys($row, 'EMPLOYEE NAME', true)), "sheet $sheet blocks");
+            $positions = array_keys($row, 'ADJUSTMENT', true);
+            $this->assertCount(6, $positions, "sheet $sheet adjustment columns");
+            $this->assertSame(['GROSS PAY', 'GROSS PAY', 'ELECTRICITY', 'ELECTRICITY', 'ELECTRICITY', 'ELECTRICITY'], array_map(fn (int $i): string => $i < 30 && $row[$i + 1] === 'GROSS PAY' ? 'GROSS PAY' : $row[$i - 1], $positions), "sheet $sheet");
+        }
     }
 }

@@ -273,29 +273,30 @@ class ManagementPayrollExport
         $basic = $item->basic_before_absence !== null ? $field('basic_before_absence') : round($field('cutoff_basic') + $absence, 2);
         $overtime = round($field('total_ot_pay') + $field('holiday_pay') + $field('worked_holiday_pay'), 2);
         $allowances = $field('cutoff_transpo') + $field('cutoff_rep') + $field('cutoff_quarterly');
-        $gross = round($basic + $overtime + $allowances - $gridNpw - $gridAbsent, 2);
+        $adjustment = $field('earnings_adjustment');
+        $gross = round($basic + $overtime + $allowances - $gridNpw - $gridAbsent + $adjustment, 2);
         $deductions = round($field('total_deductions') + $tableAbsent, 2);
         $net = $field('net_pay');
         if (abs(round($gross - $deductions - $net, 2)) >= 0.005) {
             $this->reject("The saved {$cutoff} cutoff item for {$name} does not balance: gross {$gross} minus deductions {$deductions} is not the net pay {$net}. Re-save that payroll before exporting.");
         }
-        $pesos = array_map($field, ['W/H TAX' => 'tax_deduction', 'SSS' => 'sss_deduction', 'PHILHEALTH' => 'philhealth_deduction', 'PAGIBIG' => 'pagibig_deduction', 'LOAN' => 'loan_deduction', 'CC' => 'capital_contribution_deduction', 'SAVINGS' => 'savings_deduction', 'CASH ADVANCE' => 'cash_advance_deduction', 'RENTAL' => 'rental_deduction', 'ELECTRICITY' => 'electricity_deduction']);
+        $pesos = array_map($field, ['W/H TAX' => 'tax_deduction', 'SSS' => 'sss_deduction', 'PHILHEALTH' => 'philhealth_deduction', 'PAGIBIG' => 'pagibig_deduction', 'LOAN' => 'loan_deduction', 'CC' => 'capital_contribution_deduction', 'SAVINGS' => 'savings_deduction', 'CASH ADVANCE' => 'cash_advance_deduction', 'RENTAL' => 'rental_deduction', 'ELECTRICITY' => 'electricity_deduction', 'ADJUSTMENT' => 'deductions_adjustment']);
         // HR types monthly figures in the govt source table: government shares as deducted, the rest twice the cutoff amount.
         $govt = [];
         foreach ($pesos as $header => $amount) {
-            $govt[$header] = in_array($header, ['SSS', 'PHILHEALTH', 'PAGIBIG'], true) ? $amount : round($amount * 2, 2);
+            $govt[$header] = in_array($header, ['SSS', 'PHILHEALTH', 'PAGIBIG', 'ADJUSTMENT'], true) ? $amount : round($amount * 2, 2);
         }
 
         return [
             'grid' => ['EMPLOYEE NAME' => $name, 'POSITION' => mb_strtoupper((string) $item->employee->position), 'DAYS OF WORK' => $field('days_present'), 'BASIC PAY' => $basic,
                 'OVERTIME PAY' => $overtime, 'TRANSPO ALLOW' => $field('cutoff_transpo'), 'REP ALLOW' => $field('cutoff_rep'), 'QUART ALLOW' => $field('cutoff_quarterly'),
-                'NPW- HOLIDAY' => $gridNpw, 'ABSENT' => $gridAbsent, 'GROSS PAY' => $gross, 'DEDUCTIONS' => $deductions, 'NET PAY' => $net],
+                'NPW- HOLIDAY' => $gridNpw, 'ABSENT' => $gridAbsent, 'ADJUSTMENT' => $adjustment, 'GROSS PAY' => $gross, 'DEDUCTIONS' => $deductions, 'NET PAY' => $net],
             'ded' => ['EMPLOYEE NAME' => $name] + $pesos + ['TARDINESS' => $field('tardiness_deduction'), 'ABSENT' => $tableAbsent, 'TOTAL DEDUCTIONS' => $deductions],
             'govt' => ['EMPLOYEE NAME' => $name] + $govt + ['ABSENT' => $field('absence_days'), 'TARDINESS' => $field('tardiness_minutes'),
                 'TOTAL DEDUCTIONS' => round(array_sum(array_intersect_key($govt, array_flip($govtHeaders))), 2)],
             'journal' => ['gross' => $gross, 'tax' => $pesos['W/H TAX'], 'sss' => $pesos['SSS'], 'philhealth' => $pesos['PHILHEALTH'], 'pagibig' => $pesos['PAGIBIG'],
                 'loan' => $pesos['LOAN'], 'cc' => $pesos['CC'], 'rental' => round($pesos['RENTAL'] + $pesos['ELECTRICITY'], 2), 'tardiness_absent' => $tableAbsent + $field('tardiness_deduction'),
-                'savings' => $pesos['SAVINGS'], 'cash' => $pesos['CASH ADVANCE'], 'other' => $field('other_deductions'), 'net' => $net],
+                'savings' => $pesos['SAVINGS'], 'cash' => $pesos['CASH ADVANCE'], 'other' => round($field('other_deductions') + $pesos['ADJUSTMENT'], 2), 'net' => $net],
         ];
     }
 
