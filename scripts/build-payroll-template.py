@@ -17,6 +17,8 @@ from pathlib import Path
 import openpyxl
 import openpyxl.reader.drawings
 from openpyxl.drawing.image import Image
+from openpyxl.formatting.formatting import ConditionalFormattingList
+from openpyxl.utils import column_index_from_string, get_column_letter
 from openpyxl.worksheet.cell_range import CellRange
 
 ROWS = 6
@@ -142,6 +144,68 @@ def reorder_signoffs(ws):
         c.value = names[old]
 
 
+def insert_column(ws, at, source):
+    """Insert one column at `at` (1-based) styled like `source`, shifting merges, widths, pictures and print area.
+
+    openpyxl's insert_cols moves only the cells, so everything else is moved here by hand.
+    """
+    widths = {}
+    for dim in ws.column_dimensions.values():
+        for i in range(dim.min or 1, (dim.max or dim.min or 1) + 1):
+            widths[i] = (dim.width, dim.hidden)
+    merged = [CellRange(str(r)) for r in ws.merged_cells.ranges]
+    for r in merged:
+        ws.unmerge_cells(str(r))
+    ws.insert_cols(at)
+    for r in merged:
+        if r.min_col >= at:
+            r.shift(col_shift=1)
+        elif r.max_col >= at:
+            r.expand(right=1)
+        ws.merge_cells(str(r))
+    for key in list(ws.column_dimensions.keys()):
+        del ws.column_dimensions[key]
+    for i, (width, hidden) in sorted(widths.items()):
+        target = i + 1 if i >= at else i
+        if width:
+            ws.column_dimensions[get_column_letter(target)].width = width
+        ws.column_dimensions[get_column_letter(target)].hidden = hidden
+    if source in widths and widths[source][0]:
+        ws.column_dimensions[get_column_letter(at)].width = widths[source][0]
+    for row in range(1, ws.max_row + 1):
+        ws.cell(row, at)._style = copy.copy(ws.cell(row, source)._style)
+    for image in ws._images:
+        for marker in (image.anchor._from, getattr(image.anchor, 'to', None)):
+            if marker is not None and marker.col >= at - 1:
+                marker.col += 1
+    formats = [(cf.sqref, cf.rules) for cf in ws.conditional_formatting]
+    ws.conditional_formatting = ConditionalFormattingList()
+    for sqref, rules in formats:
+        ranges = []
+        for r in sqref.ranges:
+            r = CellRange(r.coord)
+            if r.min_col >= at:
+                r.shift(col_shift=1)
+            elif r.max_col >= at:
+                r.expand(right=1)
+            ranges.append(r.coord)
+        for rule in rules:
+            ws.conditional_formatting.add(' '.join(ranges), rule)
+    if ws.print_area:
+        def shift(m):
+            col = column_index_from_string(m.group(1))
+            return '$' + get_column_letter(col + 1 if col >= at else col) + '$'
+        ws.print_area = re.sub(r'\$([A-Z]+)\$', shift, re.sub(r"'[^']*'!", '', ws.print_area))
+
+
+def add_electricity_columns(ws):
+    """November 2026: an ELECTRICITY column right after every RENTAL column (deduction and govt source tables)."""
+    rentals = [c.column for c in ws[10] if str(c.value or '').strip().upper().startswith('RENTAL')]
+    for col in sorted(rentals, reverse=True):
+        insert_column(ws, col + 1, col)
+        ws.cell(10, col + 1).value = 'ELECTRICITY'
+
+
 def relayout_voucher(ws):
     """Voucher: Prepared by Reynold (C31) and Kurt (D31), Certified Correct by Katherine (H31)."""
     ws['D29'].value = None
@@ -171,6 +235,7 @@ def main():
     for ws in wb.worksheets[:4]:
         clean_office(ws)
         reorder_signoffs(ws)
+        add_electricity_columns(ws)
     clean_voucher(wb.worksheets[4])
     relayout_voucher(wb.worksheets[4])
     wb.calculation.fullCalcOnLoad = False

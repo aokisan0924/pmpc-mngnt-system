@@ -279,7 +279,7 @@ class ManagementPayrollExport
         if (abs(round($gross - $deductions - $net, 2)) >= 0.005) {
             $this->reject("The saved {$cutoff} cutoff item for {$name} does not balance: gross {$gross} minus deductions {$deductions} is not the net pay {$net}. Re-save that payroll before exporting.");
         }
-        $pesos = array_map($field, ['W/H TAX' => 'tax_deduction', 'SSS' => 'sss_deduction', 'PHILHEALTH' => 'philhealth_deduction', 'PAGIBIG' => 'pagibig_deduction', 'LOAN' => 'loan_deduction', 'CC' => 'capital_contribution_deduction', 'SAVINGS' => 'savings_deduction', 'CASH ADVANCE' => 'cash_advance_deduction', 'RENTAL' => 'rental_deduction']);
+        $pesos = array_map($field, ['W/H TAX' => 'tax_deduction', 'SSS' => 'sss_deduction', 'PHILHEALTH' => 'philhealth_deduction', 'PAGIBIG' => 'pagibig_deduction', 'LOAN' => 'loan_deduction', 'CC' => 'capital_contribution_deduction', 'SAVINGS' => 'savings_deduction', 'CASH ADVANCE' => 'cash_advance_deduction', 'RENTAL' => 'rental_deduction', 'ELECTRICITY' => 'electricity_deduction']);
         // HR types monthly figures in the govt source table: government shares as deducted, the rest twice the cutoff amount.
         $govt = [];
         foreach ($pesos as $header => $amount) {
@@ -294,7 +294,7 @@ class ManagementPayrollExport
             'govt' => ['EMPLOYEE NAME' => $name] + $govt + ['ABSENT' => $field('absence_days'), 'TARDINESS' => $field('tardiness_minutes'),
                 'TOTAL DEDUCTIONS' => round(array_sum(array_intersect_key($govt, array_flip($govtHeaders))), 2)],
             'journal' => ['gross' => $gross, 'tax' => $pesos['W/H TAX'], 'sss' => $pesos['SSS'], 'philhealth' => $pesos['PHILHEALTH'], 'pagibig' => $pesos['PAGIBIG'],
-                'loan' => $pesos['LOAN'], 'cc' => $pesos['CC'], 'rental' => $pesos['RENTAL'], 'tardiness_absent' => $tableAbsent + $field('tardiness_deduction'),
+                'loan' => $pesos['LOAN'], 'cc' => $pesos['CC'], 'rental' => round($pesos['RENTAL'] + $pesos['ELECTRICITY'], 2), 'tardiness_absent' => $tableAbsent + $field('tardiness_deduction'),
                 'savings' => $pesos['SAVINGS'], 'cash' => $pesos['CASH ADVANCE'], 'other' => $field('other_deductions'), 'net' => $net],
         ];
     }

@@ -317,4 +317,34 @@ class ManagementPayrollExportTest extends TestCase
         }
         $zip->close();
     }
+
+    public function test_electricity_has_its_own_column_and_goes_to_rent_income(): void
+    {
+        $batch = $this->batch('first');
+        // Rental 500 and electricity 350 on top of the synthetic row (rental 40 replaced): deductions 375 - 40 + 850.
+        $this->item($batch)->update(['rental_deduction' => 500, 'electricity_deduction' => 350, 'total_deductions' => 1185, 'net_pay' => 5950]);
+
+        $path = $this->exported($batch);
+        $main = $this->sheetCells($path, 1);
+        $this->assertEquals(350, $this->underHeader($main, 3, 'ELECTRICITY', 11));
+        $this->assertEquals(500, $this->underHeader($main, 3, 'RENTAL', 11));
+        $this->assertEquals(1185, $this->underHeader($main, 3, 'TOTAL DEDUCTIONS', 11));
+        $this->assertEquals(850, $this->sheetCells($path, 5)['I23']);
+        [$debit, $credit] = $this->journalTotals($main);
+        $this->assertEqualsWithDelta($debit, $credit, 0.001);
+    }
+
+    public function test_template_has_an_electricity_column_right_after_every_rental_column(): void
+    {
+        $path = resource_path('payroll/management-template.xlsx');
+        foreach (range(1, 4) as $sheet) {
+            $row = collect($this->sheetCells($path, $sheet))->filter(fn (string $text, string $address): bool => (bool) preg_match('/^[A-Z]+10$/', $address) && $text !== '')
+                ->sortKeysUsing(fn (string $a, string $b): int => strlen($a) <=> strlen($b) ?: strcmp($a, $b))->values()->all();
+            $this->assertSame(6, count(array_keys($row, 'EMPLOYEE NAME', true)), "sheet $sheet blocks");
+            $this->assertSame(4, count(array_keys($row, 'ELECTRICITY', true)), "sheet $sheet electricity columns");
+            foreach (array_keys($row, 'ELECTRICITY', true) as $index) {
+                $this->assertStringStartsWith('RENTAL', $row[$index - 1], "sheet $sheet");
+            }
+        }
+    }
 }
