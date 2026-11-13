@@ -63,7 +63,7 @@ export default function PayrollWizard(props) {
     function refreshDtr(onDone) {
         const before = Object.fromEntries(employees.map((employee) => [employee.id, JSON.stringify(employee.days)]))
         router.reload({
-            only: ['employees', 'cutoff_open', 'counted_through'],
+            only: ['employees', 'cutoff_open', 'counted_through', 'payday_available', 'payday_on'],
             onSuccess: (page) => {
                 const names = page.props.employees.filter((employee) => before[employee.id] !== JSON.stringify(employee.days)).map((employee) => employee.full_name)
                 onDone?.(names)
@@ -132,7 +132,7 @@ export default function PayrollWizard(props) {
                 </ol>
 
                 {step === 1 && <StepCutoff {...props} />}
-                {step === 2 && <StepDtrCheck problems={problems} typedFor={typedFor} setTyped={setTyped} onRefresh={() => refreshDtr()} errors={form.errors} employees={employees} />}
+                {step === 2 && <StepDtrCheck problems={problems} typedFor={typedFor} setTyped={setTyped} onRefresh={() => refreshDtr()} errors={form.errors} employees={employees} payday={{ available: props.payday_available, on: props.payday_on, month: props.month, cutoff: props.cutoff }} />}
                 {step === 3 && <StepEntries {...props} rows={rows} setTyped={setTyped} errors={form.errors} />}
                 {step === 4 && <StepConfirm {...props} rows={rows} changed={changed} form={form} onSave={save} onMockup={downloadMockup} mockup={mockup} />}
 

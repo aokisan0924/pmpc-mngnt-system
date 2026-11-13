@@ -6,12 +6,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CreatePayrollRequest;
+use App\Http\Requests\Admin\StartPayrollDayRequest;
 use App\Http\Requests\Admin\StorePayrollRequest;
 use App\Models\Employee;
 use App\Models\Holiday;
 use App\Models\Payroll;
 use App\Services\ManagementPayrollExport;
 use App\Services\OfficePayrollCalculator;
+use App\Services\PayrollDayFiller;
 use App\Services\PayrollWizard;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -76,6 +78,13 @@ class PayrollController extends Controller
 
         return redirect()->route('admin.payroll.show', $payroll->id)
             ->with('success', $payroll->isFinalized() ? 'Payroll saved and finalized.' : 'Payroll saved.');
+    }
+
+    public function startPayday(StartPayrollDayRequest $request, PayrollDayFiller $filler): RedirectResponse
+    {
+        $filled = $filler->start();
+
+        return back()->with('success', 'Payroll day is on. '.$filled.' DTR '.str('day')->plural($filled).' filled in; anyone who times in later today is filled in automatically.');
     }
 
     public function mockupExport(StorePayrollRequest $request, PayrollWizard $wizard): BinaryFileResponse

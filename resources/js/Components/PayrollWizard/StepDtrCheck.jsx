@@ -1,12 +1,25 @@
-import { usePage } from '@inertiajs/react'
+import { useState } from 'react'
+import { router, usePage } from '@inertiajs/react'
 import Button from '@/Components/UI/Button'
 
 const dateLabel = (date) => new Date(`${date}T00:00:00`).toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: '2-digit' })
 const choiceClass = (active) => `min-h-[44px] rounded-xl border px-3 text-sm font-semibold ${active ? 'border-[#26215C] bg-[#26215C] text-white' : 'border-border bg-field text-text hover:border-slate-400'}`
 
-export default function StepDtrCheck({ problems, typedFor, setTyped, onRefresh, errors = {}, employees }) {
+export default function StepDtrCheck({ problems, typedFor, setTyped, onRefresh, errors = {}, employees, payday = {} }) {
     // Only admins can open the DTR pages; payroll processors type hours or ask an admin to fix the DTR.
-    const canFixDtr = usePage().props.auth?.employee?.role === 'super_admin'
+    const { props } = usePage()
+    const canFixDtr = props.auth?.employee?.role === 'super_admin'
+    const [startingPayday, setStartingPayday] = useState(false)
+    // Payroll day: everyone who timed in today, or times in later today, gets a full day on the DTR.
+    function startPayday() {
+        setStartingPayday(true)
+        router.post('/admin/payroll/payday', { month: payday.month, cutoff: payday.cutoff }, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => onRefresh(),
+            onFinish: () => setStartingPayday(false),
+        })
+    }
     function choose(employeeId, date, value) {
         const current = { ...(typedFor(employeeId)?.day_resolutions ?? {}) }
         if (value === null) delete current[date]
@@ -23,6 +36,19 @@ export default function StepDtrCheck({ problems, typedFor, setTyped, onRefresh, 
                 </div>
                 <Button variant="outline" onClick={onRefresh} className="min-h-[44px]">Refresh DTR</Button>
             </div>
+            {payday.available && (
+                <div className="rounded-xl border border-border bg-field p-4 text-sm">
+                    {payday.on
+                        ? <p role="status" className="font-semibold text-emerald-800 dark:text-emerald-300">✓ Payroll day is on: everyone who timed in today, or times in later today, gets a full day.</p>
+                        : (
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <p className="text-sub">Today is payroll day. Everyone who timed in today is present for the whole day.</p>
+                                <Button onClick={startPayday} disabled={startingPayday} className="min-h-[44px]">{startingPayday ? 'Filling in…' : "Payroll day: fill in today's DTR"}</Button>
+                            </div>
+                        )}
+                    {props.errors?.payday && <p role="alert" className="mt-2 text-rose-700">{props.errors.payday}</p>}
+                </div>
+            )}
             {problems.length === 0 && <p className="rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">✓ All DTR days are complete.</p>}
             <ul className="space-y-3">
                 {problems.map(({ employee, day }) => {

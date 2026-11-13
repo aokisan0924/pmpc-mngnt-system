@@ -97,6 +97,9 @@ class PayrollWizard
             // Still running: days through today are counted (today = timed in), so an early save is partial.
             'cutoff_open' => ! PayrollCutoffPeriod::isOver($to, today()),
             'counted_through' => today()->format('D, M d'),
+            // Payroll day button (step 2): only on the cutoff's last weekday, never in a mockup.
+            'payday_available' => ! $mock && PayrollCutoffPeriod::isPayrollDay($month, $cutoff),
+            'payday_on' => app(PayrollDayFiller::class)->isOn(),
             'draft_id' => $draft?->id,
             'offices' => OfficePayrollCalculator::OFFICES,
             'signatories' => $this->signatories($isFirst),

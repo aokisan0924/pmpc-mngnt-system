@@ -65,6 +65,12 @@ final class PayrollCutoffPeriod
         return $fromDay <= $toDay && $fromDay >= $start->toDateString() && $toDay <= $end->toDateString();
     }
 
+    /** Today is the cutoff's last weekday, the day the payroll is given. */
+    public static function isPayrollDay(string $month, string $cutoff): bool
+    {
+        return today()->toDateString() === self::suggest($month, $cutoff)['to']->toDateString();
+    }
+
     /** The last day is payroll day: it is counted (anyone timed in is present), so the cutoff is complete then. */
     public static function isOver(CarbonInterface $to, CarbonInterface $today): bool
     {

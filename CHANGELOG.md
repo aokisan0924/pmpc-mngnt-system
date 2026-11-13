@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Management Excel sign-offs: "Noted by" is gone. Every block now reads Prepared by Reynold D. Valdez and Kurt Vincent F. Fariñas (side by side), Certified Correct by Katherine Sevilleno, and Approved by the President last. The voucher shows both preparers and Katherine. The export form and the payroll step 3 preview have a "Prepared by (2nd)" choice instead of "Noted by".
 
 ### Added
+- Payroll day button on payroll step 2 (admin and Katherine, last weekday of the cutoff only): fills in today's DTR for everyone who timed in (office 12:00 / 1:00 / 5:00, or 4:00 on Fridays; store staff their own clock-out), and anyone who times in later that day is filled in automatically.
 - Payroll day rule: the payroll now counts today. Anyone who has timed in today is present for the whole day (only a late morning arrival is charged as tardiness); someone with no time-in today is absent. On the cutoff's last day the wizard no longer says the cutoff isn't over yet.
 - Payroll step 3 has an "Overtime & holiday pay" panel at the top (approved weekday and rest-day overtime hours and the holiday premium for everyone) with an "Add a holiday" button for admins; the overtime tables under the sheet now just show the result.
 - A fourth signatory, "Noted by" (default Kurt Vincent F. Fariñas), on every sign-off block of the Excel and on the voucher; the export form has a Noted by picker.

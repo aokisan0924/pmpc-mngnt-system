@@ -131,6 +131,45 @@ class PayrollDayFillerTest extends TestCase
         $this->assertSame(['10:00:00', '12:00:00', '13:00:00', '16:00:00'], [$log->am_time_in, $log->am_time_out, $log->pm_time_in, $log->pm_time_out]);
     }
 
+    public function test_admin_and_katherine_can_start_payroll_day_on_the_last_weekday(): void
+    {
+        Carbon::setTestNow('2026-11-13 09:00:00');
+        config(['pmpc.payroll_processors' => ['EMP-0003']]);
+        $admin = Employee::factory()->superAdmin()->create(['is_staff' => false]);
+        $katherine = Employee::factory()->create(['employee_id' => 'EMP-0003']);
+        $regular = Employee::factory()->create();
+        $log = $this->timedIn($regular, '2026-11-13', ['am_time_in' => '08:00:00']);
+        $body = ['month' => '2026-11', 'cutoff' => 'first'];
+
+        $this->actingAs($admin)->post('/admin/payroll/payday', $body)->assertRedirect()->assertSessionHas('success');
+        $this->assertSame('16:00:00', $log->refresh()->pm_time_out);
+        $this->actingAs($katherine)->post('/admin/payroll/payday', $body)->assertRedirect()->assertSessionHasNoErrors();
+        // Like every payroll page, anyone else is sent back to their own dashboard.
+        $this->actingAs($regular)->post('/admin/payroll/payday', $body)->assertRedirect(route('employee.dashboard'));
+    }
+
+    public function test_payroll_day_is_refused_on_other_days(): void
+    {
+        Carbon::setTestNow('2026-11-12 09:00:00');
+        $admin = Employee::factory()->superAdmin()->create(['is_staff' => false]);
+
+        $this->actingAs($admin)->post('/admin/payroll/payday', ['month' => '2026-11', 'cutoff' => 'first'])->assertSessionHasErrors('payday');
+        $this->assertNull(Setting::get('payroll_day'));
+    }
+
+    public function test_wizard_shows_the_payroll_day_button_only_on_the_last_weekday(): void
+    {
+        $admin = Employee::factory()->superAdmin()->create(['is_staff' => false]);
+        $props = fn (string $query): array => $this->actingAs($admin)->get("/admin/payroll/create?month=2026-11&cutoff=first$query")->viewData('page')['props'];
+
+        Carbon::setTestNow('2026-11-13 09:00:00');
+        $this->assertTrue($props('')['payday_available']);
+        $this->assertFalse($props('')['payday_on']);
+        $this->assertFalse($props('&mock=1')['payday_available']);
+        Carbon::setTestNow('2026-11-12 09:00:00');
+        $this->assertFalse($props('')['payday_available']);
+    }
+
     public function test_old_payroll_day_does_not_fill_today(): void
     {
         Setting::set('payroll_day', '2026-11-12');

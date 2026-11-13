@@ -198,6 +198,7 @@ Route::middleware(['auth', 'payroll'])
         Route::get('/payroll/create', [PayrollController::class, 'create'])->name('payroll.create');
         Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
         Route::post('/payroll/mockup-export', [PayrollController::class, 'mockupExport'])->name('payroll.mockup-export');
+        Route::post('/payroll/payday', [PayrollController::class, 'startPayday'])->name('payroll.payday');
         Route::get('/payroll/{payroll}', [PayrollController::class, 'show'])->name('payroll.show');
         Route::get('/payroll/{payroll}/export', ManagementPayrollExportController::class)->name('payroll.export');
         Route::post('/payroll/{payroll}/finalize', [PayrollController::class, 'finalize'])->name('payroll.finalize');
