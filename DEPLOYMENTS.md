@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-13 11:36 — 6952131 — Step 3: type overtime, holiday work pay, gross and net, with adjustments
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `2e2f9d4` → `6952131` (includes docs-only commits): on payroll step 3, weekday and rest-day overtime pay, holiday work pay, gross pay and net pay can be typed in pesos. A typed gross or net becomes a visible Adjustment (earnings or deductions, with an optional reason). It has new ADJUSTMENT columns in the management Excel (before GROSS PAY, after ELECTRICITY); the deductions adjustment goes to the voucher's Other Income line; both show on the payslip. Sign-off labels were kept next to their names. General Merchandise rows note that their Excel gross is after Absent. Reviewed by a fresh reviewer; its important finding and the label drift were fixed.
+- Migrations: `2026_11_13_000004_add_adjustments_to_payroll_items` (adds `earnings_adjustment`, `deductions_adjustment`, `adjustment_note`)
+- Backup: `~/backups/pmpc-20261113-1136-before-adjustments.sql` (1.1 MB, complete) on the server
+- Data changes: none (0 payroll batches before and after). The trial export ran in a rolled-back transaction and left no file.
+- Verified: locally 473 of 478 PHP tests (5 GD-only) and 49 JS tests passed; Pint and build clean. On live: HEAD `6952131`, login 200, migration ran, and a rolled-back trial export of the November 1st cutoff, with a typed gross ₱10,000 and net ₱9,000 on one employee, built and balanced, with 4 ELECTRICITY and 6 ADJUSTMENT headers on each office sheet. Not checked in a browser: the step 3 screen.
+
 ## 2026-11-13 10:14 — 2e2f9d4 — Step 3: electricity, type over any number, DOLE holiday work pay
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `fcabecb` → `2e2f9d4` (includes docs-only commits): payroll step 3 gets a typed Electricity deduction (own ELECTRICITY column after every RENTAL column in the management Excel, added into the voucher's Rent Income, shown on the payslip); every step 3 number can be typed over (blue with ↺ undo, saved with that payroll only; absences capped at basic pay); SSS/PhilHealth/Pag-IBIG typed on the 2nd cutoff are deducted; DOLE holiday work pay is added automatically (special/announced 130%, rest day 150%; regular 200%, rest day 260%; hours after 8 × 130%; hourly = daily ÷ shift hours; only what basic pay doesn't cover), from the DTR or hours typed per holiday. Reviewed by a fresh reviewer; its 4 important findings were fixed with tests.
