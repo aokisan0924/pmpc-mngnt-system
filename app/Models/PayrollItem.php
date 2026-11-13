@@ -39,6 +39,7 @@ class PayrollItem extends Model
         'weekend_ot_pay',
         'total_ot_pay',
         'holiday_pay',
+        'worked_holiday_pay',
         'tardiness_minutes',
         'gross_pay',
         'sss_deduction',
@@ -49,6 +50,7 @@ class PayrollItem extends Model
         'capital_contribution_deduction',
         'cash_advance_deduction',
         'rental_deduction',
+        'electricity_deduction',
         'savings_deduction',
         'other_deductions',
         'total_deductions',
@@ -56,6 +58,8 @@ class PayrollItem extends Model
         'paid_hours',
         'scheduled_hours',
         'day_resolutions',
+        'overrides',
+        'holiday_hours',
     ];
 
     protected $casts = [
@@ -91,6 +95,10 @@ class PayrollItem extends Model
         'capital_contribution_deduction' => 'float',
         'cash_advance_deduction' => 'float',
         'rental_deduction' => 'float',
+        'electricity_deduction' => 'float',
+        'worked_holiday_pay' => 'float',
+        'overrides' => 'array',
+        'holiday_hours' => 'array',
         'savings_deduction' => 'float',
         'other_deductions' => 'float',
         'total_deductions' => 'float',

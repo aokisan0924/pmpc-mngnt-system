@@ -391,6 +391,12 @@
                     <td class="label">Rental</td>
                     <td class="amt neg">{{ $d['rental'] > 0 ? '(₱ '.$p($d['rental']).')' : '—' }}</td>
                 </tr>
+                @if(($d['electricity'] ?? 0) > 0)
+                <tr class="indent">
+                    <td class="label">Electricity</td>
+                    <td class="amt neg">(₱ {{ $p($d['electricity']) }})</td>
+                </tr>
+                @endif
                 @if(($d['tardiness'] ?? 0) > 0)
                 <tr class="indent">
                     <td class="label">Tardiness{{ ($d['tardiness_minutes'] ?? 0) > 0 ? ' ('.rtrim(rtrim(number_format($d['tardiness_minutes'], 1), '0'), '.').' mins)' : '' }}</td>

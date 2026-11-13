@@ -144,6 +144,7 @@ class PayrollController extends Controller
                 'loan_deduction' => $item->loan_deduction,
                 'cash_advance_deduction' => $item->cash_advance_deduction,
                 'rental_deduction' => $item->rental_deduction,
+                'electricity_deduction' => $item->electricity_deduction,
                 'savings_deduction' => $item->savings_deduction,
                 'capital_contribution_deduction' => $item->capital_contribution_deduction,
                 'other_deductions' => $item->other_deductions,

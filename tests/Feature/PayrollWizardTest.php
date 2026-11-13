@@ -278,4 +278,20 @@ class PayrollWizardTest extends TestCase
             ->assertSessionHasErrors(['items.0.day_resolutions' => "Type the hours {$this->staff->full_name} worked on Nov 11."]);
         $this->assertSame(0, Payroll::count());
     }
+
+    public function test_electricity_is_typed_per_cutoff_and_deducted(): void
+    {
+        $this->actingAs($this->admin)->get('/admin/payroll/create?month=2026-11&cutoff=first')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('employees.0.deductions.electricity_deduction', 0));
+        $this->post('/admin/payroll', $this->payload())->assertRedirect();
+        $without = Payroll::firstOrFail()->items()->firstOrFail();
+
+        $this->post('/admin/payroll', $this->payload(['deductions' => array_replace($this->payload()['items'][0]['deductions'], ['electricity_deduction' => 350])]))->assertRedirect();
+
+        $item = Payroll::firstOrFail()->items()->firstOrFail();
+        $this->assertEquals(350, $item->electricity_deduction);
+        $this->assertEqualsWithDelta($without->total_deductions + 350, $item->total_deductions, 0.001);
+        $this->assertEqualsWithDelta($without->net_pay - 350, $item->net_pay, 0.001);
+        $this->assertArrayNotHasKey('electricity_deduction', $this->staff->fresh()->getAttributes());
+    }
 }

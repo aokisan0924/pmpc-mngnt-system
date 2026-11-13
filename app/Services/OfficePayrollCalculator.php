@@ -11,7 +11,7 @@ class OfficePayrollCalculator
     public const DEDUCTIONS = [
         'sss_deduction', 'philhealth_deduction', 'pagibig_deduction', 'tax_deduction',
         'loan_deduction', 'capital_contribution_deduction', 'cash_advance_deduction',
-        'rental_deduction', 'savings_deduction', 'other_deductions',
+        'rental_deduction', 'electricity_deduction', 'savings_deduction', 'other_deductions',
     ];
 
     public const OFFICES = [
@@ -76,6 +76,8 @@ class OfficePayrollCalculator
         foreach (['loan_deduction', 'capital_contribution_deduction', 'cash_advance_deduction', 'rental_deduction', 'savings_deduction', 'other_deductions'] as $field) {
             $amounts[$field] = round((float) $employee->{$field} / 2, 2);
         }
+        // The electricity bill changes every month: typed on step 3, never from the employee record.
+        $amounts['electricity_deduction'] = 0.0;
         foreach ($inputs['deductions'] ?? [] as $field => $value) {
             if (in_array($field, self::DEDUCTIONS, true)) {
                 $amounts[$field] = round((float) $value, 2);

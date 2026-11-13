@@ -124,7 +124,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                         <p className="text-center text-base font-bold text-black dark:text-white">GOVT &amp; OTHER DEDUCTIONS</p>
                         <table className="mt-1 w-full border-collapse text-xs">
                             <thead>
-                                <tr>{['Employee name', 'W/H tax', 'SSS', 'PhilHealth', 'Pag-IBIG', 'Loan', 'CC', 'Cash advance', 'Absent', 'Late', 'Rental', 'Total'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
+                                <tr>{['Employee name', 'W/H tax', 'SSS', 'PhilHealth', 'Pag-IBIG', 'Loan', 'CC', 'Cash advance', 'Absent', 'Late', 'Rental', 'Electricity', 'Total'].map((label) => <th key={label} className={th}>{label}</th>)}</tr>
                             </thead>
                             <tbody>
                                 {visible.map((row) => (
@@ -140,6 +140,7 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                             {Number(row.tardiness_minutes) > 0 && <span className="block text-[11px] font-normal text-slate-600 dark:text-slate-400">{row.tardiness_minutes} min</span>}
                                         </td>
                                         <td className={td}>{peso(row.deductions.rental_deduction)}</td>
+                                        <Cell label={`Electricity for ${row.full_name}`} value={row.deductions.electricity_deduction ?? 0} onChange={(value) => deduction(row, 'electricity_deduction', value)} error={err(row, 'deductions.electricity_deduction')} />
                                         <td className={strong}>{peso(row.sheet_deductions)}</td>
                                     </tr>
                                 ))}

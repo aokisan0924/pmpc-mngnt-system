@@ -56,3 +56,9 @@ test('days present rounded once, like the server (879.81, 11 days, 1 hour missin
     const row = calculateHoursItem(item({ daily_rate: 879.81, fixed_days: 11, days: days(8, [7, ...Array(10).fill(8)]) }), true)
     assert.equal(row.days_present, 10.87)
 })
+
+test('typed electricity is a deduction', () => {
+    const without = calculateHoursItem(item({ days: days(8, [8]) }), true)
+    const withBill = calculateHoursItem(item({ days: days(8, [8]), deductions: { sss_deduction: 500, tax_deduction: 850, loan_deduction: 0, electricity_deduction: 350 } }), true)
+    assert.equal(withBill.net_pay, without.net_pay - 350)
+})

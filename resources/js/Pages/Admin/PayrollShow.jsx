@@ -26,6 +26,7 @@ const deductions = {
     capital_contribution_deduction: 'Capital contribution',
     cash_advance_deduction: 'Cash advance',
     rental_deduction: 'Rental',
+    electricity_deduction: 'Electricity',
     savings_deduction: 'Savings',
     other_deductions: 'Other deductions',
     tardiness_deduction: 'Tardiness',
