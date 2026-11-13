@@ -2,7 +2,15 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
-## 2026-11-13 09:20 — d027cb4 — Excel sign-offs: two preparers, President last
+## 2026-11-13 09:16 — fcabecb — Payroll day button
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `d027cb4` → `fcabecb` (includes docs-only `dca3069`, `c59bb15`): a "Payroll day: fill in today's DTR" button on payroll step 2 (admin and Katherine, cutoff's last weekday only). Pressing it fills the remaining punches for everyone timed in today (office 12:00 / 1:00 / 5:00, 4:00 on Fridays; store staff their own clock-out; overnight shifts and active absence notices skipped; existing punches never changed), and any time-in later that day is filled at once. Reviewed by a fresh reviewer; its overnight-shift finding was fixed with a test.
+- Migrations: none (uses the `settings` row `payroll_day`)
+- Backup: none (no schema or data change)
+- Data changes: none on live; the button has not been pressed.
+- Verified: locally 442 of 447 PHP tests (5 GD-only), Pint and build clean; the button was pressed on a local test database and filled a test DTR day to 8:04 / 12:00 / 1:00 / 4:00 (status late). On live: HEAD `fcabecb`, login 200, the November 1st cutoff is recognised as payroll day today, payroll day not yet on, route `/admin/payroll/payday` present. Earlier entries' times corrected from the server's git reflog (08:26, 09:00).
+
+## 2026-11-13 09:00 — d027cb4 — Excel sign-offs: two preparers, President last
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `9bcc193` → `d027cb4`: management Excel sign-offs now read Prepared by Reynold D. Valdez and Kurt Vincent F. Fariñas side by side, Certified Correct by Katherine Sevilleno, Approved by the President last; "Noted by" removed. The voucher shows both preparers (C31, D31) and Katherine (H31). The export form and step 3 preview show "Prepared by (2nd)".
 - Migrations: none
@@ -10,7 +18,7 @@ What happened on the live site, https://peoplescoopdtr.online, newest first. `CH
 - Data changes: none on live.
 - Verified: locally 428 of 433 PHP tests (5 GD-only) passed, including the updated sign-off test; build and Pint clean; the template keeps its logos. On live: HEAD `d027cb4`, login 200, default signatories resolve to Reynold D. Valdez, Kurt Vincent Fernando Fariñas, Katherine Sevilleno and Alexander L. Feria; 0 payroll batches.
 
-## 2026-11-13 08:30 — 026e02e — Payroll day: anyone timed in today is present all day
+## 2026-11-13 08:26 — 026e02e — Payroll day: anyone timed in today is present all day
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `2771567` → `026e02e` (includes docs-only `d44fa18`): the payroll now counts today; anyone with a time-in today counts as a full shift (only a late morning arrival is charged as tardiness), and no time-in today means absent. On the cutoff's last day the wizard no longer says the cutoff isn't over.
 - Migrations: none
