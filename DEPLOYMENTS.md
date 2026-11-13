@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-13 10:16 — 2e2f9d4 — Step 3: electricity, type over any number, DOLE holiday work pay
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `fcabecb` → `2e2f9d4` (includes docs-only commits): payroll step 3 gets a typed Electricity deduction (own ELECTRICITY column after every RENTAL column in the management Excel, added into the voucher's Rent Income, shown on the payslip); every step 3 number can be typed over (blue with ↺ undo, saved with that payroll only; absences capped at basic pay); SSS/PhilHealth/Pag-IBIG typed on the 2nd cutoff are deducted; DOLE holiday work pay is added automatically (special/announced 130%, rest day 150%; regular 200%, rest day 260%; hours after 8 × 130%; hourly = daily ÷ shift hours; only what basic pay doesn't cover), from the DTR or hours typed per holiday. Reviewed by a fresh reviewer; its 4 important findings were fixed with tests.
+- Migrations: `2026_11_13_000003_add_step3_edit_fields_to_payroll_items` (adds `electricity_deduction`, `worked_holiday_pay`, `overrides`, `holiday_hours` to `payroll_items`)
+- Backup: `~/backups/pmpc-20261113-1014-before-step3.sql` (1.1 MB, complete) on the server
+- Data changes: none. Before deploying, live had 0 payroll batches, so no saved draft changes on re-save. The trial export ran inside a rolled-back transaction, and its temp file was deleted.
+- Verified: locally 464 of 469 PHP tests (5 GD-only) and 46 JS tests passed; Pint and build clean. On live: HEAD `2e2f9d4`, login 200, the four new columns exist, and a rolled-back trial export of the November 1st cutoff built and balanced (the export rejects any unbalanced row or journal), with 4 ELECTRICITY headers on each office sheet; 0 payrolls afterwards. Not checked in a browser: the step 3 screen itself (the in-app browser pane was hidden).
+
 ## 2026-11-13 09:16 — fcabecb — Payroll day button
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `d027cb4` → `fcabecb` (includes docs-only `dca3069`, `c59bb15`): a "Payroll day: fill in today's DTR" button on payroll step 2 (admin and Katherine, cutoff's last weekday only). Pressing it fills the remaining punches for everyone timed in today (office 12:00 / 1:00 / 5:00, 4:00 on Fridays; store staff their own clock-out; overnight shifts and active absence notices skipped; existing punches never changed), and any time-in later that day is filled at once. Reviewed by a fresh reviewer; its overnight-shift finding was fixed with a test.
