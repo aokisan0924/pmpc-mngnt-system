@@ -47,6 +47,10 @@ class PayrollDayFiller
         }
 
         $shift = EmployeeSchedule::shiftFor($employeeId, $log->date);
+        // Overnight shift: its clock-out is tomorrow morning; a filled one would turn that punch into a stray time-in.
+        if ($shift !== null && $shift['end'] < $shift['start']) {
+            return false;
+        }
         // Same end time the DTR status uses (DtrLog::computeHoursAndStatus): offices close at 4pm on Fridays.
         $end = substr((string) ($shift['end'] ?? ($log->date->isFriday() ? '16:00' : Setting::get('shift_end', '17:00'))), 0, 5).':00';
         $fill = $log->isTwoPunch()

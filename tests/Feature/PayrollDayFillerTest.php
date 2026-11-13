@@ -106,6 +106,42 @@ class PayrollDayFillerTest extends TestCase
         $this->assertSame(0, $notice->refresh()->punchesCount());
     }
 
+    public function test_overnight_shift_is_not_filled(): void
+    {
+        // Its clock-out lands tomorrow morning; filling it would make that punch a stray time-in.
+        Carbon::setTestNow('2026-11-13 21:55:00');
+        $night = Employee::factory()->create();
+        EmployeeSchedule::create(['employee_id' => $night->id, 'effective_from' => '2026-01-01', 'type' => 'two_punch', 'shift_start' => '22:00', 'shift_end' => '06:00', 'work_days' => '0,1,2,3,4,5,6']);
+        $log = $this->timedIn($night, '2026-11-13', ['am_time_in' => '21:55:00']);
+
+        $this->assertSame(0, app(PayrollDayFiller::class)->start());
+        $this->assertNull($log->refresh()->pm_time_out);
+    }
+
+    public function test_time_in_with_an_active_absence_notice_is_not_filled(): void
+    {
+        Carbon::setTestNow('2026-11-13 09:00:00');
+        $log = $this->timedIn(Employee::factory()->create(), '2026-11-13', ['am_time_in' => '08:00:00', 'absence_reason' => 'Sick']);
+
+        $this->assertSame(0, app(PayrollDayFiller::class)->start());
+        $this->assertNull($log->refresh()->pm_time_out);
+    }
+
+    public function test_an_open_punch_screen_is_refused_after_the_fill(): void
+    {
+        Carbon::setTestNow('2026-11-13 09:00:00');
+        $employee = Employee::factory()->create();
+        $this->timedIn($employee, '2026-11-13', ['am_time_in' => '08:00:00']);
+        $service = app(AttendancePunchService::class);
+        $stale = $service->currentLog($employee);
+        $screen = ['request_id' => (string) Str::uuid(), 'expected_slot' => $stale->getNextPunchSlot(), 'expected_version' => $service->version($employee, $stale)];
+
+        app(PayrollDayFiller::class)->start();
+
+        $this->actingAs($employee)->post(route('employee.dtr.punch'), $screen)->assertSessionHasErrors();
+        $this->assertSame('12:00:00', DtrLog::where('employee_id', $employee->id)->value('am_time_out'));
+    }
+
     public function test_pressing_twice_changes_nothing(): void
     {
         Carbon::setTestNow('2026-11-13 09:00:00');
