@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-13 12:01 — dec2d82 — Excel letterhead: logo beside the address
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `f3435a7` → `dec2d82` (includes docs-only commits): in the management Excel template, every table that carries the address lines now has the logo at its left edge with the address right beside it (left-aligned); tables that had no logo, such as the 2nd cutoff grid, get a copy. The voucher is unchanged. Checked visually by rendering the template to PDF with WPS Spreadsheets.
+- Migrations: none
+- Backup: none (no schema or data change)
+- Data changes: none.
+- Verified: locally 475 of 480 PHP tests (5 GD-only) passed, including a new letterhead test. On live: HEAD `dec2d82`, umask 0022, 0 tracked files at 600, login and JS/CSS 200; the finalized November 1st cutoff payroll (id 19) exported (1.35 MB, larger because each letterhead carries its own logo), the file was deleted, and the payroll is still finalized.
+
 ## 2026-11-13 11:53 — f3435a7 — Excel column widths restored
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `6952131` → `f3435a7` (includes docs-only commits): the management Excel template had lost every column width when today's ELECTRICITY and ADJUSTMENT columns were inserted (names squeezed, amounts shown as ####). The template was rebuilt from the morning version with the column inserts fixed. Names are now 30 wide and every amount column at least 15; layout, print areas, logos and sign-offs are unchanged. A test now checks the widths.
