@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-13 — no code change — Fix white site (file permissions from the 11:36 deploy)
+- By: Claude Code (SSH key), reported by Kurt
+- Code: none (HEAD stays `6952131`)
+- Migrations: none
+- Backup: none (permissions only)
+- Data changes: none. The 11:36 deploy ran the backup and `git pull` in one SSH session after `umask 077`, so the 76 files the pull wrote (including `public/build/assets/*.js` and `*.css`) were created owner-only (600) and the `scripts` folder 700. PHP still worked (same user), but the web server returned 403 for the JS and CSS, so pages loaded white. Fixed with `chmod 644` on exactly those tracked files and `chmod 755 scripts`. Undo: not needed. Lesson: never set `umask` in the same session as `git pull`.
+- Verified: 0 tracked files left at 600; `git status` clean; login 200; `app-CC6o4fW2.js` and `app-BwxU5lyi.css` 200. The November 1st cutoff payroll (id 19), saved and finalized by Kurt at 11:38 with 12 employees and net ₱73,503.23, is intact.
+
 ## 2026-11-13 11:36 — 6952131 — Step 3: type overtime, holiday work pay, gross and net, with adjustments
 - By: Claude Code (SSH key), requested by Kurt
 - Code: `2e2f9d4` → `6952131` (includes docs-only commits): on payroll step 3, weekday and rest-day overtime pay, holiday work pay, gross pay and net pay can be typed in pesos. A typed gross or net becomes a visible Adjustment (earnings or deductions, with an optional reason). It has new ADJUSTMENT columns in the management Excel (before GROSS PAY, after ELECTRICITY); the deductions adjustment goes to the voucher's Other Income line; both show on the payslip. Sign-off labels were kept next to their names. General Merchandise rows note that their Excel gross is after Absent. Reviewed by a fresh reviewer; its important finding and the label drift were fixed.
