@@ -2,6 +2,14 @@
 
 What happened on the live site, https://peoplescoopdtr.online, newest first. `CHANGELOG.md` records what changed in the code; this file records when it reached the live site and every change made directly to live data.
 
+## 2026-11-13 11:53 — f3435a7 — Excel column widths restored
+- By: Claude Code (SSH key), requested by Kurt
+- Code: `6952131` → `f3435a7` (includes docs-only commits): the management Excel template had lost every column width when today's ELECTRICITY and ADJUSTMENT columns were inserted (names squeezed, amounts shown as ####). The template was rebuilt from the morning version with the column inserts fixed. Names are now 30 wide and every amount column at least 15; layout, print areas, logos and sign-offs are unchanged. A test now checks the widths.
+- Migrations: none
+- Backup: none (no schema or data change)
+- Data changes: none.
+- Verified: locally 474 of 479 PHP tests (5 GD-only) passed. On live: HEAD `f3435a7`; the deploy ran in its own SSH call with umask 0022; 0 tracked files at 600; login, `app-CC6o4fW2.js` and `app-BwxU5lyi.css` return 200. The finalized November 1st cutoff payroll (id 19) exported fine with the name column at width 30; the file was deleted afterwards and the payroll is unchanged (finalized, last updated 11:38).
+
 ## 2026-11-13 — no code change — Fix white site (file permissions from the 11:36 deploy)
 - By: Claude Code (SSH key), reported by Kurt
 - Code: none (HEAD stays `6952131`)
