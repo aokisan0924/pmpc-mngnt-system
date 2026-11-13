@@ -415,4 +415,30 @@ class ManagementPayrollExportTest extends TestCase
         }
         $zip->close();
     }
+
+    public function test_every_letterhead_has_the_logo_right_beside_the_address(): void
+    {
+        $path = resource_path('payroll/management-template.xlsx');
+        $zip = new ZipArchive;
+        $zip->open($path);
+        foreach (range(1, 4) as $sheet) {
+            $rels = (string) $zip->getFromName("xl/worksheets/_rels/sheet$sheet.xml.rels");
+            preg_match('#Target="/?(?:xl/|\.\./)?(drawings/drawing\d+\.xml)"#', $rels, $match);
+            $drawing = new DOMDocument;
+            $drawing->loadXML($zip->getFromName('xl/'.$match[1]));
+            $logos = [];
+            foreach ($drawing->getElementsByTagNameNS('http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing', 'from') as $from) {
+                $ns = 'http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing';
+                $logos[] = [(int) $from->getElementsByTagNameNS($ns, 'col')->item(0)->textContent, (int) $from->getElementsByTagNameNS($ns, 'row')->item(0)->textContent];
+            }
+            $addresses = collect($this->sheetCells($path, $sheet))->filter(fn (string $text, string $address): bool => (bool) preg_match('/^[A-Z]+3$/', $address) && str_starts_with($text, '(Main Office)'))->keys();
+            $this->assertGreaterThan(0, $addresses->count(), "sheet $sheet has letterheads");
+            foreach ($addresses as $address) {
+                $column = array_reduce(str_split(rtrim($address, '3')), fn (int $sum, string $char): int => $sum * 26 + ord($char) - 64, 0);
+                // The logo starts two columns before the address (0-based col = address column - 3), on row 1.
+                $this->assertContains([$column - 3, 0], $logos, "sheet $sheet: logo beside the address at $address");
+            }
+        }
+        $zip->close();
+    }
 }

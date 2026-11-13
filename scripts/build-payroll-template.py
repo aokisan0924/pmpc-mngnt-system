@@ -10,6 +10,7 @@ Keeps only pictures anchored in rows 1-4 (the PMPC logos); every lower picture i
 """
 
 import copy
+import io
 import re
 import sys
 from pathlib import Path
@@ -18,6 +19,7 @@ import openpyxl
 import openpyxl.reader.drawings
 from openpyxl.drawing.image import Image
 from openpyxl.formatting.formatting import ConditionalFormattingList
+from openpyxl.styles import Alignment
 from openpyxl.worksheet.dimensions import ColumnDimension, DimensionHolder
 from openpyxl.utils import column_index_from_string, get_column_letter
 from openpyxl.worksheet.cell_range import CellRange
@@ -262,6 +264,42 @@ def widen_for_reading(ws):
             dim.width = minimum
 
 
+def logo_beside_address(ws):
+    """Letterhead per table: the logo at the table's left edge and the three address lines right beside it.
+
+    Tables without a logo of their own get a copy of the sheet's logo. Address lines move to the third column
+    of the table (names and positions are 30 wide, so the logo fits in the first two) and are left-aligned.
+    """
+    blocks = sorted(c.column for c in ws[10] if str(c.value or '').strip().upper() == 'EMPLOYEE NAME')
+    addresses = [c.column for c in ws[3] if str(c.value or '').startswith('(Main Office)')]
+    logos = [image for image in ws._images if image.anchor._from.row <= 3]
+    if not logos:
+        return
+    model = next((image for image in logos if not hasattr(image.anchor, 'to') or image.anchor.to is None), logos[0])
+    used = set()
+    for column in addresses:
+        start = max([b for b in blocks if b <= column] or [column])
+        target = start + 2
+        for row in (3, 4, 5):
+            source = ws.cell(row, column)
+            if target != column:
+                cell = ws.cell(row, target)
+                cell.value, cell._style = source.value, copy.copy(source._style)
+                source.value = None
+            ws.cell(row, target).alignment = Alignment(horizontal='left', vertical='center')
+        logo = next((image for image in logos if id(image) not in used and start - 2 <= image.anchor._from.col <= column - 1), None)
+        if logo is None:
+            logo = Picture(io.BytesIO(model.ref))
+            logo.anchor = copy.deepcopy(model.anchor)
+            ws.add_image(logo)
+        used.add(id(logo))
+        delta = (start - 1) - logo.anchor._from.col
+        logo.anchor._from.col, logo.anchor._from.colOff = start - 1, 0
+        logo.anchor._from.row, logo.anchor._from.rowOff = 0, 0
+        if getattr(logo.anchor, 'to', None) is not None:
+            logo.anchor.to.col += delta
+
+
 def relayout_voucher(ws):
     """Voucher: Prepared by Reynold (C31) and Kurt (D31), Certified Correct by Katherine (H31)."""
     ws['D29'].value = None
@@ -294,6 +332,7 @@ def main():
         add_electricity_columns(ws)
         add_adjustment_columns(ws)
         widen_for_reading(ws)
+        logo_beside_address(ws)
     clean_voucher(wb.worksheets[4])
     relayout_voucher(wb.worksheets[4])
     wb.calculation.fullCalcOnLoad = False
