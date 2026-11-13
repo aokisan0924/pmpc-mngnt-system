@@ -219,8 +219,16 @@ def add_adjustment_columns(ws):
         elif header == 'ELECTRICITY':
             spots.append((c.column + 1, c.column))
     for at, source in sorted(spots, reverse=True):
+        # A sign-off label left of the new column whose name is right of it would drift apart: move it along.
+        labels = [c for row in ws.iter_rows(min_row=18) for c in row
+                  if c.column < at and str(c.value or '').strip().endswith(':')
+                  and any(str(ws.cell(c.row + 2, col).value or '').startswith('{{') for col in range(at, c.column + 4))]
         insert_column(ws, at, source)
         ws.cell(10, at).value = 'ADJUSTMENT'
+        for label in labels:
+            target = ws.cell(label.row, label.column + 1)
+            if target.value in (None, ''):
+                target.value, label.value = label.value, None
 
 
 def relayout_voucher(ws):

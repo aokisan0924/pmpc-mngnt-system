@@ -168,6 +168,9 @@ export default function StepEntries({ rows, offices, period_title, holidays, sig
                                                     aria-label={`Reason for the adjustment for ${row.full_name}`} onChange={(event) => setTyped(row.id, 'adjustment_note', event.target.value)}
                                                     className="mt-1 block h-9 w-44 rounded border border-border bg-yellow-50 px-2 text-left text-[11px] text-black dark:bg-yellow-950/40 dark:text-slate-100" />
                                             )}
+                                            {row.payroll_office === 'gen_mdse' && typedOver(row, 'gross_pay') && Number(row.other_absence) > 0 && (
+                                                <span className="mt-1 block max-w-[176px] whitespace-normal text-left text-[11px] text-amber-800 dark:text-amber-300">General Merchandise's Excel shows gross after Absent: {peso(Number(row.sheet_gross) - Number(row.other_absence))}.</span>
+                                            )}
                                         </td>
                                         {Over({ row, field: 'gross_pay', label: 'Gross pay (typed: the difference becomes an adjustment)', shown: row.sheet_gross })}
                                         <td className={td}>{peso(row.sheet_deductions)}</td>

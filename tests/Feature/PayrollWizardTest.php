@@ -330,4 +330,18 @@ class PayrollWizardTest extends TestCase
 
         $this->assertEquals($net, Payroll::firstOrFail()->items()->firstOrFail()->net_pay);
     }
+
+    public function test_typed_gross_and_net_save_visible_adjustments_with_the_reason(): void
+    {
+        $this->actingAs($this->admin)->post('/admin/payroll', $this->payload())->assertRedirect();
+        $system = Payroll::firstOrFail()->items()->firstOrFail();
+
+        $this->post('/admin/payroll', $this->payload(['overrides' => ['net_pay' => round($system->net_pay + 100, 2)], 'adjustment_note' => 'Agreed with employee']))->assertRedirect();
+
+        $item = Payroll::firstOrFail()->items()->firstOrFail();
+        $this->assertEqualsWithDelta($system->net_pay + 100, $item->net_pay, 0.001);
+        $this->assertEqualsWithDelta(-100, $item->deductions_adjustment, 0.001);
+        $this->assertSame('Agreed with employee', $item->adjustment_note);
+        $this->assertFileExists(app(ManagementPayrollExport::class)->export(Payroll::firstOrFail()));
+    }
 }

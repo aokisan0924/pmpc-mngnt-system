@@ -194,7 +194,7 @@ class ManagementPayrollExportTest extends TestCase
         $this->assertSame('Reynold D. Valdez', $main['B21']);
         $this->assertSame('Kurt Vincent F. Farinas', $main['F21']);
         $this->assertSame('FULL-STACK DEVELOPER', $main['F22']);
-        $this->assertSame('Certified Correct:', $main['I19']);
+        $this->assertSame('Certified Correct:', $main['J19']);
         $this->assertSame('Katherine Sevilleno', $main['K21']);
         $this->assertSame('Approved by:', $main['M19']);
         $this->assertSame('PRESIDENT', $main['M22']);
