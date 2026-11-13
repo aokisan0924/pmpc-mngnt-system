@@ -12,6 +12,7 @@ use DOMDocument;
 use DOMElement;
 use DOMXPath;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 use ZipArchive;
@@ -20,6 +21,9 @@ use ZipArchive;
 class ManagementPayrollExport
 {
     private ?\WeakMap $indexes = null;
+
+    /** @var array<int, array{0: array<int, float>, 1: float}> sheet number => [row heights in points, default height] */
+    private array $rowHeights = [];
 
     private const NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
 
@@ -101,6 +105,8 @@ class ManagementPayrollExport
                 throw new \RuntimeException('Could not open the management template.');
             }
             $month = [];
+            // Prepared by name cells per sheet: [column, row, person]; the signature picture goes above each.
+            $signed = [];
             foreach (self::SHEETS as $office => $sheet) {
                 $doc = $this->document($zip->getFromName('xl/worksheets/sheet'.$sheet.'.xml'));
                 $texts = $this->texts($doc);
@@ -181,6 +187,9 @@ class ManagementPayrollExport
                         $cutoff = $second ? 'second' : 'first';
                         $person = $batches->firstWhere('cutoff', $cutoff) ? $people->get($signatories[$cutoff][$marker[1]] ?? null) : null;
                         $this->put($doc, $address, ($marker[2] ?? '') === '_title' ? ($person ? mb_strtoupper((string) $person->position) : null) : ($person ? $this->signName($person) : null));
+                        if ($marker[1] === 'prepared' && ($marker[2] ?? '') === '' && $person !== null) {
+                            $signed[$sheet][] = [$col, self::split($address)[1], $person];
+                        }
                     }
                 }
                 $sums = array_map(fn (float|int $sum): float => round($sum, 2), $sums);
@@ -201,6 +210,7 @@ class ManagementPayrollExport
                         $this->put($doc, self::letter(2 + $j).($detail + 1 + $offset), $value);
                     }
                 }
+                $this->rememberRowHeights($sheet, $doc);
                 $zip->addFromString('xl/worksheets/sheet'.$sheet.'.xml', $doc->saveXML());
             }
             $voucher = $this->document($zip->getFromName('xl/worksheets/sheet5.xml'));
@@ -233,7 +243,12 @@ class ManagementPayrollExport
             // October 2026 was voucher 0017; each month after counts up by one.
             $months = (int) CarbonImmutable::create(2026, 10, 1)->diffInMonths($selected->period_from->copy()->startOfMonth(), false);
             $this->put($voucher, 'I11', sprintf('%04d', max(1, 17 + $months)));
+            $this->rememberRowHeights(5, $voucher);
             $zip->addFromString('xl/worksheets/sheet5.xml', $voucher->saveXML());
+            if ($preparer = $people->get($signatories[$selected->cutoff]['prepared'] ?? null)) {
+                $signed[5][] = [3, 31, $preparer];
+            }
+            $this->addSignatures($zip, $signed);
             $book = $this->document($zip->getFromName('xl/workbook.xml'));
             $xpath = new DOMXPath($book);
             $xpath->registerNamespace('s', self::NS);
@@ -393,6 +408,134 @@ class ManagementPayrollExport
         preg_match('/^([A-Z]+)(\d+)$/', $address, $parts);
 
         return [self::column($parts[1]), (int) $parts[2]];
+    }
+
+    /**
+     * Kurt, 2026-11-13: the Prepared by signature is printed above that name (Certified and Approved stay names
+     * only). The uploaded picture is put on white and trimmed to its ink. Without GD or an uploaded signature the
+     * sheet keeps the name alone.
+     *
+     * @param  array<int, list<array{0: int, 1: int, 2: Employee}>>  $signed  sheet number => [column, row, person]
+     */
+    private function addSignatures(ZipArchive $zip, array $signed): void
+    {
+        $media = [];
+        foreach ($signed as $sheet => $spots) {
+            $anchors = [];
+            foreach ($spots as [$col, $row, $person]) {
+                $id = (int) $person->id;
+                if (! array_key_exists($id, $media)) {
+                    $png = $this->trimmedSignature($person);
+                    $media[$id] = $png === null ? null : ['name' => "signature-prepared-$id.png", 'size' => getimagesizefromstring($png)];
+                    if ($png !== null) {
+                        $zip->addFromString("xl/media/signature-prepared-$id.png", $png);
+                    }
+                }
+                if ($media[$id] !== null) {
+                    $anchors[] = [$col, $row, $media[$id]];
+                }
+            }
+            if ($anchors !== []) {
+                $this->anchorPictures($zip, $sheet, $anchors);
+            }
+        }
+        if (array_filter($media) !== []) {
+            $types = $this->document($zip->getFromName('[Content_Types].xml'));
+            $defaults = array_map(fn (DOMElement $node): string => strtolower($node->getAttribute('Extension')), iterator_to_array($types->getElementsByTagName('Default')));
+            if (! in_array('png', $defaults, true)) {
+                $node = $types->createElementNS($types->documentElement->namespaceURI, 'Default');
+                $node->setAttribute('Extension', 'png');
+                $node->setAttribute('ContentType', 'image/png');
+                $types->documentElement->insertBefore($node, $types->documentElement->firstChild);
+                $zip->addFromString('[Content_Types].xml', $types->saveXML());
+            }
+        }
+    }
+
+    private function rememberRowHeights(int $sheet, DOMDocument $doc): void
+    {
+        $format = $doc->getElementsByTagName('sheetFormatPr')->item(0);
+        $heights = [];
+        foreach ($doc->getElementsByTagName('row') as $rowNode) {
+            if ($rowNode->getAttribute('ht') !== '') {
+                $heights[(int) $rowNode->getAttribute('r')] = (float) $rowNode->getAttribute('ht');
+            }
+        }
+        $this->rowHeights[$sheet] = [$heights, (float) ($format?->getAttribute('defaultRowHeight') ?: 15)];
+    }
+
+    private function trimmedSignature(Employee $employee): ?string
+    {
+        if (! function_exists('imagecreatefromstring') || ! $employee->signature_path || ! Storage::disk('local')->exists($employee->signature_path)) {
+            return null;
+        }
+        $source = @imagecreatefromstring((string) Storage::disk('local')->get($employee->signature_path));
+        if ($source === false) {
+            return null;
+        }
+        [$width, $height] = [imagesx($source), imagesy($source)];
+        $canvas = imagecreatetruecolor($width, $height);
+        imagefill($canvas, 0, 0, imagecolorallocate($canvas, 255, 255, 255));
+        imagecopy($canvas, $source, 0, 0, 0, 0, $width, $height);
+        imagedestroy($source);
+        $cropped = imagecropauto($canvas, IMG_CROP_THRESHOLD, 0.5, 0xFFFFFF);
+        if ($cropped !== false) {
+            imagedestroy($canvas);
+            $canvas = $cropped;
+        }
+        ob_start();
+        imagepng($canvas);
+        imagedestroy($canvas);
+
+        return (string) ob_get_clean();
+    }
+
+    /** @param  list<array{0: int, 1: int, 2: array{name: string, size: array<int, int>}}>  $anchors */
+    private function anchorPictures(ZipArchive $zip, int $sheet, array $anchors): void
+    {
+        $sheetRels = $this->document($zip->getFromName("xl/worksheets/_rels/sheet$sheet.xml.rels"));
+        $drawingPath = null;
+        foreach ($sheetRels->getElementsByTagName('Relationship') as $rel) {
+            if (str_ends_with($rel->getAttribute('Type'), '/drawing')) {
+                $drawingPath = 'xl/drawings/'.basename($rel->getAttribute('Target'));
+            }
+        }
+        if ($drawingPath === null) {
+            return;
+        }
+        $drawing = $this->document($zip->getFromName($drawingPath));
+        $relsPath = dirname($drawingPath).'/_rels/'.basename($drawingPath).'.rels';
+        $rels = $this->document($zip->getFromName($relsPath));
+        // Row heights (points) decide how tall the picture may be: it fills the label row and the blank row above the name.
+        [$heights, $defaultHeight] = $this->rowHeights[$sheet] ?? [[], 15.0];
+        $nextId = 1000;
+        foreach ($anchors as $index => [$col, $row, $picture]) {
+            $relId = 'rIdPreparedSignature'.$index;
+            $rel = $rels->createElementNS($rels->documentElement->namespaceURI, 'Relationship');
+            $rel->setAttribute('Id', $relId);
+            $rel->setAttribute('Type', 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image');
+            $rel->setAttribute('Target', '../media/'.$picture['name']);
+            $rels->documentElement->appendChild($rel);
+            // About 0.45 in tall (at most 1.8 in wide), above the name. On the office sheets the "Prepared by:" label
+            // shares the name's column, so the picture starts 1 in to the right of it; on the voucher the label has its own column.
+            [$width, $height] = $picture['size'];
+            $space = (($heights[$row - 2] ?? $defaultHeight) + ($heights[$row - 1] ?? $defaultHeight)) * 12700;
+            $cy = (int) min(411480, $space * 0.9);
+            $cx = (int) round($cy * $width / max(1, $height));
+            if ($cx > 1645920) {
+                [$cx, $cy] = [1645920, (int) round(1645920 * $height / max(1, $width))];
+            }
+            $xml = '<xdr:oneCellAnchor xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+                .'<xdr:from><xdr:col>'.($col - 1).'</xdr:col><xdr:colOff>'.($sheet === 5 ? 0 : 914400).'</xdr:colOff><xdr:row>'.($row - 3).'</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>'
+                .'<xdr:ext cx="'.$cx.'" cy="'.$cy.'"/><xdr:pic><xdr:nvPicPr><xdr:cNvPr id="'.($nextId + $index).'" name="Prepared by signature"/><xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr>'
+                .'<xdr:blipFill><a:blip r:embed="'.$relId.'"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill>'
+                .'<xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="'.$cx.'" cy="'.$cy.'"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic><xdr:clientData/></xdr:oneCellAnchor>';
+            $fragment = new DOMDocument;
+            $fragment->loadXML($xml, LIBXML_NONET);
+            $drawing->documentElement->appendChild($drawing->importNode($fragment->documentElement, true));
+        }
+        $zip->addFromString($drawingPath, $drawing->saveXML());
+        $zip->addFromString($relsPath, $rels->saveXML());
     }
 
     private function document(string|false $xml): DOMDocument

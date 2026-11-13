@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Holiday work pay (DOLE): anyone who works a holiday gets the DOLE rate automatically. Rates: special/announced 130%, or 150% on a rest day; regular 200%, or 260% on a rest day. Each hour past 8 is paid × 130% more. Hourly rate = daily rate ÷ shift hours. Only what the day's basic pay doesn't already cover is added. Hours come from the DTR; HR types them per holiday only when there are no punches. The amount goes into OVERTIME PAY in the Excel.
 
 ### Changed
+- Management Excel: the Prepared by person's uploaded signature (Reynold by default) is printed above their name on every office sheet and on the voucher, trimmed to the ink and sized to the space. Certified Correct and Approved by stay names only.
 - Management Excel letterhead: every table that carries the address now has the logo at its left edge with the three address lines right beside it (tables that had no logo get one); before, the logo sat far left and the address far right.
 - SSS, PhilHealth and Pag-IBIG on the 2nd cutoff still start at 0, but an amount typed on step 3 is now deducted.
 - Management Excel sign-offs: "Noted by" is gone. Every block now reads Prepared by Reynold D. Valdez and Kurt Vincent F. Fariñas (side by side), Certified Correct by Katherine Sevilleno, and Approved by the President last. The voucher shows both preparers and Katherine. The export form and the payroll step 3 preview have a "Prepared by (2nd)" choice instead of "Noted by".

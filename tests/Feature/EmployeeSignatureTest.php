@@ -62,17 +62,25 @@ class EmployeeSignatureTest extends TestCase
         $this->assertEmpty(Storage::disk('local')->allFiles());
     }
 
-    public function test_export_prints_signatory_names_but_never_signature_pictures(): void
+    public function test_export_prints_the_prepared_by_signature_but_no_other_signature_pictures(): void
     {
+        // Kurt, 2026-11-13: the Prepared by signature is printed above the name; Certified and Approved stay names only.
         Storage::fake('local');
         $admin = Employee::factory()->superAdmin()->create(['first_name' => 'Synthetic', 'last_name' => 'Signatory']);
-        $image = imagecreatetruecolor(300, 80);
-        imagefill($image, 0, 0, imagecolorallocate($image, 255, 255, 255));
-        ob_start();
-        imagepng($image);
-        $png = ob_get_clean();
-        imagedestroy($image);
-        $this->actingAs($admin)->post(route('admin.employees.signature.store', $admin), ['signature' => UploadedFile::fake()->createWithContent('signature.png', $png)])->assertSessionHasNoErrors();
+        $other = Employee::factory()->create(['first_name' => 'Other', 'last_name' => 'Signer']);
+        $signature = function (): string {
+            $image = imagecreatetruecolor(300, 400);
+            imagefill($image, 0, 0, imagecolorallocate($image, 255, 255, 255));
+            imagefilledrectangle($image, 60, 180, 240, 210, imagecolorallocate($image, 0, 0, 0));
+            ob_start();
+            imagepng($image);
+            imagedestroy($image);
+
+            return (string) ob_get_clean();
+        };
+        foreach ([$admin, $other] as $person) {
+            $this->actingAs($admin)->post(route('admin.employees.signature.store', $person), ['signature' => UploadedFile::fake()->createWithContent('signature.png', $signature())])->assertSessionHasNoErrors();
+        }
         $batch = Payroll::create(['period_label' => 'September second', 'period_from' => '2026-09-16', 'period_to' => '2026-09-30', 'cutoff' => 'second', 'status' => 'draft', 'created_by' => $admin->id]);
         foreach (['main_office', 'fort_magsaysay', 'gen_mdse', 'cubao'] as $office) {
             $employee = Employee::factory()->create(['daily_rate' => 600]);
@@ -80,15 +88,24 @@ class EmployeeSignatureTest extends TestCase
             $batch->items()->create([...$values, 'employee_id' => $employee->id, 'cutoff' => 'second', 'payroll_office' => $office]);
         }
 
-        $path = app(ManagementPayrollExport::class)->export($batch->fresh(), ['second' => ['prepared' => $admin->id, 'certified' => $admin->id, 'approved' => $admin->id]]);
+        $path = app(ManagementPayrollExport::class)->export($batch->fresh(), ['second' => ['prepared' => $admin->id, 'prepared_2' => $other->id, 'certified' => $other->id, 'approved' => $other->id]]);
         try {
             $zip = new ZipArchive;
             $zip->open($path);
             $template = new ZipArchive;
             $template->open(resource_path('payroll/management-template.xlsx'));
-            // Same pictures as the template (logos only); no signature media.
             $media = fn (ZipArchive $archive): array => array_values(array_filter(array_map(fn (int $i): string => $archive->getNameIndex($i), range(0, $archive->numFiles - 1)), fn (string $name): bool => str_starts_with($name, 'xl/media/')));
-            $this->assertSame($media($template), $media($zip));
+            // Exactly one picture more than the template: the Prepared by signature, trimmed to its ink.
+            $added = array_values(array_diff($media($zip), $media($template)));
+            $this->assertCount(1, $added);
+            [$width, $height] = getimagesizefromstring($zip->getFromName($added[0]));
+            $this->assertLessThan(200, $height);
+            $this->assertGreaterThan($height, $width);
+            foreach (range(1, 5) as $sheet) {
+                $rels = (string) $zip->getFromName("xl/worksheets/_rels/sheet$sheet.xml.rels");
+                preg_match('#Target="/?(?:xl/|\.\./)?(drawings/drawing\d+\.xml)"#', $rels, $match);
+                $this->assertGreaterThanOrEqual(1, substr_count((string) $zip->getFromName('xl/'.$match[1]), 'name="Prepared by signature"'), "sheet $sheet");
+            }
             $this->assertStringContainsString('Synthetic Signatory', $zip->getFromName('xl/worksheets/sheet1.xml'));
             $template->close();
             $zip->close();
